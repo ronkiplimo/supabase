@@ -19,7 +19,7 @@ export function FrameworksSectionClient({ frameworks }: { frameworks: Framework[
 
   return (
     <div className="border-b border-border">
-      <div className="dark mx-auto max-w-[var(--container-max-w,75rem)] pl-6 border-x border-border bg-background text-white">
+      <div className="dark mx-auto max-w-[var(--container-max-w,75rem)] pl-6 border-x border-border bg-background dark:bg-muted/50 text-white">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
           {/* Left: title */}
           <div className="flex items-center py-16 lg:py-24 pr-6">

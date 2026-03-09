@@ -52,7 +52,11 @@ type PartnerDetailsFormProps = {
   }
 }
 
-export function PartnerDetailsForm({ partnerId, partnerSlug, defaultValues }: PartnerDetailsFormProps) {
+export function PartnerDetailsForm({
+  partnerId,
+  partnerSlug,
+  defaultValues,
+}: PartnerDetailsFormProps) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const fieldsDisabled = isPending
@@ -91,7 +95,8 @@ export function PartnerDetailsForm({ partnerId, partnerSlug, defaultValues }: Pa
       try {
         await updatePartnerAction(formData)
       } catch (submitError) {
-        const message = submitError instanceof Error ? submitError.message : 'Unable to save partner details'
+        const message =
+          submitError instanceof Error ? submitError.message : 'Unable to save partner details'
         setError(message)
       }
     })
@@ -135,7 +140,12 @@ export function PartnerDetailsForm({ partnerId, partnerSlug, defaultValues }: Pa
                   description="Tell users what your partner account publishes."
                 >
                   <FormControl className="col-span-8">
-                    <TextArea id="partner-description" rows={4} disabled={fieldsDisabled} {...field} />
+                    <TextArea
+                      id="partner-description"
+                      rows={4}
+                      disabled={fieldsDisabled}
+                      {...field}
+                    />
                   </FormControl>
                 </FormItemLayout>
               )}
@@ -198,11 +208,16 @@ export function PartnerDetailsForm({ partnerId, partnerSlug, defaultValues }: Pa
 
           <CardFooter className="justify-end gap-3">
             {isDirty && (
-              <Button type="button" variant="outline" onClick={handleCancel} disabled={fieldsDisabled}>
+              <Button
+                htmlType="button"
+                type="outline"
+                onClick={handleCancel}
+                disabled={fieldsDisabled}
+              >
                 Cancel
               </Button>
             )}
-            <Button type="submit" disabled={!isDirty || isPending}>
+            <Button htmlType="submit" disabled={!isDirty || isPending}>
               {isPending ? 'Saving...' : 'Save partner details'}
             </Button>
           </CardFooter>

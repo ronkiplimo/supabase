@@ -213,6 +213,40 @@ begin
 end;
 $$;
 
+-- Auth hook: restrict marketplace signups to internal Supabase emails.
+create or replace function public.before_user_created_hook(event jsonb)
+returns jsonb
+language plpgsql
+stable
+as $$
+declare
+  email text := lower(trim(coalesce(event->'user'->>'email', event->>'email', '')));
+  domain text;
+begin
+  if email = '' or position('@' in email) = 0 then
+    return jsonb_build_object(
+      'error', jsonb_build_object(
+        'message', 'A valid @supabase.io email address is required to sign up.',
+        'http_code', 403
+      )
+    );
+  end if;
+
+  domain := split_part(email, '@', 2);
+
+  if domain <> 'supabase.io' then
+    return jsonb_build_object(
+      'error', jsonb_build_object(
+        'message', 'Only @supabase.io email addresses can sign up.',
+        'http_code', 403
+      )
+    );
+  end if;
+
+  return event;
+end;
+$$;
+
 -- Items represent marketplace entries shown after approval.
 create table public.items (
   id bigint generated always as identity primary key,
@@ -572,6 +606,9 @@ revoke all on function public.storage_object_partner_id(text) from public;
 revoke all on function public.storage_object_item_id(text) from public;
 grant execute on function public.storage_object_partner_id(text) to authenticated;
 grant execute on function public.storage_object_item_id(text) to authenticated;
+grant usage on schema public to supabase_auth_admin;
+grant execute on function public.before_user_created_hook(jsonb) to supabase_auth_admin;
+revoke execute on function public.before_user_created_hook(jsonb) from authenticated, anon, public;
 
 insert into storage.buckets (id, name, public)
 values

@@ -58,7 +58,7 @@ describe('ProjectOAuthIntegrationsBanner', () => {
 
     expect(
       screen.getByText(
-        'This project is connected to Lovable. Dashboard changes can affect connected tools in this organization.'
+        'This project is integrated with Lovable and dashboard changes may impact this project'
       )
     ).toBeInTheDocument()
 
@@ -84,7 +84,7 @@ describe('ProjectOAuthIntegrationsBanner', () => {
 
     expect(
       screen.getByText(
-        'This project is connected to Lovable, Bolt, and 1 other app. Dashboard changes can affect connected tools in this organization.'
+        'This project is integrated with Lovable, Bolt, and 1 other app and dashboard changes may impact this project'
       )
     ).toBeInTheDocument()
   })
@@ -144,7 +144,7 @@ describe('ProjectOAuthIntegrationsBanner', () => {
 
     expect(
       screen.getByText(
-        'This project is connected to Lovable, Bolt, and 1 other app. Dashboard changes can affect connected tools in this organization.'
+        'This project is integrated with Lovable, Bolt, and 1 other app and dashboard changes may impact this project'
       )
     ).toBeInTheDocument()
     expect(mockUseAuthorizedAppsQuery).toHaveBeenCalledWith(
@@ -168,7 +168,7 @@ describe('ProjectOAuthIntegrationsBanner', () => {
 
     expect(
       screen.getByText(
-        'This project is connected to Lovable and Bolt. Dashboard changes can affect connected tools in this organization.'
+        'This project is integrated with Lovable and Bolt and dashboard changes may impact this project'
       )
     ).toBeInTheDocument()
     expect(mockUseAuthorizedAppsQuery).toHaveBeenCalledWith(
@@ -193,7 +193,7 @@ describe('ProjectOAuthIntegrationsBanner', () => {
 
     expect(
       screen.getByText(
-        'This project is connected to Replit. Dashboard changes can affect connected tools in this organization.'
+        'This project is integrated with Replit and dashboard changes may impact this project'
       )
     ).toBeInTheDocument()
     expect(mockUseAuthorizedAppsQuery).toHaveBeenCalledWith(

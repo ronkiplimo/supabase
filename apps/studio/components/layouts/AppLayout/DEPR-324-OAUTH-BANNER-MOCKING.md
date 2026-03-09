@@ -6,6 +6,7 @@ This marker file documents how to test the `ProjectOAuthIntegrationsBanner` befo
 
 - Mounted inside project content (under the project header context) via `ProjectLayout`, not in global `AppBannerWrapper`.
 - This keeps the signal scoped to project surfaces.
+- Current UX is single-line inline admonition with app icon (or `Plug` fallback), without a `Manage` button.
 
 ## 1) Mock controls (non-prod only)
 
@@ -105,3 +106,39 @@ Important constraints:
 - We do **not** have a normalized provider enum (for example, no explicit `provider: "figma"`).
 - We can still show a logo if `icon` is present.
 - If `icon` is null, fallback options are name-based initials or an internal name-to-logo mapping.
+
+## 5) Real local OAuth flow (no mocks)
+
+### A. Create an OAuth app in local Studio
+
+- Open `/org/<slug>/apps`
+- Publish an OAuth app with:
+  - `redirect_uri`: `http://localhost:3001/callback`
+  - desired scopes (for testing, minimal read scopes are enough)
+- Save `client_id` and `client_secret`
+
+### B. Trigger authorization
+
+Open in browser (while logged into local Studio):
+
+```text
+http://localhost:8082/api/v1/oauth/authorize?client_id=<CLIENT_ID>&redirect_uri=http://localhost:3001/callback&response_type=code&organization_slug=<ORG_SLUG>&state=dev-local
+```
+
+Approve the app in the consent screen.
+
+### C. Exchange code for tokens
+
+After callback, exchange code with:
+
+```bash
+curl -X POST 'http://localhost:8082/api/v1/oauth/token' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'grant_type=authorization_code' \
+  --data-urlencode 'client_id=<CLIENT_ID>' \
+  --data-urlencode 'client_secret=<CLIENT_SECRET>' \
+  --data-urlencode 'code=<CODE_FROM_CALLBACK>' \
+  --data-urlencode 'redirect_uri=http://localhost:3001/callback'
+```
+
+Once approved, the app should appear in authorized apps for that org and the project banner should render without mocks.

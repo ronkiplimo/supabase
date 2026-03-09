@@ -13,13 +13,8 @@ const getStringValue = (value?: string | string[] | null) => {
   return Array.isArray(value) ? value.join(',') : value
 }
 
-export const isProjectRoute = ({
-  pathname,
-  asPath,
-}: {
-  pathname?: string
-  asPath?: string
-}) => Boolean(pathname?.startsWith(PROJECT_ROUTE_TEMPLATE) || asPath?.startsWith(PROJECT_ROUTE_PREFIX))
+export const isProjectRoute = ({ pathname, asPath }: { pathname?: string; asPath?: string }) =>
+  Boolean(pathname?.startsWith(PROJECT_ROUTE_TEMPLATE) || asPath?.startsWith(PROJECT_ROUTE_PREFIX))
 
 export const getAuthorizedAppNames = (authorizedApps: AuthorizedAppsData = []) => {
   return getAuthorizedAppDisplayData(authorizedApps).map((app) => app.name)
@@ -49,20 +44,29 @@ export const getAuthorizedAppDisplayData = (authorizedApps: AuthorizedAppsData =
 }
 
 export const getConnectedAppsTitle = (appNames: string[]) => {
-  if (appNames.length === 0) return 'Connected to external apps'
-  if (appNames.length === 1) return `Connected to ${appNames[0]}`
-  if (appNames.length === 2) return `Connected to ${appNames[0]} and ${appNames[1]}`
+  return `Connected to ${getConnectedAppsLabel(appNames)}`
+}
+
+export const getConnectedAppsLabel = (appNames: string[]) => {
+  if (appNames.length === 0) return 'external apps'
+  if (appNames.length === 1) return appNames[0]
+  if (appNames.length === 2) return `${appNames[0]} and ${appNames[1]}`
 
   const [firstName, secondName] = appNames
   const additionalApps = appNames.length - MAX_APPS_IN_TITLE
   const suffix = additionalApps === 1 ? 'other app' : 'other apps'
 
-  return `Connected to ${firstName}, ${secondName}, and ${additionalApps} ${suffix}`
+  return `${firstName}, ${secondName}, and ${additionalApps} ${suffix}`
 }
 
 export const getConnectedAppsSentence = (appNames: string[]) => {
-  const connectedAppsTitle = getConnectedAppsTitle(appNames).replace('Connected to ', '')
-  return `This project is connected to ${connectedAppsTitle}. Dashboard changes can affect connected tools in this organization.`
+  const connectedAppsLabel = getConnectedAppsLabel(appNames)
+  return `This project is connected to ${connectedAppsLabel}`
+}
+
+export const getConnectedAppsDescription = (appNames: string[]) => {
+  const connectedAppsLabel = getConnectedAppsLabel(appNames)
+  return `Changes made here may affect how your project works in ${connectedAppsLabel}.`
 }
 
 export const shouldDisableMockAuthorizedApps = (value?: string | string[] | null) => {

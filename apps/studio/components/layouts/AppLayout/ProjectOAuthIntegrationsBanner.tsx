@@ -5,10 +5,11 @@ import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization
 import { Plug, Settings2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { Alert_Shadcn_, AlertTitle_Shadcn_, Button } from 'ui'
+import { Alert_Shadcn_, AlertDescription_Shadcn_, AlertTitle_Shadcn_, Button, cn } from 'ui'
 
 import {
   getAuthorizedAppDisplayData,
+  getConnectedAppsDescription,
   getConnectedAppsSentence,
   getMockAuthorizedApps,
   isProjectRoute,
@@ -55,19 +56,28 @@ export const ProjectOAuthIntegrationsBanner = () => {
   return (
     <Alert_Shadcn_
       variant="default"
-      className="flex flex-wrap items-center gap-3 border-0 rounded-none border-b bg-background-200"
+      className="flex flex-wrap items-center gap-3 border-0 rounded-none border-b light:bg-background-200"
     >
-      <div className="flex min-w-0 flex-1 items-center gap-2.5">
+      {/* Left */}
+      <div className="flex min-w-0 flex-1 items-start gap-2.5">
+        {/* Oauth app icon or fallback icon */}
         <div
-          className="h-5 w-5 rounded-full bg-no-repeat bg-cover bg-center border border-control flex items-center justify-center text-xs shrink-0"
+          className={cn(
+            'h-5 w-5 rounded-full bg-no-repeat bg-cover bg-center border border-control flex items-center justify-center text-xs shrink-0',
+            !appIcon && 'bg-surface-75'
+          )}
           style={{ backgroundImage: appIcon ? `url('${appIcon}')` : 'none' }}
         >
           {!appIcon && <Plug size={12} />}
         </div>
-        <AlertTitle_Shadcn_ className="text-sm font-normal m-0">
-          {getConnectedAppsSentence(appNames)}
-        </AlertTitle_Shadcn_>
+        <div>
+          <AlertTitle_Shadcn_>{getConnectedAppsSentence(appNames)}</AlertTitle_Shadcn_>
+          <AlertDescription_Shadcn_>
+            {getConnectedAppsDescription(appNames)}
+          </AlertDescription_Shadcn_>
+        </div>
       </div>
+      {/* Right: button to manage oauth apps */}
       <Button asChild type="default" icon={<Settings2 />}>
         <Link href={`/org/${organizationSlug}/apps`}>Manage</Link>
       </Button>

@@ -82,7 +82,7 @@ describe('ProjectOAuthIntegrationsBanner utils', () => {
   describe('getConnectedAppsSentence', () => {
     it('renders single-line sentence copy', () => {
       expect(getConnectedAppsSentence(['Lovable'])).toBe(
-        'This project is connected to Lovable. Dashboard changes can affect connected tools in this organization.'
+        'This project is integrated with Lovable and dashboard changes may impact this project'
       )
     })
   })

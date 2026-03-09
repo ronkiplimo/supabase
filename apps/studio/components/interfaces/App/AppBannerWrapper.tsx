@@ -14,9 +14,9 @@ export const AppBannerWrapper = ({ children }: PropsWithChildren<{}>) => {
     <div className="flex flex-col">
       <div className="flex-shrink-0">
         <StatusPageBanner />
-        {true && <NoticeBanner />}
+        {showNoticeBanner && <NoticeBanner />}
         <OrganizationResourceBanner />
-        {true && <ClockSkewBanner />}
+        {clockSkewBanner && <ClockSkewBanner />}
       </div>
       {children}
     </div>

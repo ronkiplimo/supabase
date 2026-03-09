@@ -24,8 +24,8 @@ export const getAuthorizedAppDisplayData = (authorizedApps: AuthorizedAppsData =
 
     // Backfill an icon if a duplicate app entry has one and the first did not.
     const existingApp = uniqueApps.get(normalizedName)
-    if (!existingApp?.icon && app.icon) {
-      uniqueApps.set(normalizedName, { ...existingApp, icon: app.icon })
+    if (existingApp && !existingApp.icon && app.icon) {
+      uniqueApps.set(normalizedName, { name: existingApp.name, icon: app.icon })
     }
   })
 

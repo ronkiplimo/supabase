@@ -1,6 +1,5 @@
 import { expect } from '@playwright/test'
 
-import { useTestThrottling } from '../utils/debug.js'
 import {
   getMessageCount,
   joinChannel,
@@ -96,7 +95,6 @@ test.describe('Realtime Inspector', () => {
 
     test('clicking broadcast message shows detail panel', async ({ page }) => {
       const testChannelName = 'pw_realtime_test_channel_broadcast_details'
-      await useTestThrottling(page, { cpu: 6, network: 'Good2G' })
       await joinChannel(page, testChannelName)
 
       await openBroadcastModal(page)

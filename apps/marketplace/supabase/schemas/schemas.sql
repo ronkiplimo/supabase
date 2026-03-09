@@ -225,6 +225,7 @@ create table public.items (
   type public.marketplace_item_type not null,
   url text,
   registry_item_url text,
+  files text[] not null default '{}'::text[],
   documentation_url text,
   submitted_by uuid references auth.users (id) on delete set null default auth.uid(),
   created_at timestamptz not null default now(),
@@ -263,18 +264,6 @@ create table public.category_items (
   primary key (category_id, item_id)
 );
 
--- Files/assets for items (screenshots, logos, docs, etc).
-create table public.item_files (
-  id bigint generated always as identity primary key,
-  item_id bigint not null references public.items (id) on delete cascade,
-  file_path text not null,
-  alt_text text,
-  sort_order integer not null default 0,
-  featured boolean not null default false,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
 -- Moderation fields are isolated here so partners cannot alter them.
 create table public.item_reviews (
   item_id bigint primary key references public.items (id) on delete cascade,
@@ -288,17 +277,11 @@ create table public.item_reviews (
   updated_at timestamptz not null default now()
 );
 
--- Keep a single featured file per item.
-create unique index item_files_one_featured_per_item_idx
-  on public.item_files (item_id)
-  where featured = true;
-
 -- Helpful indexes for common read paths.
 create index items_type_idx on public.items (type);
 create index items_partner_id_idx on public.items (partner_id);
 create index partner_members_user_id_idx on public.partner_members (user_id);
 create index category_items_item_id_idx on public.category_items (item_id);
-create index item_files_item_id_sort_order_idx on public.item_files (item_id, sort_order);
 create index item_reviews_status_idx on public.item_reviews (status);
 create index item_reviews_featured_idx on public.item_reviews (featured) where featured = true;
 
@@ -308,7 +291,6 @@ alter table public.partner_members enable row level security;
 alter table public.items enable row level security;
 alter table public.categories enable row level security;
 alter table public.category_items enable row level security;
-alter table public.item_files enable row level security;
 alter table public.item_reviews enable row level security;
 
 -- Partners
@@ -515,82 +497,6 @@ create policy "category_items_delete"
     )
   );
 
--- Item files
-create policy "item_files_select"
-  on public.item_files
-  for select
-  using (
-    public.is_admin_member()
-    or public.is_review_manager_member()
-    or exists (
-      select 1
-      from public.items i
-      where i.id = item_files.item_id
-        and public.is_partner_member(i.partner_id)
-    )
-  );
-
-create policy "item_files_insert"
-  on public.item_files
-  for insert
-  with check (
-    public.is_admin_member()
-    or exists (
-      select 1
-      from public.items i
-      where i.id = item_files.item_id
-        and public.is_partner_member(i.partner_id)
-    )
-  );
-
-create policy "item_files_update"
-  on public.item_files
-  for update
-  using (
-    public.is_admin_member()
-    or exists (
-      select 1
-      from public.items i
-      where i.id = item_files.item_id
-        and public.is_partner_member(i.partner_id)
-    )
-  )
-  with check (
-    public.is_admin_member()
-    or exists (
-      select 1
-      from public.items i
-      where i.id = item_files.item_id
-        and public.is_partner_member(i.partner_id)
-    )
-  );
-
-create policy "item_files_delete"
-  on public.item_files
-  for delete
-  using (
-    public.is_admin_member()
-    or exists (
-      select 1
-      from public.items i
-      where i.id = item_files.item_id
-        and public.is_partner_member(i.partner_id)
-    )
-  );
-
-create policy "item_files_select_published_item_with_latest_approved_review"
-  on public.item_files
-  for select
-  using (
-    exists (
-      select 1
-      from public.items i
-      where i.id = item_files.item_id
-        and i.published = true
-        and public.item_latest_review_is_approved(i.id)
-    )
-  );
-
 -- Item reviews: partners can view their own status, reviewer/admin partners can modify.
 create policy "item_reviews_select"
   on public.item_reviews
@@ -655,8 +561,7 @@ grant execute on function public.storage_object_item_id(text) to authenticated;
 
 insert into storage.buckets (id, name, public)
 values
-  ('item_files', 'item_files', false),
-  ('public_item_files', 'public_item_files', true)
+  ('item_files', 'item_files', true)
 on conflict (id) do update
 set
   name = excluded.name,
@@ -678,6 +583,8 @@ create policy "item_files_storage_select"
       where i.id = public.storage_object_item_id(name)
         and i.partner_id = public.storage_object_partner_id(name)
         and (
+          public.is_admin_member()
+          or
           public.is_review_manager_member()
           or public.is_partner_member(i.partner_id)
         )
@@ -698,7 +605,10 @@ create policy "item_files_storage_insert"
       from public.items i
       where i.id = public.storage_object_item_id(name)
         and i.partner_id = public.storage_object_partner_id(name)
-        and public.is_partner_member(i.partner_id)
+        and (
+          public.is_admin_member()
+          or public.is_partner_member(i.partner_id)
+        )
     )
   );
 
@@ -716,7 +626,10 @@ create policy "item_files_storage_update"
       from public.items i
       where i.id = public.storage_object_item_id(name)
         and i.partner_id = public.storage_object_partner_id(name)
-        and public.is_partner_member(i.partner_id)
+        and (
+          public.is_admin_member()
+          or public.is_partner_member(i.partner_id)
+        )
     )
   )
   with check (
@@ -729,110 +642,8 @@ create policy "item_files_storage_update"
       from public.items i
       where i.id = public.storage_object_item_id(name)
         and i.partner_id = public.storage_object_partner_id(name)
-        and public.is_partner_member(i.partner_id)
-    )
-  );
-
-create policy "public_item_files_storage_select"
-  on storage.objects
-  for select
-  to authenticated
-  using (
-    bucket_id = 'public_item_files'
-    and split_part(name, '/', 2) = 'items'
-    and public.storage_object_partner_id(name) is not null
-    and public.storage_object_item_id(name) is not null
-    and exists (
-      select 1
-      from public.items i
-      where i.id = public.storage_object_item_id(name)
-        and i.partner_id = public.storage_object_partner_id(name)
         and (
           public.is_admin_member()
-          or public.is_review_manager_member()
-          or public.is_partner_member(i.partner_id)
-        )
-    )
-  );
-
-create policy "public_item_files_storage_insert"
-  on storage.objects
-  for insert
-  to authenticated
-  with check (
-    bucket_id = 'public_item_files'
-    and split_part(name, '/', 2) = 'items'
-    and public.storage_object_partner_id(name) is not null
-    and public.storage_object_item_id(name) is not null
-    and exists (
-      select 1
-      from public.items i
-      where i.id = public.storage_object_item_id(name)
-        and i.partner_id = public.storage_object_partner_id(name)
-        and (
-          public.is_admin_member()
-          or public.is_review_manager_member()
-          or public.is_partner_member(i.partner_id)
-        )
-    )
-  );
-
-create policy "public_item_files_storage_update"
-  on storage.objects
-  for update
-  to authenticated
-  using (
-    bucket_id = 'public_item_files'
-    and split_part(name, '/', 2) = 'items'
-    and public.storage_object_partner_id(name) is not null
-    and public.storage_object_item_id(name) is not null
-    and exists (
-      select 1
-      from public.items i
-      where i.id = public.storage_object_item_id(name)
-        and i.partner_id = public.storage_object_partner_id(name)
-        and (
-          public.is_admin_member()
-          or public.is_review_manager_member()
-          or public.is_partner_member(i.partner_id)
-        )
-    )
-  )
-  with check (
-    bucket_id = 'public_item_files'
-    and split_part(name, '/', 2) = 'items'
-    and public.storage_object_partner_id(name) is not null
-    and public.storage_object_item_id(name) is not null
-    and exists (
-      select 1
-      from public.items i
-      where i.id = public.storage_object_item_id(name)
-        and i.partner_id = public.storage_object_partner_id(name)
-        and (
-          public.is_admin_member()
-          or public.is_review_manager_member()
-          or public.is_partner_member(i.partner_id)
-        )
-    )
-  );
-
-create policy "public_item_files_storage_delete"
-  on storage.objects
-  for delete
-  to authenticated
-  using (
-    bucket_id = 'public_item_files'
-    and split_part(name, '/', 2) = 'items'
-    and public.storage_object_partner_id(name) is not null
-    and public.storage_object_item_id(name) is not null
-    and exists (
-      select 1
-      from public.items i
-      where i.id = public.storage_object_item_id(name)
-        and i.partner_id = public.storage_object_partner_id(name)
-        and (
-          public.is_admin_member()
-          or public.is_review_manager_member()
           or public.is_partner_member(i.partner_id)
         )
     )
@@ -852,6 +663,9 @@ create policy "item_files_storage_delete"
       from public.items i
       where i.id = public.storage_object_item_id(name)
         and i.partner_id = public.storage_object_partner_id(name)
-        and public.is_partner_member(i.partner_id)
+        and (
+          public.is_admin_member()
+          or public.is_partner_member(i.partner_id)
+        )
     )
   );

@@ -20,13 +20,14 @@ const baseEditProps = {
     title: 'Auth Item',
     summary: null,
     content: null,
+    published: false,
     type: 'oauth',
     url: 'https://example.com',
     registry_item_url: null,
     documentation_url: null,
     updated_at: null,
   },
-  initialFiles: [],
+  initialFiles: [] as string[],
 }
 
 describe('ItemEditorSplitView', () => {

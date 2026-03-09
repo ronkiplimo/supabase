@@ -25,16 +25,12 @@ import { createItemDraftAction, updateItemDraftAction } from '@/app/protected/ac
 import { ItemFilesUploader, type ItemPreviewFile } from '@/components/item-files-uploader'
 import {
   getItemTemplateStoragePath,
-  MARKETPLACE_DRAFT_STORAGE_BUCKET,
+  MARKETPLACE_STORAGE_BUCKET,
 } from '@/lib/marketplace/item-storage'
 import { normalizeTemplatePath, shouldIgnoreTemplatePath } from '@/lib/marketplace/template-package'
 import { createClient } from '@/lib/supabase/client'
 
-export type ItemFile = {
-  id: number
-  file_path: string
-  sort_order: number
-}
+export type ItemFile = string
 
 export type PartnerInfo = {
   id: number
@@ -167,7 +163,6 @@ export function ItemForm(props: ItemFormProps) {
   const [autoUploadSignal, setAutoUploadSignal] = useState(0)
   const [submitResult, setSubmitResult] = useState<SubmitResult | null>(null)
   const [isWaitingForAutoUpload, setIsWaitingForAutoUpload] = useState(false)
-  const [removedFileIds, setRemovedFileIds] = useState<number[]>([])
   const [templateZipFile, setTemplateZipFile] = useState<File | null>(null)
   const [existingTemplateFiles, setExistingTemplateFiles] = useState<string[]>([])
   const [selectedTemplateFiles, setSelectedTemplateFiles] = useState<string[]>([])
@@ -181,14 +176,7 @@ export function ItemForm(props: ItemFormProps) {
   const itemId = isCreateMode ? submitResult?.itemId : item?.id
   const initialFiles = props.mode === 'edit' ? props.initialFiles : EMPTY_ITEM_FILES
   const fieldsDisabled = isPending || isWaitingForAutoUpload
-  const initialFilesFieldValue = useMemo(
-    () =>
-      initialFiles
-        .slice()
-        .sort((a, b) => a.sort_order - b.sort_order)
-        .map((file) => file.file_path),
-    [initialFiles]
-  )
+  const initialFilesFieldValue = useMemo(() => initialFiles.slice(), [initialFiles])
   const defaultValues = useMemo<ItemFormValues>(
     () => ({
       title: item?.title ?? '',
@@ -262,7 +250,7 @@ export function ItemForm(props: ItemFormProps) {
       const listRecursive = async (prefix = ''): Promise<string[]> => {
         const targetPath = prefix ? `${basePath}/${prefix}` : basePath
         const { data, error } = await supabase.storage
-          .from(MARKETPLACE_DRAFT_STORAGE_BUCKET)
+          .from(MARKETPLACE_STORAGE_BUCKET)
           .list(targetPath, {
             limit: 1000,
             sortBy: { column: 'name', order: 'asc' },
@@ -425,9 +413,6 @@ export function ItemForm(props: ItemFormProps) {
     } else if (item) {
       formData.set('itemId', String(item.id))
       formData.set('name', parsed.data.title)
-      removedFileIds.forEach((fileId) => {
-        formData.append('removedFileIds[]', String(fileId))
-      })
     }
 
     startTransition(async () => {
@@ -445,7 +430,7 @@ export function ItemForm(props: ItemFormProps) {
         } else {
           setSubmitResult(result)
           setAutoUploadSignal((value) => value + 1)
-          setSuccess('Item saved. File uploads started for selected files.')
+          setSuccess('Item saved.')
         }
       } catch (submitError) {
         const message = submitError instanceof Error ? submitError.message : 'Unable to save item'
@@ -456,7 +441,6 @@ export function ItemForm(props: ItemFormProps) {
 
   const handleCancel = () => {
     form.reset(defaultValues)
-    setRemovedFileIds([])
     setTemplateZipFile(null)
     setSelectedTemplateFiles([])
     if (templateZipInputRef.current) {
@@ -811,12 +795,12 @@ export function ItemForm(props: ItemFormProps) {
                 <div>
                   <ItemFilesUploader
                     partnerId={props.partner.id}
+                    partnerSlug={props.partner.slug}
                     itemId={itemId}
                     initialFiles={initialFiles}
                     autoUploadSignal={autoUploadSignal}
                     showUploadAction={false}
                     disabled={fieldsDisabled}
-                    onRemovedFileIdsChange={setRemovedFileIds}
                     onAutoUploadComplete={handleAutoUploadComplete}
                     onPreviewFilesChange={handlePreviewFilesChange}
                   />

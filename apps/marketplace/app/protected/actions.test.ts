@@ -6,6 +6,7 @@ import {
   createItemDraftAction,
   createPartnerAction,
   requestItemReviewAction,
+  saveItemFilesAction,
   saveItemReviewAction,
   updateItemAction,
   updateItemDraftAction,
@@ -480,31 +481,19 @@ describe('protected actions', () => {
     await expect(saveItemReviewAction(formData)).rejects.toThrow('Invalid review status')
   })
 
-  it('deletes removed files during item update', async () => {
+  it('deletes removed files when saving item file URLs', async () => {
     const storageRemoveSpy = vi.fn().mockResolvedValue({ error: null })
     createClientMock.mockResolvedValue(
       createSupabaseMock({
         user: { id: 'user-1' },
         fromHandler: (table, state) => {
-          if (table === 'items' && state.op === 'update') {
-            return success({ slug: 'updated-item' })
-          }
           if (table === 'items' && state.op === 'select') {
             return success({
-              id: 2,
-              partner_id: 1,
-              published: false,
-              type: 'oauth',
-              registry_item_url: null,
+              slug: 'updated-item',
+              files: ['https://project.supabase.co/storage/v1/object/public/item_files/1/items/2/files/a.png'],
             })
           }
-          if (table === 'item_files' && state.op === 'select') {
-            return success([{ id: 99, file_path: '1/items/2/files/a.png' }])
-          }
-          if (table === 'item_reviews' && state.op === 'select') {
-            return success(null)
-          }
-          if (table === 'item_files' && state.op === 'delete') {
+          if (table === 'items' && state.op === 'update') {
             return success(null)
           }
           return success(null)
@@ -517,28 +506,31 @@ describe('protected actions', () => {
 
     const formData = new FormData()
     formData.set('itemId', '2')
-    formData.set('partnerId', '1')
     formData.set('partnerSlug', 'acme')
-    formData.set('name', 'Updated Item')
-    formData.set('type', 'oauth')
-    formData.set('url', 'https://example.com')
-    formData.append('removedFileIds[]', '99')
+    formData.append(
+      'files[]',
+      'https://project.supabase.co/storage/v1/object/public/item_files/1/items/2/files/b.png'
+    )
 
-    const result = await updateItemDraftAction(formData)
-    expect(result).toEqual({ itemId: 2, itemSlug: 'updated-item', partnerSlug: 'acme' })
+    const result = await saveItemFilesAction(formData)
+    expect(result).toEqual({
+      itemId: 2,
+      itemSlug: 'updated-item',
+      files: ['https://project.supabase.co/storage/v1/object/public/item_files/1/items/2/files/b.png'],
+    })
     expect(storageRemoveSpy).toHaveBeenCalledWith('item_files', ['1/items/2/files/a.png'])
   })
 
-  it('throws when storage file deletion fails during item update', async () => {
+  it('throws when storage file deletion fails while saving item file URLs', async () => {
     createClientMock.mockResolvedValue(
       createSupabaseMock({
         user: { id: 'user-1' },
         fromHandler: (table, state) => {
-          if (table === 'items' && state.op === 'update') {
-            return success({ slug: 'updated-item' })
-          }
-          if (table === 'item_files' && state.op === 'select') {
-            return success([{ id: 99, file_path: '1/items/2/files/a.png' }])
+          if (table === 'items' && state.op === 'select') {
+            return success({
+              slug: 'updated-item',
+              files: ['https://project.supabase.co/storage/v1/object/public/item_files/1/items/2/files/a.png'],
+            })
           }
           return success(null)
         },
@@ -550,29 +542,28 @@ describe('protected actions', () => {
 
     const formData = new FormData()
     formData.set('itemId', '2')
-    formData.set('partnerId', '1')
     formData.set('partnerSlug', 'acme')
-    formData.set('name', 'Updated Item')
-    formData.set('type', 'oauth')
-    formData.set('url', 'https://example.com')
-    formData.append('removedFileIds[]', '99')
+    formData.append(
+      'files[]',
+      'https://project.supabase.co/storage/v1/object/public/item_files/1/items/2/files/b.png'
+    )
 
-    await expect(updateItemDraftAction(formData)).rejects.toThrow('storage delete failed')
+    await expect(saveItemFilesAction(formData)).rejects.toThrow('storage delete failed')
   })
 
-  it('throws when row deletion fails during item update', async () => {
+  it('throws when updating item file URLs fails', async () => {
     createClientMock.mockResolvedValue(
       createSupabaseMock({
         user: { id: 'user-1' },
         fromHandler: (table, state) => {
+          if (table === 'items' && state.op === 'select') {
+            return success({
+              slug: 'updated-item',
+              files: ['https://project.supabase.co/storage/v1/object/public/item_files/1/items/2/files/a.png'],
+            })
+          }
           if (table === 'items' && state.op === 'update') {
-            return success({ slug: 'updated-item' })
-          }
-          if (table === 'item_files' && state.op === 'select') {
-            return success([{ id: 99, file_path: '1/items/2/files/a.png' }])
-          }
-          if (table === 'item_files' && state.op === 'delete') {
-            return failure('row delete failed')
+            return failure('item update failed')
           }
           return success(null)
         },
@@ -584,14 +575,13 @@ describe('protected actions', () => {
 
     const formData = new FormData()
     formData.set('itemId', '2')
-    formData.set('partnerId', '1')
     formData.set('partnerSlug', 'acme')
-    formData.set('name', 'Updated Item')
-    formData.set('type', 'oauth')
-    formData.set('url', 'https://example.com')
-    formData.append('removedFileIds[]', '99')
+    formData.append(
+      'files[]',
+      'https://project.supabase.co/storage/v1/object/public/item_files/1/items/2/files/b.png'
+    )
 
-    await expect(updateItemDraftAction(formData)).rejects.toThrow('row delete failed')
+    await expect(saveItemFilesAction(formData)).rejects.toThrow('item update failed')
   })
 
   it('redirects after update item action wrapper', async () => {

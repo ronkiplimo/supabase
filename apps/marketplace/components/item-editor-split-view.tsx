@@ -30,11 +30,12 @@ const EMPTY_PREVIEW_FILES: MarketplaceItemFile[] = []
 
 function toPreviewFiles(initialFiles: ItemFile[]): MarketplaceItemFile[] {
   return initialFiles.map((file) => {
-    const fileName = file.file_path.split('/').pop() ?? file.file_path
+    const fileName = file.split('/').pop() ?? file
     return {
-      id: file.id,
+      id: file,
       name: fileName,
-      description: file.file_path,
+      href: file,
+      description: file,
     }
   })
 }

@@ -183,19 +183,25 @@ describeIfConfigured('Marketplace RLS policies', () => {
     })
     expect(reviewInsertError).toBeNull()
 
-    const { error: fileInsertError } = await adminClient.from('item_files').insert([
-      {
-        item_id: partnerItemId,
-        file_path: `${partnerId}/items/${partnerItemId}/preview.png`,
-        sort_order: 0,
-      },
-      {
-        item_id: otherPartnerItemId,
-        file_path: `${otherPartnerId}/items/${otherPartnerItemId}/preview.png`,
-        sort_order: 0,
-      },
-    ])
-    expect(fileInsertError).toBeNull()
+    const { error: itemFilesUpdateError } = await adminClient
+      .from('items')
+      .update({
+        files: [
+          `${process.env.SUPABASE_URL}/storage/v1/object/public/item_files/${partnerId}/items/${partnerItemId}/preview.png`,
+        ],
+      })
+      .eq('id', partnerItemId)
+    expect(itemFilesUpdateError).toBeNull()
+
+    const { error: otherItemFilesUpdateError } = await adminClient
+      .from('items')
+      .update({
+        files: [
+          `${process.env.SUPABASE_URL}/storage/v1/object/public/item_files/${otherPartnerId}/items/${otherPartnerItemId}/preview.png`,
+        ],
+      })
+      .eq('id', otherPartnerItemId)
+    expect(otherItemFilesUpdateError).toBeNull()
 
     await Promise.all([
       signIn(partnerClient!, PARTNER_EMAIL, PASSWORD),
@@ -367,17 +373,10 @@ describeIfConfigured('Marketplace RLS policies', () => {
 
     const { data: pendingItems, error: pendingItemsError } = await publicClient!
       .from('items')
-      .select('id')
+      .select('id, files')
       .eq('id', partnerItemId)
     expect(pendingItemsError).toBeNull()
     expect(pendingItems).toHaveLength(0)
-
-    const { data: pendingFiles, error: pendingFilesError } = await publicClient!
-      .from('item_files')
-      .select('id')
-      .eq('item_id', partnerItemId)
-    expect(pendingFilesError).toBeNull()
-    expect(pendingFiles).toHaveLength(0)
 
     const { error: approvedReviewError } = await admin!
       .from('item_reviews')
@@ -390,17 +389,11 @@ describeIfConfigured('Marketplace RLS policies', () => {
 
     const { data: approvedItems, error: approvedItemsError } = await publicClient!
       .from('items')
-      .select('id')
+      .select('id, files')
       .eq('id', partnerItemId)
     expect(approvedItemsError).toBeNull()
     expect(approvedItems).toHaveLength(1)
-
-    const { data: approvedFiles, error: approvedFilesError } = await publicClient!
-      .from('item_files')
-      .select('id')
-      .eq('item_id', partnerItemId)
-    expect(approvedFilesError).toBeNull()
-    expect(approvedFiles).toHaveLength(1)
+    expect(approvedItems?.[0]?.files).toHaveLength(1)
 
     const { error: unpublishedSetupError } = await admin!
       .from('items')
@@ -410,16 +403,9 @@ describeIfConfigured('Marketplace RLS policies', () => {
 
     const { data: unpublishedItems, error: unpublishedItemsError } = await publicClient!
       .from('items')
-      .select('id')
+      .select('id, files')
       .eq('id', partnerItemId)
     expect(unpublishedItemsError).toBeNull()
     expect(unpublishedItems).toHaveLength(0)
-
-    const { data: unpublishedFiles, error: unpublishedFilesError } = await publicClient!
-      .from('item_files')
-      .select('id')
-      .eq('item_id', partnerItemId)
-    expect(unpublishedFilesError).toBeNull()
-    expect(unpublishedFiles).toHaveLength(0)
   })
 })

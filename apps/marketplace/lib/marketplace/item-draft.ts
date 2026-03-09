@@ -38,11 +38,30 @@ export function parseNumberList(formData: FormData, key: string) {
   )
 }
 
+export function parseStringList(formData: FormData, key: string) {
+  return Array.from(
+    new Set(
+      formData
+        .getAll(key)
+        .flatMap((value) => {
+          if (typeof value !== 'string') return []
+          const trimmed = value.trim()
+          return trimmed ? [trimmed] : []
+        })
+    )
+  )
+}
+
 function isFileLikeFormDataEntry(value: FormDataEntryValue | null): value is File {
   if (!value || typeof value === 'string') return false
 
   const maybeFile = value as Partial<File>
-  return typeof maybeFile.arrayBuffer === 'function' && typeof maybeFile.size === 'number'
+  return (
+    typeof maybeFile.size === 'number' &&
+    (typeof maybeFile.arrayBuffer === 'function' ||
+      typeof maybeFile.stream === 'function' ||
+      typeof maybeFile.slice === 'function')
+  )
 }
 
 export function parseTemplateZip(formData: FormData) {
@@ -57,15 +76,7 @@ export function parseItemType(rawType: string) {
   return rawType === 'oauth' ? 'oauth' : rawType === 'template' ? 'template' : null
 }
 
-export function ensureItemDraftConstraints({
-  type,
-  slug,
-  url,
-  templateZip,
-  existingRegistryItemUrl,
-  published = false,
-  intent = 'save',
-}: {
+export function ensureItemDraftConstraints(options: {
   type: 'oauth' | 'template' | null
   slug: string
   url: string | null
@@ -73,7 +84,25 @@ export function ensureItemDraftConstraints({
   existingRegistryItemUrl?: string | null
   published?: boolean
   intent?: 'save' | 'request_review'
-}): asserts type is 'oauth' | 'template' {
+}): asserts options is {
+  type: 'oauth' | 'template'
+  slug: string
+  url: string | null
+  templateZip: File | null
+  existingRegistryItemUrl?: string | null
+  published?: boolean
+  intent?: 'save' | 'request_review'
+} {
+  const {
+    type,
+    slug,
+    url,
+    templateZip,
+    existingRegistryItemUrl,
+    published = false,
+    intent = 'save',
+  } = options
+
   if (!slug) {
     throw new Error('Item slug cannot be empty')
   }

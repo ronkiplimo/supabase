@@ -6,6 +6,7 @@ import {
   parseNumberList,
   parseOptionalString,
   parseRequiredString,
+  parseStringList,
   parseTemplateZip,
   slugify,
 } from './item-draft'
@@ -34,6 +35,15 @@ describe('item-draft utils', () => {
     formData.append('removedFileIds[]', 'abc')
 
     expect(parseNumberList(formData, 'removedFileIds[]')).toEqual([2, 3])
+  })
+
+  it('parses unique trimmed string lists', () => {
+    const formData = new FormData()
+    formData.append('files[]', ' https://example.com/a.png ')
+    formData.append('files[]', 'https://example.com/a.png')
+    formData.append('files[]', '   ')
+
+    expect(parseStringList(formData, 'files[]')).toEqual(['https://example.com/a.png'])
   })
 
   it('parses item type enum safely', () => {

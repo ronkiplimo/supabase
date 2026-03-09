@@ -53,7 +53,7 @@ export default async function ReviewDetailPage({ params }: ReviewDetailPageProps
   const { data: item, error: itemError } = await supabase
     .from('items')
     .select(
-      'id, slug, title, summary, url, registry_item_url, documentation_url, content, type, updated_at, partner:partners(id, slug, title), review:item_reviews(status, featured, review_notes, reviewed_at)'
+      'id, slug, title, summary, url, registry_item_url, documentation_url, content, type, files, updated_at, partner:partners(id, slug, title), review:item_reviews(status, featured, review_notes, reviewed_at)'
     )
     .eq('id', parsedItemId)
     .maybeSingle()
@@ -95,29 +95,13 @@ export default async function ReviewDetailPage({ params }: ReviewDetailPageProps
     categories: assignedCategoryTitles,
   }
 
-  const { data: itemFiles, error: itemFilesError } = await supabase
-    .from('item_files')
-    .select('id, file_path, sort_order')
-    .eq('item_id', item.id)
-    .order('sort_order', { ascending: true })
-
-  if (itemFilesError) {
-    throw new Error(itemFilesError.message)
-  }
-
-  const filePaths = (itemFiles ?? []).map((file) => file.file_path)
-  const { data: signedFiles } =
-    filePaths.length > 0
-      ? await supabase.storage.from('item_files').createSignedUrls(filePaths, 60 * 60)
-      : { data: [] as { signedUrl?: string }[] }
-
-  const marketplaceFiles: MarketplaceItemFile[] = (itemFiles ?? []).map((file, index) => {
-    const fileName = file.file_path.split('/').pop() ?? file.file_path
+  const marketplaceFiles: MarketplaceItemFile[] = ((item.files ?? []) as string[]).map((fileUrl) => {
+    const fileName = fileUrl.split('/').pop() ?? fileUrl
     return {
-      id: file.id,
+      id: fileUrl,
       name: fileName,
-      href: signedFiles?.[index]?.signedUrl,
-      description: file.file_path,
+      href: fileUrl,
+      description: fileUrl,
     }
   })
 

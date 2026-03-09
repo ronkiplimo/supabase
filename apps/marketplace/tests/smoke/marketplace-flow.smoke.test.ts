@@ -52,6 +52,9 @@ describe('marketplace flow smoke', () => {
             return chain
           },
           select() {
+            if (table === 'items') {
+              chain.data = { type: 'oauth', registry_item_url: null, url: 'https://example.com/listing' }
+            }
             if (table === 'item_reviews') {
               chain.data = { status: 'rejected' }
             }

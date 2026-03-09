@@ -1,15 +1,18 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+const saveItemFilesActionMock = vi.fn()
+
 vi.mock('@/app/protected/actions', () => ({
-  syncItemAssetsAction: vi.fn().mockResolvedValue({ itemId: 2 }),
+  saveItemFilesAction: (...args: unknown[]) => saveItemFilesActionMock(...args),
 }))
 
 vi.mock('@/hooks/use-supabase-upload', () => ({
   useSupabaseUpload: () => ({
     files: [],
+    setFiles: vi.fn(),
     onUpload: vi.fn().mockResolvedValue([]),
   }),
 }))
@@ -22,13 +25,9 @@ vi.mock('@/components/dropzone', () => ({
 
 vi.mock('@/lib/supabase/client', () => ({
   createClient: () => ({
-    from: () => ({
-      insert: vi.fn().mockReturnThis(),
-      select: vi.fn().mockResolvedValue({ data: [], error: null }),
-    }),
     storage: {
       from: () => ({
-        createSignedUrls: vi.fn().mockResolvedValue({ data: [], error: null }),
+        getPublicUrl: vi.fn().mockReturnValue({ data: { publicUrl: 'https://cdn.example/new-file.png' } }),
       }),
     },
   }),
@@ -39,22 +38,34 @@ import { ItemFilesUploader } from '@/components/item-files-uploader'
 describe('ItemFilesUploader', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    saveItemFilesActionMock.mockResolvedValue({ itemId: 2, itemSlug: 'item', files: [] })
   })
 
-  it('tracks removed persisted file ids', async () => {
+  it('persists the remaining file URLs after removing a file and auto-uploading', async () => {
     const user = userEvent.setup()
-    const onRemovedFileIdsChange = vi.fn()
-
-    render(
-      <ItemFilesUploader
-        partnerId={1}
-        itemId={2}
-        initialFiles={[{ id: 10, file_path: '1/items/2/files/readme.txt', sort_order: 0 }]}
-        onRemovedFileIdsChange={onRemovedFileIdsChange}
-      />
+    const initialFiles = ['https://project.supabase.co/storage/v1/object/public/item_files/1/items/2/files/readme.txt']
+    const { rerender } = render(
+      <ItemFilesUploader partnerId={1} partnerSlug="acme" itemId={2} initialFiles={initialFiles} />
     )
 
     await user.click(screen.getByRole('button', { name: 'Remove readme.txt' }))
-    expect(onRemovedFileIdsChange).toHaveBeenCalledWith([10])
+
+    rerender(
+      <ItemFilesUploader
+        partnerId={1}
+        partnerSlug="acme"
+        itemId={2}
+        initialFiles={initialFiles}
+        autoUploadSignal={1}
+      />
+    )
+
+    await waitFor(() => expect(saveItemFilesActionMock).toHaveBeenCalledTimes(1))
+
+    const formData = saveItemFilesActionMock.mock.calls[0]?.[0]
+    expect(formData).toBeInstanceOf(FormData)
+    expect((formData as FormData).get('itemId')).toBe('2')
+    expect((formData as FormData).get('partnerSlug')).toBe('acme')
+    expect((formData as FormData).getAll('files[]')).toEqual([])
   })
 })

@@ -89,7 +89,6 @@ export const LOCAL_STORAGE_KEYS = {
     `user-impersonation-selector-previous-searches-${ref}`,
 
   HOTKEY_COMMAND_MENU: 'supabase-dashboard-hotkey-command-menu',
-  OAUTH_INTEGRATIONS_BANNER_MOCK: 'supabase-oauth-integrations-banner-mock',
 
   LAST_OPENED_SIDE_BAR: (ref: string) => `last-opened-sidebar-${ref}`,
 

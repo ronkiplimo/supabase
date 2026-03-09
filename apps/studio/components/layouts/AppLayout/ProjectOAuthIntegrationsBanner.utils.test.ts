@@ -3,12 +3,9 @@ import { describe, expect, it } from 'vitest'
 import type { AuthorizedApp } from 'data/oauth/authorized-apps-query'
 import {
   getAuthorizedAppDisplayData,
-  getAuthorizedAppNames,
-  getConnectedAppsSentence,
+  getConnectedAppsDescription,
   getConnectedAppsTitle,
-  getMockAuthorizedApps,
   isProjectRoute,
-  shouldDisableMockAuthorizedApps,
 } from './ProjectOAuthIntegrationsBanner.utils'
 
 const createAuthorizedApp = (overrides: Partial<AuthorizedApp>): AuthorizedApp => ({
@@ -41,20 +38,21 @@ describe('ProjectOAuthIntegrationsBanner utils', () => {
     })
   })
 
-  describe('getAuthorizedAppNames', () => {
+  describe('getAuthorizedAppDisplayData', () => {
     it('returns unique display-safe app names', () => {
-      const appNames = getAuthorizedAppNames([
+      const displayApps = getAuthorizedAppDisplayData([
         createAuthorizedApp({ name: '  Lovable  ' }),
         createAuthorizedApp({ name: 'lovable' }),
         createAuthorizedApp({ name: 'Bolt.new' }),
         createAuthorizedApp({ name: ' ' }),
       ])
 
-      expect(appNames).toEqual(['Lovable', 'Bolt.new'])
+      expect(displayApps).toEqual([
+        { name: 'Lovable', icon: null },
+        { name: 'Bolt.new', icon: null },
+      ])
     })
-  })
 
-  describe('getAuthorizedAppDisplayData', () => {
     it('backfills icon from duplicate entries', () => {
       const displayApps = getAuthorizedAppDisplayData([
         createAuthorizedApp({ name: 'Figma', icon: null }),
@@ -67,51 +65,21 @@ describe('ProjectOAuthIntegrationsBanner utils', () => {
     })
   })
 
-  describe('getConnectedAppsTitle', () => {
+  describe('copy helpers', () => {
     it('renders title for a single app', () => {
-      expect(getConnectedAppsTitle(['Lovable'])).toBe('Connected to Lovable')
+      expect(getConnectedAppsTitle(['Lovable'])).toBe('This project is connected to Lovable')
     })
 
-    it('renders a condensed title for multiple apps', () => {
+    it('renders condensed title for multiple apps', () => {
       expect(getConnectedAppsTitle(['Lovable', 'Bolt', 'Replit'])).toBe(
-        'Connected to Lovable, Bolt, and 1 other app'
+        'This project is connected to Lovable, Bolt, and 1 other app'
       )
     })
-  })
 
-  describe('getConnectedAppsSentence', () => {
-    it('renders single-line sentence copy', () => {
-      expect(getConnectedAppsSentence(['Lovable'])).toBe(
-        'This project is integrated with Lovable and dashboard changes may impact this project'
+    it('renders a matching description', () => {
+      expect(getConnectedAppsDescription(['Lovable'])).toBe(
+        'Changes made here may affect how your project works in Lovable.'
       )
-    })
-  })
-
-  describe('mock parsing', () => {
-    it('parses comma-separated app names into mock apps', () => {
-      const { apps, isMocked } = getMockAuthorizedApps('Lovable,Bolt,Figma')
-
-      expect(isMocked).toBe(true)
-      expect(apps.map((app) => app.name)).toEqual(['Lovable', 'Bolt', 'Figma'])
-      expect(apps.every((app) => app.created_by === 'mock-oauth')).toBe(true)
-    })
-
-    it('supports optional icon in mock entries', () => {
-      const { apps, isMocked } = getMockAuthorizedApps('Figma|https://cdn.example.com/figma.png')
-
-      expect(isMocked).toBe(true)
-      expect(apps[0]).toMatchObject({
-        name: 'Figma',
-        icon: 'https://cdn.example.com/figma.png',
-      })
-    })
-
-    it('treats off/none flags as mock disabled', () => {
-      expect(shouldDisableMockAuthorizedApps('off')).toBe(true)
-      expect(shouldDisableMockAuthorizedApps('none')).toBe(true)
-
-      const parsed = getMockAuthorizedApps('off')
-      expect(parsed).toEqual({ apps: [], isMocked: false })
     })
   })
 })

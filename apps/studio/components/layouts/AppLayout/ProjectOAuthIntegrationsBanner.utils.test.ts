@@ -20,66 +20,43 @@ const createAuthorizedApp = (overrides: Partial<AuthorizedApp>): AuthorizedApp =
 })
 
 describe('ProjectOAuthIntegrationsBanner utils', () => {
-  describe('isProjectRoute', () => {
-    it('returns true for project route template pathnames', () => {
-      expect(isProjectRoute({ pathname: '/project/[ref]/database/tables' })).toBe(true)
-    })
-
-    it('returns true for project URLs from asPath', () => {
-      expect(isProjectRoute({ pathname: '/unknown', asPath: '/project/default/functions' })).toBe(
-        true
-      )
-    })
-
-    it('returns false for non-project routes', () => {
-      expect(isProjectRoute({ pathname: '/org/[slug]/apps', asPath: '/org/default/apps' })).toBe(
-        false
-      )
-    })
+  it('detects project routes from pathname or asPath', () => {
+    expect(isProjectRoute({ pathname: '/project/[ref]/database/tables' })).toBe(true)
+    expect(isProjectRoute({ pathname: '/unknown', asPath: '/project/default/functions' })).toBe(
+      true
+    )
+    expect(isProjectRoute({ pathname: '/org/[slug]/apps', asPath: '/org/default/apps' })).toBe(
+      false
+    )
   })
 
-  describe('getAuthorizedAppDisplayData', () => {
-    it('returns unique display-safe app names', () => {
-      const displayApps = getAuthorizedAppDisplayData([
-        createAuthorizedApp({ name: '  Lovable  ' }),
-        createAuthorizedApp({ name: 'lovable' }),
-        createAuthorizedApp({ name: 'Bolt.new' }),
-        createAuthorizedApp({ name: ' ' }),
-      ])
+  it('returns unique display-safe apps and backfills icons from duplicate entries', () => {
+    const displayApps = getAuthorizedAppDisplayData([
+      createAuthorizedApp({ name: '  Lovable  ' }),
+      createAuthorizedApp({ name: 'lovable' }),
+      createAuthorizedApp({ name: 'Bolt.new' }),
+      createAuthorizedApp({ name: ' ' }),
+      createAuthorizedApp({ name: 'Figma', icon: null }),
+      createAuthorizedApp({ name: 'figma', icon: 'https://cdn.example.com/figma.png' }),
+    ])
 
-      expect(displayApps).toEqual([
-        { name: 'Lovable', icon: null },
-        { name: 'Bolt.new', icon: null },
-      ])
-    })
-
-    it('backfills icon from duplicate entries', () => {
-      const displayApps = getAuthorizedAppDisplayData([
-        createAuthorizedApp({ name: 'Figma', icon: null }),
-        createAuthorizedApp({ name: 'figma', icon: 'https://cdn.example.com/figma.png' }),
-      ])
-
-      expect(displayApps).toEqual([
-        { name: 'Figma', icon: 'https://cdn.example.com/figma.png' },
-      ])
-    })
+    expect(displayApps).toEqual([
+      { name: 'Lovable', icon: null },
+      { name: 'Bolt.new', icon: null },
+      { name: 'Figma', icon: 'https://cdn.example.com/figma.png' },
+    ])
   })
 
-  describe('copy helpers', () => {
-    it('renders title for a single app', () => {
-      expect(getConnectedAppsTitle(['Lovable'])).toBe('This project is connected to Lovable')
-    })
+  it('renders connected app titles for single and multi-app cases', () => {
+    expect(getConnectedAppsTitle(['Lovable'])).toBe('This project is connected to Lovable')
+    expect(getConnectedAppsTitle(['Lovable', 'Bolt', 'Replit'])).toBe(
+      'This project is connected to Lovable, Bolt, and 1 other app'
+    )
+  })
 
-    it('renders condensed title for multiple apps', () => {
-      expect(getConnectedAppsTitle(['Lovable', 'Bolt', 'Replit'])).toBe(
-        'This project is connected to Lovable, Bolt, and 1 other app'
-      )
-    })
-
-    it('renders a matching description', () => {
-      expect(getConnectedAppsDescription(['Lovable'])).toBe(
-        'Changes made here may affect how your project works in Lovable.'
-      )
-    })
+  it('renders a connected app description', () => {
+    expect(getConnectedAppsDescription(['Lovable'])).toBe(
+      'Changes made here may affect how your project works in Lovable.'
+    )
   })
 })

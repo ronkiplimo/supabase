@@ -11,13 +11,13 @@ import { useIsOrioleDb, useSelectedProjectQuery } from 'hooks/misc/useSelectedPr
 import { DOCS_URL, PROJECT_STATUS } from 'lib/constants'
 import Link from 'next/link'
 import { ReactFlowProvider } from 'reactflow'
-import { Badge, cn, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
+import { Badge, cn, Skeleton, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
 
 import { InstanceConfiguration } from '../Settings/Infrastructure/InfrastructureConfiguration/InstanceConfiguration'
 
 export const TopSection = () => {
   const isOrioleDb = useIsOrioleDb()
-  const { data: project } = useSelectedProjectQuery()
+  const { data: project, isPending: isLoadingProject } = useSelectedProjectQuery()
   const { data: organization } = useSelectedOrganizationQuery()
   const { data: parentProject } = useProjectDetailQuery({ ref: project?.parent_project_ref })
 
@@ -39,6 +39,10 @@ export const TopSection = () => {
 
   if (isPaused) {
     return <ProjectPausedState />
+  }
+
+  if (isLoadingProject) {
+    return <TopSectionSkeleton />
   }
 
   return (
@@ -101,6 +105,37 @@ export const TopSection = () => {
         </div>
       </div>
       <ProjectUpgradeFailedBanner />
+    </div>
+  )
+}
+
+const TopSectionSkeleton = () => {
+  return (
+    <div className="flex flex-col gap-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-0 w-full items-center">
+        <div className="flex flex-col">
+          <div className="flex flex-row flex-wrap items-center gap-4 w-full">
+            <div>
+              <div className="flex items-center gap-x-2">
+                <Skeleton className="h-9 w-48" />
+                <Skeleton className="h-6 w-16" />
+              </div>
+              <Skeleton className="h-5 w-64 mt-2" />
+            </div>
+          </div>
+          <div className="mt-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-6 flex-wrap">
+              <Skeleton className="h-[72px] w-full" />
+              <Skeleton className="h-[72px] w-full" />
+              <Skeleton className="h-[72px] w-full" />
+              <Skeleton className="h-[72px] w-full" />
+            </div>
+          </div>
+        </div>
+        <div>
+          <Skeleton className="w-full h-[400px] md:h-[500px] rounded-md" />
+        </div>
+      </div>
     </div>
   )
 }

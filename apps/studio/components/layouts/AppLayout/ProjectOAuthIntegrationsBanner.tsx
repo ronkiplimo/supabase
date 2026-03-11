@@ -1,3 +1,4 @@
+import { useIsProjectOauthIntegrationsBannerEnabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { useAuthorizedAppsQuery } from 'data/oauth/authorized-apps-query'
 import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
 import { Plug, Settings2 } from 'lucide-react'
@@ -15,16 +16,25 @@ import {
 export const ProjectOAuthIntegrationsBanner = () => {
   const router = useRouter()
   const { data: selectedOrganization } = useSelectedOrganizationQuery()
+  const isProjectOauthIntegrationsBannerEnabled = useIsProjectOauthIntegrationsBannerEnabled()
 
   const organizationSlug = selectedOrganization?.slug
   const showProjectBanner = isProjectRoute({ pathname: router.pathname, asPath: router.asPath })
+  const canShowProjectBanner =
+    isProjectOauthIntegrationsBannerEnabled && showProjectBanner && !!organizationSlug
 
   const { data: authorizedApps = [], isError } = useAuthorizedAppsQuery(
     { slug: organizationSlug },
-    { enabled: showProjectBanner && !!organizationSlug }
+    { enabled: canShowProjectBanner }
   )
 
-  if (!showProjectBanner || !organizationSlug || isError) return null
+  if (
+    !isProjectOauthIntegrationsBannerEnabled ||
+    !showProjectBanner ||
+    !organizationSlug ||
+    isError
+  )
+    return null
 
   if (authorizedApps.length === 0) return null
 

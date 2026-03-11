@@ -8,6 +8,7 @@ import { ProjectOAuthIntegrationsBanner } from './ProjectOAuthIntegrationsBanner
 
 const mockUseSelectedOrganizationQuery = vi.fn()
 const mockUseAuthorizedAppsQuery = vi.fn()
+const mockUseIsProjectOauthIntegrationsBannerEnabled = vi.fn()
 
 vi.mock('hooks/misc/useSelectedOrganization', () => ({
   useSelectedOrganizationQuery: () => mockUseSelectedOrganizationQuery(),
@@ -15,6 +16,11 @@ vi.mock('hooks/misc/useSelectedOrganization', () => ({
 
 vi.mock('data/oauth/authorized-apps-query', () => ({
   useAuthorizedAppsQuery: (...args: unknown[]) => mockUseAuthorizedAppsQuery(...args),
+}))
+
+vi.mock('components/interfaces/App/FeaturePreview/FeaturePreviewContext', () => ({
+  useIsProjectOauthIntegrationsBannerEnabled: () =>
+    mockUseIsProjectOauthIntegrationsBannerEnabled(),
 }))
 
 const createAuthorizedApp = (overrides: Partial<AuthorizedApp>): AuthorizedApp => ({
@@ -36,6 +42,7 @@ describe('ProjectOAuthIntegrationsBanner', () => {
     mockUseSelectedOrganizationQuery.mockReturnValue({
       data: { slug: 'acme' },
     })
+    mockUseIsProjectOauthIntegrationsBannerEnabled.mockReturnValue(true)
 
     mockUseAuthorizedAppsQuery.mockReturnValue({
       data: [createAuthorizedApp({ name: 'Lovable' })],
@@ -61,6 +68,18 @@ describe('ProjectOAuthIntegrationsBanner', () => {
 
   it('does not render on non-project routes', () => {
     routerMock.setCurrentUrl('/org/acme/apps')
+
+    render(<ProjectOAuthIntegrationsBanner />)
+
+    expect(screen.queryByText(/This project is connected to/)).not.toBeInTheDocument()
+    expect(mockUseAuthorizedAppsQuery).toHaveBeenCalledWith(
+      { slug: 'acme' },
+      expect.objectContaining({ enabled: false })
+    )
+  })
+
+  it('does not render when feature preview is disabled', () => {
+    mockUseIsProjectOauthIntegrationsBannerEnabled.mockReturnValue(false)
 
     render(<ProjectOAuthIntegrationsBanner />)
 

@@ -12,7 +12,10 @@ export type BranchCreateVariables = {
   gitBranch?: string
   region?: string
   withData?: boolean
-} & Pick<components['schemas']['CreateBranchBody'], 'is_default' | 'desired_instance_size'>
+} & Pick<
+  components['schemas']['CreateBranchBody'],
+  'is_default' | 'desired_instance_size' | 'persistent'
+>
 
 export async function createBranch({
   projectRef,
@@ -22,6 +25,7 @@ export async function createBranch({
   region,
   withData,
   desired_instance_size,
+  persistent,
 }: BranchCreateVariables) {
   const { data, error } = await post('/v1/projects/{ref}/branches', {
     params: {
@@ -34,6 +38,7 @@ export async function createBranch({
       region,
       with_data: withData,
       desired_instance_size,
+      persistent,
     },
   })
 

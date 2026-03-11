@@ -82,6 +82,8 @@ export const CreateBranchModal = () => {
 
   const { hasAccess: hasAccessToBranching, isLoading: isLoadingEntitlement } =
     useCheckEntitlements('branching_limit')
+  const { hasAccess: hasAccessToPersistentBranching } =
+    useCheckEntitlements('branching_persistent')
   const promptPlanUpgrade = IS_PLATFORM && !hasAccessToBranching
 
   const isBranch = projectDetails?.parent_project_ref !== undefined
@@ -108,13 +110,14 @@ export const CreateBranchModal = () => {
         'Git branch name is required when GitHub is connected'
       ),
     withData: z.boolean().default(false).optional(),
+    persistent: z.boolean().default(false).optional(),
   })
 
   const form = useForm<z.infer<typeof FormSchema>>({
     mode: 'onSubmit',
     reValidateMode: 'onBlur',
     resolver: zodResolver(FormSchema),
-    defaultValues: { branchName: '', gitBranchName: '', withData: false },
+    defaultValues: { branchName: '', gitBranchName: '', withData: false, persistent: false },
   })
 
   const { withData, gitBranchName } = form.watch()
@@ -273,6 +276,7 @@ export const CreateBranchModal = () => {
       ...(data.withData ? { desired_instance_size: computeSize } : {}),
       ...(data.gitBranchName ? { gitBranch: data.gitBranchName } : {}),
       ...(allowDataBranching ? { withData: data.withData } : {}),
+      ...(data.persistent ? { persistent: data.persistent } : {}),
     })
   }
 
@@ -460,6 +464,34 @@ export const CreateBranchModal = () => {
                   )}
                 />
               )}
+
+              <FormField_Shadcn_
+                control={form.control}
+                name="persistent"
+                render={({ field }) => (
+                  <FormItemLayout
+                    label={
+                      <>
+                        <Label className="mr-2">Persistent branch</Label>
+                        {!hasAccessToPersistentBranching && (
+                          <Badge variant="warning">Requires Team plan</Badge>
+                        )}
+                      </>
+                    }
+                    layout="flex-row-reverse"
+                    className="[&>div>label]:mb-1"
+                    description="Persistent branches are not deleted when the associated pull request is merged or closed"
+                  >
+                    <FormControl_Shadcn_>
+                      <Switch
+                        disabled={!hasAccessToPersistentBranching}
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl_Shadcn_>
+                  </FormItemLayout>
+                )}
+              />
             </DialogSection>
 
             <DialogSectionSeparator />

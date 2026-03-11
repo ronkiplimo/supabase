@@ -19,7 +19,7 @@ export function FrameworksSectionClient({ frameworks }: { frameworks: Framework[
 
   return (
     <div className="border-b border-border">
-      <div className="dark mx-auto max-w-[var(--container-max-w,75rem)] pl-6 border-x border-border bg-background dark:bg-muted/50 text-white">
+      <div className="mx-auto max-w-[var(--container-max-w,75rem)] pl-6 border-x border-border">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
           {/* Left: title */}
           <div className="flex items-center py-16 lg:py-24 pr-6">
@@ -82,7 +82,12 @@ export function FrameworksSectionClient({ frameworks }: { frameworks: Framework[
                 >
                   <div
                     dangerouslySetInnerHTML={{ __html: active.darkHtml }}
-                    className="[&_pre]:!bg-transparent [&_pre]:m-0 [&_pre]:p-6"
+                    className="hidden dark:block [&_pre]:!bg-transparent [&_pre]:m-0 [&_pre]:p-6"
+                    style={{ fontSize: '0.8125rem', fontWeight: 500, lineHeight: 1.7 }}
+                  />
+                  <div
+                    dangerouslySetInnerHTML={{ __html: active.lightHtml }}
+                    className="block dark:hidden [&_pre]:!bg-transparent [&_pre]:m-0 [&_pre]:p-6"
                     style={{ fontSize: '0.8125rem', fontWeight: 500, lineHeight: 1.7 }}
                   />
                 </motion.div>

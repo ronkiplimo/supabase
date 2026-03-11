@@ -28,9 +28,7 @@ export function CommunitySectionV2() {
     <div className="border-b border-border">
       <div className="mx-auto max-w-[var(--container-max-w,75rem)] border-x border-border">
         <div className="flex flex-col items-center gap-3 px-6 py-20">
-          <h3 className="text-2xl md:text-4xl text-center text-foreground-lighter">
-            Join the community
-          </h3>
+          <h3 className="text-2xl md:text-4xl text-center">Join the community</h3>
           <p className="text-foreground-lighter text-center text-sm">
             Discover what our community has to say about their Supabase experience.
           </p>

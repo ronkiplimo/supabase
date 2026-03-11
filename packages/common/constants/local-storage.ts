@@ -105,6 +105,8 @@ export const LOCAL_STORAGE_KEYS = {
   OBSERVABILITY_BANNER_DISMISSED: (ref: string) => `observability-banner-dismissed-${ref}`,
   TABLE_EDITOR_NEW_FILTER_BANNER_DISMISSED: (ref: string) =>
     `table-editor-new-filter-banner-dismissed-${ref}`,
+  ORGANIZATION_MARKETPLACE_BANNER_DISMISSED: (orgSlug: string, managedBy: string) =>
+    `organization-marketplace-banner-dismissed-${orgSlug}-${managedBy}`,
 
   /**
    * COMMON

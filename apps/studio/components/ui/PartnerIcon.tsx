@@ -10,6 +10,29 @@ interface PartnerIconProps {
   size?: 'small' | 'medium' | 'large'
 }
 
+export function getDefaultPartnerTooltipText(
+  managedBy: Pick<Organization, 'managed_by'>['managed_by']
+) {
+  switch (managedBy) {
+    case MANAGED_BY.VERCEL_MARKETPLACE:
+      return 'This organization is managed via Vercel Marketplace.'
+    case MANAGED_BY.AWS_MARKETPLACE:
+      return 'This organization is billed via AWS Marketplace.'
+    default:
+      return `This organization is managed by ${PARTNER_TO_NAME[managedBy]}.`
+  }
+}
+
+export function getPartnerTooltipText({
+  managedBy,
+  tooltipText,
+}: {
+  managedBy: Pick<Organization, 'managed_by'>['managed_by']
+  tooltipText?: string
+}) {
+  return tooltipText ?? getDefaultPartnerTooltipText(managedBy)
+}
+
 function getPartnerIcon(
   organization: Pick<Organization, 'managed_by'>,
   size: 'small' | 'medium' | 'large'
@@ -91,7 +114,10 @@ function PartnerIcon({
       )
     }
 
-    const defaultTooltipText = `This organization is managed by ${PARTNER_TO_NAME[organization.managed_by]}`
+    const defaultTooltipText = getPartnerTooltipText({
+      managedBy: organization.managed_by,
+      tooltipText,
+    })
 
     return (
       <Tooltip>
@@ -107,7 +133,7 @@ function PartnerIcon({
             {icon}
           </div>
         </TooltipTrigger>
-        <TooltipContent>{tooltipText ?? defaultTooltipText}</TooltipContent>
+        <TooltipContent>{defaultTooltipText}</TooltipContent>
       </Tooltip>
     )
   }

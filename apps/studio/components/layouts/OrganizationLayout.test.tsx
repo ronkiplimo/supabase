@@ -1,14 +1,19 @@
-import { screen } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
+import { LOCAL_STORAGE_KEYS } from 'common'
 import { MANAGED_BY } from 'lib/constants/infrastructure'
 import { createMockOrganization, render } from 'tests/helpers'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const {
   mockUseAwsRedirectQuery,
+  mockUseLocalStorageQuery,
+  mockSetIsBannerDismissed,
   mockUseSelectedOrganizationQuery,
   mockUseVercelRedirectQuery,
 } = vi.hoisted(() => ({
   mockUseAwsRedirectQuery: vi.fn(),
+  mockUseLocalStorageQuery: vi.fn(),
+  mockSetIsBannerDismissed: vi.fn(),
   mockUseSelectedOrganizationQuery: vi.fn(),
   mockUseVercelRedirectQuery: vi.fn(),
 }))
@@ -23,6 +28,10 @@ vi.mock('data/integrations/vercel-redirect-query', () => ({
 
 vi.mock('data/integrations/aws-redirect-query', () => ({
   useAwsRedirectQuery: mockUseAwsRedirectQuery,
+}))
+
+vi.mock('hooks/misc/useLocalStorage', () => ({
+  useLocalStorageQuery: mockUseLocalStorageQuery,
 }))
 
 vi.mock('hooks/misc/withAuth', () => ({
@@ -45,6 +54,12 @@ const renderLayout = () =>
 describe('OrganizationLayout', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+
+    mockUseLocalStorageQuery.mockReturnValue([
+      false,
+      mockSetIsBannerDismissed,
+      { isSuccess: true, isLoading: false, isError: false, error: null },
+    ])
     mockUseVercelRedirectQuery.mockReturnValue({ data: undefined, isSuccess: false })
     mockUseAwsRedirectQuery.mockReturnValue({ data: undefined, isSuccess: false })
   })
@@ -73,6 +88,13 @@ describe('OrganizationLayout', () => {
     expect(mockUseVercelRedirectQuery).toHaveBeenCalledWith(
       { installationId: 'vercel-installation-id' },
       expect.objectContaining({ enabled: true })
+    )
+    expect(mockUseLocalStorageQuery).toHaveBeenCalledWith(
+      LOCAL_STORAGE_KEYS.ORGANIZATION_MARKETPLACE_BANNER_DISMISSED(
+        'abcdefghijklmnopqrst',
+        MANAGED_BY.VERCEL_MARKETPLACE
+      ),
+      false
     )
     expect(mockUseAwsRedirectQuery).toHaveBeenCalledWith(
       { organizationSlug: 'abcdefghijklmnopqrst' },
@@ -104,6 +126,13 @@ describe('OrganizationLayout', () => {
     expect(mockUseAwsRedirectQuery).toHaveBeenCalledWith(
       { organizationSlug: 'aws-org' },
       expect.objectContaining({ enabled: true })
+    )
+    expect(mockUseLocalStorageQuery).toHaveBeenCalledWith(
+      LOCAL_STORAGE_KEYS.ORGANIZATION_MARKETPLACE_BANNER_DISMISSED(
+        'aws-org',
+        MANAGED_BY.AWS_MARKETPLACE
+      ),
+      false
     )
     expect(mockUseVercelRedirectQuery).toHaveBeenCalledWith(
       { installationId: undefined },
@@ -139,9 +168,52 @@ describe('OrganizationLayout', () => {
       { installationId: undefined },
       expect.objectContaining({ enabled: false })
     )
+    expect(mockUseLocalStorageQuery).toHaveBeenCalledWith(
+      LOCAL_STORAGE_KEYS.ORGANIZATION_MARKETPLACE_BANNER_DISMISSED(
+        'abcdefghijklmnopqrst',
+        'stripe-product'
+      ),
+      false
+    )
     expect(mockUseAwsRedirectQuery).toHaveBeenCalledWith(
       { organizationSlug: 'abcdefghijklmnopqrst' },
       expect.objectContaining({ enabled: false })
     )
+  })
+
+  it('hides banner when dismissal state is persisted', () => {
+    mockUseLocalStorageQuery.mockReturnValue([
+      true,
+      mockSetIsBannerDismissed,
+      { isSuccess: true, isLoading: false, isError: false, error: null },
+    ])
+    mockUseSelectedOrganizationQuery.mockReturnValue({
+      data: createMockOrganization({
+        managed_by: MANAGED_BY.VERCEL_MARKETPLACE,
+        partner_id: 'vercel-installation-id',
+      }),
+    })
+
+    renderLayout()
+
+    expect(screen.queryByRole('link', { name: 'Manage' })).toBeNull()
+    expect(screen.queryByText('This organization is managed via Vercel Marketplace')).toBeNull()
+  })
+
+  it('dismisses the banner and persists the state', () => {
+    mockUseSelectedOrganizationQuery.mockReturnValue({
+      data: createMockOrganization({
+        managed_by: MANAGED_BY.AWS_MARKETPLACE,
+      }),
+    })
+    mockUseAwsRedirectQuery.mockReturnValue({
+      data: { url: 'https://console.aws.amazon.com/billing/home' },
+      isSuccess: true,
+    })
+
+    renderLayout()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss banner' }))
+    expect(mockSetIsBannerDismissed).toHaveBeenCalledWith(true)
   })
 })

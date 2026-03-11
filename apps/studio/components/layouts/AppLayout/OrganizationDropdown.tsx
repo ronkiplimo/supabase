@@ -58,6 +58,7 @@ export const OrganizationDropdown = () => {
         >
           {orgName ?? 'Select an organization'}
         </span>
+        {!!selectedOrganization && <PartnerIcon organization={selectedOrganization} />}
         {!!selectedOrganization && (
           <Badge variant="default">{selectedOrganization?.plan.name}</Badge>
         )}

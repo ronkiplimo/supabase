@@ -1,10 +1,12 @@
+import { LOCAL_STORAGE_KEYS } from 'common'
 import PartnerIcon from 'components/ui/PartnerIcon'
 import { useAwsRedirectQuery } from 'data/integrations/aws-redirect-query'
 import { useVercelRedirectQuery } from 'data/integrations/vercel-redirect-query'
+import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
 import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
 import { withAuth } from 'hooks/misc/withAuth'
 import { MANAGED_BY } from 'lib/constants/infrastructure'
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, XIcon } from 'lucide-react'
 import { type PropsWithChildren } from 'react'
 import { Alert_Shadcn_, AlertDescription_Shadcn_, AlertTitle_Shadcn_, Button, cn } from 'ui'
 
@@ -32,6 +34,21 @@ const MARKETPLACE_BANNER_CONFIG: Record<
   },
 }
 
+const DEFAULT_ORGANIZATION_MARKETPLACE_BANNER_DISMISS_KEY =
+  LOCAL_STORAGE_KEYS.ORGANIZATION_MARKETPLACE_BANNER_DISMISSED('unknown', MANAGED_BY.SUPABASE)
+
+function getMarketplaceBannerDismissKey({
+  organizationSlug,
+  managedBy,
+}: {
+  organizationSlug?: string
+  managedBy?: string
+}) {
+  if (!organizationSlug || !managedBy) return DEFAULT_ORGANIZATION_MARKETPLACE_BANNER_DISMISS_KEY
+
+  return LOCAL_STORAGE_KEYS.ORGANIZATION_MARKETPLACE_BANNER_DISMISSED(organizationSlug, managedBy)
+}
+
 function getMarketplaceBannerConfig(managedBy?: string): MarketplaceBannerConfig | undefined {
   switch (managedBy) {
     case MANAGED_BY.VERCEL_MARKETPLACE:
@@ -46,6 +63,13 @@ function getMarketplaceBannerConfig(managedBy?: string): MarketplaceBannerConfig
 
 const OrganizationLayoutContent = ({ children }: PropsWithChildren) => {
   const { data: selectedOrganization } = useSelectedOrganizationQuery()
+  const [isBannerDismissed, setIsBannerDismissed] = useLocalStorageQuery<boolean>(
+    getMarketplaceBannerDismissKey({
+      organizationSlug: selectedOrganization?.slug,
+      managedBy: selectedOrganization?.managed_by,
+    }),
+    false
+  )
 
   const vercelQuery = useVercelRedirectQuery(
     {
@@ -82,7 +106,7 @@ const OrganizationLayoutContent = ({ children }: PropsWithChildren) => {
 
   return (
     <div className={cn('h-full w-full flex flex-col overflow-hidden')}>
-      {selectedOrganization && bannerConfig && (
+      {selectedOrganization && bannerConfig && !isBannerDismissed && (
         <Alert_Shadcn_
           variant="default"
           className="flex items-center gap-4 border-t-0 border-x-0 rounded-none"
@@ -92,16 +116,25 @@ const OrganizationLayoutContent = ({ children }: PropsWithChildren) => {
             <AlertTitle_Shadcn_>{bannerConfig.title}</AlertTitle_Shadcn_>
             <AlertDescription_Shadcn_>{bannerConfig.description}</AlertDescription_Shadcn_>
           </div>
-          <Button
-            asChild
-            type="default"
-            iconRight={<ExternalLink />}
-            disabled={!selectedRedirectQuery?.isSuccess}
-          >
-            <a href={selectedRedirectQuery?.data?.url} target="_blank" rel="noopener noreferrer">
-              Manage
-            </a>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              asChild
+              type="default"
+              iconRight={<ExternalLink />}
+              disabled={!selectedRedirectQuery?.isSuccess}
+            >
+              <a href={selectedRedirectQuery?.data?.url} target="_blank" rel="noopener noreferrer">
+                Manage
+              </a>
+            </Button>
+            <Button
+              type="text"
+              icon={<XIcon size={14} />}
+              className="h-7 w-7 p-0"
+              onClick={() => setIsBannerDismissed(true)}
+              aria-label="Dismiss banner"
+            />
+          </div>
         </Alert_Shadcn_>
       )}
       <main className="h-full w-full overflow-y-auto flex flex-col">{children}</main>

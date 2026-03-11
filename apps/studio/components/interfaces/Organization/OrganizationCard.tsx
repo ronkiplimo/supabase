@@ -1,5 +1,6 @@
 import { useIsMFAEnabled } from 'common'
 import { ActionCard } from 'components/ui/ActionCard'
+import PartnerIcon from 'components/ui/PartnerIcon'
 import { useOrgProjectsInfiniteQuery } from 'data/projects/org-projects-infinite-query'
 import { Boxes, Lock } from 'lucide-react'
 import Link from 'next/link'
@@ -39,6 +40,7 @@ export const OrganizationCard = ({
         <div className="flex items-center justify-between text-xs text-foreground-light font-sans">
           <div className="flex items-center gap-x-1.5">
             <span>{organization.plan.name} Plan</span>
+            <PartnerIcon organization={organization} />
             {numProjects > 0 && (
               <>
                 <span>·</span>

@@ -1,14 +1,48 @@
-import { ExternalLink } from 'lucide-react'
-import { type PropsWithChildren } from 'react'
-
 import PartnerIcon from 'components/ui/PartnerIcon'
-import { PARTNER_TO_NAME } from 'components/ui/PartnerManagedResource'
 import { useAwsRedirectQuery } from 'data/integrations/aws-redirect-query'
 import { useVercelRedirectQuery } from 'data/integrations/vercel-redirect-query'
 import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
 import { withAuth } from 'hooks/misc/withAuth'
 import { MANAGED_BY } from 'lib/constants/infrastructure'
-import { Alert_Shadcn_, AlertTitle_Shadcn_, Button, cn } from 'ui'
+import { ExternalLink } from 'lucide-react'
+import { type PropsWithChildren } from 'react'
+import { Alert_Shadcn_, AlertDescription_Shadcn_, AlertTitle_Shadcn_, Button, cn } from 'ui'
+
+type MarketplaceBannerRedirectSource = 'vercel' | 'aws'
+
+type MarketplaceBannerConfig = {
+  title: string
+  description: string
+  redirectSource: MarketplaceBannerRedirectSource
+}
+
+const MARKETPLACE_BANNER_CONFIG: Record<
+  typeof MANAGED_BY.VERCEL_MARKETPLACE | typeof MANAGED_BY.AWS_MARKETPLACE,
+  MarketplaceBannerConfig
+> = {
+  [MANAGED_BY.VERCEL_MARKETPLACE]: {
+    title: 'This organization is managed via Vercel Marketplace',
+    description: 'Billing and some organization access settings are managed in Vercel.',
+    redirectSource: 'vercel',
+  },
+  [MANAGED_BY.AWS_MARKETPLACE]: {
+    title: 'This organization is billed via AWS Marketplace',
+    description: 'Changes to billing and payment details must be made in AWS.',
+    redirectSource: 'aws',
+  },
+}
+
+function getMarketplaceBannerConfig(managedBy?: string): MarketplaceBannerConfig | undefined {
+  switch (managedBy) {
+    case MANAGED_BY.VERCEL_MARKETPLACE:
+      return MARKETPLACE_BANNER_CONFIG[MANAGED_BY.VERCEL_MARKETPLACE]
+    case MANAGED_BY.AWS_MARKETPLACE:
+      return MARKETPLACE_BANNER_CONFIG[MANAGED_BY.AWS_MARKETPLACE]
+    // [Danny] API-928 will add Stripe-specific banner behavior here.
+    default:
+      return undefined
+  }
+}
 
 const OrganizationLayoutContent = ({ children }: PropsWithChildren) => {
   const { data: selectedOrganization } = useSelectedOrganizationQuery()
@@ -31,23 +65,40 @@ const OrganizationLayoutContent = ({ children }: PropsWithChildren) => {
     }
   )
 
-  // Select the appropriate query based on partner
-  const { data, isSuccess } =
-    selectedOrganization?.managed_by === MANAGED_BY.AWS_MARKETPLACE ? awsQuery : vercelQuery
+  const bannerConfig = getMarketplaceBannerConfig(selectedOrganization?.managed_by)
+
+  const selectedRedirectQuery = (() => {
+    if (!bannerConfig) return undefined
+
+    switch (bannerConfig.redirectSource) {
+      case 'aws':
+        return awsQuery
+      case 'vercel':
+        return vercelQuery
+      default:
+        return undefined
+    }
+  })()
 
   return (
     <div className={cn('h-full w-full flex flex-col overflow-hidden')}>
-      {selectedOrganization && selectedOrganization?.managed_by !== 'supabase' && (
+      {selectedOrganization && bannerConfig && (
         <Alert_Shadcn_
           variant="default"
           className="flex items-center gap-4 border-t-0 border-x-0 rounded-none"
         >
           <PartnerIcon organization={selectedOrganization} showTooltip={false} size="medium" />
-          <AlertTitle_Shadcn_ className="flex-1">
-            This organization is managed by {PARTNER_TO_NAME[selectedOrganization.managed_by]}.
-          </AlertTitle_Shadcn_>
-          <Button asChild type="default" iconRight={<ExternalLink />} disabled={!isSuccess}>
-            <a href={data?.url} target="_blank" rel="noopener noreferrer">
+          <div className="flex-1">
+            <AlertTitle_Shadcn_>{bannerConfig.title}</AlertTitle_Shadcn_>
+            <AlertDescription_Shadcn_>{bannerConfig.description}</AlertDescription_Shadcn_>
+          </div>
+          <Button
+            asChild
+            type="default"
+            iconRight={<ExternalLink />}
+            disabled={!selectedRedirectQuery?.isSuccess}
+          >
+            <a href={selectedRedirectQuery?.data?.url} target="_blank" rel="noopener noreferrer">
               Manage
             </a>
           </Button>

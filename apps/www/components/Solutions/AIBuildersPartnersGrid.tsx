@@ -52,6 +52,11 @@ const newPartners: Partner[] = [
     logo: '/images/logos/publicity/optisigns.svg',
   },
   {
+    name: 'Nerd',
+    href: 'https://www.nerdapp.ai/',
+    logo: '/images/logos/publicity/nerd.png',
+  },
+  {
     name: 'CatDoes',
     href: 'https://catdoes.com/',
     logo: '/images/logos/publicity/catdoes.svg',
@@ -62,9 +67,19 @@ const newPartners: Partner[] = [
     logo: '/images/logos/publicity/woz.svg',
   },
   {
+    name: 'Anyx',
+    href: 'https://anyx.app/',
+    logo: '/images/logos/publicity/anyx.png',
+  },
+  {
     name: 'Buildify.dev',
     href: 'https://buildify.dev/',
     logo: '/images/logos/publicity/buildify.svg',
+  },
+  {
+    name: 'Fastshot',
+    href: 'https://fastshot.ai/',
+    logo: '/images/logos/publicity/fastshot.png',
   },
   {
     name: 'The Open Builder',
@@ -94,7 +109,8 @@ interface PartnerLogoProps {
 }
 
 const PartnerLogo = ({ partner, size = 'small' }: PartnerLogoProps) => {
-  const sizeClasses = size === 'large' ? 'h-8 md:h-10' : 'h-5 md:h-6'
+  const containerClasses =
+    size === 'large' ? 'w-24 md:w-32 h-8 md:h-10' : 'w-16 md:w-20 h-5 md:h-6'
 
   return (
     <Tooltip>
@@ -109,7 +125,7 @@ const PartnerLogo = ({ partner, size = 'small' }: PartnerLogoProps) => {
             <img
               src={partner.logo}
               alt={partner.name}
-              className={`${sizeClasses} w-auto object-contain opacity-80 hover:opacity-100 transition-opacity grayscale`}
+              className={`${containerClasses} object-contain opacity-80 hover:opacity-100 transition-opacity grayscale`}
               draggable={false}
               onError={(e) => {
                 // If image fails to load, show text fallback
@@ -153,7 +169,7 @@ const AIBuildersPartnersGrid = ({ className }: AIBuildersPartnersGridProps) => {
 
       {/* New Partners - smaller logos */}
       <div className="pt-6 border-t border-default">
-        <div className="flex flex-wrap justify-center md:justify-between gap-3 items-center">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 items-center justify-items-center">
           {newPartners.map((partner) => (
             <PartnerLogo key={partner.name} partner={partner} size="small" />
           ))}

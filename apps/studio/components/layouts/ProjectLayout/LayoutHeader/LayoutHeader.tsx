@@ -223,8 +223,7 @@ export const LayoutHeader = ({
                     type="outline"
                     size="tiny"
                     onClick={() => {
-                      const err = new Error('Sentry source map test error')
-                      Sentry.captureException(err)
+                      Sentry.captureException(new Error('Sentry source map test error'))
                       alert('Sentry test error sent! Check Sentry for source map resolution.')
                     }}
                   >

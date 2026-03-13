@@ -93,7 +93,7 @@ Sentry.init({
     environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
   }),
   // Setting this option to true will print useful information to the console while you're setting up Sentry.
-  debug: false,
+  debug: process.env.NEXT_PUBLIC_VERCEL_ENV !== 'production',
 
   // Enable performance monitoring
   tracesSampleRate: 1.0, // Capture 100% of transactions for performance monitoring

@@ -22,9 +22,10 @@ export function useStatusPageBannerVisibility(): StatusPageBannerData | null {
   const showIncidentBannerOverride =
     useFlag('ongoingIncident') || process.env.NEXT_PUBLIC_ONGOING_INCIDENT === 'true'
 
-  // Both queries run in parallel on all environments.
-  const { data: allStatusPageEvents } = useIncidentStatusQuery()
-  const { data: incidentBannerData } = useQuery(incidentBannerQueryOptions())
+  const { data: allStatusPageEvents } = useIncidentStatusQuery({ enabled: IS_PROD })
+  const { data: incidentBannerData } = useQuery(
+    incidentBannerQueryOptions({ enabled: IS_NON_PROD })
+  )
 
   // In non-production: derive incidents from the incident-banner endpoint.
   // In production: derive incidents from the statuspage endpoint (existing behaviour).

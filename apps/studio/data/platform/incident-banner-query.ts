@@ -28,10 +28,10 @@ async function getIncidentBanner(signal?: AbortSignal): Promise<IncidentBannerDa
   return response.json()
 }
 
-export const incidentBannerQueryOptions = () =>
+export const incidentBannerQueryOptions = ({ enabled = IS_PLATFORM }: { enabled?: boolean } = {}) =>
   queryOptions({
     queryKey: platformKeys.incidentBanner(),
     queryFn: ({ signal }) => getIncidentBanner(signal),
     staleTime: 1000 * 60 * 5,
-    enabled: IS_PLATFORM,
+    enabled,
   })

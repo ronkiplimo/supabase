@@ -98,27 +98,6 @@ Sentry.init({
   // Enable performance monitoring
   tracesSampleRate: 1.0, // Capture 100% of transactions for performance monitoring
 
-  integrations: (() => {
-    // thirdPartyErrorFilterIntegration relies on build-time chunk annotations injected by the
-    // Sentry webpack plugin (applicationKey: 'supabase-studio' in next.config.js).
-    // That plugin only runs when NEXT_PUBLIC_IS_PLATFORM=true — without it, every stack frame
-    // looks like third-party code and ALL events are silently dropped.
-    // Guard this integration behind the same condition so non-platform builds aren't affected.
-    if (process.env.NEXT_PUBLIC_IS_PLATFORM !== 'true') return []
-
-    const thirdPartyErrorFilterIntegration = (Sentry as any).thirdPartyErrorFilterIntegration
-    if (!thirdPartyErrorFilterIntegration) return []
-
-    // Drop errors whose stack trace only contains third-party frames (browser extensions,
-    // injected scripts, etc.). This uses build-time code annotation via the applicationKey
-    // in next.config.js to reliably distinguish our code from third-party code.
-    return [
-      thirdPartyErrorFilterIntegration({
-        filterKeys: ['supabase-studio'],
-        behaviour: 'drop-error-if-exclusively-contains-third-party-frames',
-      }),
-    ]
-  })(),
 
   // Only capture errors originating from our own code.
   // This is a whitelist on the source URL in stack frames — it drops errors from

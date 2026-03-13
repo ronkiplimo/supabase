@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS project_meta.alert_messages (
   user_id text,
   agent_id uuid REFERENCES project_meta.agents(id) ON DELETE SET NULL,
   role text NOT NULL CHECK (role IN ('user', 'assistant')),
-  content text NOT NULL,
+  parts jsonb NOT NULL DEFAULT '[]'::jsonb,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 

@@ -1,3 +1,5 @@
+import { AsyncLocalStorage } from 'node:async_hooks'
+
 export type ToolContext = {
   authHeader?: string | null
   conversationId?: string
@@ -8,8 +10,18 @@ export type ToolContext = {
   userToken?: string | null
 }
 
-let _ctx: ToolContext = {}
+const toolContextStorage = new AsyncLocalStorage<ToolContext>()
+let fallbackCtx: ToolContext = {}
 
-export function setToolContext(ctx: ToolContext) { _ctx = ctx }
-export function clearToolContext() { _ctx = {} }
-export function getToolContext(): ToolContext { return _ctx }
+export function setToolContext(ctx: ToolContext) {
+  fallbackCtx = ctx
+  toolContextStorage.enterWith(ctx)
+}
+
+export function clearToolContext() {
+  fallbackCtx = {}
+}
+
+export function getToolContext(): ToolContext {
+  return toolContextStorage.getStore() ?? fallbackCtx
+}

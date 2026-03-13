@@ -6,6 +6,7 @@ const SERVICE_ROLE_KEY =
 
 type Task = {
   id: string
+  user_id: string | null
   agent_id: string
   name: string
   description: string
@@ -47,7 +48,19 @@ export async function runTask(taskId: string): Promise<void> {
     message: {
       id: messageId,
       role: 'system',
-      parts: [{ type: 'text', text: task.description }],
+      parts: [
+        {
+          type: 'text',
+          text: [
+            'Execute the existing scheduled task described below.',
+            'This task has already been created and scheduled.',
+            'Do not create, duplicate, or reschedule this task unless a real user message in this conversation explicitly asks for that change.',
+            '',
+            'Task instructions:',
+            task.description,
+          ].join('\n'),
+        },
+      ],
       createdAt: new Date().toISOString(),
     },
     conversation_id: conversationId,
@@ -59,9 +72,9 @@ export async function runTask(taskId: string): Promise<void> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
-    'X-User-Token': SERVICE_ROLE_KEY,
     'x-internal-no-stream': '1',
   }
+  if (task.user_id) headers['X-Agent-User-Id'] = task.user_id
   if (PROJECT_REF) headers['X-Project-Ref'] = PROJECT_REF
 
   const response = await fetch(`http://localhost:${PORT}/chat`, {

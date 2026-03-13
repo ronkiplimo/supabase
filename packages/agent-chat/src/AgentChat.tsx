@@ -46,7 +46,7 @@ import type {
 } from './types'
 
 const DEFAULT_EMPTY_STATE = {
-  title: 'No messages yet',
+  title: 'Welcome back,',
   description: 'Send a message to start chatting',
 }
 
@@ -227,6 +227,7 @@ export const AgentChat = ({
   headerActions,
   contentMaxWidthClassName,
   emptyStateContent,
+  emptyStateImage,
   messages,
   status = 'ready',
   input,
@@ -236,8 +237,8 @@ export const AgentChat = ({
   disabled = false,
   suggestions = [],
   onSuggestionSelect,
-  conversations,
-  activeConversationId,
+  conversations = [],
+  activeConversationId = null,
   onConversationChange,
   onRefreshConversations,
   agents = [],
@@ -252,6 +253,7 @@ export const AgentChat = ({
   onActionPrompt,
   sqlRunners,
   renderSqlEditor,
+  prependConversation,
 }: AgentChatProps) => {
   const [conversationOpen, setConversationOpen] = useState(false)
   const [agentOpen, setAgentOpen] = useState(false)
@@ -259,6 +261,8 @@ export const AgentChat = ({
 
   const isStreaming = status === 'submitted' || status === 'streaming'
   const hasMessages = messages.length > 0
+  const hasCustomEmptyState = Boolean(emptyStateImage || emptyStateContent)
+  const showEmptyStateImage = !hasMessages && Boolean(emptyStateImage)
 
   const selectedConversation = conversations.find(
     (conversation) => conversation.id === activeConversationId
@@ -455,7 +459,7 @@ export const AgentChat = ({
                           key={conversation.id}
                           value={`${conversation.title ?? ''} ${conversation.id}`}
                           onSelect={() => {
-                            onConversationChange(conversation.id)
+                            onConversationChange?.(conversation.id)
                             setConversationOpen(false)
                           }}
                         >
@@ -473,7 +477,7 @@ export const AgentChat = ({
             <Button
               aria-label="Start new conversation"
               className="h-7 w-7 rounded-md p-0"
-              onClick={() => onConversationChange(null)}
+              onClick={() => onConversationChange?.(null)}
               size="sm"
               type="button"
               variant="ghost"
@@ -487,7 +491,7 @@ export const AgentChat = ({
 
       <Conversation className="min-h-0 flex-1">
         <ConversationContent
-          className={cn('pb-32 px-8', !hasMessages && Boolean(emptyStateContent) && 'p-0')}
+          className={cn('pb-32 px-8', !hasMessages && hasCustomEmptyState && 'p-0')}
           style={
             hasMessages
               ? {
@@ -503,148 +507,178 @@ export const AgentChat = ({
               : undefined
           }
         >
-          <div className="w-full">
+          {prependConversation}
+          <div
+            className={cn(
+              'w-full',
+              showEmptyStateImage && 'relative min-h-full',
+              !prependConversation && 'pt-8'
+            )}
+          >
             {!hasMessages ? (
-              <div className="flex flex-1 items-center justify-center py-32">
-                <div className="max-w-sm space-y-2 text-center">
-                  <svg
-                    width="223"
-                    height="262"
-                    viewBox="0 0 223 262"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M75.7618 237.192L75.3469 196.038C75.3123 192.904 72.3505 190.633 69.3196 191.417L40.5431 198.804C39.3216 199.115 38.0308 198.943 36.936 198.309L3.12338 178.832C1.64825 177.98 0.7263 176.412 0.703251 174.707L0.000262295 113.408C-0.0227865 111.184 1.47539 109.225 3.63045 108.672L21.0554 104.235C23.2104 103.682 24.7086 101.734 24.6856 99.5099L24.4666 79.7917C24.4435 77.5675 25.9417 75.6083 28.1083 75.0551L45.5217 70.6298C47.6768 70.0766 49.1865 68.129 49.1634 65.8932L48.9444 46.1635C48.9214 43.9392 50.4196 41.9801 52.5862 41.4269L70.0226 37.0131C72.1777 36.4714 73.6874 34.5123 73.6643 32.2881L73.4684 12.5583C73.4453 10.3341 74.955 8.3749 77.1101 7.83325L107.581 0.14647C108.779 -0.153165 110.047 0.00817703 111.13 0.618971L145.139 19.7495C146.648 20.6023 147.582 22.1811 147.593 23.9098L147.974 65.7319C147.997 68.8665 150.959 71.1369 153.989 70.3647L182.213 63.1735C183.423 62.8623 184.69 63.0352 185.774 63.646L219.817 82.8572C221.315 83.71 222.26 85.2888 222.272 87.0175L222.836 148.201C222.859 150.425 221.361 152.372 219.218 152.926L201.839 157.397C199.695 157.95 198.197 159.898 198.22 162.111L198.382 181.76C198.405 183.972 196.906 185.92 194.763 186.473L177.499 190.922C175.356 191.475 173.858 193.422 173.881 195.635L174.053 215.25C174.077 217.462 172.578 219.41 170.435 219.963L153.102 224.435C150.959 224.988 149.46 226.935 149.483 229.148L149.656 248.774C149.679 250.987 148.181 252.934 146.038 253.488L115.648 261.359C114.426 261.681 113.124 261.497 112.029 260.863L78.1819 241.329C76.7068 240.477 75.7848 238.909 75.7733 237.192H75.7618Z"
-                      fill="black"
-                    />
-                    <path
-                      d="M113.314 60.5784L108.547 61.7873L88.5224 66.8763L58.837 50.0551L83.6055 43.7803L108.512 57.8612L113.314 60.5784Z"
-                      fill="black"
-                      stroke="#E8E8E8"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M113.321 60.5779L108.52 57.8608L83.613 43.7798L83.3367 16.4929L108.243 30.5393L113.057 33.2565L113.321 60.5779Z"
-                      fill="black"
-                      stroke="#E8E8E8"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M212.413 90.0193C202.66 92.5062 192.918 95.0046 183.165 97.4915C183.073 97.5146 182.969 97.5376 182.877 97.5606C168.103 101.337 153.318 105.102 138.545 108.878L138.314 84.5159L182.635 73.2212L183.165 73.5205L212.413 90.0193Z"
-                      fill="black"
-                      stroke="#E8E8E8"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M114.358 169.692L84.961 177.245L40.1104 188.759L39.8456 164.224L84.7076 152.733L114.358 169.692Z"
-                      fill="black"
-                      stroke="#E8E8E8"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M212.918 144.385L183.164 127.507V97.491C192.917 95.0041 202.658 92.5057 212.411 90.0188L212.918 144.385Z"
-                      fill="black"
-                      stroke="#E8E8E8"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M183.161 127.506C174.951 129.613 166.74 131.72 158.53 133.827L158.772 160.964L134.234 167.262L134.487 194.365L114.647 199.477L114.359 169.692L84.7082 152.732L39.8462 164.223L39.5123 134.173L64.3038 127.84L64.016 100.519L88.796 94.2095L88.5197 66.8765L108.544 61.7876L113.311 60.5787L113.046 33.2573L137.78 26.9824L138.31 84.5151L138.54 108.878C153.314 105.101 168.099 101.336 182.873 97.5599C182.965 97.5369 183.069 97.5138 183.161 97.4908V127.506Z"
-                      fill="black"
-                      stroke="#E8E8E8"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M139.785 244.875L115.143 251.254L114.947 230.575L139.785 244.875Z"
-                      fill="black"
-                      stroke="#E8E8E8"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M114.952 230.575V230.564L114.687 203.449L139.548 217.726L139.79 244.875L114.952 230.575Z"
-                      fill="black"
-                      stroke="#E8E8E8"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M164.17 211.371L139.551 217.726L114.69 203.449L114.656 199.477L134.496 194.365L164.17 211.371Z"
-                      fill="black"
-                      stroke="#E8E8E8"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M164.16 211.371L134.486 194.365L134.233 167.263L163.918 184.222L164.16 211.371Z"
-                      fill="black"
-                      stroke="#E8E8E8"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M188.48 177.901L163.918 184.222L134.233 167.262L158.771 160.965L188.48 177.901Z"
-                      fill="black"
-                      stroke="#E8E8E8"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M188.479 177.901L158.771 160.965L158.529 133.827L188.249 150.729L188.479 177.901Z"
-                      fill="black"
-                      stroke="#E8E8E8"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M212.914 144.386L188.249 150.73L158.529 133.828C166.739 131.721 174.949 129.614 183.159 127.507L212.914 144.386Z"
-                      fill="black"
-                      stroke="#E8E8E8"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M40.1103 188.759L10.5401 171.73L9.91827 117.226L39.5116 134.173L39.8455 164.224L40.1103 188.759Z"
-                      fill="black"
-                      stroke="#E8E8E8"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M64.3031 127.84L39.5116 134.173L9.91827 117.225L34.6753 110.916L64.3031 127.84Z"
-                      fill="black"
-                      stroke="#E8E8E8"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M64.3074 127.84L34.6796 110.916L34.3802 83.6401L64.0195 100.519L64.3074 127.84Z"
-                      fill="black"
-                      stroke="#E8E8E8"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M88.7996 94.2102L64.0195 100.52L34.3802 83.6408L59.1372 77.3545L88.7996 94.2102Z"
-                      fill="black"
-                      stroke="#E8E8E8"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M88.7987 94.209L59.1364 77.3533L58.837 50.0549L88.5224 66.8761L88.7987 94.209Z"
-                      fill="black"
-                      stroke="#E8E8E8"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M137.791 26.9825L113.057 33.2573L108.243 30.5401L83.3367 16.4937L108.048 10.2534L137.791 26.9825Z"
-                      fill="black"
-                      stroke="#E8E8E8"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M115.149 251.253L85.5438 234.167L84.968 177.244L114.366 169.692L114.653 199.477L114.688 203.449L114.953 230.563V230.575L115.149 251.253Z"
-                      fill="black"
-                      stroke="#E8E8E8"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
-                  <p className="text-sm font-medium">{emptyState.title}</p>
-                  {emptyState.description ? (
-                    <p className="text-sm text-foreground-light">{emptyState.description}</p>
-                  ) : null}
+              emptyStateImage ? (
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 overflow-hidden">
+                  <img
+                    src={emptyStateImage}
+                    alt=""
+                    aria-hidden="true"
+                    className="block w-full opacity-25"
+                    style={{
+                      WebkitMaskImage:
+                        'linear-gradient(to bottom, black 0, black 72%, transparent 100%)',
+                      maskImage: 'linear-gradient(to bottom, black 0, black 72%, transparent 100%)',
+                      WebkitMaskRepeat: 'no-repeat',
+                      maskRepeat: 'no-repeat',
+                      WebkitMaskSize: '100% 100%',
+                      maskSize: '100% 100%',
+                    }}
+                  />
                 </div>
-              </div>
+              ) : emptyStateContent ? (
+                <div className="w-full">{emptyStateContent}</div>
+              ) : (
+                <div className="flex flex-1 items-center justify-center py-20">
+                  <div className="max-w-sm text-center">
+                    <svg
+                      width="223"
+                      height="262"
+                      viewBox="0 0 223 262"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-32 mx-auto"
+                    >
+                      <path
+                        d="M75.7618 237.192L75.3469 196.038C75.3123 192.904 72.3505 190.633 69.3196 191.417L40.5431 198.804C39.3216 199.115 38.0308 198.943 36.936 198.309L3.12338 178.832C1.64825 177.98 0.7263 176.412 0.703251 174.707L0.000262295 113.408C-0.0227865 111.184 1.47539 109.225 3.63045 108.672L21.0554 104.235C23.2104 103.682 24.7086 101.734 24.6856 99.5099L24.4666 79.7917C24.4435 77.5675 25.9417 75.6083 28.1083 75.0551L45.5217 70.6298C47.6768 70.0766 49.1865 68.129 49.1634 65.8932L48.9444 46.1635C48.9214 43.9392 50.4196 41.9801 52.5862 41.4269L70.0226 37.0131C72.1777 36.4714 73.6874 34.5123 73.6643 32.2881L73.4684 12.5583C73.4453 10.3341 74.955 8.3749 77.1101 7.83325L107.581 0.14647C108.779 -0.153165 110.047 0.00817703 111.13 0.618971L145.139 19.7495C146.648 20.6023 147.582 22.1811 147.593 23.9098L147.974 65.7319C147.997 68.8665 150.959 71.1369 153.989 70.3647L182.213 63.1735C183.423 62.8623 184.69 63.0352 185.774 63.646L219.817 82.8572C221.315 83.71 222.26 85.2888 222.272 87.0175L222.836 148.201C222.859 150.425 221.361 152.372 219.218 152.926L201.839 157.397C199.695 157.95 198.197 159.898 198.22 162.111L198.382 181.76C198.405 183.972 196.906 185.92 194.763 186.473L177.499 190.922C175.356 191.475 173.858 193.422 173.881 195.635L174.053 215.25C174.077 217.462 172.578 219.41 170.435 219.963L153.102 224.435C150.959 224.988 149.46 226.935 149.483 229.148L149.656 248.774C149.679 250.987 148.181 252.934 146.038 253.488L115.648 261.359C114.426 261.681 113.124 261.497 112.029 260.863L78.1819 241.329C76.7068 240.477 75.7848 238.909 75.7733 237.192H75.7618Z"
+                        fill="black"
+                      />
+                      <path
+                        d="M113.314 60.5784L108.547 61.7873L88.5224 66.8763L58.837 50.0551L83.6055 43.7803L108.512 57.8612L113.314 60.5784Z"
+                        fill="black"
+                        stroke="#E8E8E8"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M113.321 60.5779L108.52 57.8608L83.613 43.7798L83.3367 16.4929L108.243 30.5393L113.057 33.2565L113.321 60.5779Z"
+                        fill="black"
+                        stroke="#E8E8E8"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M212.413 90.0193C202.66 92.5062 192.918 95.0046 183.165 97.4915C183.073 97.5146 182.969 97.5376 182.877 97.5606C168.103 101.337 153.318 105.102 138.545 108.878L138.314 84.5159L182.635 73.2212L183.165 73.5205L212.413 90.0193Z"
+                        fill="black"
+                        stroke="#E8E8E8"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M114.358 169.692L84.961 177.245L40.1104 188.759L39.8456 164.224L84.7076 152.733L114.358 169.692Z"
+                        fill="black"
+                        stroke="#E8E8E8"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M212.918 144.385L183.164 127.507V97.491C192.917 95.0041 202.658 92.5057 212.411 90.0188L212.918 144.385Z"
+                        fill="black"
+                        stroke="#E8E8E8"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M183.161 127.506C174.951 129.613 166.74 131.72 158.53 133.827L158.772 160.964L134.234 167.262L134.487 194.365L114.647 199.477L114.359 169.692L84.7082 152.732L39.8462 164.223L39.5123 134.173L64.3038 127.84L64.016 100.519L88.796 94.2095L88.5197 66.8765L108.544 61.7876L113.311 60.5787L113.046 33.2573L137.78 26.9824L138.31 84.5151L138.54 108.878C153.314 105.101 168.099 101.336 182.873 97.5599C182.965 97.5369 183.069 97.5138 183.161 97.4908V127.506Z"
+                        fill="black"
+                        stroke="#E8E8E8"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M139.785 244.875L115.143 251.254L114.947 230.575L139.785 244.875Z"
+                        fill="black"
+                        stroke="#E8E8E8"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M114.952 230.575V230.564L114.687 203.449L139.548 217.726L139.79 244.875L114.952 230.575Z"
+                        fill="black"
+                        stroke="#E8E8E8"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M164.17 211.371L139.551 217.726L114.69 203.449L114.656 199.477L134.496 194.365L164.17 211.371Z"
+                        fill="black"
+                        stroke="#E8E8E8"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M164.16 211.371L134.486 194.365L134.233 167.263L163.918 184.222L164.16 211.371Z"
+                        fill="black"
+                        stroke="#E8E8E8"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M188.48 177.901L163.918 184.222L134.233 167.262L158.771 160.965L188.48 177.901Z"
+                        fill="black"
+                        stroke="#E8E8E8"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M188.479 177.901L158.771 160.965L158.529 133.827L188.249 150.729L188.479 177.901Z"
+                        fill="black"
+                        stroke="#E8E8E8"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M212.914 144.386L188.249 150.73L158.529 133.828C166.739 131.721 174.949 129.614 183.159 127.507L212.914 144.386Z"
+                        fill="black"
+                        stroke="#E8E8E8"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M40.1103 188.759L10.5401 171.73L9.91827 117.226L39.5116 134.173L39.8455 164.224L40.1103 188.759Z"
+                        fill="black"
+                        stroke="#E8E8E8"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M64.3031 127.84L39.5116 134.173L9.91827 117.225L34.6753 110.916L64.3031 127.84Z"
+                        fill="black"
+                        stroke="#E8E8E8"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M64.3074 127.84L34.6796 110.916L34.3802 83.6401L64.0195 100.519L64.3074 127.84Z"
+                        fill="black"
+                        stroke="#E8E8E8"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M88.7996 94.2102L64.0195 100.52L34.3802 83.6408L59.1372 77.3545L88.7996 94.2102Z"
+                        fill="black"
+                        stroke="#E8E8E8"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M88.7987 94.209L59.1364 77.3533L58.837 50.0549L88.5224 66.8761L88.7987 94.209Z"
+                        fill="black"
+                        stroke="#E8E8E8"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M137.791 26.9825L113.057 33.2573L108.243 30.5401L83.3367 16.4937L108.048 10.2534L137.791 26.9825Z"
+                        fill="black"
+                        stroke="#E8E8E8"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M115.149 251.253L85.5438 234.167L84.968 177.244L114.366 169.692L114.653 199.477L114.688 203.449L114.953 230.563V230.575L115.149 251.253Z"
+                        fill="black"
+                        stroke="#E8E8E8"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                    <p className="heading-section mb-1">{emptyState.title}</p>
+                    {emptyState.description ? (
+                      <p className="text-foreground-light">{emptyState.description}</p>
+                    ) : null}
+                  </div>
+                </div>
+              )
             ) : null}
 
             {messages.map((message, messageIndex) => {

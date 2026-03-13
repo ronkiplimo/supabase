@@ -53,31 +53,19 @@ function rowsToUIMessages(
   }))
 }
 
-function alertRowsToUIMessages(
-  rows: Array<{ id: string; role: string; content: string; created_at: string }>
-): UIMessage[] {
-  return rows.map((r) => ({
-    id: r.id,
-    role: r.role as UIMessage['role'],
-    parts: [{ type: 'text' as const, text: r.content }],
-    createdAt: new Date(r.created_at),
-  }))
-}
 
 export const chatRouter = new Hono()
 
 chatRouter.post('/', async (c) => {
   const authHeader = c.req.header('Authorization') ?? null
   const internalNoStream = c.req.header('x-internal-no-stream') === '1'
-  const appendOnlyMode = c.req.header('x-internal-append-only') === '1'
   const projectRef = c.req.header('X-Project-Ref') ?? null
   const userToken = c.req.header('X-User-Token') ?? null
 
   const body = await c.req.json().catch(() => null)
   if (!body) return c.json({ error: 'Invalid JSON payload' }, 400)
 
-  const agentId = typeof body.agent_id === 'string' ? body.agent_id.trim() : ''
-  if (!agentId) return c.json({ error: 'agent_id is required' }, 400)
+  const agentIdRaw = typeof body.agent_id === 'string' ? body.agent_id.trim() : ''
 
   const authResult = await verifyAuth(authHeader, c.req.header('X-Agent-User-Id') ?? null)
   if (!authResult.ok) return c.json({ error: authResult.error }, authResult.status)
@@ -92,28 +80,27 @@ chatRouter.post('/', async (c) => {
   const taskId: string | null = body.task_id || null
 
   // ── Append-only mode: persist a message without invoking the LLM ────────
-  if (appendOnlyMode) {
+  if (c.req.header('x-internal-append-only') === '1') {
     if (!body.message || !isUIMessage(body.message)) {
       return c.json({ error: 'Invalid message shape for append-only mode' }, 400)
     }
     const incoming = body.message as UIMessage
     try {
       if (alertId) {
-        const textContent = firstText(incoming) ?? JSON.stringify(incoming.parts)
         const role = incoming.role === 'assistant' ? 'assistant' : 'user'
         await sql`
-          INSERT INTO project_meta.alert_messages (id, alert_id, user_id, agent_id, role, content)
-          VALUES (${incoming.id}, ${alertId}, ${userId ?? null}, ${agentId}, ${role}, ${textContent})
+          INSERT INTO project_meta.alert_messages (id, alert_id, user_id, agent_id, role, parts)
+          VALUES (${incoming.id}, ${alertId}, ${userId ?? null}, ${agentIdRaw || null}, ${role}, ${sql.json(incoming.parts)})
           ON CONFLICT (id) DO UPDATE SET
             alert_id = EXCLUDED.alert_id, user_id = EXCLUDED.user_id,
-            agent_id = EXCLUDED.agent_id, role = EXCLUDED.role, content = EXCLUDED.content
+            agent_id = EXCLUDED.agent_id, role = EXCLUDED.role, parts = EXCLUDED.parts
         `
       } else if (conversationId) {
         const title = firstText(incoming)?.slice(0, 100) ?? null
         await sql`INSERT INTO project_meta.conversations (id, user_id, task_id, title) VALUES (${conversationId}, ${userId ?? null}, ${taskId ?? null}, ${title}) ON CONFLICT (id) DO NOTHING`
         await sql`
           INSERT INTO project_meta.conversation_messages (id, conversation_id, agent_id, task_id, role, parts)
-          VALUES (${incoming.id}, ${conversationId}, ${incoming.role === 'assistant' ? agentId : null}, ${taskId ?? null}, ${incoming.role}, ${sql.json(incoming.parts)})
+          VALUES (${incoming.id}, ${conversationId}, ${incoming.role === 'assistant' ? (agentIdRaw || null) : null}, ${taskId ?? null}, ${incoming.role}, ${sql.json(incoming.parts)})
           ON CONFLICT (id) DO UPDATE SET
             conversation_id = EXCLUDED.conversation_id, agent_id = EXCLUDED.agent_id,
             task_id = EXCLUDED.task_id, role = EXCLUDED.role, parts = EXCLUDED.parts
@@ -124,25 +111,60 @@ chatRouter.post('/', async (c) => {
       return c.json({ success: true, mode: 'append_only', message_id: incoming.id })
     } catch (err) {
       console.error('Append-only persist error:', err)
-      return c.json(
-        {
-          error: 'Failed to persist message',
-          details: err instanceof Error ? err.message : String(err),
-        },
-        500
-      )
+      return c.json({ error: 'Failed to persist message', details: err instanceof Error ? err.message : String(err) }, 500)
     }
   }
 
-  // ── Standard chat mode ───────────────────────────────────────────────────
   if (!body.message || typeof body.message !== 'object')
     return c.json({ error: 'Request must include a message object' }, 400)
 
-  // Load agent
-  const [agentRow] =
-    await sql`SELECT id, name, summary, system_prompt, tools FROM project_meta.agents WHERE id = ${agentId}`
-  if (!agentRow) return c.json({ error: 'Agent not found' }, 404)
-  const agent = agentRow as Agent
+  // ── Alert path: agent_id is optional — detect from @mention if omitted ──
+  let agent: Agent | null = null
+
+  if (alertId) {
+    if (agentIdRaw) {
+      const [row] =
+        await sql`SELECT id, name, summary, system_prompt, tools FROM project_meta.agents WHERE id = ${agentIdRaw}`
+      if (!row) return c.json({ error: 'Agent not found' }, 404)
+      agent = row as Agent
+    } else {
+      // Detect @AgentName mention in the incoming message text
+      const messageText = firstText(body.message as UIMessage) ?? ''
+      if (messageText.includes('@')) {
+        const agentRows = (await sql`SELECT id, name, summary, system_prompt, tools FROM project_meta.agents`) as Agent[]
+        for (const row of agentRows) {
+          if (messageText.toLowerCase().includes(`@${row.name.toLowerCase()}`)) {
+            agent = row
+            break
+          }
+        }
+      }
+    }
+
+    // Save the incoming user message as an alert_message regardless of whether an agent responds
+    const incomingMessage = body.message as UIMessage
+    try {
+      await sql`
+        INSERT INTO project_meta.alert_messages (id, alert_id, user_id, role, parts)
+        VALUES (${incomingMessage.id}, ${alertId}, ${userId ?? null}, 'user', ${sql.json(incomingMessage.parts)})
+        ON CONFLICT (id) DO NOTHING
+      `
+    } catch (err) {
+      console.error('Failed to persist alert user message:', err)
+    }
+
+    // No agent mention found — plain comment, return empty event stream so useChat completes cleanly
+    if (!agent) {
+      return new Response(null, { status: 200, headers: { 'Content-Type': 'text/event-stream' } })
+    }
+  } else {
+    // Conversation path — agent_id is required
+    if (!agentIdRaw) return c.json({ error: 'agent_id is required' }, 400)
+    const [row] =
+      await sql`SELECT id, name, summary, system_prompt, tools FROM project_meta.agents WHERE id = ${agentIdRaw}`
+    if (!row) return c.json({ error: 'Agent not found' }, 404)
+    agent = row as Agent
+  }
 
   const modelId = typeof body.model === 'string' ? body.model : 'gpt-5-mini'
   const persistIncoming = body.persist !== false
@@ -155,11 +177,11 @@ chatRouter.post('/', async (c) => {
 
   if (alertId) {
     const msgRows = await sql`
-      SELECT id, role, content, created_at FROM project_meta.alert_messages
+      SELECT id, role, parts, created_at FROM project_meta.alert_messages
       WHERE alert_id = ${alertId} AND id != ${incomingMessage.id}
       ORDER BY created_at ASC
     `
-    previousMessages = alertRowsToUIMessages(msgRows as any[])
+    previousMessages = rowsToUIMessages(msgRows as any[])
   } else if (conversationId) {
     const convCheck =
       await sql`SELECT id, task_id FROM project_meta.conversations WHERE id = ${conversationId}`
@@ -208,9 +230,16 @@ chatRouter.post('/', async (c) => {
   }
 
   const tools = filterTools(allTools as Record<string, unknown>, agent.tools)
+  const currentTimeIso = new Date().toISOString()
 
-  let instructions = buildSystemPrompt(agent.system_prompt)
+  let instructions = buildSystemPrompt(agent.system_prompt, currentTimeIso)
   instructions += `\n\nCurrent agent identity:\n- Agent ID: ${agent.id}`
+  instructions += [
+    `\n\nCurrent time context:`,
+    `- Current UTC time: ${currentTimeIso}`,
+    `- Anchor all relative time windows such as "now", "today", "last 10 minutes", and "last hour" to this UTC timestamp.`,
+    `- Do not invent future timestamps when generating tool inputs.`,
+  ].join('\n')
 
   if (alertContext) {
     instructions += [
@@ -226,6 +255,10 @@ chatRouter.post('/', async (c) => {
   if (resolvedTaskId && taskContext) {
     instructions += [
       `\n\nYou are in a TASK-INITIATED conversation. Treat this as autonomous task execution context.`,
+      `The task already exists and this run was triggered by its scheduler.`,
+      `Use the task description as the execution objective for this run, not as a request to create or reschedule a task.`,
+      `Do not call "createTask" or create a replacement task just because the task description mentions cadence, recurrence, scheduling, or "every run".`,
+      `Only create, update, disable, or replace tasks when a user explicitly asks for that in a message during this conversation.`,
       `Task: ${taskContext.name} — ${taskContext.description}`,
       `Schedule: ${taskContext.schedule}`,
     ].join('\n')
@@ -248,9 +281,14 @@ chatRouter.post('/', async (c) => {
     'renderSql' in tools
       ? `If SQL should be shown for the user to run, or the SQL relates to data or logs you just retrieved, call "renderSql" instead of pasting the SQL into the message.`
       : `If you mention SQL, summarize it briefly instead of pasting large executable queries unless the user explicitly asks for the raw SQL.`,
+    'executeLogsQuery' in tools && 'renderSql' in tools
+      ? `For logs investigations, call "executeLogsQuery" first to inspect the results yourself, then call "renderSql" with the same logs SQL and date range so both you and the user can interpret the same query output.`
+      : null,
     `When you call tools, ensure the assistant message accompanies the tool output with a short summary, explanation, or next step.`,
     `Do not repeat raw rows, logs, metrics, or other payload data that the rendered tool output already shows to the user.`,
-  ].join('\n')
+  ]
+    .filter(Boolean)
+    .join('\n')
 
   setToolContext({
     authHeader,
@@ -297,13 +335,9 @@ chatRouter.post('/', async (c) => {
           const prevIds = new Set(previousMessages.map((m) => m.id))
 
           if (alertId) {
-            const newAssistant = finalMessages
-              .filter((m) => m.role === 'assistant' && !prevIds.has(m.id))
-              .map((m) => {
-                const text = firstText(m)
-                return text ? { id: m.id, text } : null
-              })
-              .filter(Boolean) as Array<{ id: string; text: string }>
+            const newAssistant = finalMessages.filter(
+              (m) => m.role === 'assistant' && !prevIds.has(m.id)
+            )
 
             if (newAssistant.length > 0) {
               await sql`
@@ -313,8 +347,8 @@ chatRouter.post('/', async (c) => {
                     alert_id: alertId,
                     user_id: userId ?? null,
                     agent_id: agent.id,
-                    role: 'assistant',
-                    content: m.text,
+                    role: 'assistant' as const,
+                    parts: sql.json(m.parts),
                   }))
                 )}
               `

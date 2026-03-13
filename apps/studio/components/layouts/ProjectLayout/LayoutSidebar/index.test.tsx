@@ -1,4 +1,5 @@
 import { act, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { sidebarManagerState } from 'state/sidebar-manager-state'
 import { render } from 'tests/helpers'
 import { routerMock } from 'tests/lib/route-mock'
@@ -28,7 +29,13 @@ vi.mock('components/ui/AIAssistantPanel/AIAssistant', () => ({
 }))
 
 vi.mock('components/interfaces/AgentChat/AgentChat', () => ({
-  AgentChat: () => <div data-testid="agent-chat-sidebar">Agent Chat</div>,
+  AgentChat: ({ onExpand }: { onExpand?: () => void }) => (
+    <div data-testid="agent-chat-sidebar">
+      <button data-testid="agent-chat-expand" onClick={() => onExpand?.()}>
+        Expand
+      </button>
+    </div>
+  ),
 }))
 
 vi.mock('components/ui/EditorPanel/EditorPanel', () => ({
@@ -142,7 +149,7 @@ describe('LayoutSidebar', () => {
     expect(screen.queryByTestId('ai-assistant-sidebar')).toBeNull()
   })
 
-  it('renders the active sidebar content when toggled on', async () => {
+  it('renders the active agent chat sidebar when toggled on', async () => {
     renderSidebar()
 
     await waitFor(() => {
@@ -153,7 +160,7 @@ describe('LayoutSidebar', () => {
       sidebarManagerState.toggleSidebar(SIDEBAR_KEYS.AI_ASSISTANT)
     })
 
-    const sidebar = await screen.findByTestId('ai-assistant-sidebar')
+    const sidebar = await screen.findByTestId('agent-chat-sidebar')
     expect(sidebar).toBeTruthy()
   })
 
@@ -172,6 +179,27 @@ describe('LayoutSidebar', () => {
 
     expect(await screen.findByTestId('agent-chat-sidebar')).toBeTruthy()
     expect(screen.queryByTestId('ai-assistant-sidebar')).toBeNull()
+  })
+
+  it('closes the agent chat sidebar when expand is clicked', async () => {
+    mockAgentChatSidebarFlag = true
+
+    renderSidebar()
+
+    await waitFor(() => {
+      expect(sidebarManagerState.sidebars[SIDEBAR_KEYS.AI_ASSISTANT]).toBeDefined()
+    })
+
+    act(() => {
+      sidebarManagerState.toggleSidebar(SIDEBAR_KEYS.AI_ASSISTANT)
+    })
+
+    await screen.findByTestId('agent-chat-sidebar')
+    await userEvent.click(screen.getByTestId('agent-chat-expand'))
+
+    await waitFor(() => {
+      expect(sidebarManagerState.activeSidebar).toBeUndefined()
+    })
   })
 
   describe('at organization level', () => {

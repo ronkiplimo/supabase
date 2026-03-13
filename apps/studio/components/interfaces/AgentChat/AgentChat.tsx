@@ -9,7 +9,6 @@ import {
 } from 'agent-chat'
 import { DefaultChatTransport, type UIMessage } from 'ai'
 import { getAccessToken } from 'common'
-import { get } from 'data/fetchers'
 import { useAgentsQuery } from 'data/project-meta/agents-query'
 import { useConversationMessagesQuery } from 'data/project-meta/conversation-messages-query'
 import { useConversationsQuery } from 'data/project-meta/conversations-query'
@@ -19,11 +18,12 @@ import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization
 import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
 import { BASE_PATH } from 'lib/constants'
 import { Loader2Icon, Maximize2Icon } from 'lucide-react'
-import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { agentChatState, useAgentChatStateSnapshot } from 'state/agent-chat-state'
 import { Button } from 'ui'
 
+import { runAgentLogsSqlQuery } from './logsSql'
 import { AIEditor } from '@/components/ui/AIEditor'
 
 const SUGGESTIONS = [
@@ -56,6 +56,8 @@ const MODELS: AgentChatModel[] = [
   },
 ]
 
+export const STUDIO_AGENT_CHAT_CONTENT_MAX_WIDTH_CLASS_NAME = 'max-w-4xl'
+
 interface AgentChatProps {
   className?: string
   contentMaxWidthClassName?: string
@@ -66,6 +68,7 @@ interface AgentChatProps {
   initialPromptRequestId?: string
   onInitialPromptConsumed?: () => void
   onConversationChange?: (id: string | null) => void
+  onExpand?: () => void
   restrictToInitialAgent?: boolean
   showHeader?: boolean
 }
@@ -89,6 +92,7 @@ interface AgentChatInnerProps {
   initialPromptRequestId?: string
   onInitialPromptConsumed?: () => void
   showHeader: boolean
+  onExpand?: () => void
 }
 
 function AgentChatInner({
@@ -110,7 +114,9 @@ function AgentChatInner({
   initialPromptRequestId,
   onInitialPromptConsumed,
   showHeader,
+  onExpand,
 }: AgentChatInnerProps) {
+  const router = useRouter()
   const [input, setInput] = useState('')
   const [selectedAgentId, setSelectedAgentId] = useState(agentId)
   const [model, setModel] = useState<string>('gpt-5-mini')
@@ -130,9 +136,18 @@ function AgentChatInner({
         return token ? { Authorization: `Bearer ${token}` } : ({} as Record<string, string>)
       },
       prepareSendMessagesRequest({ messages, body }) {
+        const requestBody = (body ?? {}) as {
+          agent_id?: string
+          conversation_id?: string
+          model?: string
+        }
+
         return {
           body: {
-            ...(body ?? {}),
+            ...requestBody,
+            agent_id: requestBody.agent_id ?? selectedAgentId,
+            conversation_id: requestBody.conversation_id ?? conversationId,
+            model: requestBody.model ?? model,
             message: messages[messages.length - 1],
           },
         }
@@ -188,6 +203,13 @@ function AgentChatInner({
     [conversationId, model, selectedAgentId, sendMessage]
   )
 
+  const handleExpand = useCallback(() => {
+    if (!expandHref) return
+
+    onExpand?.()
+    void router.push(expandHref)
+  }, [expandHref, onExpand, router])
+
   useEffect(() => {
     const trimmedPrompt = initialPrompt?.trim()
     const promptKey = initialPromptRequestId ?? trimmedPrompt
@@ -232,16 +254,13 @@ function AgentChatInner({
         return { error: 'Logs runner received a non-logs SQL request.' }
       }
 
+      console.log('request', request)
+
       try {
-        const { data, error } = await get('/platform/projects/{ref}/analytics/endpoints/logs.all', {
-          params: {
-            path: { ref: projectRef },
-            query: {
-              sql: request.sql,
-              iso_timestamp_start: request.dateRange.from,
-              iso_timestamp_end: request.dateRange.to,
-            },
-          },
+        const { data, error } = await runAgentLogsSqlQuery({
+          projectRef,
+          sql: request.sql,
+          dateRange: request.dateRange,
         })
 
         if (error) {
@@ -315,15 +334,13 @@ function AgentChatInner({
         expandHref ? (
           <Button
             aria-label="Expand chat"
-            asChild
             className="h-7 w-7 rounded-md p-0"
+            onClick={handleExpand}
             size="sm"
             title="Expand chat"
             type="default"
           >
-            <Link href={expandHref}>
-              <Maximize2Icon className="size-4" />
-            </Link>
+            <Maximize2Icon className="size-4" />
           </Button>
         ) : undefined
       }
@@ -465,7 +482,7 @@ limit 25`
 
 export function AgentChat({
   className,
-  contentMaxWidthClassName,
+  contentMaxWidthClassName = STUDIO_AGENT_CHAT_CONTENT_MAX_WIDTH_CLASS_NAME,
   projectRef,
   initialAgentId,
   initialConversationId,
@@ -473,6 +490,7 @@ export function AgentChat({
   initialPromptRequestId,
   onInitialPromptConsumed,
   onConversationChange,
+  onExpand,
   restrictToInitialAgent = false,
   showHeader = true,
 }: AgentChatProps) {
@@ -632,6 +650,7 @@ export function AgentChat({
       initialPromptRequestId={queuedPromptRequestId}
       onAgentChange={setActiveAgentId}
       onConversationChange={handleConversationChange}
+      onExpand={onExpand}
       expandHref={expandHref}
       onInitialPromptConsumed={() => {
         setQueuedPrompt(undefined)

@@ -53,7 +53,16 @@ export const LayoutSidebarProvider = ({ children }: PropsWithChildren) => {
   const sidebarLocalStorageRef = useLatest(sidebarLocalStorage)
   const renderAssistantSidebar = () => {
     if (useAgentChatSidebar && project?.ref) {
-      return <AgentChat projectRef={project.ref} />
+      return (
+        <AgentChat
+          projectRef={project.ref}
+          onExpand={() => {
+            closeSidebar(SIDEBAR_KEYS.AI_ASSISTANT)
+            setSidebarLocalStorage('')
+            setSidebarUrlParam(null)
+          }}
+        />
+      )
     }
 
     return <AIAssistant />

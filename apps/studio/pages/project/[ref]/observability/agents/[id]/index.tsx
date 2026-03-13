@@ -1,38 +1,21 @@
-import { AgentOverview } from 'components/interfaces/Observability/Agents/AgentOverview'
-import { SIDEBAR_KEYS } from 'components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
-import DefaultLayout from 'components/layouts/DefaultLayout'
-import { AgentDetailsLayout } from 'components/layouts/ObservabilityLayout/AgentDetailsLayout'
-import { ObservabilityLayout } from 'components/layouts/ObservabilityLayout/ObservabilityLayout'
-import { parseAsString, useQueryState } from 'nuqs'
+import { useParams } from 'common'
+import { useRouter } from 'next/router'
 import { useEffect } from 'react'
-import { useSidebarManagerSnapshot } from 'state/sidebar-manager-state'
 import type { NextPageWithLayout } from 'types'
 
-const AgentOverviewPage: NextPageWithLayout = () => {
-  const { closeSidebar } = useSidebarManagerSnapshot()
-  const [conversationId, setConversationId] = useQueryState(
-    'conversationId',
-    parseAsString.withOptions({ history: 'push', clearOnDefault: true })
-  )
+const AgentOverviewRedirectPage: NextPageWithLayout = () => {
+  const router = useRouter()
+  const { ref, id } = useParams()
 
   useEffect(() => {
-    closeSidebar(SIDEBAR_KEYS.AI_ASSISTANT)
-  }, [closeSidebar])
+    if (ref && id) {
+      router.replace(`/project/${ref}/agents/${id}`)
+    }
+  }, [ref, id, router])
 
-  return (
-    <AgentOverview
-      conversationId={conversationId}
-      onConversationChange={setConversationId}
-    />
-  )
+  return null
 }
 
-AgentOverviewPage.getLayout = (page) => (
-  <DefaultLayout>
-    <ObservabilityLayout>
-      <AgentDetailsLayout>{page}</AgentDetailsLayout>
-    </ObservabilityLayout>
-  </DefaultLayout>
-)
+AgentOverviewRedirectPage.getLayout = (page) => page
 
-export default AgentOverviewPage
+export default AgentOverviewRedirectPage

@@ -5,7 +5,7 @@ import { EditorIndexPageLink } from 'data/prefetchers/project.$ref.editor'
 import type { Project } from 'data/projects/project-detail-query'
 import { Auth, Database, EdgeFunctions, Realtime, SqlEditor, Storage, TableEditor } from 'icons'
 import { IS_PLATFORM, PROJECT_STATUS } from 'lib/constants'
-import { Blocks, FileText, List, Settings, Telescope } from 'lucide-react'
+import { Bell, Blocks, Bot, FileText, List, Settings, Telescope } from 'lucide-react'
 
 export const generateToolRoutes = (ref?: string, project?: Project, features?: {}): Route[] => {
   const isProjectActive = project?.status === PROJECT_STATUS.ACTIVE_HEALTHY
@@ -134,6 +134,24 @@ export const generateOtherRoutes = (
   const apiDocsSidePanelEnabled = apiDocsSidePanel ?? false
 
   return [
+    ...(IS_PLATFORM
+      ? [
+          {
+            key: 'alerts',
+            label: 'Alerts',
+            disabled: !isProjectActive,
+            icon: <Bell size={ICON_SIZE} strokeWidth={ICON_STROKE_WIDTH} />,
+            link: ref && (isProjectBuilding ? buildingUrl : `/project/${ref}/alerts/inbox`),
+          },
+          {
+            key: 'agents',
+            label: 'Agents',
+            disabled: !isProjectActive,
+            icon: <Bot size={ICON_SIZE} strokeWidth={ICON_STROKE_WIDTH} />,
+            link: ref && (isProjectBuilding ? buildingUrl : `/project/${ref}/agents`),
+          },
+        ]
+      : []),
     ...(IS_PLATFORM && reportsEnabled
       ? [
           {

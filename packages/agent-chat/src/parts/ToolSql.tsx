@@ -1,7 +1,7 @@
 'use client'
 
 import { Loader2Icon, Play } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts'
 import {
   Button_Shadcn_ as Button,
@@ -51,13 +51,11 @@ export const ToolSql = ({
 }) => {
   const [value, setValue] = useState(sql.defaultValue ?? '')
   const [state, setState] = useState<ToolSqlState>(DEFAULT_STATE)
-  const hasAutorunRef = useRef(false)
   const runner = sql.source === 'logs' ? sqlRunners?.logs : sqlRunners?.database
 
   useEffect(() => {
     setValue(sql.defaultValue ?? '')
     setState(DEFAULT_STATE)
-    hasAutorunRef.current = false
   }, [sql])
 
   const chartState = useMemo(
@@ -81,14 +79,6 @@ export const ToolSql = ({
       })
     }
   }
-
-  useEffect(() => {
-    if (!sql.autorun || !runner || hasAutorunRef.current) return
-    if ((sql.defaultValue ?? '').trim().length === 0) return
-
-    hasAutorunRef.current = true
-    void handleRun()
-  }, [handleRun, runner, sql, sql.autorun, sql.defaultValue])
 
   const editor = renderEditor ? (
     renderEditor({
@@ -136,14 +126,10 @@ export const ToolSql = ({
         </div>
       </div>
 
-      <div className={'-mt-4 overflow-hidden rounded-2xl border bg-muted'}>
+      <div className={'-mt-4 overflow-hidden rounded-2xl border bg-surface-100 z-10 relative'}>
         {state.status === 'idle' && (
           <p className="px-4 py-4 text-sm text-foreground-light">
-            {!runner
-              ? 'SQL execution is unavailable in this client.'
-              : sql.autorun
-                ? 'Running query...'
-                : 'Click Run to execute your query.'}
+            {!runner ? 'SQL execution is unavailable in this client.' : 'Click Run to execute your query.'}
           </p>
         )}
 

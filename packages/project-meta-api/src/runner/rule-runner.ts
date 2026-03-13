@@ -1,5 +1,6 @@
 import { sql, executeProjectQuery } from '../db.js'
-import { insertAlertMessage } from '../chat/trigger-alert-mention.js'
+
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_KEY
 
 type Rule = {
   id: string
@@ -100,17 +101,31 @@ export async function runRule(ruleId: string): Promise<void> {
         (parentAlert ? `threaded under alert ${parentAlert.id}` : 'new alert thread')
     )
 
-    // Bootstrap the alert thread with the rule's default_message (mirrors the
-    // prototype's create_alert_default_message trigger). If the message contains
-    // an @AgentName mention, the agent will automatically respond.
+    // Bootstrap the alert thread with the rule's default_message. If the message
+    // contains an @AgentName mention, the chat endpoint will detect it and respond.
     if (newAlert && !parentAlert && rule.default_message?.trim()) {
       const messageId = `msg-${crypto.randomUUID().replace(/-/g, '')}`
-      await insertAlertMessage({
-        id: messageId,
-        alertId: newAlert.id as string,
-        userId: rule.user_id,
-        content: rule.default_message,
-      })
+      const port = process.env.PORT ?? '3001'
+      const effectiveAuth = SERVICE_ROLE_KEY ? `Bearer ${SERVICE_ROLE_KEY}` : null
+      if (effectiveAuth) {
+        const message = {
+          id: messageId,
+          role: 'user',
+          parts: [{ type: 'text', text: rule.default_message }],
+        }
+        fetch(`http://127.0.0.1:${port}/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: effectiveAuth,
+            'X-Agent-User-Id': rule.user_id,
+            'x-internal-no-stream': '1',
+          },
+          body: JSON.stringify({ alert_id: newAlert.id, message }),
+        }).catch((err) => console.error('[rule-runner] chat trigger failed:', err))
+      } else {
+        console.warn('[rule-runner] no service role key — cannot bootstrap alert message')
+      }
     }
   } else if (rule.edge_function_name) {
     // Edge function rules require the hosted Supabase stack (pg_net).

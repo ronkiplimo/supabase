@@ -5,6 +5,11 @@ const LOGS_SQL_RENDER_GUIDANCE = `For logs queries, use the Supabase logs SQL di
 
 Available log tables: edge_logs, function_logs, function_edge_logs, postgres_logs, auth_logs, realtime_logs, storage_logs.
 
+When source is logs, always provide dateRange.from and dateRange.to as ISO-8601 timestamps.
+Match the logs explorer behavior: if the user did not specify a time window, default to the last hour through now.
+Set dateRange.to to the current time and dateRange.from earlier than dateRange.to.
+If you are analyzing logs, execute the logs query first with executeLogsQuery, then render the same SQL and date range here so both the assistant and user can interpret the same results.
+
 Example - edge_logs:
 select datetime(timestamp) as ts, request.method, request.path, response.status_code
 from edge_logs as t
@@ -30,6 +35,8 @@ cross join unnest(t.metadata) as metadata
 cross join unnest(metadata.parsed) as parsed
 order by timestamp desc
 limit 25`
+
+const isIsoTimestampString = (value: string) => !Number.isNaN(Date.parse(value))
 
 const rowSchema = z.object({
   primaryText: z.string().describe('Primary label for the row.'),
@@ -180,11 +187,11 @@ const sqlSchema = baseSqlSchema
       .describe('Optional encrypted connection string override for database SQL.'),
     dateRange: z
       .object({
-        from: z.string().min(1).describe('ISO start timestamp for logs queries.'),
-        to: z.string().min(1).describe('ISO end timestamp for logs queries.'),
+        from: z.string().min(1).describe('ISO-8601 start timestamp for logs queries, for example "2026-03-13T09:00:00Z".'),
+        to: z.string().min(1).describe('ISO-8601 end timestamp for logs queries, for example "2026-03-13T10:00:00Z".'),
       })
       .optional()
-      .describe('Required when source is logs.'),
+      .describe('Required when source is logs. Use concrete ISO timestamps that match the logs explorer date range behavior.'),
   })
   .superRefine((input, ctx) => {
     if (input.source === 'logs' && !input.dateRange) {
@@ -193,6 +200,36 @@ const sqlSchema = baseSqlSchema
         path: ['dateRange'],
         message: 'dateRange is required when source is logs.',
       })
+    }
+
+    if (input.source === 'logs' && input.dateRange) {
+      if (!isIsoTimestampString(input.dateRange.from)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['dateRange', 'from'],
+          message: 'dateRange.from must be a valid ISO-8601 timestamp.',
+        })
+      }
+
+      if (!isIsoTimestampString(input.dateRange.to)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['dateRange', 'to'],
+          message: 'dateRange.to must be a valid ISO-8601 timestamp.',
+        })
+      }
+
+      if (
+        isIsoTimestampString(input.dateRange.from) &&
+        isIsoTimestampString(input.dateRange.to) &&
+        Date.parse(input.dateRange.from) > Date.parse(input.dateRange.to)
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['dateRange'],
+          message: 'dateRange.from must be earlier than or equal to dateRange.to.',
+        })
+      }
     }
   })
 
@@ -229,6 +266,8 @@ export const renderTools = {
     description: `Render an interactive SQL editor that the user can run on the client.
 
 Always make the first line of \`defaultValue\` a short SQL line comment using \`--\` that explains the query in plain language. Do this instead of providing a separate title or description field.
+
+For logs investigations, do not call this tool first. Run \`executeLogsQuery\` first to inspect the results yourself, then call \`renderSql\` with the same logs SQL and \`dateRange\` so the user sees the exact query you used to reach the conclusion.
 
 For chart output:
 - Use \`chartConfig: { type: "bar", xKey, yKey }\` for a standard bar chart.

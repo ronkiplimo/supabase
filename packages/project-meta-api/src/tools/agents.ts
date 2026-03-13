@@ -120,7 +120,12 @@ export const agentTools = {
       name: z.string().min(1).describe('Name of the task.'),
       description: z.string().min(1).describe('Detailed task instructions for the agent.'),
       schedule: z.string().min(1).describe('Cron schedule expression.'),
-      is_unique: z.boolean().optional().describe('Reuse one conversation thread across runs. Defaults to false.'),
+      is_unique: z
+        .boolean()
+        .optional()
+        .describe(
+          'Whether each execution should use its own conversation. true = new conversation per run; false = reuse the task conversation linked by task_id. Defaults to false.'
+        ),
       enabled: z.boolean().optional().describe('Whether the task is enabled. Defaults to true.'),
       agent_id: z.string().uuid().optional().describe('Optional agent UUID. If omitted, the current agent is used.'),
     }),

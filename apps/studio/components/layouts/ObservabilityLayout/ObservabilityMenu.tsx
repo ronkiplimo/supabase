@@ -23,8 +23,6 @@ import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
 import { ObservabilityMenuItem } from './ObservabilityMenuItem'
 
-const AGENTS_ACCESS_CONTROL_URL = 'http://localhost:8082/org/twokniuusaltjpuhedon/general'
-
 type NavigationMenuItem = {
   key: string
   name: string
@@ -170,37 +168,10 @@ export const ObservabilityMenu = () => {
       key: 'alerts-section',
       items: [
         {
-          name: 'Inbox',
-          key: 'alerts-inbox',
-          url: `/project/${ref}/observability/alerts/inbox${preservedQueryParams}`,
-          pages: [
-            '/project/[ref]/observability/alerts',
-            '/project/[ref]/observability/alerts/inbox',
-          ],
-        },
-        {
           name: 'Rules',
           key: 'alerts-rules',
           url: `/project/${ref}/observability/alerts/rules${preservedQueryParams}`,
           pages: ['/project/[ref]/observability/alerts/rules'],
-        },
-      ],
-    },
-    {
-      title: 'AGENTS',
-      key: 'agents-section',
-      items: [
-        {
-          name: 'Manage',
-          key: 'agents-manage',
-          url: `/project/${ref}/observability/agents${preservedQueryParams}`,
-          pages: ['/project/[ref]/observability/agents'],
-        },
-        {
-          name: 'Access control',
-          key: 'agents-access-control',
-          url: AGENTS_ACCESS_CONTROL_URL,
-          isExternal: true,
         },
       ],
     },

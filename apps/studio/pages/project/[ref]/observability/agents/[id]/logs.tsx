@@ -1,19 +1,21 @@
-import { AgentLogsList } from 'components/interfaces/Observability/Agents/AgentLogsList'
-import DefaultLayout from 'components/layouts/DefaultLayout'
-import { AgentDetailsLayout } from 'components/layouts/ObservabilityLayout/AgentDetailsLayout'
-import { ObservabilityLayout } from 'components/layouts/ObservabilityLayout/ObservabilityLayout'
+import { useParams } from 'common'
+import { useRouter } from 'next/router'
+import { useEffect } from 'react'
 import type { NextPageWithLayout } from 'types'
 
-const AgentLogsPage: NextPageWithLayout = () => {
-  return <AgentLogsList />
+const AgentLogsRedirectPage: NextPageWithLayout = () => {
+  const router = useRouter()
+  const { ref, id } = useParams()
+
+  useEffect(() => {
+    if (ref && id) {
+      router.replace(`/project/${ref}/agents/${id}/logs`)
+    }
+  }, [ref, id, router])
+
+  return null
 }
 
-AgentLogsPage.getLayout = (page) => (
-  <DefaultLayout>
-    <ObservabilityLayout>
-      <AgentDetailsLayout>{page}</AgentDetailsLayout>
-    </ObservabilityLayout>
-  </DefaultLayout>
-)
+AgentLogsRedirectPage.getLayout = (page) => page
 
-export default AgentLogsPage
+export default AgentLogsRedirectPage

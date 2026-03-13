@@ -1,7 +1,6 @@
 import { Context, Hono } from 'hono'
 
 import { verifyAuth } from '../auth.js'
-import { insertAlertMessage } from '../chat/trigger-alert-mention.js'
 import { sql } from '../db.js'
 
 type Env = { Variables: { userId: string | undefined } }
@@ -187,7 +186,7 @@ apiRouter.get('/agents/:id/logs', async (c) => {
       message.id,
       message.alert_id AS source_id,
       message.role,
-      message.content,
+      message.parts,
       message.created_at,
       alert.title AS thread_label
     FROM project_meta.alert_messages message
@@ -213,7 +212,7 @@ apiRouter.get('/agents/:id/logs', async (c) => {
       role: row.role === 'assistant' ? 'assistant' : 'user',
       task_name: null,
       thread_label: typeof row.thread_label === 'string' ? row.thread_label : null,
-      content: typeof row.content === 'string' ? row.content : 'No text content',
+      content: partsToText(row.parts),
       created_at: String(row.created_at),
     })),
   ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -384,7 +383,8 @@ apiRouter.get('/alerts/:id/messages', async (c) => {
   const check = await sql`SELECT id FROM project_meta.alerts WHERE id = ${alertId}`
   if (!check.length) return c.json({ error: 'Not found' }, 404)
   const rows = await sql`
-    SELECT * FROM project_meta.alert_messages WHERE alert_id = ${alertId} ORDER BY created_at ASC
+    SELECT id, alert_id, user_id, agent_id, role, parts, created_at
+    FROM project_meta.alert_messages WHERE alert_id = ${alertId} ORDER BY created_at ASC
   `
   return c.json(rows)
 })
@@ -398,13 +398,12 @@ apiRouter.post('/alerts/:id/messages', async (c) => {
   const check = await sql`SELECT id FROM project_meta.alerts WHERE id = ${alertId}`
   if (!check.length) return c.json({ error: 'Not found' }, 404)
 
-  const row = await insertAlertMessage({
-    id: body.id,
-    alertId,
-    userId: auth.userId,
-    content: body.content ?? '',
-    authHeader: c.req.header('Authorization'),
-  })
+  const content: string = body.content ?? ''
+  const [row] = await sql`
+    INSERT INTO project_meta.alert_messages (id, alert_id, user_id, role, parts)
+    VALUES (${body.id}, ${alertId}, ${auth.userId}, 'user', ${sql.json([{ type: 'text', text: content }])})
+    RETURNING *
+  `
 
   return c.json(row, 201)
 })

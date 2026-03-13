@@ -162,7 +162,7 @@ export const ObservabilityAgentsPage = () => {
                       <TableCell className="max-w-[360px]">
                         <div className="space-y-1">
                           <Link
-                            href={`/project/${projectRef}/observability/agents/${agent.id}`}
+                            href={`/project/${projectRef}/agents/${agent.id}`}
                             className="block truncate font-medium text-sm text-foreground hover:underline"
                           >
                             {agent.name}

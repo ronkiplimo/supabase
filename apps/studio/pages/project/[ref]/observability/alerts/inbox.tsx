@@ -1,16 +1,21 @@
-import { AlertsInbox } from 'components/interfaces/Observability/Alerts/AlertsInbox'
-import DefaultLayout from 'components/layouts/DefaultLayout'
-import { ObservabilityLayout } from 'components/layouts/ObservabilityLayout/ObservabilityLayout'
+import { useParams } from 'common'
+import { useRouter } from 'next/router'
+import { useEffect } from 'react'
 import type { NextPageWithLayout } from 'types'
 
-const AlertsInboxPage: NextPageWithLayout = () => {
-  return <AlertsInbox />
+const AlertsInboxRedirectPage: NextPageWithLayout = () => {
+  const router = useRouter()
+  const { ref } = useParams()
+
+  useEffect(() => {
+    if (ref) {
+      router.replace(`/project/${ref}/alerts/inbox`)
+    }
+  }, [ref, router])
+
+  return null
 }
 
-AlertsInboxPage.getLayout = (page) => (
-  <DefaultLayout>
-    <ObservabilityLayout>{page}</ObservabilityLayout>
-  </DefaultLayout>
-)
+AlertsInboxRedirectPage.getLayout = (page) => page
 
-export default AlertsInboxPage
+export default AlertsInboxRedirectPage

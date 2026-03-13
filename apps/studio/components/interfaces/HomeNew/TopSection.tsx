@@ -56,7 +56,7 @@ export const TopSection = () => {
                 </Link>
               )}
               <div className="flex items-center gap-x-2">
-                <h1 className="text-3xl">{projectName}</h1>
+                <h1 className="text-3xl font-normal">{projectName}</h1>
                 <div className="flex items-center gap-x-2">
                   {isOrioleDb && (
                     <Tooltip>

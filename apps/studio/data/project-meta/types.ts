@@ -65,7 +65,7 @@ export type AlertMessage = {
   user_id: string | null
   agent_id: string | null
   role: 'user' | 'assistant'
-  content: string
+  parts: unknown
   created_at: string
 }
 

@@ -3,6 +3,29 @@ import { z } from 'zod'
 import { getToolContext } from './context.js'
 
 const SUPABASE_API_URL = process.env.SUPABASE_API_URL ?? 'https://api.supabase.com'
+const SERVICE_ROLE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_KEY ?? ''
+const SUPABASE_ACCESS_TOKEN = process.env.SUPABASE_ACCESS_TOKEN ?? null
+const DEFAULT_LOGS_RANGE_MS = 60 * 60 * 1000
+
+function resolveLogsDateRange(start?: string, end?: string) {
+  const now = new Date()
+
+  return {
+    start: start && start.length > 0 ? start : new Date(now.getTime() - DEFAULT_LOGS_RANGE_MS).toISOString(),
+    end: end && end.length > 0 ? end : now.toISOString(),
+  }
+}
+
+function resolveManagementApiAuthToken(userToken?: string | null): string | null {
+  const normalized = userToken?.trim() || null
+
+  if (normalized && SERVICE_ROLE_KEY && normalized === SERVICE_ROLE_KEY) {
+    return SUPABASE_ACCESS_TOKEN
+  }
+
+  return normalized ?? SUPABASE_ACCESS_TOKEN
+}
 
 export const monitoringTools = {
   executeLogsQuery: tool({
@@ -29,6 +52,32 @@ Example — edge_logs (API requests):
   order by timestamp desc
   limit 25
 
+Example — function_edge_logs:
+  select id, function_edge_logs.timestamp, event_message, response.status_code, request.method, m.function_id, m.execution_time_ms, m.deployment_id, m.version
+  from function_edge_logs
+  cross join unnest(metadata) as m
+  cross join unnest(m.response) as response
+  cross join unnest(m.request) as request
+  order by timestamp desc
+  limit 100
+
+Example — postgres_logs with parsed details:
+  select identifier, postgres_logs.timestamp, id, event_message, parsed.error_severity, parsed.detail, parsed.hint
+  from postgres_logs
+  cross join unnest(metadata) as m
+  cross join unnest(m.parsed) as parsed
+  order by timestamp desc
+  limit 100
+
+Example — edge_logs with request search params:
+  select id, identifier, timestamp, event_message, request.method, request.path, request.search, response.status_code
+  from edge_logs
+  cross join unnest(metadata) as m
+  cross join unnest(m.request) as request
+  cross join unnest(m.response) as response
+  order by timestamp desc
+  limit 100
+
 Example — auth_logs:
   select datetime(timestamp) as ts, p.level, p.msg
   from auth_logs as t
@@ -37,24 +86,33 @@ Example — auth_logs:
   order by timestamp desc
   limit 25
 
-Timestamp filtering: prefer iso_timestamp_start/iso_timestamp_end params over SQL WHERE on timestamp. Max range is 24h.
-Always include ORDER BY timestamp DESC and a LIMIT (max 1000).`,
+Timestamp filtering: prefer iso_timestamp_start/iso_timestamp_end params over SQL WHERE on timestamp. Max range is 24h. If omitted, the tool defaults to the last hour through now.
+Always include ORDER BY timestamp DESC and a LIMIT (max 1000).
+
+When the user should also inspect or rerun the logs SQL themselves, first execute the query with this tool to inspect the results, then call renderSql with the same logs SQL and date range so both the assistant and user can interpret the same query output.`,
     inputSchema: z.object({
       sql: z.string().optional().describe('BigQuery SQL query. Use cross join unnest() to access nested metadata fields. Do not filter by timestamp in SQL — use iso_timestamp_start/iso_timestamp_end params instead.'),
-      iso_timestamp_start: z.string().optional().describe('ISO-8601 start timestamp (e.g. "2025-01-15T00:00:00Z"). Must be paired with iso_timestamp_end.'),
-      iso_timestamp_end: z.string().optional().describe('ISO-8601 end timestamp. Must be paired with iso_timestamp_start. Range max 24h.'),
+      iso_timestamp_start: z.string().optional().describe('Optional ISO-8601 start timestamp (e.g. "2025-01-15T00:00:00Z"). If omitted, defaults to one hour before iso_timestamp_end or now.'),
+      iso_timestamp_end: z.string().optional().describe('Optional ISO-8601 end timestamp. If omitted, defaults to now. Range max 24h.'),
     }),
     execute: async ({ sql: sqlQuery, iso_timestamp_start, iso_timestamp_end }) => {
       const ctx = getToolContext()
       if (!ctx.projectRef) return { error: 'Project ref is not available' }
-      if (!ctx.userToken) return { error: 'User token is not available' }
+      const authToken = resolveManagementApiAuthToken(ctx.userToken)
+      if (!authToken) {
+        return {
+          error:
+            'No auth token available for logs query. Provide a user token or set SUPABASE_ACCESS_TOKEN for background runners.',
+        }
+      }
+      const resolvedDateRange = resolveLogsDateRange(iso_timestamp_start, iso_timestamp_end)
       const params = new URLSearchParams()
       if (sqlQuery) params.set('sql', sqlQuery)
-      if (iso_timestamp_start) params.set('iso_timestamp_start', iso_timestamp_start)
-      if (iso_timestamp_end) params.set('iso_timestamp_end', iso_timestamp_end)
+      params.set('iso_timestamp_start', resolvedDateRange.start)
+      params.set('iso_timestamp_end', resolvedDateRange.end)
       const qs = params.toString()
       const url = `${SUPABASE_API_URL}/v1/projects/${ctx.projectRef}/analytics/endpoints/logs.all${qs ? `?${qs}` : ''}`
-      const resp = await fetch(url, { headers: { Authorization: `Bearer ${ctx.userToken}` } })
+      const resp = await fetch(url, { headers: { Authorization: `Bearer ${authToken}` } })
       if (!resp.ok) return { error: `Logs API error (HTTP ${resp.status}): ${await resp.text()}` }
       const data = await resp.json() as { result?: unknown[]; error?: unknown }
       if (data.error) return { error: typeof data.error === 'string' ? data.error : JSON.stringify(data.error) }
@@ -68,8 +126,14 @@ Always include ORDER BY timestamp DESC and a LIMIT (max 1000).`,
     execute: async () => {
       const ctx = getToolContext()
       if (!ctx.projectRef) return { error: 'Project ref is not available' }
-      if (!ctx.userToken) return { error: 'User token is not available' }
-      const headers = { Authorization: `Bearer ${ctx.userToken}` }
+      const authToken = resolveManagementApiAuthToken(ctx.userToken)
+      if (!authToken) {
+        return {
+          error:
+            'No auth token available for disk utilization query. Provide a user token or set SUPABASE_ACCESS_TOKEN for background runners.',
+        }
+      }
+      const headers = { Authorization: `Bearer ${authToken}` }
       const [attrResp, utilResp] = await Promise.all([
         fetch(`${SUPABASE_API_URL}/v1/projects/${ctx.projectRef}/config/disk`, { headers }),
         fetch(`${SUPABASE_API_URL}/v1/projects/${ctx.projectRef}/config/disk/util`, { headers }),

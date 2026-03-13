@@ -59,7 +59,7 @@ export const ToolChart = ({ primaryText, secondaryText, data, xAxis, yAxis }: Ag
       <div
         className={
           primaryText || secondaryText
-            ? '-mt-4 overflow-hidden rounded-2xl border bg-muted/75'
+            ? '-mt-4 overflow-hidden rounded-2xl border bg-surface-100 z-10 relative'
             : 'overflow-hidden rounded-t-2xl border bg-background'
         }
       >

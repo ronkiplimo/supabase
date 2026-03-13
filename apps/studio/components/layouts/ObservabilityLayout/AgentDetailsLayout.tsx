@@ -58,15 +58,15 @@ export const AgentDetailsLayout = ({
   const { mutate: deleteAgent, isPending: isDeleting } = useAgentDeleteMutation()
   const responseError = error as ResponseError | null
 
-  const listPath = `/project/${projectRef}/observability/agents`
+  const listPath = `/project/${projectRef}/agents`
   const navigationItems = [
-    { label: 'Overview', href: `/project/${projectRef}/observability/agents/${id}` },
-    { label: 'Tasks', href: `/project/${projectRef}/observability/agents/${id}/tasks` },
-    { label: 'Logs', href: `/project/${projectRef}/observability/agents/${id}/logs` },
+    { label: 'Overview', href: `/project/${projectRef}/agents/${id}` },
+    { label: 'Tasks', href: `/project/${projectRef}/agents/${id}/tasks` },
+    { label: 'Logs', href: `/project/${projectRef}/agents/${id}/logs` },
   ]
   const breadcrumbItems = [
     { label: 'Agents', href: listPath },
-    { label: agent?.name ?? 'Agent', href: `/project/${projectRef}/observability/agents/${id}` },
+    { label: agent?.name ?? 'Agent', href: `/project/${projectRef}/agents/${id}` },
   ]
 
   useEffect(() => {

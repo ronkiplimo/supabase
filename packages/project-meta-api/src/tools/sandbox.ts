@@ -315,24 +315,52 @@ export const sandboxTools = {
       'The sandbox already has repository context — do not ask the user for repo URLs or code files. ' +
       'Use mode="readonly" for review/debug; mode="write" when code changes are expected. ' +
       'Set createPr=true in write mode to open a GitHub PR after push. ' +
+      'If you have created an alert as part of this task and want the sandbox results recorded against that alert ' +
+      'instead of the current conversation, pass the alert UUID as alert_id. ' +
+      'When alert_id is provided the result is posted to the alert thread only, not the conversation. ' +
       'This is a high-cost action — only call it when explicitly requested.',
     inputSchema: z.object({
       mode: z.enum(['readonly', 'write']).default('readonly').describe('Execution mode.'),
       branch: z.string().optional().describe('Target branch for write mode. Auto-generated if omitted.'),
       createPr: z.boolean().default(false).describe('Open a GitHub PR after pushing commits (write mode only).'),
+      agent_id: z
+        .string()
+        .uuid()
+        .optional()
+        .describe('Optional agent UUID override. Normally omitted and resolved from the current chat context.'),
+      alert_id: z
+        .string()
+        .uuid()
+        .optional()
+        .describe(
+          'UUID of an alert to post results to. When provided, the sandbox result is recorded against this alert ' +
+          'instead of the current conversation. Use this when you have created an alert as part of the current task.'
+        ),
       prompt: z.string().describe('Detailed instructions for the code agent.'),
     }),
-    execute: async ({ mode, branch, createPr, prompt }) => {
+    execute: async ({ mode, branch, createPr, agent_id, alert_id, prompt }) => {
       const ctx = getToolContext()
 
       const anthropicApiKey = process.env.SANDBOX_ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY
       const repoUrl = process.env.GITHUB_REPO_URL
+      const resolvedAgentId = agent_id?.trim() || ctx.agentId
+      const resolvedAlertId = alert_id?.trim() || ctx.alertId
 
       if (!anthropicApiKey) return { success: false, error: 'ANTHROPIC_API_KEY is not configured' }
       if (!repoUrl) return { success: false, error: 'GITHUB_REPO_URL is not configured' }
-      if (!ctx.agentId) return { success: false, error: 'Cannot deploy code agent without an agent_id context' }
+      if (!resolvedAgentId) {
+        return {
+          success: false,
+          error:
+            'Cannot deploy code agent without an agent_id. Ensure the current agent context is set, or pass agent_id explicitly.',
+        }
+      }
 
       const writeBranch = mode === 'write' ? (branch?.trim() || createDefaultBranchName()) : ''
+
+      // When an alert_id is explicitly supplied the result belongs to the alert thread only.
+      // Omit conversationId so the post is not duplicated into the conversation.
+      const conversationId = resolvedAlertId ? undefined : ctx.conversationId
 
       void runSandbox({
         mode,
@@ -342,9 +370,9 @@ export const sandboxTools = {
         repoUrl,
         githubToken: process.env.GITHUB_TOKEN || '',
         anthropicApiKey,
-        agentId: ctx.agentId,
-        conversationId: ctx.conversationId,
-        alertId: ctx.alertId,
+        agentId: resolvedAgentId,
+        conversationId,
+        alertId: resolvedAlertId,
         projectRef: ctx.projectRef ?? undefined,
       })
 

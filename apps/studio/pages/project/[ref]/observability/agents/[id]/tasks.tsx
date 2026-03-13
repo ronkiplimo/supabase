@@ -1,19 +1,21 @@
-import { AgentTasksList } from 'components/interfaces/Observability/Agents/AgentTasksList'
-import DefaultLayout from 'components/layouts/DefaultLayout'
-import { AgentDetailsLayout } from 'components/layouts/ObservabilityLayout/AgentDetailsLayout'
-import { ObservabilityLayout } from 'components/layouts/ObservabilityLayout/ObservabilityLayout'
+import { useParams } from 'common'
+import { useRouter } from 'next/router'
+import { useEffect } from 'react'
 import type { NextPageWithLayout } from 'types'
 
-const AgentTasksPage: NextPageWithLayout = () => {
-  return <AgentTasksList />
+const AgentTasksRedirectPage: NextPageWithLayout = () => {
+  const router = useRouter()
+  const { ref, id } = useParams()
+
+  useEffect(() => {
+    if (ref && id) {
+      router.replace(`/project/${ref}/agents/${id}/tasks`)
+    }
+  }, [ref, id, router])
+
+  return null
 }
 
-AgentTasksPage.getLayout = (page) => (
-  <DefaultLayout>
-    <ObservabilityLayout>
-      <AgentDetailsLayout>{page}</AgentDetailsLayout>
-    </ObservabilityLayout>
-  </DefaultLayout>
-)
+AgentTasksRedirectPage.getLayout = (page) => page
 
-export default AgentTasksPage
+export default AgentTasksRedirectPage

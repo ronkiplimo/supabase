@@ -137,6 +137,7 @@ export interface AgentChatProps {
   headerActions?: ReactNode
   contentMaxWidthClassName?: string
   emptyStateContent?: ReactNode
+  emptyStateImage?: string
   messages: UIMessage[]
   status?: ChatStatus
   input: string
@@ -146,9 +147,9 @@ export interface AgentChatProps {
   disabled?: boolean
   suggestions?: string[]
   onSuggestionSelect?: (suggestion: string) => void
-  conversations: AgentChatConversation[]
-  activeConversationId: string | null
-  onConversationChange: (id: string | null) => void
+  conversations?: AgentChatConversation[]
+  activeConversationId?: string | null
+  onConversationChange?: (id: string | null) => void
   onRefreshConversations?: () => void
   agents?: AgentChatAgent[]
   selectedAgentId?: string
@@ -165,4 +166,5 @@ export interface AgentChatProps {
   onActionPrompt?: (prompt: string) => void
   sqlRunners?: AgentChatSqlRunners
   renderSqlEditor?: AgentChatSqlEditorRender
+  prependConversation?: ReactNode
 }

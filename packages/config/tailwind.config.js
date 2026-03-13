@@ -374,7 +374,7 @@ const uiConfig = ui({
         xs: '480px',
       },
       fontFamily: {
-        sans: 'var(--font-custom, Circular, custom-font, Helvetica Neue, Helvetica, Arial, sans-serif)',
+        sans: 'TestSohne, var(--font-custom, Circular, custom-font, Helvetica Neue, Helvetica, Arial, sans-serif)',
         mono: 'var(--font-source-code-pro, Source Code Pro, Office Code Pro, Menlo, monospace)',
       },
 

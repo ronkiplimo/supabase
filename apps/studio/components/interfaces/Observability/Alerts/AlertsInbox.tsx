@@ -1,12 +1,12 @@
 import { useParams } from 'common'
 import AlertError from 'components/ui/AlertError'
-import { useAgentsQuery } from 'data/agents/agents-query'
-import { useAlertMessageCreateMutation } from 'data/agents/alert-message-create-mutation'
-import { useAlertMessagesQuery } from 'data/agents/alert-messages-query'
-import { useAlertResolveMutation } from 'data/agents/alert-resolve-mutation'
-import { useAlertsQuery } from 'data/agents/alerts-query'
-import { useRulesQuery } from 'data/agents/rules-query'
-import type { Alert, AlertSeverity } from 'data/agents/types'
+import { useAgentsQuery } from 'data/project-meta/agents-query'
+import { useAlertMessageCreateMutation } from 'data/project-meta/alert-message-create-mutation'
+import { useAlertMessagesQuery } from 'data/project-meta/alert-messages-query'
+import { useAlertResolveMutation } from 'data/project-meta/alert-resolve-mutation'
+import { useAlertsQuery } from 'data/project-meta/alerts-query'
+import { useRulesQuery } from 'data/project-meta/rules-query'
+import type { Alert, AlertSeverity } from 'data/project-meta/types'
 import dayjs from 'dayjs'
 import {
   ArrowRight,
@@ -18,7 +18,7 @@ import {
   Search,
   SendIcon,
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import {
   AiIconAnimation,
@@ -71,6 +71,54 @@ function getShortTimestamp(utcTimestamp: string) {
   }
 
   return timestampLocalFormatter({ utcTimestamp, format: 'DD MMM YY' })
+}
+
+function splitByMentions(
+  text: string,
+  agentNames: string[]
+): Array<{ type: 'text' | 'mention'; value: string }> {
+  if (!agentNames.length || !text.includes('@')) return [{ type: 'text', value: text }]
+
+  const sorted = [...agentNames].sort((a, b) => b.length - a.length)
+  const escaped = sorted.map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+  const regex = new RegExp(`@(${escaped.join('|')})`, 'gi')
+
+  const parts: Array<{ type: 'text' | 'mention'; value: string }> = []
+  let lastIndex = 0
+  let match: RegExpExecArray | null
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) parts.push({ type: 'text', value: text.slice(lastIndex, match.index) })
+    parts.push({ type: 'mention', value: match[0] })
+    lastIndex = regex.lastIndex
+  }
+
+  if (lastIndex < text.length) parts.push({ type: 'text', value: text.slice(lastIndex) })
+  return parts.length > 0 ? parts : [{ type: 'text', value: text }]
+}
+
+function makeMentionComponents(agentNames: string[]) {
+  const processChildren = (children: React.ReactNode): React.ReactNode =>
+    React.Children.map(children, (child) => {
+      if (typeof child !== 'string') return child
+      const parts = splitByMentions(child, agentNames)
+      if (parts.length === 1 && parts[0].type === 'text') return child
+      return parts.map((part, i) =>
+        part.type === 'mention' ? (
+          <span key={i} className="bg-brand-300 text-foreground rounded px-0.5 font-medium">
+            {part.value}
+          </span>
+        ) : (
+          part.value
+        )
+      )
+    })
+
+  return {
+    p: ({ children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
+      <p {...props}>{processChildren(children)}</p>
+    ),
+  }
 }
 
 function buildThreads(alerts: Alert[]): Thread[] {
@@ -257,12 +305,11 @@ export const AlertsInbox = () => {
               </div>
 
               {filteredThreads.length === 0 ? (
-                <div className="flex flex-1 items-center p-6">
-                  <EmptyStatePresentational
-                    title={emptyCopy.title}
-                    description={emptyCopy.description}
-                  />
-                </div>
+                <EmptyStatePresentational
+                  className="flex-1"
+                  title={emptyCopy.title}
+                  description={emptyCopy.description}
+                />
               ) : (
                 <div className="min-h-0 flex-1 divide-y overflow-y-auto">
                   {filteredThreads.map((thread) => (
@@ -286,12 +333,10 @@ export const AlertsInbox = () => {
                   ruleMap={ruleMap}
                 />
               ) : (
-                <div className="flex h-full min-h-[320px] items-center justify-center p-8">
-                  <EmptyStatePresentational
-                    title="Select an alert"
-                    description="Choose a thread to inspect the alert and manage its follow-up."
-                  />
-                </div>
+                <EmptyStatePresentational
+                  title="Select an alert"
+                  description="Choose a thread to inspect the alert and manage its follow-up."
+                />
               )}
             </section>
           </div>
@@ -350,6 +395,8 @@ const AlertThreadDetail = ({
   ruleMap: Map<string, string>
 }) => {
   const [draft, setDraft] = useState('')
+  const agentNames = useMemo(() => [...agentMap.values()], [agentMap])
+  const mentionComponents = useMemo(() => makeMentionComponents(agentNames), [agentNames])
   const { mutate: resolveAlert, isPending: isUpdating } = useAlertResolveMutation()
   const { mutate: createMessage, isPending: isSending } = useAlertMessageCreateMutation()
   const { data: messages, isPending: isLoadingMessages } = useAlertMessagesQuery({
@@ -403,16 +450,14 @@ const AlertThreadDetail = ({
     }
   })()
 
-  console.log(severityBgClass)
-
   return (
     <div className={cn('flex h-full min-h-0 flex-col overflow-hidden border-t-4', severityBgClass)}>
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="p-8">
+        <div className="mx-auto w-full max-w-4xl p-8 pt-24">
           <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-start">
             <div>
-              <h2 className="heading-title mb-1">{thread.parent.title}</h2>
-              <div className="flex flex-wrap items-center gap-2 text-foreground-light">
+              <h2 className="heading-title mb-2">{thread.parent.title}</h2>
+              <div className="flex flex-wrap items-center gap-2 text-foreground-light mb-4">
                 <span>First seen {firstSeen}</span>
                 <ArrowRight size={14} className="text-foreground-muted" />
                 <span className="inline-flex items-center gap-1.5">
@@ -422,8 +467,6 @@ const AlertThreadDetail = ({
                 <ArrowRight size={14} className="text-foreground-muted" />
                 <span>Last seen {lastSeen}</span>
               </div>
-            </div>
-            <div className="flex items-center gap-4">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant={severityVariant[thread.parent.severity]}>
                   {thread.parent.severity}
@@ -433,41 +476,41 @@ const AlertThreadDetail = ({
                 </Badge>
                 {source && <Badge variant="default">{source}</Badge>}
               </div>
-              <Button
-                type="default"
-                icon={
-                  thread.parent.resolved_at ? <RotateCcw size={14} /> : <CheckCircle2 size={14} />
-                }
-                loading={isUpdating}
-                onClick={() => {
-                  if (!projectRef) return
-
-                  resolveAlert({
-                    projectRef,
-                    id: thread.parent.id,
-                    resolved_at: thread.parent.resolved_at ? null : new Date().toISOString(),
-                  })
-                }}
-              >
-                {thread.parent.resolved_at ? 'Reopen' : 'Resolve'}
-              </Button>
             </div>
+            <Button
+              type="default"
+              icon={
+                thread.parent.resolved_at ? <RotateCcw size={14} /> : <CheckCircle2 size={14} />
+              }
+              loading={isUpdating}
+              onClick={() => {
+                if (!projectRef) return
+
+                resolveAlert({
+                  projectRef,
+                  id: thread.parent.id,
+                  resolved_at: thread.parent.resolved_at ? null : new Date().toISOString(),
+                })
+              }}
+            >
+              {thread.parent.resolved_at ? 'Reopen' : 'Resolve'}
+            </Button>
           </div>
           {thread.parent.message && (
-            <ReactMarkdown className="prose leading-normal mt-4 text-foreground [&>pre]:rounded-lg [&>pre]:bg [&>pre]:border [&>pre]:p-4 [&>pre]:text-foreground-light">
+            <ReactMarkdown className="prose max-w-none leading-normal mt-8 text-foreground [&>pre]:rounded-lg [&>pre]:bg [&>pre]:border [&>pre]:p-4 [&>pre]:text-foreground-light">
               {thread.parent.message}
             </ReactMarkdown>
           )}
         </div>
 
-        <div className="p-8 pt-0 group">
+        <div className="mx-auto w-full max-w-4xl px-8 pb-8">
           <div className="border-t pt-8">
             <h4 className="heading-meta text-foreground-lighter">Discussion</h4>
 
             {isLoadingMessages ? (
               <p className="text-sm text-foreground-lighter mt-2">Loading comments…</p>
             ) : messages && messages.length > 0 ? (
-              <div className="space-y-8 mt-6">
+              <div className="flex flex-col gap-6 mt-6">
                 {messages.map((message) => {
                   const isUserMessage = message.role === 'user'
                   const authorName =
@@ -477,37 +520,60 @@ const AlertThreadDetail = ({
                       : 'You'
 
                   return (
-                    <div key={message.id} className="flex flex-col items-start">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Avatar className="h-6 w-6">
-                          <AvatarFallback
-                            className={cn(
-                              message.role === 'assistant'
-                                ? 'bg-brand-300 text-foreground border-brand'
-                                : 'bg-surface-75 text-foreground',
-                              'text-xs font-mono'
-                            )}
-                          >
-                            {message.role === 'assistant' ? <AiIconAnimation size={12} /> : 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="text-foreground heading-default">{authorName}</div>
-                        <TimestampInfo
-                          className="text-sm text-foreground-lighter"
-                          utcTimestamp={message.created_at}
-                        />
-                      </div>
-
-                      <div
-                        className={cn(
-                          'max-w-[80%]',
-                          isUserMessage && 'rounded-2xl bg-surface-100 px-3 py-2'
-                        )}
-                      >
-                        <ReactMarkdown className="prose leading-normal text-foreground-light group-hover:text-foreground">
-                          {message.content}
-                        </ReactMarkdown>
-                      </div>
+                    <div
+                      key={message.id}
+                      className={cn(
+                        'group flex w-full flex-col',
+                        isUserMessage ? 'items-end' : 'items-start'
+                      )}
+                    >
+                      {isUserMessage ? (
+                        <div className="flex w-full flex-col items-end">
+                          <div className="flex items-center gap-2 mb-2">
+                            <TimestampInfo
+                              className="text-xs text-foreground-lighter"
+                              utcTimestamp={message.created_at}
+                            />
+                            <div className="text-sm text-foreground-light">{authorName}</div>
+                            <Avatar className="h-6 w-6">
+                              <AvatarFallback className="bg-surface-75 text-foreground text-xs font-mono">
+                                U
+                              </AvatarFallback>
+                            </Avatar>
+                          </div>
+                          <div className="w-fit max-w-[80%] rounded-2xl bg-surface-100 px-3 py-2">
+                            <ReactMarkdown
+                              className="prose max-w-none leading-normal text-foreground-light"
+                              components={mentionComponents}
+                            >
+                              {message.content}
+                            </ReactMarkdown>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="w-full">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Avatar className="h-6 w-6">
+                              <AvatarFallback className="bg-brand-300 text-foreground border-brand text-xs font-mono">
+                                <AiIconAnimation size={12} />
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="text-sm text-foreground-light">{authorName}</div>
+                            <TimestampInfo
+                              className="text-xs text-foreground-lighter"
+                              utcTimestamp={message.created_at}
+                            />
+                          </div>
+                          <div className="w-full max-w-full">
+                            <ReactMarkdown
+                              className="prose max-w-none leading-normal text-foreground group-hover:text-foreground"
+                              components={mentionComponents}
+                            >
+                              {message.content}
+                            </ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )
                 })}
@@ -519,10 +585,10 @@ const AlertThreadDetail = ({
         </div>
       </div>
 
-      <div className="border-t bg-surface-75 p-8">
-        <div className="border rounded-lg bg-surface-100">
+      <div className="mx-auto w-full max-w-4xl shrink-0 px-4 pb-4 z-10">
+        <div className="rounded-2xl border bg-muted px-3 py-3">
           <TextArea
-            className="min-h-[40px] resize-none border-0 bg-transparent pb-0 shadow-none focus-visible:ring-0"
+            className="min-h-[88px] resize-none border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0"
             disabled={!projectRef}
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={(event) => {
@@ -534,7 +600,7 @@ const AlertThreadDetail = ({
             placeholder="Add context or next steps"
             value={draft}
           />
-          <div className="flex justify-end p-4">
+          <div className="mt-3 flex items-center justify-end">
             <Button
               className="h-9 w-9 rounded-full p-0"
               disabled={!draft.trim() || isSending || !projectRef}

@@ -33,7 +33,7 @@ export function proxy(request: NextRequest) {
   if (
     IS_PLATFORM &&
     !HOSTED_SUPPORTED_API_URLS.some((url) => request.nextUrl.pathname.endsWith(url)) &&
-    !request.nextUrl.pathname.includes('/platform/ai-agents/')
+    !request.nextUrl.pathname.includes('/platform/project-meta/')
   ) {
     return Response.json(
       { success: false, message: 'Endpoint not supported on hosted' },

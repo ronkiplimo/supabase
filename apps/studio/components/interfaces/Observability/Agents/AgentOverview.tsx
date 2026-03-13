@@ -1,7 +1,7 @@
 import { useParams } from 'common'
 import { AgentChat } from 'components/interfaces/AgentChat/AgentChat'
 import AlertError from 'components/ui/AlertError'
-import { useConversationsQuery } from 'data/agents/conversations-query'
+import { useConversationsQuery } from 'data/project-meta/conversations-query'
 import dayjs from 'dayjs'
 import { MessageSquareIcon, PanelLeftClose, PanelLeftOpen, PlusIcon } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
@@ -38,11 +38,15 @@ function formatConversationRelativeTime(utcTimestamp: string) {
   return `${now.diff(timestamp, 'year')}y`
 }
 
-export const AgentOverview = () => {
+interface AgentOverviewProps {
+  conversationId: string | null
+  onConversationChange: (id: string | null) => void
+}
+
+export const AgentOverview = ({ conversationId, onConversationChange }: AgentOverviewProps) => {
   const { ref: projectRef, id: agentId } = useParams()
   const [search, setSearch] = useState('')
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
   const overviewHref = `/project/${projectRef}/observability/agents/${agentId}`
 
   const {
@@ -69,21 +73,21 @@ export const AgentOverview = () => {
     if (filteredConversations.length === 0) return
 
     if (
-      selectedConversationId !== null &&
-      !filteredConversations.some((conversation) => conversation.id === selectedConversationId)
+      conversationId !== null &&
+      !filteredConversations.some((conversation) => conversation.id === conversationId)
     ) {
-      setSelectedConversationId(filteredConversations[0].id)
+      onConversationChange(filteredConversations[0].id)
     }
-  }, [filteredConversations, selectedConversationId])
+  }, [conversationId, filteredConversations, onConversationChange])
 
   if (!projectRef || !agentId) return null
 
   return (
-    <PageSection className="flex h-full min-h-0 flex-1 flex-col gap-0 !pt-0 last:pb-0 px-0 xl:px-0">
+    <PageSection className="flex h-full min-h-0 flex-1 flex-col gap-0 !pt-0 last:pb-0 px-0 xl:px-0 bg-muted/15">
       <PageSectionContent className="flex min-h-0 flex-1 flex-col px-0 xl:px-0">
         <div
           className={cn(
-            'grid min-h-0 flex-1 overflow-hidden border-t transition-[grid-template-columns] duration-200',
+            'grid min-h-0 flex-1 overflow-hidden transition-[grid-template-columns] duration-200',
             isSidebarExpanded
               ? 'lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]'
               : 'lg:grid-cols-[0_minmax(0,1fr)] xl:grid-cols-[0_minmax(0,1fr)]'
@@ -108,8 +112,8 @@ export const AgentOverview = () => {
                   />
                 </InnerSideBarFilters>
                 <Button
-                  type={selectedConversationId === null ? 'default' : 'outline'}
-                  onClick={() => setSelectedConversationId(null)}
+                  type={conversationId === null ? 'default' : 'outline'}
+                  onClick={() => onConversationChange(null)}
                   icon={<PlusIcon size={14} />}
                   className="w-[26px] shrink-0 px-1.5"
                 />
@@ -142,11 +146,11 @@ export const AgentOverview = () => {
                     key={conversation.id}
                     href={overviewHref}
                     title={conversation.title || 'Untitled conversation'}
-                    isActive={selectedConversationId === conversation.id}
+                    isActive={conversationId === conversation.id}
                     isOpened={false}
                     onClick={(event) => {
                       event.preventDefault()
-                      setSelectedConversationId(conversation.id)
+                      onConversationChange(conversation.id)
                     }}
                     className="mb-1"
                   >
@@ -183,8 +187,8 @@ export const AgentOverview = () => {
               className="h-full"
               contentMaxWidthClassName="max-w-4xl"
               initialAgentId={agentId}
-              initialConversationId={selectedConversationId ?? null}
-              onConversationChange={setSelectedConversationId}
+              initialConversationId={conversationId}
+              onConversationChange={onConversationChange}
               projectRef={projectRef}
               restrictToInitialAgent
               showHeader={false}

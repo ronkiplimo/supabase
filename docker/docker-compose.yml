@@ -47,7 +47,7 @@ services:
       SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
       AUTH_JWT_SECRET: ${JWT_SECRET}
-      STUDIO_AGENT_API_URL: http://agent-api:3001
+      STUDIO_PROJECT_META_API_URL: http://project-meta-api:3001
 
       # LOGFLARE_API_KEY is deprecated
       LOGFLARE_API_KEY: ${LOGFLARE_PUBLIC_ACCESS_TOKEN}
@@ -455,10 +455,10 @@ services:
       # GOOGLE_PROJECT_ID: ${GOOGLE_PROJECT_ID}
       # GOOGLE_PROJECT_NUMBER: ${GOOGLE_PROJECT_NUMBER}
 
-  agent-api:
-    container_name: supabase-agent-api
+  project-meta-api:
+    container_name: supabase-project-meta-api
     build:
-      context: ../packages/agent-api
+      context: ../packages/project-meta-api
       dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:
@@ -473,7 +473,7 @@ services:
       retries: 3
     environment:
       PORT: 3001
-      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/agent
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/project_meta
       JWT_SECRET: ${JWT_SECRET}
       SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
       SUPABASE_URL: http://kong:8000
@@ -511,14 +511,14 @@ services:
       - ./volumes/db/data:/var/lib/postgresql/data:Z
       # Changes required for internal supabase data such as _analytics
       - ./volumes/db/_supabase.sql:/docker-entrypoint-initdb.d/migrations/97-_supabase.sql:Z
-      # Creates the agent database alongside the main postgres database
-      - ./volumes/db/_agent.sql:/docker-entrypoint-initdb.d/migrations/98-_agent.sql:Z
+      # Creates the project_meta database alongside the main postgres database
+      - ./volumes/db/_project-meta.sql:/docker-entrypoint-initdb.d/migrations/98-_project-meta.sql:Z
       # Changes required for Analytics support
       - ./volumes/db/logs.sql:/docker-entrypoint-initdb.d/migrations/99-logs.sql:Z
       # Changes required for Pooler support
       - ./volumes/db/pooler.sql:/docker-entrypoint-initdb.d/migrations/99-pooler.sql:Z
-      # Agent schema inside the agent database
-      - ./volumes/db/agent.sql:/docker-entrypoint-initdb.d/migrations/99-agent.sql:Z
+      # project_meta schema inside the project_meta database
+      - ./volumes/db/project-meta.sql:/docker-entrypoint-initdb.d/migrations/99-project-meta.sql:Z
       # Use named volume to persist pgsodium decryption key between restarts
       - db-config:/etc/postgresql-custom
     healthcheck:

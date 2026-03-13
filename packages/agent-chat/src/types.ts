@@ -30,12 +30,22 @@ export type AgentChatRowItem = {
   actions?: AgentChatRowAction[]
 }
 
+export type AgentChatPullRequest = {
+  title: string
+  url: string
+  number?: number
+  repository?: string
+  status?: 'open' | 'merged' | 'closed' | 'draft'
+  branch?: string
+  baseBranch?: string
+  summary?: string
+}
+
 export type AgentChatChartPoint = Record<string, string | number>
 
 export type AgentChatChart = {
   primaryText?: string
   secondaryText?: string
-  tertiaryText?: string
   data?: AgentChatChartPoint[]
   xAxis?: string
   yAxis?: string
@@ -43,34 +53,38 @@ export type AgentChatChart = {
 
 export type AgentChatSqlPoint = Record<string, string | number | boolean | null | object>
 
-export type AgentChatSqlChartConfig = {
-  type?: 'bar'
-  xKey: string
-  yKey: string
-}
+export type AgentChatSqlChartConfig =
+  | {
+      type?: 'bar'
+      xKey: string
+      yKey: string
+      yKeys?: never
+    }
+  | {
+      type: 'stacked-bar'
+      xKey: string
+      yKey?: never
+      yKeys: [string, ...string[]]
+    }
 
 export type AgentChatSql =
   | {
       source: 'sql'
-      projectRef: string
+      projectRef?: string
       connectionString?: string | null
       defaultValue?: string
+      autorun?: boolean
       view?: 'table' | 'chart'
       chartConfig?: AgentChatSqlChartConfig
-      runButtonLabel?: string
-      primaryText?: string
-      secondaryText?: string
     }
   | {
       source: 'logs'
-      projectRef: string
+      projectRef?: string
       dateRange: { from: string; to: string }
       defaultValue?: string
+      autorun?: boolean
       view?: 'table' | 'chart'
       chartConfig?: AgentChatSqlChartConfig
-      runButtonLabel?: string
-      primaryText?: string
-      secondaryText?: string
     }
 
 export type AgentChatSqlRunRequest = AgentChatSql & {
@@ -120,6 +134,7 @@ export type RenderMessagePart = (
 export interface AgentChatProps {
   className?: string
   showHeader?: boolean
+  headerActions?: ReactNode
   contentMaxWidthClassName?: string
   emptyStateContent?: ReactNode
   messages: UIMessage[]
@@ -138,6 +153,7 @@ export interface AgentChatProps {
   agents?: AgentChatAgent[]
   selectedAgentId?: string
   onAgentChange?: (id: string) => void
+  showAgentSelector?: boolean
   models?: AgentChatModel[]
   selectedModelId?: string
   onModelChange?: (id: string) => void

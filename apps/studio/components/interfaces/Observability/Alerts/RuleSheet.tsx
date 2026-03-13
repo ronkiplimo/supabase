@@ -19,7 +19,7 @@ import {
   Switch,
 } from 'ui'
 
-import type { Rule } from 'data/agents/types'
+import type { Rule } from 'data/project-meta/types'
 
 type RuleValues = {
   title: string

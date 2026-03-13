@@ -9,18 +9,20 @@ import {
 } from 'agent-chat'
 import { DefaultChatTransport, type UIMessage } from 'ai'
 import { getAccessToken } from 'common'
-import { useAgentsQuery } from 'data/agents/agents-query'
-import { useConversationMessagesQuery } from 'data/agents/conversation-messages-query'
-import { useConversationsQuery } from 'data/agents/conversations-query'
 import { get } from 'data/fetchers'
+import { useAgentsQuery } from 'data/project-meta/agents-query'
+import { useConversationMessagesQuery } from 'data/project-meta/conversation-messages-query'
+import { useConversationsQuery } from 'data/project-meta/conversations-query'
 import { executeSql } from 'data/sql/execute-sql-query'
 import { useIsFeatureEnabled } from 'hooks/misc/useIsFeatureEnabled'
 import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
 import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
 import { BASE_PATH } from 'lib/constants'
-import { Loader2Icon } from 'lucide-react'
+import { Loader2Icon, Maximize2Icon } from 'lucide-react'
+import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { agentChatState, useAgentChatStateSnapshot } from 'state/agent-chat-state'
+import { Button } from 'ui'
 
 import { AIEditor } from '@/components/ui/AIEditor'
 
@@ -73,6 +75,8 @@ interface AgentChatInnerProps {
   contentMaxWidthClassName?: string
   projectRef: string
   agentId: string
+  showAgentSelector: boolean
+  expandHref?: string
   agents: Array<{ id: string; name: string }>
   conversationId: string
   activeConversationId: string | null
@@ -92,6 +96,8 @@ function AgentChatInner({
   contentMaxWidthClassName,
   projectRef,
   agentId,
+  showAgentSelector,
+  expandHref,
   agents,
   conversationId,
   activeConversationId,
@@ -118,7 +124,7 @@ function AgentChatInner({
     id: conversationId,
     messages: initialMessages,
     transport: new DefaultChatTransport({
-      api: `/api/platform/ai-agents/${projectRef}/chat`,
+      api: `/api/platform/project-meta/${projectRef}/chat`,
       headers: async () => {
         const token = await getAccessToken()
         return token ? { Authorization: `Bearer ${token}` } : ({} as Record<string, string>)
@@ -207,7 +213,7 @@ function AgentChatInner({
     async (request: AgentChatSqlRunRequest): Promise<AgentChatSqlRunResult> => {
       try {
         const response = await executeSql({
-          projectRef: request.projectRef,
+          projectRef,
           connectionString: request.source === 'sql' ? request.connectionString : null,
           sql: request.sql,
         })
@@ -217,7 +223,7 @@ function AgentChatInner({
         return { error: getErrorMessage(error) }
       }
     },
-    []
+    [projectRef]
   )
 
   const handleLogsSqlRun = useCallback(
@@ -229,7 +235,7 @@ function AgentChatInner({
       try {
         const { data, error } = await get('/platform/projects/{ref}/analytics/endpoints/logs.all', {
           params: {
-            path: { ref: request.projectRef },
+            path: { ref: projectRef },
             query: {
               sql: request.sql,
               iso_timestamp_start: request.dateRange.from,
@@ -239,19 +245,19 @@ function AgentChatInner({
         })
 
         if (error) {
-          return { error: getErrorMessage(error) }
+          return { error: getLogsSqlErrorMessage(error, request.sql) }
         }
 
         if (data?.error) {
-          return { error: getErrorMessage(data.error) }
+          return { error: getLogsSqlErrorMessage(data.error, request.sql) }
         }
 
         return { rows: normalizeLogsRows(data?.result ?? [], logsMetadata) }
       } catch (error) {
-        return { error: getErrorMessage(error) }
+        return { error: getLogsSqlErrorMessage(error, request.sql) }
       }
     },
-    [logsMetadata]
+    [logsMetadata, projectRef]
   )
 
   const sqlRunners = useMemo<AgentChatSqlRunners>(
@@ -264,7 +270,7 @@ function AgentChatInner({
 
   const renderSqlEditor = useCallback(
     ({ payload, value, onChange, onRun, disabled }: AgentChatSqlEditorRenderProps) => (
-      <div className="min-h-[220px] [&_.monaco-editor]:!bg [&_.monaco-editor_.margin]:!bg [&_.monaco-editor_.monaco-editor-background]:!bg">
+      <div className="relative h-[260px] min-h-[220px] [&_.monaco-editor]:!bg-muted [&_.monaco-editor_.margin]:!bg-muted [&_.monaco-editor_.monaco-editor-background]:!bg-muted">
         <AIEditor
           autoFocus={false}
           language="pgsql"
@@ -272,7 +278,7 @@ function AgentChatInner({
           onChange={onChange}
           aiEndpoint={`${BASE_PATH}/api/ai/code/complete`}
           aiMetadata={{
-            projectRef: payload.projectRef,
+            projectRef,
             connectionString:
               payload.source === 'sql'
                 ? payload.connectionString
@@ -287,41 +293,40 @@ function AgentChatInner({
             wordWrap: 'on',
             lineNumbers: 'on',
             folding: false,
-            padding: { top: 12, bottom: 12 },
+            padding: { top: 16, bottom: 16 },
             lineNumbersMinChars: 3,
             readOnly: disabled,
           }}
         />
       </div>
     ),
-    [selectedOrganization?.slug, selectedProject?.connectionString]
+    [projectRef, selectedOrganization?.slug, selectedProject?.connectionString]
   )
 
   return (
     <AgentChatView
       className={className}
       contentMaxWidthClassName={contentMaxWidthClassName}
-      emptyStateContent={
-        <div className="relative min-h-full flex-1 overflow-hidden bg-background">
-          <div className="absolute -inset-16 z-0 opacity-50">
-            <img
-              src={`${BASE_PATH}/img/reports/bg-grafana-dark.svg`}
-              alt="Supabase Grafana"
-              className="hidden h-full w-full object-cover object-right dark:block"
-            />
-            <img
-              src={`${BASE_PATH}/img/reports/bg-grafana-light.svg`}
-              alt="Supabase Grafana"
-              className="h-full w-full object-cover object-right dark:hidden"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-background-alternative to-transparent" />
-          </div>
-        </div>
-      }
       key={`${conversationId}:${selectedAgentId}`}
       activeConversationId={activeConversationId}
       agents={agents}
       conversations={mappedConversations}
+      headerActions={
+        expandHref ? (
+          <Button
+            aria-label="Expand chat"
+            asChild
+            className="h-7 w-7 rounded-md p-0"
+            size="sm"
+            title="Expand chat"
+            type="default"
+          >
+            <Link href={expandHref}>
+              <Maximize2Icon className="size-4" />
+            </Link>
+          </Button>
+        ) : undefined
+      }
       input={input}
       messages={messages}
       models={MODELS}
@@ -340,6 +345,7 @@ function AgentChatInner({
       sqlRunners={sqlRunners}
       placeholder="Ask an agent anything..."
       selectedAgentId={selectedAgentId}
+      showAgentSelector={showAgentSelector}
       selectedModelId={model}
       showHeader={showHeader}
       status={status}
@@ -348,7 +354,9 @@ function AgentChatInner({
   )
 }
 
-function normalizeSqlRows(result: unknown): Array<Record<string, string | number | boolean | null | object>> {
+function normalizeSqlRows(
+  result: unknown
+): Array<Record<string, string | number | boolean | null | object>> {
   if (!Array.isArray(result)) return []
   return result.filter(
     (row): row is Record<string, string | number | boolean | null | object> =>
@@ -389,6 +397,70 @@ function getErrorMessage(error: unknown) {
   }
 
   return 'An unknown error occurred'
+}
+
+function getLogsSqlErrorMessage(error: unknown, sql?: string) {
+  const message = getErrorMessage(error)
+
+  if (
+    message.includes('Cannot access field') &&
+    message.includes('on a value with type ARRAY<STRUCT')
+  ) {
+    const hint = getLogsSqlHint(sql)
+
+    return `${message}
+
+Logs queries often need UNNEST joins before accessing nested fields.
+
+${hint}`
+  }
+
+  return message
+}
+
+function getLogsSqlHint(sql?: string) {
+  const normalizedSql = sql?.toLowerCase() ?? ''
+
+  if (normalizedSql.includes('from edge_logs')) {
+    return `Example for edge_logs:
+select datetime(timestamp) as ts, request.method, request.path, response.status_code
+from edge_logs as t
+cross join unnest(t.metadata) as metadata
+cross join unnest(metadata.request) as request
+cross join unnest(metadata.response) as response
+order by timestamp desc
+limit 25`
+  }
+
+  if (normalizedSql.includes('from function_edge_logs')) {
+    return `Example for function_edge_logs:
+select datetime(timestamp) as ts, request.method, request.pathname, response.status_code
+from function_edge_logs as t
+cross join unnest(t.metadata) as metadata
+cross join unnest(metadata.request) as request
+cross join unnest(metadata.response) as response
+order by timestamp desc
+limit 25`
+  }
+
+  if (normalizedSql.includes('from postgres_logs')) {
+    return `Example for postgres_logs:
+select datetime(timestamp) as ts, parsed.error_severity, parsed.user_name, parsed.query
+from postgres_logs as t
+cross join unnest(t.metadata) as metadata
+cross join unnest(metadata.parsed) as parsed
+order by timestamp desc
+limit 25`
+  }
+
+  return `Example for edge_logs:
+select datetime(timestamp) as ts, request.method, request.path, response.status_code
+from edge_logs as t
+cross join unnest(t.metadata) as metadata
+cross join unnest(metadata.request) as request
+cross join unnest(metadata.response) as response
+order by timestamp desc
+limit 25`
 }
 
 export function AgentChat({
@@ -483,6 +555,18 @@ export function AgentChat({
     }
   }, [activeAgentId, availableAgents])
 
+  const resolvedAgentId = activeAgentId ?? availableAgents[0]?.id
+
+  const expandHref = useMemo(() => {
+    if (!showHeader || !resolvedAgentId) return undefined
+
+    const params = new URLSearchParams({
+      conversationId,
+    })
+
+    return `/project/${projectRef}/observability/agents/${resolvedAgentId}?${params.toString()}`
+  }, [conversationId, projectRef, resolvedAgentId, showHeader])
+
   const handleConversationChange = useCallback((id: string | null) => {
     if (id === null) {
       setActiveConversationId(null)
@@ -533,8 +617,6 @@ export function AgentChat({
     )
   }
 
-  const resolvedAgentId = activeAgentId ?? availableAgents[0].id
-
   return (
     <AgentChatInner
       className={className}
@@ -550,6 +632,7 @@ export function AgentChat({
       initialPromptRequestId={queuedPromptRequestId}
       onAgentChange={setActiveAgentId}
       onConversationChange={handleConversationChange}
+      expandHref={expandHref}
       onInitialPromptConsumed={() => {
         setQueuedPrompt(undefined)
         setQueuedPromptRequestId(undefined)
@@ -557,6 +640,7 @@ export function AgentChat({
       }}
       onRefreshConversations={handleRefreshConversations}
       projectRef={projectRef}
+      showAgentSelector={!initialAgentId}
       showHeader={showHeader}
     />
   )

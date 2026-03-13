@@ -14,7 +14,7 @@ import {
   Switch,
 } from 'ui'
 
-import type { AgentTask } from 'data/agents/types'
+import type { AgentTask } from 'data/project-meta/types'
 
 type TaskValues = {
   name: string

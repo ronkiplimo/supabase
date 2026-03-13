@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { Button, Input, Input_Shadcn_ as InputField, Label_Shadcn_ as Label, Sheet, SheetContent, SheetFooter, SheetHeader, SheetSection, SheetTitle } from 'ui'
 
-import type { Agent } from 'data/agents/types'
+import type { Agent } from 'data/project-meta/types'
 
 type AgentValues = {
   name: string

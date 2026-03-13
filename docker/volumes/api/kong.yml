@@ -184,15 +184,15 @@ services:
     plugins:
       - name: cors
 
-  ## Agent API routes
-  - name: agent-v1
-    _comment: 'Agent API: /agent/v1/* -> http://agent-api:3001/*'
-    url: http://agent-api:3001/
+  ## Project Meta API routes
+  - name: project-meta-v1
+    _comment: 'Project Meta API: /project-meta/v1/* -> http://project-meta-api:3001/*'
+    url: http://project-meta-api:3001/
     routes:
-      - name: agent-v1-all
+      - name: project-meta-v1-all
         strip_path: true
         paths:
-          - /agent/v1/
+          - /project-meta/v1/
     plugins:
       - name: cors
       - name: key-auth

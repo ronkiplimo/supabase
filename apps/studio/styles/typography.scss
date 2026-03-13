@@ -1,3 +1,44 @@
+@font-face {
+  font-family: 'TestSohne';
+  src: local('TestSohne-Extraleicht');
+  font-weight: 200;
+}
+@font-face {
+  font-family: 'TestSohne';
+  src: local('TestSohne-Leicht');
+  font-weight: 300;
+}
+@font-face {
+  font-family: 'TestSohne';
+  src: local('TestSohne-Buch');
+  font-weight: 400;
+}
+@font-face {
+  font-family: 'TestSohne';
+  src: local('TestSohne-Kraftig');
+  font-weight: 500;
+}
+@font-face {
+  font-family: 'TestSohne';
+  src: local('TestSohne-Halbfett');
+  font-weight: 600;
+}
+@font-face {
+  font-family: 'TestSohne';
+  src: local('TestSohne-Dreiviertelfett');
+  font-weight: 700;
+}
+@font-face {
+  font-family: 'TestSohne';
+  src: local('TestSohne-Fett');
+  font-weight: 800;
+}
+@font-face {
+  font-family: 'TestSohne';
+  src: local('TestSohne-Extrafett');
+  font-weight: 900;
+}
+
 @tailwind base;
 @tailwind utilities;
 
@@ -34,7 +75,7 @@
 @layer utilities {
   /* Heading */
   .heading-title {
-    @apply scroll-m-20 text-2xl tracking-tight;
+    @apply scroll-m-20 text-2xl font-medium;
   }
 
   .heading-section {

@@ -1,6 +1,6 @@
 import { useParams } from 'common'
 import AlertError from 'components/ui/AlertError'
-import { useAgentLogsQuery } from 'data/agents/agent-logs-query'
+import { useAgentLogsQuery } from 'data/project-meta/agent-logs-query'
 import { RefreshCw, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Badge, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui'
@@ -81,19 +81,19 @@ export const AgentLogsList = () => {
               </TableRow>
             </TableHeader>
 
-            <TableBody>
+            <TableBody className="font-mono text-xs">
               {filteredLogs.map((log) => (
                 <TableRow key={`${log.source}-${log.id}`}>
-                  <TableCell>
+                  <TableCell className="py-3 px-4">
                     <TimestampInfo className="text-xs" utcTimestamp={log.created_at} />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-3 px-4">
                     <Badge variant="default">{SOURCE_LABELS[log.source]}</Badge>
                   </TableCell>
-                  <TableCell className="capitalize">{log.role}</TableCell>
-                  <TableCell className="max-w-[240px]">
+                  <TableCell className="capitalize py-3 px-4">{log.role}</TableCell>
+                  <TableCell className="max-w-[240px] py-3 px-4">
                     <div className="space-y-1">
-                      <p className="truncate text-sm text-foreground">
+                      <p className="truncate text-xs text-foreground">
                         {log.task_name || log.thread_label || 'Untitled'}
                       </p>
                       {log.task_name && log.thread_label && (
@@ -101,8 +101,8 @@ export const AgentLogsList = () => {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="max-w-[420px]">
-                    <p className="truncate text-sm text-foreground-light">
+                  <TableCell className="max-w-[420px] py-3 px-4">
+                    <p className="truncate text-xs text-foreground-light">
                       {log.content || 'No text content'}
                     </p>
                   </TableCell>

@@ -1,23 +1,28 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Loader2Icon, Play } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts'
+import {
+  Button_Shadcn_ as Button,
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+  TextArea_Shadcn_ as TextArea,
+  type ChartConfig,
+} from 'ui'
 
 import type {
   AgentChatSql,
+  AgentChatSqlChartConfig,
   AgentChatSqlEditorRender,
   AgentChatSqlPoint,
   AgentChatSqlRunners,
   AgentChatSqlRunResult,
 } from '../types'
-import {
-  Button_Shadcn_ as Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  cn,
-  TextArea_Shadcn_ as TextArea,
-} from 'ui'
+import { createAxisTickFormatter } from './chart-format'
 
 type ToolSqlState =
   | { status: 'idle'; rows: AgentChatSqlPoint[]; error?: undefined }
@@ -26,6 +31,14 @@ type ToolSqlState =
   | { status: 'error'; rows: AgentChatSqlPoint[]; error: string }
 
 const DEFAULT_STATE: ToolSqlState = { status: 'idle', rows: [] }
+const SQL_CHART_SERIES_COLORS = [
+  'hsl(var(--foreground-lighter))',
+  'hsl(var(--warning-default))',
+  'hsl(var(--destructive-default))',
+  'hsl(var(--foreground-muted))',
+  'hsl(var(--brand-500))',
+  'hsl(var(--warning-500))',
+]
 
 export const ToolSql = ({
   sql,
@@ -38,17 +51,19 @@ export const ToolSql = ({
 }) => {
   const [value, setValue] = useState(sql.defaultValue ?? '')
   const [state, setState] = useState<ToolSqlState>(DEFAULT_STATE)
+  const hasAutorunRef = useRef(false)
   const runner = sql.source === 'logs' ? sqlRunners?.logs : sqlRunners?.database
 
   useEffect(() => {
     setValue(sql.defaultValue ?? '')
     setState(DEFAULT_STATE)
+    hasAutorunRef.current = false
   }, [sql])
 
-  const chartState = useMemo(() => getChartState(state.rows, sql.chartConfig), [
-    state.rows,
-    sql.chartConfig,
-  ])
+  const chartState = useMemo(
+    () => getChartState(state.rows, sql.chartConfig),
+    [state.rows, sql.chartConfig]
+  )
 
   const handleRun = async () => {
     if (!runner) return
@@ -67,6 +82,14 @@ export const ToolSql = ({
     }
   }
 
+  useEffect(() => {
+    if (!sql.autorun || !runner || hasAutorunRef.current) return
+    if ((sql.defaultValue ?? '').trim().length === 0) return
+
+    hasAutorunRef.current = true
+    void handleRun()
+  }, [handleRun, runner, sql, sql.autorun, sql.defaultValue])
+
   const editor = renderEditor ? (
     renderEditor({
       payload: sql,
@@ -77,7 +100,7 @@ export const ToolSql = ({
     })
   ) : (
     <TextArea
-      className="min-h-[220px] resize-none border-0 bg-transparent font-mono text-sm shadow-none focus-visible:ring-0"
+      className="min-h-[220px] resize-none border-0 bg-transparent px-4 py-4 pb-16 pr-28 font-mono text-sm shadow-none focus-visible:ring-0"
       disabled={state.status === 'running' || !runner}
       onChange={(event) => setValue(event.target.value)}
       onKeyDown={(event) => {
@@ -91,53 +114,58 @@ export const ToolSql = ({
   )
 
   return (
-    <Card className="w-full overflow-hidden">
-      {sql.primaryText ? (
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">{sql.primaryText}</CardTitle>
-          {sql.secondaryText ? (
-            <p className="text-sm text-foreground-light">{sql.secondaryText}</p>
-          ) : null}
-        </CardHeader>
-      ) : null}
-      <CardContent className="space-y-4">
-        <div className="flex items-center justify-end">
-          <Button disabled={!runner || state.status === 'running'} onClick={() => void handleRun()}>
-            {sql.runButtonLabel ?? 'Run'}
+    <div className="w-full my-8">
+      <div className="mx-auto max-w-4xl overflow-hidden rounded-t-2xl border border-b-0 bg-muted/50 [&_.monaco-editor]:!bg-muted/25 [&_.monaco-editor]:!outline-none [&_.monaco-editor]:!shadow-none [&_.monaco-editor.focused]:!outline-none [&_.monaco-editor.focused]:!shadow-none [&_.monaco-editor_.margin]:!bg-muted/25 [&_.monaco-editor_.monaco-editor-background]:!bg-muted/25 [&_.overflow-guard]:!outline-none [&_.overflow-guard]:!shadow-none [&_.overflow-guard]:!border-0">
+        <div className="relative">
+          {editor}
+          <Button
+            aria-label="Run SQL query"
+            className="absolute bottom-3 right-3 h-9 w-9 rounded-full shadow-sm"
+            disabled={!runner || state.status === 'running'}
+            onClick={() => void handleRun()}
+            size="icon"
+            type="button"
+            variant="secondary"
+          >
+            {state.status === 'running' ? (
+              <Loader2Icon className="size-4 animate-spin" />
+            ) : (
+              <Play className="size-4 fill-current" />
+            )}
           </Button>
         </div>
+      </div>
 
-        <div className="overflow-hidden rounded-lg border bg-background">{editor}</div>
-
-        <div className="overflow-hidden rounded-lg border bg-background">
-          {state.status === 'idle' && (
-            <p className="px-4 py-4 text-sm text-foreground-light">
-              {!runner
-                ? 'SQL execution is unavailable in this client.'
+      <div className={'-mt-4 overflow-hidden rounded-2xl border bg-muted'}>
+        {state.status === 'idle' && (
+          <p className="px-4 py-4 text-sm text-foreground-light">
+            {!runner
+              ? 'SQL execution is unavailable in this client.'
+              : sql.autorun
+                ? 'Running query...'
                 : 'Click Run to execute your query.'}
-            </p>
-          )}
+          </p>
+        )}
 
-          {state.status === 'running' && <p className="px-4 py-4 font-mono text-sm">Running...</p>}
+        {state.status === 'running' && <p className="px-4 py-4 font-mono text-sm">Running...</p>}
 
-          {state.status === 'error' && (
-            <pre className="whitespace-pre-wrap px-4 py-4 font-mono text-sm">{state.error}</pre>
-          )}
+        {state.status === 'error' && (
+          <pre className="whitespace-pre-wrap px-4 py-4 font-mono text-sm">{state.error}</pre>
+        )}
 
-          {state.status === 'success' && state.rows.length === 0 && (
-            <p className="px-4 py-4 font-mono text-sm">Success. No rows returned</p>
-          )}
+        {state.status === 'success' && state.rows.length === 0 && (
+          <p className="px-4 py-4 font-mono text-sm">Success. No rows returned</p>
+        )}
 
-          {state.status === 'success' && state.rows.length > 0 && (sql.view ?? 'table') === 'table' && (
-            <SqlResultsTable rows={state.rows} />
-          )}
+        {state.status === 'success' &&
+          state.rows.length > 0 &&
+          (sql.view ?? 'table') === 'table' && <SqlResultsTable rows={state.rows} />}
 
-          {state.status === 'success' && state.rows.length > 0 && (sql.view ?? 'table') === 'chart' && (
-            <SqlResultsChart state={chartState} />
-          )}
-        </div>
-      </CardContent>
-    </Card>
+        {state.status === 'success' &&
+          state.rows.length > 0 &&
+          (sql.view ?? 'table') === 'chart' && <SqlResultsChart state={chartState} />}
+      </div>
+    </div>
   )
 }
 
@@ -176,13 +204,20 @@ const SqlResultsChart = ({
   state,
 }: {
   state:
-    | { status: 'ready'; data: Array<Record<string, string | number>>; xKey: string; yKey: string }
-    | { status: 'missing-config' | 'invalid-y-axis' }
+    | {
+        status: 'ready'
+        data: Array<Record<string, string | number>>
+        type: 'bar' | 'stacked-bar'
+        xKey: string
+        yKeys: string[]
+      }
+    | { status: 'missing-config' }
+    | { status: 'invalid-y-axis'; keys: string[] }
 }) => {
   if (state.status === 'missing-config') {
     return (
       <div className="flex h-[220px] items-center justify-center px-4 text-sm text-foreground-light">
-        Add `xKey` and `yKey` to render the chart.
+        Add `xKey` and `yKey` or `yKeys` to render the chart.
       </div>
     )
   }
@@ -190,7 +225,7 @@ const SqlResultsChart = ({
   if (state.status === 'invalid-y-axis') {
     return (
       <div className="flex h-[220px] items-center justify-center px-4 text-sm text-foreground-light">
-        Chart `yKey` values must be numeric.
+        Chart series must be numeric: {state.keys.join(', ')}.
       </div>
     )
   }
@@ -199,28 +234,57 @@ const SqlResultsChart = ({
     return null
   }
 
-  const maxValue = Math.max(...state.data.map((point) => Number(point[state.yKey]) || 0), 0)
+  const series = state.yKeys.map((key, index) => ({
+    key,
+    id: getChartSeriesId(key, index),
+    label: formatChartLabel(key),
+    color: SQL_CHART_SERIES_COLORS[index % SQL_CHART_SERIES_COLORS.length],
+  }))
+
+  const chartConfig = Object.fromEntries(
+    series.map((entry) => [
+      entry.id,
+      {
+        label: entry.label,
+        color: entry.color,
+      },
+    ])
+  ) satisfies ChartConfig
+
+  const chartData = state.data.map((point) => ({
+    [state.xKey]: point[state.xKey],
+    ...Object.fromEntries(series.map((entry) => [entry.id, Number(point[entry.key]) || 0])),
+  }))
+  const formatXAxisTick = createAxisTickFormatter(state.data.map((point) => point[state.xKey]))
 
   return (
-    <div className="flex h-[220px] items-end gap-2 px-4 py-4">
-      {state.data.map((point, index) => {
-        const value = Number(point[state.yKey]) || 0
-        const height = maxValue > 0 ? (value / maxValue) * 100 : 0
-
-        return (
-          <div key={index} className="flex h-full flex-1 flex-col items-center gap-2">
-            <div className="flex flex-1 items-end justify-center self-stretch">
-              <div
-                className={cn('min-h-[4px] w-full rounded bg-foreground')}
-                style={{ height: `${height}%` }}
+    <div className="px-4 py-4">
+      <ChartContainer className="h-[240px] w-full" config={chartConfig}>
+        <BarChart accessibilityLayer data={chartData}>
+          <CartesianGrid vertical={false} />
+          <XAxis
+            dataKey={state.xKey}
+            tickLine={false}
+            tickMargin={10}
+            axisLine={false}
+            tickFormatter={formatXAxisTick}
+          />
+          <ChartTooltip
+            content={<ChartTooltipContent hideLabel={state.type === 'stacked-bar'} />}
+          />
+          {state.type === 'stacked-bar' ? <ChartLegend content={<ChartLegendContent />} /> : null}
+          {series.map((entry) => {
+            return (
+              <Bar
+                key={entry.id}
+                dataKey={entry.id}
+                stackId={state.type === 'stacked-bar' ? 'sql-stack' : undefined}
+                fill={`var(--color-${entry.id})`}
               />
-            </div>
-            <div className="max-w-full truncate text-xs text-foreground-light">
-              {String(point[state.xKey] ?? '')}
-            </div>
-          </div>
-        )
-      })}
+            )
+          })}
+        </BarChart>
+      </ChartContainer>
     </div>
   )
 }
@@ -235,11 +299,22 @@ const normalizeRunResult = (result: AgentChatSqlRunResult): ToolSqlState => {
 
 const getChartState = (
   rows: AgentChatSqlPoint[],
-  chartConfig?: AgentChatSql['chartConfig']
+  chartConfig?: AgentChatSqlChartConfig
 ):
-  | { status: 'ready'; data: AgentChatSqlChartRow[]; xKey: string; yKey: string }
-  | { status: 'missing-config' | 'invalid-y-axis' } => {
-  if (!chartConfig?.xKey || !chartConfig?.yKey) {
+  | {
+      status: 'ready'
+      data: AgentChatSqlChartRow[]
+      type: 'bar' | 'stacked-bar'
+      xKey: string
+      yKeys: string[]
+    }
+  | { status: 'missing-config' }
+  | { status: 'invalid-y-axis'; keys: string[] } => {
+  const type = chartConfig?.type ?? 'bar'
+  const yKeys: string[] =
+    type === 'stacked-bar' ? chartConfig?.yKeys ?? [] : chartConfig?.yKey ? [chartConfig.yKey] : []
+
+  if (!chartConfig?.xKey || yKeys.length === 0) {
     return { status: 'missing-config' }
   }
 
@@ -247,22 +322,25 @@ const getChartState = (
     const normalized = Object.fromEntries(
       Object.entries(row).map(([key, value]) => [
         key,
-        key === chartConfig.yKey ? Number(value) : formatChartValue(value),
+        yKeys.includes(key) ? Number(value) : formatChartValue(value),
       ])
     )
 
     return normalized
   })
 
-  if (data.some((row) => Number.isNaN(row[chartConfig.yKey]))) {
-    return { status: 'invalid-y-axis' }
+  const invalidKeys = yKeys.filter((key) => data.some((row) => Number.isNaN(Number(row[key]))))
+
+  if (invalidKeys.length > 0) {
+    return { status: 'invalid-y-axis', keys: invalidKeys }
   }
 
   return {
     status: 'ready',
     data,
+    type,
     xKey: chartConfig.xKey,
-    yKey: chartConfig.yKey,
+    yKeys,
   }
 }
 
@@ -279,4 +357,20 @@ const formatChartValue = (value: unknown): string | number => {
   if (typeof value === 'string') return value
   if (value === null || value === undefined) return ''
   return JSON.stringify(value)
+}
+
+const formatChartLabel = (value: string) =>
+  value
+    .split(/[_-]+/)
+    .filter(Boolean)
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(' ')
+
+const getChartSeriesId = (value: string, index: number) => {
+  const normalized = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+
+  return `${normalized.length > 0 ? normalized : 'series'}-${index + 1}`
 }

@@ -1,7 +1,7 @@
 import { useParams } from 'common'
 import DefaultLayout from 'components/layouts/DefaultLayout'
-import { useAgentCreateMutation } from 'data/agents/agents-create-mutation'
-import { useAgentsQuery } from 'data/agents/agents-query'
+import { useAgentCreateMutation } from 'data/project-meta/agents-create-mutation'
+import { useAgentsQuery } from 'data/project-meta/agents-query'
 import React, { useState } from 'react'
 import type { NextPageWithLayout } from 'types'
 import {
@@ -46,7 +46,7 @@ const AgentsPage: NextPageWithLayout = () => {
       <div>
         <h1 className="text-xl font-semibold">Agents</h1>
         <p className="text-sm text-foreground-light mt-1">
-          Demo — lists and creates agents via the agent-api service.
+          Demo — lists and creates agents via the project-meta-api service.
         </p>
       </div>
 

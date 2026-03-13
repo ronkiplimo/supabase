@@ -44,7 +44,7 @@ export function Hero() {
             </Button>
           </div>
         </div>
-        <p className="text-foreground-lighter text-sm lg:text-base">
+        <p className="text-foreground-lighter text-sm">
           Start your project with a Postgres database.
           <br />
           Add Authentication, Data APIs, Edge Functions, Realtime Data, Storage, and Vector

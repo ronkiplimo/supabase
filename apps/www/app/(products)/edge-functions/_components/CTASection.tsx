@@ -37,14 +37,11 @@ function TerminalAnimation() {
       className="w-full max-w-xl mx-auto rounded-lg border border-border bg-surface-75 overflow-hidden"
     >
       {/* Title bar */}
-      <div className="flex items-center gap-1.5 px-4 py-3 border-b border-border bg-surface-200">
-        <div className="w-2.5 h-2.5 rounded-full bg-foreground/10" />
-        <div className="w-2.5 h-2.5 rounded-full bg-foreground/10" />
-        <div className="w-2.5 h-2.5 rounded-full bg-foreground/10" />
-        <span className="ml-2 text-xs text-foreground-muted font-mono">Terminal</span>
+      <div className="flex items-center gap-1.5 px-2 py-2 border-b border-border bg-surface-200">
+        <span className="ml-2 text-xs text-foreground-muted font-mono uppercase">Terminal</span>
       </div>
       {/* Lines */}
-      <div className="p-4 md:p-6 font-mono text-xs md:text-sm leading-relaxed min-h-[240px]">
+      <div className="px-4 py-8 md:px-6 md:py-10 font-mono text-xs md:text-sm leading-relaxed min-h-[240px]">
         <AnimatePresence>
           {TERMINAL_LINES.slice(0, visibleCount).map((line, i) => (
             <motion.div

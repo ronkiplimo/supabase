@@ -1,12 +1,18 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
+import { Database, HardDrive, Shield, Webhook, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
 import { cn } from 'ui'
 
+const ICONS = { Zap, Database, Webhook, Shield, HardDrive } as const
+
+type IconName = keyof typeof ICONS
+
 type UseCase = {
+  icon: IconName
   label: string
   paragraph: React.ReactNode
   darkHtml: string
@@ -94,7 +100,13 @@ export function IntegratesSectionClient({ useCases }: { useCases: UseCase[] }) {
                       : 'text-foreground-muted hover:text-foreground-light hover:bg-surface-75/50'
                   )}
                 >
-                  <h4 className="text-sm font-medium">{useCase.label}</h4>
+                  <h4 className="text-sm font-medium flex items-center gap-2">
+                    {(() => {
+                      const Icon = ICONS[useCase.icon]
+                      return <Icon size={14} strokeWidth={2} />
+                    })()}
+                    {useCase.label}
+                  </h4>
                   <p
                     className={cn(
                       'text-sm transition-colors',

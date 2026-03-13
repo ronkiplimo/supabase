@@ -44,15 +44,25 @@ const supabaseLight: ThemeRegistration = {
 
 const USE_CASES = [
   {
+    icon: 'Zap' as const,
     label: 'Zero configuration',
     paragraph: 'Pre-populated environment variables required to access your Supabase project',
     lang: 'javascript' as const,
-    code: `const supabase = createClient(
-  Deno.env.get('SUPABASE_URL'),
-  Deno.env.get('SUPABASE_ANON_KEY')
-)`,
+    code: `import { createClient } from 'jsr:@supabase/supabase-js@2'
+
+Deno.serve(async () => {
+  // These are automatically available — no setup needed
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_ANON_KEY')!
+  )
+
+  const { data } = await supabase.from('todos').select('*')
+  return new Response(JSON.stringify(data))
+})`,
   },
   {
+    icon: 'Database' as const,
     label: 'Connect to your database',
     paragraph: 'Connect to your Postgres database from an Edge Function using the supabase-js client',
     lang: 'javascript' as const,
@@ -73,6 +83,7 @@ const { data, error } = await supabase
   .select('*')`,
   },
   {
+    icon: 'Webhook' as const,
     label: 'Trigger via webhook',
     paragraph: 'Database Webhooks send real-time data from your database whenever a table event occurs',
     lang: 'sql' as const,
@@ -87,6 +98,7 @@ execute function "supabase_functions"."http_request"(
 );`,
   },
   {
+    icon: 'Shield' as const,
     label: 'Works with Supabase Auth',
     paragraph: (
       <>
@@ -120,6 +132,7 @@ Deno.serve(async (req: Request) => {
 })`,
   },
   {
+    icon: 'HardDrive' as const,
     label: 'Works with Supabase Storage',
     paragraph: (
       <>
@@ -161,6 +174,7 @@ export async function IntegratesSection() {
   })
 
   const useCases = USE_CASES.map((useCase) => ({
+    icon: useCase.icon,
     label: useCase.label,
     paragraph: useCase.paragraph,
     darkHtml: hl.codeToHtml(useCase.code, { lang: useCase.lang, theme: 'supabase-dark' }),

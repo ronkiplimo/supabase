@@ -220,12 +220,49 @@ if [ "$create_bucket_status" = "200" ]; then
 
     rm -f "$tmpfile"
 
+    # Signed URL: upload a small file, create signed URL, fetch without auth
+    sign_upload_status=$(http_status "$BASE_URL/storage/v1/object/$bucket_name/sign-test.txt" \
+        -X POST \
+        -H "apikey: $SERVICE_ROLE_KEY" \
+        -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
+        -H "Content-Type: text/plain" \
+        --data-binary "signed url test content")
+    check "Upload file for signing" "200" "$sign_upload_status"
+
+    if [ "$sign_upload_status" = "200" ]; then
+        sign_resp=$(http_body "$BASE_URL/storage/v1/object/sign/$bucket_name/sign-test.txt" \
+            -X POST \
+            -H "apikey: $SERVICE_ROLE_KEY" \
+            -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"expiresIn": 600}')
+        signed_path=$(echo "$sign_resp" | node -e "
+            let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+                try{console.log(JSON.parse(d).signedURL||'')}catch{console.log('')}
+            })" 2>/dev/null)
+
+        if [ -n "$signed_path" ]; then
+            check "Create signed URL" "true" "true"
+            # Fetch signed URL without any auth headers (goes through Kong)
+            signed_content=$(curl -s "$BASE_URL/storage/v1$signed_path")
+            check "Fetch signed URL (no auth)" "signed url test content" "$signed_content"
+        else
+            check "Create signed URL" "true" "false"
+        fi
+    fi
+
     # Delete file
     delete_file_status=$(http_status "$BASE_URL/storage/v1/object/$bucket_name/test-large-file.bin" \
         -X DELETE \
         -H "apikey: $SERVICE_ROLE_KEY" \
         -H "Authorization: Bearer $SERVICE_ROLE_KEY")
     check "Delete file" "200" "$delete_file_status"
+
+    # Delete signed test file
+    http_status "$BASE_URL/storage/v1/object/$bucket_name/sign-test.txt" \
+        -X DELETE \
+        -H "apikey: $SERVICE_ROLE_KEY" \
+        -H "Authorization: Bearer $SERVICE_ROLE_KEY" >/dev/null 2>&1
 
     # Delete bucket
     delete_bucket_status=$(http_status "$BASE_URL/storage/v1/bucket/$bucket_name" \

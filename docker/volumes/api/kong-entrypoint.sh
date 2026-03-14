@@ -41,9 +41,9 @@ awk '{
     rest = substr(rest, RSTART + RLENGTH)
   }
   print result rest
-}' /home/kong/temp.yml > /tmp/kong.yml
+}' /home/kong/temp.yml > "$KONG_DECLARATIVE_CONFIG"
 
 # Remove empty key-auth credentials (unconfigured opaque keys)
-sed -i '/^[[:space:]]*- key:[[:space:]]*$/d' /tmp/kong.yml
+sed -i '/^[[:space:]]*- key:[[:space:]]*$/d' "$KONG_DECLARATIVE_CONFIG"
 
 exec /entrypoint.sh kong docker-start

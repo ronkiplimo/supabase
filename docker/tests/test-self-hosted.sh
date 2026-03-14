@@ -66,18 +66,21 @@ echo ""
 
 echo "--- Container health ---"
 if command -v docker >/dev/null 2>&1; then
-    unhealthy=$(docker compose ps --format json 2>/dev/null | node -e "
+    container_status=$(docker compose ps --format json 2>/dev/null | node -e "
         let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
             const lines=d.trim().split('\n').filter(Boolean);
-            const bad=lines.filter(l=>{try{const o=JSON.parse(l);return o.Health&&o.Health!=='healthy'}catch{return false}});
-            console.log(bad.length)
-        })" 2>/dev/null || echo "?")
+            const bad=lines.filter(l=>{try{const o=JSON.parse(l);return o.State!=='running'||(o.Health&&o.Health!=='healthy')}catch{return false}});
+            const info=bad.map(l=>{try{const o=JSON.parse(l);return o.Service+': State='+o.State+' Health='+(o.Health||'none')}catch{return '?'}});
+            console.log(bad.length+'|'+info.join(', '))
+        })" 2>/dev/null || echo "?|")
+    unhealthy="${container_status%%|*}"
+    container_issues="${container_status#*|}"
     if [ "$unhealthy" = "0" ]; then
         check "All containers healthy" "0" "$unhealthy"
     elif [ "$unhealthy" = "?" ]; then
         echo "  SKIP: Could not check container health"
     else
-        check "All containers healthy" "0" "$unhealthy"
+        check "All containers healthy ($container_issues)" "0" "$unhealthy"
     fi
 else
     echo "  SKIP: docker not available"

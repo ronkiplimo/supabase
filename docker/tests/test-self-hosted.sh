@@ -14,6 +14,9 @@
 
 set -e
 
+cleanup_files=""
+trap 'rm -f $cleanup_files' EXIT
+
 BASE_URL="${1:-http://localhost:8000}"
 
 if [ ! -f .env ]; then
@@ -99,7 +102,7 @@ check "Studio rejects without auth" "401" \
     "$(http_status "$BASE_URL/")"
 
 # ---------------------------------------------
-# 3. Auth: sign up, sign in, get user, delete user
+# 3. Auth: create user, sign in, get user, public signup, delete
 # ---------------------------------------------
 
 echo ""
@@ -108,21 +111,23 @@ echo "--- Auth: user lifecycle ---"
 test_email="smoke-test-$$@example.com"
 test_password="smoke-test-password-123456"
 
-# Sign up
-signup_resp=$(http_body "$BASE_URL/auth/v1/signup" \
-    -H "apikey: $ANON_KEY" \
+# Create user via admin API (works regardless of email autoconfirm setting)
+create_resp=$(http_body "$BASE_URL/auth/v1/admin/users" \
+    -X POST \
+    -H "apikey: $SERVICE_ROLE_KEY" \
+    -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
     -H "Content-Type: application/json" \
-    -d "{\"email\":\"$test_email\",\"password\":\"$test_password\"}")
+    -d "{\"email\":\"$test_email\",\"password\":\"$test_password\",\"email_confirm\":true}")
 
-user_id=$(echo "$signup_resp" | node -e "
+user_id=$(echo "$create_resp" | node -e "
     let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
-        try{const j=JSON.parse(d);console.log(j.id||j.user?.id||'')}catch{console.log('')}
+        try{console.log(JSON.parse(d).id||'')}catch{console.log('')}
     })" 2>/dev/null)
 
 if [ -n "$user_id" ]; then
-    check "Sign up user" "true" "true"
+    check "Create user (admin)" "true" "true"
 
-    # Sign in
+    # Sign in via public endpoint
     signin_resp=$(http_body "$BASE_URL/auth/v1/token?grant_type=password" \
         -H "apikey: $ANON_KEY" \
         -H "Content-Type: application/json" \
@@ -136,7 +141,7 @@ if [ -n "$user_id" ]; then
     if [ -n "$access_token" ]; then
         check "Sign in user" "true" "true"
 
-        # Get user
+        # Get user profile with session JWT
         check "Get user profile" "200" \
             "$(http_status "$BASE_URL/auth/v1/user" \
                 -H "apikey: $ANON_KEY" \
@@ -145,15 +150,44 @@ if [ -n "$user_id" ]; then
         check "Sign in user" "true" "false"
     fi
 
-    # Delete user (admin API with service_role key)
+    # Delete user
     delete_status=$(http_status "$BASE_URL/auth/v1/admin/users/$user_id" \
         -X DELETE \
         -H "apikey: $SERVICE_ROLE_KEY" \
         -H "Authorization: Bearer $SERVICE_ROLE_KEY")
     check "Delete user (admin)" "200" "$delete_status"
 else
-    echo "  SKIP: Could not sign up user (email confirmation may be required)"
-    echo "  Response: $signup_resp"
+    check "Create user (admin)" "true" "false"
+fi
+
+# Public signup (optional — depends on email autoconfirm setting)
+signup_email="smoke-signup-$$@example.com"
+signup_resp=$(http_body "$BASE_URL/auth/v1/signup" \
+    -H "apikey: $ANON_KEY" \
+    -H "Content-Type: application/json" \
+    -d "{\"email\":\"$signup_email\",\"password\":\"$test_password\"}")
+
+signup_token=$(echo "$signup_resp" | node -e "
+    let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+        try{console.log(JSON.parse(d).access_token||'')}catch{console.log('')}
+    })" 2>/dev/null)
+signup_user_id=$(echo "$signup_resp" | node -e "
+    let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+        try{const j=JSON.parse(d);console.log(j.id||j.user?.id||'')}catch{console.log('')}
+    })" 2>/dev/null)
+
+if [ -n "$signup_token" ]; then
+    check "Public signup (autoconfirm on)" "true" "true"
+else
+    echo "  SKIP: Public signup (autoconfirm is off)"
+fi
+
+# Clean up signup user if created
+if [ -n "$signup_user_id" ]; then
+    http_status "$BASE_URL/auth/v1/admin/users/$signup_user_id" \
+        -X DELETE \
+        -H "apikey: $SERVICE_ROLE_KEY" \
+        -H "Authorization: Bearer $SERVICE_ROLE_KEY" >/dev/null 2>&1
 fi
 
 # ---------------------------------------------
@@ -202,7 +236,7 @@ check "Create bucket" "200" "$create_bucket_status"
 
 if [ "$create_bucket_status" = "200" ]; then
     # Generate a ~7MB file
-    tmpfile=$(mktemp)
+    tmpfile=$(mktemp); cleanup_files="$cleanup_files $tmpfile"
     dd if=/dev/urandom of="$tmpfile" bs=1048576 count=7 2>/dev/null
 
     # Upload file
@@ -281,14 +315,12 @@ fi
 
 echo ""
 echo "--- Edge Functions ---"
-fn_status=$(http_status "$BASE_URL/functions/v1/hello" \
+fn_resp=$(http_body "$BASE_URL/functions/v1/hello" \
     -X POST \
     -H "Authorization: Bearer $ANON_KEY" \
     -H "Content-Type: application/json" \
     -d '{}')
-# hello function may return 200 or 204 depending on implementation
-check "Call hello function -> not error" "true" \
-    "$([ "$fn_status" -lt 400 ] 2>/dev/null && echo true || echo false)"
+check "Call hello function" '"Hello from Edge Functions!"' "$fn_resp"
 
 # ---------------------------------------------
 # 8. pg-meta (Studio backend)

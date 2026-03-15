@@ -108,8 +108,9 @@ fi
 
 echo ""
 echo "--- Storage S3 (/storage/v1/s3/) ---"
-# S3 route has no request-transformer - Authorization passes through unchanged
-check "S3 route accessible (no transform)" "true" \
+# S3 uses AWS SigV4 auth (not apikey) - the request-transformer Lua expression
+# passes the Authorization header through unchanged for non-sb_ values
+check "S3 route accessible" "true" \
     "$([ "$(http_status "$BASE_URL/storage/v1/s3/")" != "502" ] && echo true || echo false)"
 
 echo ""
@@ -228,10 +229,23 @@ fi
 echo ""
 echo "--- User session JWT ---"
 
-# Try signin first (user may exist from previous test run), fall back to signup
-test_email="test-keys@example.com"
+# Create user via admin API (works regardless of email autoconfirm setting)
+test_email="test-keys-$$@example.com"
 test_password="test-password-123456"
 
+create_resp=$(curl -s "$BASE_URL/auth/v1/admin/users" \
+    -X POST \
+    -H "apikey: $SERVICE_ROLE_KEY" \
+    -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
+    -H "Content-Type: application/json" \
+    -d "{\"email\":\"$test_email\",\"password\":\"$test_password\",\"email_confirm\":true}")
+
+test_user_id=$(echo "$create_resp" | node -e "
+    let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+        try{console.log(JSON.parse(d).id||'')}catch{console.log('')}
+    })" 2>/dev/null)
+
+# Sign in to get session JWT
 auth_response=$(curl -s "$BASE_URL/auth/v1/token?grant_type=password" \
     -H "apikey: $ANON_KEY" \
     -H "Content-Type: application/json" \
@@ -241,19 +255,6 @@ access_token=$(echo "$auth_response" | node -e "
     let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
         try{console.log(JSON.parse(d).access_token||'')}catch{console.log('')}
     })" 2>/dev/null)
-
-if [ -z "$access_token" ]; then
-    # User doesn't exist - sign up
-    auth_response=$(curl -s "$BASE_URL/auth/v1/signup" \
-        -H "apikey: $ANON_KEY" \
-        -H "Content-Type: application/json" \
-        -d "{\"email\":\"$test_email\",\"password\":\"$test_password\"}")
-
-    access_token=$(echo "$auth_response" | node -e "
-        let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
-            try{console.log(JSON.parse(d).access_token||'')}catch{console.log('')}
-        })" 2>/dev/null)
-fi
 
 if [ -n "$access_token" ]; then
     # Check the algorithm in the JWT header
@@ -307,8 +308,15 @@ if [ -n "$access_token" ]; then
                 -H "Authorization: Bearer $access_token")"
     fi
 else
-    echo "  SKIP: Could not sign in or sign up test user (Auth may require email confirmation)"
-    echo "  Response: $auth_response"
+    check "Sign in test user" "true" "false"
+fi
+
+# Clean up test user
+if [ -n "$test_user_id" ]; then
+    curl -s -o /dev/null "$BASE_URL/auth/v1/admin/users/$test_user_id" \
+        -X DELETE \
+        -H "apikey: $SERVICE_ROLE_KEY" \
+        -H "Authorization: Bearer $SERVICE_ROLE_KEY"
 fi
 
 # ---------------------------------------------
@@ -319,7 +327,7 @@ echo ""
 echo "--- HS256 backward compatibility ---"
 
 # Mint a legacy HS256 JWT with role=anon (simulating a pre-migration token)
-hs256_token=$(node -e "
+hs256_token=$(JWT_SECRET="$JWT_SECRET" node -e "
 const crypto = require('crypto');
 const header = Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url');
 const payload = Buffer.from(JSON.stringify({
@@ -327,7 +335,7 @@ const payload = Buffer.from(JSON.stringify({
     iat:Math.floor(Date.now()/1000),
     exp:Math.floor(Date.now()/1000)+3600
 })).toString('base64url');
-const sig = crypto.createHmac('sha256','$JWT_SECRET')
+const sig = crypto.createHmac('sha256',process.env.JWT_SECRET)
     .update(header+'.'+payload).digest('base64url');
 console.log(header+'.'+payload+'.'+sig);
 " 2>/dev/null)

@@ -19,6 +19,9 @@
 
 set -e
 
+cleanup_files=""
+trap 'rm -f $cleanup_files' EXIT
+
 BASE_URL="${1:-http://localhost:8000}"
 S3_ENDPOINT="$BASE_URL/storage/v1/s3"
 
@@ -122,7 +125,7 @@ check "Bucket visible in ListBuckets" "true" "$s3_bucket_found"
 
 echo ""
 echo "--- S3 PutObject ---"
-tmpfile=$(mktemp)
+tmpfile=$(mktemp); cleanup_files="$cleanup_files $tmpfile"
 echo "hello from s3 upload test" > "$tmpfile"
 put_output=$(s3 s3 cp "$tmpfile" "s3://$bucket_name/s3-uploaded.txt")
 put_ok=$(echo "$put_output" | grep -q "upload:" && echo "true" || echo "false")
@@ -164,7 +167,7 @@ rm -f "$tmpfile"
 
 echo ""
 echo "--- S3 GetObject ---"
-download_file=$(mktemp)
+download_file=$(mktemp); cleanup_files="$cleanup_files $download_file"
 s3 s3 cp "s3://$bucket_name/s3-uploaded.txt" "$download_file" >/dev/null
 downloaded_content=$(cat "$download_file")
 check "GetObject content matches" "hello from s3 upload test" "$downloaded_content"
@@ -181,7 +184,7 @@ copy_ok=$(echo "$copy_output" | grep -q "copy:" && echo "true" || echo "false")
 check "CopyObject" "true" "$copy_ok"
 
 # Verify copied content
-copy_download=$(mktemp)
+copy_download=$(mktemp); cleanup_files="$cleanup_files $copy_download"
 s3 s3 cp "s3://$bucket_name/s3-copied.txt" "$copy_download" >/dev/null
 check "Copied object content matches" "hello from s3 upload test" "$(cat "$copy_download")"
 rm -f "$copy_download"
@@ -210,7 +213,7 @@ check "Deleted object no longer listed" "true" "$copied_gone"
 
 echo ""
 echo "--- S3 multipart upload (7MB) ---"
-large_file=$(mktemp)
+large_file=$(mktemp); cleanup_files="$cleanup_files $large_file"
 dd if=/dev/urandom of="$large_file" bs=1048576 count=7 2>/dev/null
 large_size=$(wc -c < "$large_file" | tr -d ' ')
 large_put=$(s3 s3 cp "$large_file" "s3://$bucket_name/large-file.bin")
@@ -226,7 +229,7 @@ remote_size=$(echo "$large_head" | node -e "
 check "Multipart upload size matches ($large_size bytes)" "$large_size" "$remote_size"
 
 # Download and verify size
-large_download=$(mktemp)
+large_download=$(mktemp); cleanup_files="$cleanup_files $large_download"
 s3 s3 cp "s3://$bucket_name/large-file.bin" "$large_download" >/dev/null
 download_size=$(wc -c < "$large_download" | tr -d ' ')
 check "Multipart download size matches" "$large_size" "$download_size"
@@ -238,12 +241,12 @@ rm -f "$large_file" "$large_download"
 
 echo ""
 echo "--- Range request ---"
-range_file=$(mktemp)
+range_file=$(mktemp); cleanup_files="$cleanup_files $range_file"
 echo "hello range test content" > "$range_file"
 s3 s3 cp "$range_file" "s3://$bucket_name/range-test.txt" >/dev/null
 rm -f "$range_file"
 
-range_download=$(mktemp)
+range_download=$(mktemp); cleanup_files="$cleanup_files $range_download"
 s3 s3api get-object --bucket "$bucket_name" --key "range-test.txt" \
     --range "bytes=0-4" "$range_download" --output json >/dev/null
 range_content=$(cat "$range_download")
@@ -261,7 +264,7 @@ rm -f "$range_download"
 
 echo ""
 echo "--- Presigned URLs ---"
-presign_file=$(mktemp)
+presign_file=$(mktemp); cleanup_files="$cleanup_files $presign_file"
 echo "presigned content test" > "$presign_file"
 s3 s3 cp "$presign_file" "s3://$bucket_name/presign-test.txt" >/dev/null
 rm -f "$presign_file"

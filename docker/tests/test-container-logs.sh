@@ -11,20 +11,16 @@
 
 set -e
 
-checks_failed=0
-logs_failed_for=""
+pass=0
+fail=0
 
 fail_msg() {
-    checks_failed=$((checks_failed + 1))
-    if [ -z "$logs_failed_for" ]; then
-        logs_failed_for="$1"
-    else
-        logs_failed_for="${logs_failed_for}, $1"
-    fi
+    fail=$((fail + 1))
     echo "  FAIL: $1"
 }
 
 pass_msg() {
+    pass=$((pass + 1))
     echo "  PASS: $1"
 }
 
@@ -98,15 +94,11 @@ check_logs imgproxy \
     'Starting server at :5001'
 
 echo ""
+echo "=== Results: $pass passed, $fail failed ==="
+echo ""
 
-if [ $checks_failed -gt 0 ]; then
-    echo "=== $checks_failed failed: $logs_failed_for ==="
-    echo ""
+if [ "$fail" -gt 0 ]; then
     echo "Inspect logs: docker compose logs <service>"
     echo ""
     exit 1
-else
-    echo "=== All checks passed ==="
 fi
-
-echo ""

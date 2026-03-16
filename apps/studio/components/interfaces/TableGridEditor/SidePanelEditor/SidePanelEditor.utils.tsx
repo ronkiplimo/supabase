@@ -4,7 +4,6 @@ import type { PostgresPrimaryKey } from '@supabase/postgres-meta'
 import type { SupaRow } from 'components/grid/types'
 import { GeneratedPolicy } from 'components/interfaces/Auth/Policies/Policies.utils'
 import SparkBar from 'components/ui/SparkBar'
-import { createDatabaseColumn } from 'data/database-columns/database-column-create-mutation'
 import { deleteDatabaseColumn } from 'data/database-columns/database-column-delete-mutation'
 import { updateDatabaseColumn } from 'data/database-columns/database-column-update-mutation'
 import { createDatabasePolicy } from 'data/database-policies/database-policy-create-mutation'
@@ -121,7 +120,11 @@ const addForeignKey = async ({
   table: { schema: string; name: string }
   foreignKeys: ForeignKey[]
 }) => {
-  const query = pgMeta.tableEditor.getAddForeignKeySQL({ table, foreignKeys })
+  const query = pgMeta.tableEditor.getAddForeignKeySQL({
+    schema: table.schema,
+    table: table.name,
+    foreignKeys,
+  })
   return await executeSql({
     projectRef: projectRef,
     connectionString: connectionString,
@@ -141,7 +144,11 @@ const removeForeignKey = async ({
   table: { schema: string; name: string }
   foreignKeys: ForeignKey[]
 }) => {
-  const query = pgMeta.tableEditor.getRemoveForeignKeySQL({ table, foreignKeys })
+  const query = pgMeta.tableEditor.getRemoveForeignKeySQL({
+    schema: table.schema,
+    table: table.name,
+    foreignKeys,
+  })
   return await executeSql({
     projectRef: projectRef,
     connectionString: connectionString,
@@ -162,8 +169,8 @@ const updateForeignKey = async ({
   foreignKeys: ForeignKey[]
 }) => {
   const query = `
-  ${pgMeta.tableEditor.getRemoveForeignKeySQL({ table, foreignKeys })}
-  ${pgMeta.tableEditor.getAddForeignKeySQL({ table, foreignKeys })}
+  ${pgMeta.tableEditor.getRemoveForeignKeySQL({ schema: table.schema, table: table.name, foreignKeys })}
+  ${pgMeta.tableEditor.getAddForeignKeySQL({ schema: table.schema, table: table.name, foreignKeys })}
   `
     .replace(/\s+/g, ' ')
     .trim()
@@ -180,7 +187,6 @@ const updateForeignKey = async ({
  * dashboard and hence do not sit within their own stores
  */
 
-/** TODO: Refactor to do in a single transaction */
 export const createColumn = async ({
   projectRef,
   connectionString,
@@ -204,47 +210,66 @@ export const createColumn = async ({
   try {
     // Once pg-meta supports composite keys, we can remove this logic
     const { isPrimaryKey, ...formattedPayload } = payload
-    await createDatabaseColumn({
-      projectRef: projectRef,
-      connectionString: connectionString,
-      payload: formattedPayload,
+    const { sql: createColumnSQL } = pgMeta.columns.create({
+      schema: payload.schema,
+      table: payload.table,
+      name: payload.name,
+      type: payload.type,
+      default_value: payload.defaultValue,
+      default_value_format: payload.defaultValueFormat,
+      is_identity: payload.isIdentity,
+      identity_generation: payload.identityGeneration,
+      is_nullable: payload.isNullable,
+      is_primary_key: payload.isPrimaryKey,
+      is_unique: payload.isUnique,
+      comment: payload.comment,
+      check: payload.check,
+      no_transaction: true,
     })
+    const sqlStatements = [createColumnSQL]
 
     // Firing createColumn in createTable will bypass this block
     if (isPrimaryKey) {
-      toast.loading('Assigning primary key to column...', { id: toastId })
       // Same logic in createTable: Remove any primary key constraints first (we'll add it back later)
       const existingPrimaryKeys = selectedTable.primary_keys.map((x) => x.name)
 
       if (existingPrimaryKeys.length > 0 && primaryKey !== undefined) {
-        await dropConstraint(
-          projectRef,
-          connectionString,
-          payload.schema,
-          payload.table,
-          primaryKey.name
+        sqlStatements.push(
+          pgMeta.tableEditor.getDropConstraintSQL({
+            schema: payload.schema,
+            table: payload.table,
+            name: primaryKey.name,
+          })
         )
       }
 
       const primaryKeyColumns = existingPrimaryKeys.concat([formattedPayload.name])
-      await addPrimaryKey(
-        projectRef,
-        connectionString,
-        payload.schema,
-        payload.table,
-        primaryKeyColumns
+      sqlStatements.push(
+        pgMeta.tableEditor.getAddPrimaryKeySQL({
+          schema: payload.schema,
+          table: payload.table,
+          columns: primaryKeyColumns,
+        })
       )
     }
 
     // Then add the foreign key constraints here
     if (foreignKeyRelations.length > 0) {
-      await addForeignKey({
-        projectRef,
-        connectionString,
-        table: { schema: payload.schema, name: payload.table },
-        foreignKeys: foreignKeyRelations,
-      })
+      sqlStatements.push(
+        pgMeta.tableEditor.getAddForeignKeySQL({
+          schema: payload.schema,
+          table: payload.table,
+          foreignKeys: foreignKeyRelations,
+        })
+      )
     }
+
+    await executeSql({
+      projectRef,
+      connectionString,
+      sql: `BEGIN; ${sqlStatements.join('; ')}; COMMIT;`,
+      queryKey: ['column', 'create'],
+    })
 
     if (!skipSuccessMessage) {
       toast.success(`Successfully created column "${formattedPayload.name}"`, { id: toastId })
@@ -515,7 +540,8 @@ export const createTable = async ({
   // 5. Add foreign key constraints
   if (foreignKeyRelations.length > 0) {
     const fkSql = pgMeta.tableEditor.getAddForeignKeySQL({
-      table: { schema: payload.schema, name: payload.name },
+      schema: payload.schema,
+      table: payload.name,
       foreignKeys: foreignKeyRelations,
     })
     // Remove trailing semicolon since we join with semicolons

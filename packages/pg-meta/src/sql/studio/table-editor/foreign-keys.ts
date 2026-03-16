@@ -1,10 +1,12 @@
-import { ident } from "../../../pg-format";
+import { ident } from '../../../pg-format'
 
 export const getAddForeignKeySQL = ({
   table,
+  schema,
   foreignKeys,
 }: {
-  table: { schema: string; name: string }
+  schema: string
+  table: string
   foreignKeys: ForeignKey[]
 }) => {
   const getOnDeleteSql = (action: string) =>
@@ -30,7 +32,7 @@ export const getAddForeignKeySQL = ({
         const onDeleteSql = getOnDeleteSql(deletionAction)
         const onUpdateSql = getOnUpdateSql(updateAction)
         return `
-      ALTER TABLE ${ident(table.schema)}.${ident(table.name)}
+      ALTER TABLE ${ident(schema)}.${ident(table)}
       ADD FOREIGN KEY (${relation.columns.map((column) => ident(column.source)).join(', ')})
       REFERENCES ${ident(relation.schema)}.${ident(relation.table)} (${relation.columns.map((column) => ident(column.target)).join(', ')})
       ${onUpdateSql}
@@ -45,16 +47,18 @@ export const getAddForeignKeySQL = ({
 
 export const getRemoveForeignKeySQL = ({
   table,
+  schema,
   foreignKeys,
 }: {
-  table: { schema: string; name: string }
+  schema: string
+  table: string
   foreignKeys: ForeignKey[]
 }) => {
   return (
     foreignKeys
       .map((relation) =>
         `
-ALTER TABLE IF EXISTS ${ident(table.schema)}.${ident(table.name)}
+ALTER TABLE IF EXISTS ${ident(schema)}.${ident(table)}
 DROP CONSTRAINT IF EXISTS ${ident(relation.name)}
 `
           .replace(/\s+/g, ' ')
@@ -63,7 +67,6 @@ DROP CONSTRAINT IF EXISTS ${ident(relation.name)}
       .join(';') + ';'
   )
 }
-
 
 export interface ForeignKey {
   id?: number | string

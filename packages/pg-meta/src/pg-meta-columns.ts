@@ -211,6 +211,7 @@ function update(
     is_unique,
     comment,
     check,
+    no_transaction = false
   }: {
     name?: string
     type?: string
@@ -223,6 +224,7 @@ function update(
     is_unique?: boolean
     comment?: string | null
     check?: string | null
+    no_transaction?: boolean
   }
 ): { sql: string } {
   const nameSql =
@@ -374,7 +376,6 @@ $$;
   // NOTE: nameSql must be last. defaultValueSql must be after typeSql.
   // identitySql must be after isNullableSql.
   const sql = `
-BEGIN;
   ${isNullableSql}
   ${typeSql}
   ${defaultValueSql}
@@ -382,10 +383,15 @@ BEGIN;
   ${isUniqueSql}
   ${commentSql}
   ${checkSql}
-  ${nameSql}
-COMMIT;`
+  ${nameSql}`
 
-  return { sql }
+  if (no_transaction) return { sql }
+
+  return {
+    sql: `
+    BEGIN;
+      ${sql}
+    COMMIT;` }
 }
 
 function remove(

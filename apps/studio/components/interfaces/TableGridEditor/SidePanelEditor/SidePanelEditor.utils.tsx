@@ -5,7 +5,6 @@ import type { SupaRow } from 'components/grid/types'
 import { GeneratedPolicy } from 'components/interfaces/Auth/Policies/Policies.utils'
 import SparkBar from 'components/ui/SparkBar'
 import { deleteDatabaseColumn } from 'data/database-columns/database-column-delete-mutation'
-import { updateDatabaseColumn } from 'data/database-columns/database-column-update-mutation'
 import { createDatabasePolicy } from 'data/database-policies/database-policy-create-mutation'
 import type { Constraint } from 'data/database/constraints-query'
 import { ForeignKeyConstraint } from 'data/database/foreign-key-constraints-query'
@@ -182,6 +181,66 @@ const updateForeignKey = async ({
   })
 }
 
+const getUpdateForeignKeysSQL = ({
+  table,
+  foreignKeys,
+  existingForeignKeyRelations,
+}: {
+  table: { schema: string; name: string }
+  foreignKeys: ForeignKey[]
+  existingForeignKeyRelations: ForeignKeyConstraint[]
+}) => {
+  const sqlStatements: Array<string> = []
+  // Foreign keys will get updated here accordingly
+  const relationsToAdd = foreignKeys.filter((x) => typeof x.id === 'string')
+  if (relationsToAdd.length > 0) {
+    sqlStatements.push(
+      pgMeta.tableEditor.getAddForeignKeySQL({
+        schema: table.schema,
+        table: table.name,
+        foreignKeys: relationsToAdd,
+      })
+    )
+  }
+
+  const relationsToRemove = foreignKeys.filter((x) => x.toRemove)
+  if (relationsToRemove.length > 0) {
+    sqlStatements.push(
+      pgMeta.tableEditor.getRemoveForeignKeySQL({
+        schema: table.schema,
+        table: table.name,
+        foreignKeys: relationsToRemove,
+      })
+    )
+  }
+
+  const remainingRelations = foreignKeys.filter((x) => typeof x.id === 'number' && !x.toRemove)
+  const relationsToUpdate = remainingRelations.filter((x) => {
+    const existingRelation = existingForeignKeyRelations.find((y) => x.id === y.id)
+    if (existingRelation !== undefined) {
+      return checkIfRelationChanged(existingRelation as unknown as ForeignKeyConstraint, x)
+    } else return false
+  })
+  if (relationsToUpdate.length > 0) {
+    sqlStatements.push(
+      pgMeta.tableEditor.getRemoveForeignKeySQL({
+        schema: table.schema,
+        table: table.name,
+        foreignKeys,
+      })
+    )
+    sqlStatements.push(
+      pgMeta.tableEditor.getAddForeignKeySQL({
+        schema: table.schema,
+        table: table.name,
+        foreignKeys,
+      })
+    )
+  }
+
+  return sqlStatements.join('; ')
+}
+
 /**
  * The methods below involve several contexts due to the UI flow of the
  * dashboard and hence do not sit within their own stores
@@ -281,7 +340,6 @@ export const createColumn = async ({
   }
 }
 
-/** TODO: Refactor to do in a single transaction */
 export const updateColumn = async ({
   projectRef,
   connectionString,
@@ -307,24 +365,33 @@ export const updateColumn = async ({
 }) => {
   try {
     const { isPrimaryKey, ...formattedPayload } = payload
-    await updateDatabaseColumn({
-      projectRef,
-      connectionString,
-      originalColumn,
-      payload: formattedPayload,
+    const { sql: updateColumnSQL } = pgMeta.columns.update(originalColumn, {
+      name: payload.name,
+      type: payload.type,
+      drop_default: payload.dropDefault,
+      default_value: payload.defaultValue,
+      default_value_format: payload.defaultValueFormat,
+      is_identity: payload.isIdentity,
+      identity_generation: payload.identityGeneration,
+      is_nullable: payload.isNullable,
+      is_unique: payload.isUnique,
+      comment: payload.comment,
+      check: payload.check,
+      no_transaction: true,
     })
+    const sqlStatements = [updateColumnSQL]
 
     if (!skipPKCreation && isPrimaryKey !== undefined) {
       const existingPrimaryKeys = selectedTable.primary_keys.map((x) => x.name)
 
       // Primary key is getting updated for the column
       if (existingPrimaryKeys.length > 0 && primaryKey !== undefined) {
-        await dropConstraint(
-          projectRef,
-          connectionString,
-          originalColumn.schema,
-          originalColumn.table,
-          primaryKey.name
+        sqlStatements.push(
+          pgMeta.tableEditor.getDropConstraintSQL({
+            schema: originalColumn.schema,
+            table: originalColumn.table,
+            name: primaryKey.name,
+          })
         )
       }
 
@@ -334,26 +401,31 @@ export const updateColumn = async ({
         : existingPrimaryKeys.filter((x) => x !== columnName)
 
       if (primaryKeyColumns.length) {
-        await addPrimaryKey(
-          projectRef,
-          connectionString,
-          originalColumn.schema,
-          originalColumn.table,
-          primaryKeyColumns
+        sqlStatements.push(
+          pgMeta.tableEditor.getAddPrimaryKeySQL({
+            schema: originalColumn.schema,
+            table: originalColumn.table,
+            columns: primaryKeyColumns,
+          })
         )
       }
     }
 
     // Then update foreign keys
     if (foreignKeyRelations.length > 0) {
-      await updateForeignKeys({
-        projectRef,
-        connectionString,
+      sqlStatements.push(getUpdateForeignKeysSQL({
         table: { schema: originalColumn.schema, name: originalColumn.table },
         foreignKeys: foreignKeyRelations,
         existingForeignKeyRelations,
-      })
+      }))
     }
+
+    await executeSql({
+      projectRef,
+      connectionString,
+      sql: `BEGIN; ${sqlStatements.join('; ')}; COMMIT;`,
+      queryKey: ['column', 'update', originalColumn.id],
+    })
 
     if (!skipSuccessMessage) toast.success(`Successfully updated column "${originalColumn.name}"`)
   } catch (error: any) {
@@ -520,7 +592,7 @@ export const createTable = async ({
       is_unique: columnPayload.isUnique,
       comment: columnPayload.comment,
       check: columnPayload.check,
-      no_transaction: true
+      no_transaction: true,
     })
     sqlStatements.push(columnSQL)
   }

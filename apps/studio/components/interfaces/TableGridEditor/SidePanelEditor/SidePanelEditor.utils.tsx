@@ -489,7 +489,7 @@ export const createTable = async ({
   const sqlStatements: string[] = []
 
   // 1. Create table SQL
-  const { sql: createTableSql } = pgMeta.tables.create(payload)
+  const { sql: createTableSql } = pgMeta.tables.create({ ...payload, no_transaction: true })
   sqlStatements.push(createTableSql)
 
   // 2. Enable RLS if configured
@@ -520,6 +520,7 @@ export const createTable = async ({
       is_unique: columnPayload.isUnique,
       comment: columnPayload.comment,
       check: columnPayload.check,
+      no_transaction: true
     })
     sqlStatements.push(columnSQL)
   }
@@ -554,7 +555,7 @@ export const createTable = async ({
   await executeSql({
     projectRef,
     connectionString,
-    sql: sqlStatements.join(';\n'),
+    sql: `begin; ${sqlStatements.join(';\n')}; commit;`,
     queryKey: ['table', 'create-with-columns'],
   })
 

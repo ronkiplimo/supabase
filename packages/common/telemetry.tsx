@@ -331,6 +331,7 @@ export const PageTelemetry = ({
     // if not the path will be dynamic route instead of the browser url
     if (
       (router?.isReady ?? true) &&
+      enabled &&
       hasAcceptedConsent &&
       !hasSentInitialPageTelemetryRef.current
     ) {
@@ -354,7 +355,7 @@ export const PageTelemetry = ({
 
       hasSentInitialPageTelemetryRef.current = true
     }
-  }, [router?.isReady, hasAcceptedConsent, slug, ref])
+  }, [router?.isReady, enabled, hasAcceptedConsent, slug, ref])
 
   useEffect(() => {
     // For pages router

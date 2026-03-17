@@ -31,7 +31,7 @@ export function FrameworksSectionClient({ frameworks }: { frameworks: Framework[
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
           {/* Left: title + example cards */}
           <div className="flex flex-col justify-between py-4 gap-10">
-            <div className="text-2xl md:text-4xl text-foreground-lighter">
+            <h3 className="text-2xl md:text-4xl text-foreground-lighter">
               Use Supabase with{' '}
               <span className="block">
                 <AnimatePresence mode="popLayout" initial={false}>
@@ -46,7 +46,7 @@ export function FrameworksSectionClient({ frameworks }: { frameworks: Framework[
                   </motion.span>
                 </AnimatePresence>
               </span>
-            </div>
+            </h3>
 
             {active.examples.length > 0 && (
               <AnimatePresence mode="wait" initial={false} custom={direction}>

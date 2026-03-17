@@ -7,6 +7,7 @@
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
+    "prepare": "husky",
     "build": "turbo run build",
     "build:studio": "turbo run build --filter=studio",
     "build:studio:docker": "docker build . -f apps/studio/Dockerfile --target production -t supabase-studio:local --build-arg NEXT_PUBLIC_STUDIO_AUTH_MODE=supabase --no-cache",
@@ -42,8 +43,15 @@
     "knip": "pnpx knip@~5.50.0",
     "authorize-vercel-deploys": "tsx scripts/authorizeVercelDeploys.ts"
   },
+  "lint-staged": {
+    "{apps,packages,blocks}/**/*.{js,jsx,ts,tsx,css,md,mdx,json}": [
+      "SORT_IMPORTS=false prettier --cache --check"
+    ]
+  },
   "devDependencies": {
     "@aws-sdk/client-secrets-manager": "^3.823.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
     "@types/node": "catalog:",
     "eslint": "^9.0.0",

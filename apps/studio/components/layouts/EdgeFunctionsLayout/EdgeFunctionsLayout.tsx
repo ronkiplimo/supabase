@@ -1,14 +1,14 @@
-import { useRouter } from 'next/router'
-import { PropsWithChildren } from 'react'
-
 import { useParams } from 'common'
 import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { ProductMenu } from 'components/ui/ProductMenu'
 import { withAuth } from 'hooks/misc/withAuth'
+import { useRouter } from 'next/router'
+import type { ComponentProps, PropsWithChildren } from 'react'
+
 import { ProjectLayoutV2 } from '../NavigationV2/ProjectLayoutV2'
 import { ProjectLayout } from '../ProjectLayout'
 
-const EdgeFunctionsProductMenu = () => {
+export const EdgeFunctionsProductMenu = () => {
   const { ref: projectRef = 'default' } = useParams()
   const router = useRouter()
   const page = router.pathname.split('/')[4]
@@ -37,7 +37,16 @@ const EdgeFunctionsProductMenu = () => {
   return <ProductMenu page={page} menu={menuItems} />
 }
 
-const EdgeFunctionsLayout = ({ children }: PropsWithChildren<{}>) => {
+interface EdgeFunctionsLayoutProps {
+  title: string
+  browserTitle?: ComponentProps<typeof ProjectLayout>['browserTitle']
+}
+
+const EdgeFunctionsLayout = ({
+  children,
+  title,
+  browserTitle,
+}: PropsWithChildren<EdgeFunctionsLayoutProps>) => {
   const isNavigationV2 = useIsNavigationV2Enabled()
 
   if (isNavigationV2) {
@@ -50,8 +59,8 @@ const EdgeFunctionsLayout = ({ children }: PropsWithChildren<{}>) => {
 
   return (
     <ProjectLayout
-      title="Edge Functions"
       product="Edge Functions"
+      browserTitle={{ ...browserTitle, section: title }}
       productMenu={<EdgeFunctionsProductMenu />}
       isBlocking={false}
     >

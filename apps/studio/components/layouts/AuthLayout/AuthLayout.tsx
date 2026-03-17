@@ -1,60 +1,27 @@
-import { useRouter } from 'next/router'
-import { PropsWithChildren } from 'react'
-
 import { useFlag, useParams } from 'common'
 import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { ProductMenu } from 'components/ui/ProductMenu'
 import { useAuthConfigPrefetch } from 'data/auth/auth-config-query'
-import { useIsFeatureEnabled } from 'hooks/misc/useIsFeatureEnabled'
 import { withAuth } from 'hooks/misc/withAuth'
+import { useRouter } from 'next/router'
+import type { PropsWithChildren } from 'react'
+
 import { ProjectLayoutV2 } from '../NavigationV2/ProjectLayoutV2'
 import { ProjectLayout } from '../ProjectLayout'
-import { generateAuthMenu } from './AuthLayout.utils'
+import { useGenerateAuthMenu } from './AuthLayout.utils'
 
-const AuthProductMenu = () => {
+export const AuthProductMenu = () => {
   const router = useRouter()
   const { ref: projectRef = 'default' } = useParams()
 
-  const authenticationShowOverview = useFlag('authOverviewPage')
-  const authenticationOauth21 = useFlag('EnableOAuth21')
-
-  const {
-    authenticationSignInProviders,
-    authenticationRateLimits,
-    authenticationEmails,
-    authenticationMultiFactor,
-    authenticationAttackProtection,
-    authenticationPerformance,
-  } = useIsFeatureEnabled([
-    'authentication:sign_in_providers',
-    'authentication:rate_limits',
-    'authentication:emails',
-    'authentication:multi_factor',
-    'authentication:attack_protection',
-    'authentication:performance',
-  ])
-
   useAuthConfigPrefetch({ projectRef })
   const page = router.pathname.split('/')[4]
+  const menu = useGenerateAuthMenu()
 
-  return (
-    <ProductMenu
-      page={page}
-      menu={generateAuthMenu(projectRef, {
-        authenticationSignInProviders,
-        authenticationRateLimits,
-        authenticationEmails,
-        authenticationMultiFactor,
-        authenticationAttackProtection,
-        authenticationShowOverview,
-        authenticationOauth21,
-        authenticationPerformance,
-      })}
-    />
-  )
+  return <ProductMenu page={page} menu={menu} />
 }
 
-const AuthLayout = ({ children }: PropsWithChildren<{}>) => {
+const AuthLayout = ({ title, children }: PropsWithChildren<{ title: string }>) => {
   const isNavigationV2 = useIsNavigationV2Enabled()
 
   if (isNavigationV2) {
@@ -67,8 +34,8 @@ const AuthLayout = ({ children }: PropsWithChildren<{}>) => {
 
   return (
     <ProjectLayout
-      title="Authentication"
       product="Authentication"
+      browserTitle={{ section: title }}
       productMenu={<AuthProductMenu />}
       isBlocking={false}
     >

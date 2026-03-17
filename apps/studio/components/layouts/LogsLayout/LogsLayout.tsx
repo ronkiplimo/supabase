@@ -1,17 +1,16 @@
 import { PermissionAction } from '@supabase/shared-types/out/constants'
-
-import { PropsWithChildren } from 'react'
-
 import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import NoPermission from 'components/ui/NoPermission'
 import { useAsyncCheckPermissions } from 'hooks/misc/useCheckPermissions'
 import { withAuth } from 'hooks/misc/withAuth'
+import type { PropsWithChildren } from 'react'
+
 import { ProjectLayoutV2 } from '../NavigationV2/ProjectLayoutV2'
 import { ProjectLayout } from '../ProjectLayout'
 import { LogsSidebarMenuV2 } from './LogsSidebarMenuV2'
 
 interface LogsLayoutProps {
-  title?: string
+  title: string
 }
 
 const LogsLayout = ({ title, children }: PropsWithChildren<LogsLayoutProps>) => {
@@ -26,7 +25,7 @@ const LogsLayout = ({ title, children }: PropsWithChildren<LogsLayoutProps>) => 
       return isNavigationV2 ? (
         <ProjectLayoutV2 isLoading />
       ) : (
-        <ProjectLayout isLoading></ProjectLayout>
+        <ProjectLayout isLoading product="Logs & Analytics" browserTitle={{ section: title }} />
       )
     }
 
@@ -36,7 +35,7 @@ const LogsLayout = ({ title, children }: PropsWithChildren<LogsLayoutProps>) => 
           <NoPermission isFullPage resourceText="access your project's logs" />
         </ProjectLayoutV2>
       ) : (
-        <ProjectLayout>
+        <ProjectLayout product="Logs & Analytics" browserTitle={{ section: title }}>
           <NoPermission isFullPage resourceText="access your project's logs" />
         </ProjectLayout>
       )
@@ -52,7 +51,11 @@ const LogsLayout = ({ title, children }: PropsWithChildren<LogsLayoutProps>) => 
   }
 
   return (
-    <ProjectLayout title={title} product="Logs & Analytics" productMenu={<LogsSidebarMenuV2 />}>
+    <ProjectLayout
+      product="Logs & Analytics"
+      browserTitle={{ section: title }}
+      productMenu={<LogsSidebarMenuV2 />}
+    >
       {children}
     </ProjectLayout>
   )

@@ -34,7 +34,8 @@ import MetaFaviconsPagesRouter from 'common/MetaFavicons/pages-router'
 import { StudioCommandMenu } from 'components/interfaces/App/CommandMenu'
 import { StudioCommandProvider as CommandProvider } from 'components/interfaces/App/CommandMenu/StudioCommandProvider'
 import { FeaturePreviewContextProvider } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
-import FeaturePreviewModal from 'components/interfaces/App/FeaturePreview/FeaturePreviewModal'
+import { FeaturePreviewModal } from 'components/interfaces/App/FeaturePreview/FeaturePreviewModal'
+import { UpdateBillingAddressModal } from 'components/interfaces/App/UpdateBillingAddressModal'
 import { MonacoThemeProvider } from 'components/interfaces/App/MonacoThemeProvider'
 import { RouteValidationWrapper } from 'components/interfaces/App/RouteValidationWrapper'
 import { MainScrollContainerProvider } from 'components/layouts/MainScrollContainerContext'
@@ -182,6 +183,7 @@ function CustomApp({ Component, pageProps }: AppPropsWithLayout) {
                                 </MainScrollContainerProvider>
                                 <StudioCommandMenu />
                                 <FeaturePreviewModal />
+                                <UpdateBillingAddressModal />
                               </FeaturePreviewContextProvider>
                               <SonnerToaster position="top-right" />
                               <MonacoThemeProvider />

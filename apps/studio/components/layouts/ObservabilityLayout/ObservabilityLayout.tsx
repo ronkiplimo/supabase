@@ -1,24 +1,22 @@
-import { PropsWithChildren, useEffect } from 'react'
-import { useParams } from 'common'
-import { LOCAL_STORAGE_KEYS, IS_PLATFORM } from 'common'
+import { IS_PLATFORM, LOCAL_STORAGE_KEYS, useParams } from 'common'
 import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
+import { useIndexAdvisorStatus } from 'components/interfaces/QueryPerformance/hooks/useIsIndexAdvisorStatus'
+import { BannerIndexAdvisor } from 'components/ui/BannerStack/Banners/BannerIndexAdvisor'
+import { BannerMetricsAPI } from 'components/ui/BannerStack/Banners/BannerMetricsAPI'
+import { useBannerStack } from 'components/ui/BannerStack/BannerStackProvider'
 import { UnknownInterface } from 'components/ui/UnknownInterface'
 import { useIsFeatureEnabled } from 'hooks/misc/useIsFeatureEnabled'
-import { withAuth } from 'hooks/misc/withAuth'
 import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
-import { BannerMetricsAPI } from 'components/ui/BannerStack/Banners/BannerMetricsAPI'
+import { withAuth } from 'hooks/misc/withAuth'
+import { usePathname } from 'next/navigation'
+import { PropsWithChildren, useEffect, useRef } from 'react'
+
 import { ProjectLayoutV2 } from '../NavigationV2/ProjectLayoutV2'
 import { ProjectLayout } from '../ProjectLayout'
 import ObservabilityMenu from './ObservabilityMenu'
-import { BannerStackProvider, useBannerStack } from 'components/ui/BannerStack/BannerStackProvider'
-import { BannerStack } from 'components/ui/BannerStack/BannerStack'
-import { usePathname } from 'next/navigation'
-import { useIndexAdvisorStatus } from 'components/interfaces/QueryPerformance/hooks/useIsIndexAdvisorStatus'
-import { BannerIndexAdvisor } from 'components/ui/BannerStack/Banners/BannerIndexAdvisor'
-import { useRef } from 'react'
 
 interface ObservabilityLayoutProps {
-  title?: string
+  title: string
 }
 
 const ObservabilityLayoutContent = ({
@@ -90,11 +88,7 @@ const ObservabilityLayoutContent = ({
   if (reportsAll) {
     if (isNavigationV2) {
       return (
-        <ProjectLayoutV2
-          title={title}
-          product="Observability"
-          isBlocking={false}
-        >
+        <ProjectLayoutV2 title={title} product="Observability" isBlocking={false}>
           {children}
         </ProjectLayoutV2>
       )
@@ -102,8 +96,8 @@ const ObservabilityLayoutContent = ({
 
     return (
       <ProjectLayout
-        title={title}
         product="Observability"
+        browserTitle={{ section: title }}
         productMenu={<ObservabilityMenu />}
         isBlocking={false}
       >
@@ -120,12 +114,7 @@ const ObservabilityLayout = (props: PropsWithChildren<ObservabilityLayoutProps>)
   const { reportsAll } = useIsFeatureEnabled(['reports:all'])
 
   if (reportsAll) {
-    return (
-      <BannerStackProvider>
-        <ObservabilityLayoutContent {...props} />
-        <BannerStack />
-      </BannerStackProvider>
-    )
+    return <ObservabilityLayoutContent {...props} />
   } else {
     return <UnknownInterface urlBack={`/project/${ref}`} />
   }

@@ -1,6 +1,3 @@
-import { useRouter } from 'next/router'
-import { PropsWithChildren } from 'react'
-
 import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { useInstalledIntegrations } from 'components/interfaces/Integrations/Landing/useInstalledIntegrations'
 import { ProjectLayoutV2 } from 'components/layouts/NavigationV2/ProjectLayoutV2'
@@ -12,6 +9,8 @@ import { ProductMenuItem } from 'components/ui/ProductMenu/ProductMenuItem'
 import { useIsFeatureEnabled } from 'hooks/misc/useIsFeatureEnabled'
 import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
 import { withAuth } from 'hooks/misc/withAuth'
+import { useRouter } from 'next/router'
+import { PropsWithChildren } from 'react'
 import { Menu, Separator } from 'ui'
 import { GenericSkeletonLoader } from 'ui-patterns'
 
@@ -106,7 +105,7 @@ const IntegrationsLayout = ({ children }: PropsWithChildren) => {
 
   return (
     <ProjectLayout
-      title="Integrations"
+      // title="Integrations"
       product="Integrations"
       isBlocking={false}
       productMenu={<IntegrationsProductMenu />}

@@ -66,7 +66,6 @@ export const AdvisorPanel = () => {
     resetNotificationFilters,
   } = useAdvisorStateSnapshot()
   const { data: project } = useSelectedProjectQuery()
-  const { data: selectedOrganization } = useSelectedOrganizationQuery()
   const { activeSidebar, closeSidebar } = useSidebarManagerSnapshot()
 
   const isSidebarOpen = activeSidebar?.id === SIDEBAR_KEYS.ADVISOR_PANEL
@@ -98,12 +97,8 @@ export const AdvisorPanel = () => {
   // Memoize filters to prevent query key changes on every render
   // Use selected organization and project if they exist
   const notificationFilters = useMemo(
-    () => ({
-      priority: notificationFilterPriorities,
-      organizations: selectedOrganization?.slug ? [selectedOrganization.slug] : [],
-      projects: project?.ref ? [project.ref] : [],
-    }),
-    [notificationFilterPriorities, selectedOrganization?.slug, project?.ref]
+    () => ({ priority: notificationFilterPriorities }),
+    [notificationFilterPriorities]
   )
 
   const {

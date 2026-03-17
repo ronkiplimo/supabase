@@ -49,7 +49,7 @@ export function TableEditorSection() {
         </h3>
       </div>
 
-      <div className="mx-auto max-w-[var(--container-max-w,75rem)] w-full">
+      <div className="mx-auto max-w-[var(--container-max-w,75rem)] px-6 w-full">
         <div className="border border-border rounded-md overflow-clip">
           <div className="grid grid-cols-1 lg:grid-cols-2">
             {/* Left: tabs + content */}

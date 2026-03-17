@@ -89,7 +89,7 @@ export function CustomerStoriesSection() {
       {/* Header row */}
       <div className="">
         <div className="mx-auto max-w-[var(--container-max-w,75rem)] px-6">
-          <div className="flex items-end justify-between">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <h3 className="text-2xl md:text-4xl text-foreground-lighter max-w-xl">
               How industry leaders <br />{' '}
               <span className="text-foreground">are building with Supabase</span>
@@ -105,10 +105,49 @@ export function CustomerStoriesSection() {
       </div>
 
       {/* Cards row */}
-      <div className="border border-border rounded-md overflow-clip mx-auto max-w-[var(--container-max-w,75rem)]">
-        <div className="">
+      <div className="px-6 mx-auto max-w-[var(--container-max-w,75rem)]">
+        <div className="border border-border rounded-md overflow-clip">
+          {/* Mobile: stacked cards */}
+          <div className="flex flex-col md:hidden">
+            {customerStories.map((story, index) => {
+              const isActive = index === activeIdx
+              return (
+                <button
+                  key={story.slug}
+                  onClick={() => setActiveIdx(index)}
+                  className={cn(
+                    'text-left border-b border-border last:border-b-0 p-6 flex flex-col gap-4 overflow-hidden',
+                    isActive ? 'bg-surface-75' : 'hover:bg-surface-75/50'
+                  )}
+                >
+                  <img
+                    src={story.logo}
+                    alt={story.name}
+                    className="size-16 rounded object-contain shrink-0 dark:invert"
+                  />
+                  {isActive && (
+                    <div className="flex flex-col gap-1.5 flex-1">
+                      <p className="text-foreground text-sm font-medium">{story.name}</p>
+                      <p className="text-foreground-lighter text-sm leading-relaxed text-pretty">
+                        {story.description}
+                      </p>
+                      <p className="text-foreground-muted text-xs mt-1">{story.author}</p>
+                      <Link
+                        href={`/customers/${story.slug}`}
+                        className="text-sm text-foreground-light hover:text-foreground underline mt-2"
+                      >
+                        View more about {story.name}
+                      </Link>
+                    </div>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Desktop: animated accordion grid */}
           <motion.div
-            className="grid min-h-[480px]"
+            className="hidden md:grid min-h-[480px]"
             initial={false}
             animate={{
               gridTemplateColumns: customerStories
@@ -173,7 +212,7 @@ export function CustomerStoriesSection() {
       <div className="mt-10">
         <div className="mx-auto max-w-[var(--container-max-w,75rem)] px-6">
           <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-8">
-            <div className="flex flex-col min-h-[320px] gap-4 justify-between">
+            <div className="flex flex-col md:min-h-[320px] gap-4 justify-between">
               <h3 className="text-xl md:text-3xl text-foreground-lighter">
                 Powering the next wave
                 <br />
@@ -189,12 +228,12 @@ export function CustomerStoriesSection() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {aiBuilderStories.map((story) => (
                 <Link
                   key={story.slug}
                   href={`/customers/${story.slug}`}
-                  className="group relative overflow-hidden rounded-md w-full h-full flex items-center justify-center"
+                  className="group relative overflow-hidden rounded-md w-full aspect-[4/2.5] md:aspect-auto md:h-full flex items-center justify-center"
                   style={{ background: story.gradient }}
                 >
                   {story.slug === 'lovable' ? (

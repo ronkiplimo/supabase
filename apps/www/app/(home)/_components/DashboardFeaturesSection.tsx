@@ -113,7 +113,7 @@ export function DashboardFeaturesSection({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="flex items-center gap-6 px-6 py-5"
+              className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 px-6 py-5"
             >
               <img
                 src={story.logo}
@@ -130,7 +130,7 @@ export function DashboardFeaturesSection({
 
               <Link
                 href={`/customers/${story.slug}`}
-                className="shrink-0 self-end text-sm text-foreground-lighter hover:text-foreground transition-colors whitespace-nowrap"
+                className="shrink-0 text-sm text-foreground-lighter hover:text-foreground transition-colors whitespace-nowrap"
               >
                 View more about {story.name}
               </Link>

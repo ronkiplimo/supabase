@@ -27,10 +27,10 @@ export function FrameworksSectionClient({ frameworks }: { frameworks: Framework[
 
   return (
     <div className="border-b border-border py-24">
-      <div className="mx-auto max-w-[var(--container-max-w,75rem)] pl-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+      <div className="mx-auto max-w-[var(--container-max-w,75rem)] px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-0">
           {/* Left: title + example cards */}
-          <div className="flex flex-col justify-between py-4 gap-10">
+          <div className="flex flex-col justify-between py-4 gap-6 md:gap-10">
             <h3 className="text-2xl md:text-4xl text-foreground-lighter">
               Use Supabase with{' '}
               <span className="block">
@@ -71,7 +71,7 @@ export function FrameworksSectionClient({ frameworks }: { frameworks: Framework[
                       transition: { duration: 0.1 },
                     }),
                   }}
-                  className="flex flex-col gap-2.5 max-w-sm"
+                  className="flex flex-col gap-2.5 md:max-w-sm"
                 >
                   {active.examples.map((example) => (
                     <Link

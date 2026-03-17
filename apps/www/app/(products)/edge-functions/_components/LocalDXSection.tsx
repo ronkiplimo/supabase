@@ -147,7 +147,7 @@ export function LocalDXSection() {
       </div>
 
       {/* Bento grid */}
-      <div className="mx-auto max-w-[var(--container-max-w,75rem)] w-full">
+      <div className="mx-auto max-w-[var(--container-max-w,75rem)] px-6 w-full">
         <div className="border border-border rounded-md overflow-clip">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 grid-flow-dense">
             <LocalDXCard />

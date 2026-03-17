@@ -141,12 +141,12 @@ const Footer = (props: Props) => {
           </div>
           <ul className="flex flex-col md:flex-row gap-2 md:gap-8 justify-center md:items-center">
             <li className="flex items-center gap-2 whitespace-nowrap flex-nowrap">
-              <Soc2Seal className="shrink-0 w-20 h-20 text-foreground-muted" />
+              <Soc2Seal className="shrink-0 w-12 h-12 md:w-20 md:h-20 text-foreground-muted" />
               SOC2 Type 2{' '}
               <span className="text-foreground-lighter hidden sm:inline">Certified</span>
             </li>
             <li className="flex items-center gap-2 whitespace-nowrap flex-nowrap">
-              <HipaaSeal className="shrink-0 w-20 h-20 text-foreground-muted" />
+              <HipaaSeal className="shrink-0 w-12 h-12 md:w-20 md:h-20 text-foreground-muted" />
               HIPAA <span className="text-foreground-lighter hidden sm:inline">Compliant</span>
             </li>
           </ul>

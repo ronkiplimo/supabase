@@ -17,9 +17,9 @@ export interface DefaultLayoutV2Props {
   headerTitle?: string
 }
 
-const contentMaxSizePercentage = 70
-const leftSidebarMinSize = 220
+const leftSidebarMinSize = 180
 const leftSidebarMaxSize = 450
+const leftSidebarDefaultSize = '250px'
 
 /**
  * New three-column layout for the dashboard (V2 navigation).
@@ -45,7 +45,7 @@ export const DefaultLayoutV2 = ({ children }: PropsWithChildren<DefaultLayoutV2P
       <LayoutSidebarProvider>
         <MobileSheetProvider>
           <BannerStackProvider>
-            <div className="flex h-screen w-screen flex-col overflow-hidden">
+            <div className="flex h-dvh w-screen flex-col overflow-hidden">
               <AppBannerWrapper />
               <RightRailLayout>
                 <SidebarProvider defaultOpen={true} className="h-full min-h-0 overflow-hidden">
@@ -59,7 +59,7 @@ export const DefaultLayoutV2 = ({ children }: PropsWithChildren<DefaultLayoutV2P
                         id="panel-v2-left-sidebar"
                         minSize={leftSidebarMinSize}
                         maxSize={leftSidebarMaxSize}
-                        defaultSize={`${contentMaxSizePercentage}`}
+                        defaultSize={leftSidebarDefaultSize}
                         className="h-full min-h-0 overflow-hidden"
                       >
                         <AppSidebarV2 scope={scope} />
@@ -67,9 +67,9 @@ export const DefaultLayoutV2 = ({ children }: PropsWithChildren<DefaultLayoutV2P
                       <ResizableHandle withHandle className="hidden md:flex bg-background" />
                       <ResizablePanel
                         id="panel-v2-main-content"
-                        minSize={`${100 - contentMaxSizePercentage}`}
+                        // minSize={`${100 - contentMaxSizePercentage}`}
                         // maxSize={`${100 - contentMinSizePercentage}`}
-                        defaultSize={`${100 - contentMaxSizePercentage}`}
+                        // defaultSize={`${100 - contentMaxSizePercentage}`}
                         className="h-full min-h-0 min-w-0 overflow-hidden"
                       >
                         <div className="flex h-full min-h-0 flex-1 overflow-hidden">{children}</div>

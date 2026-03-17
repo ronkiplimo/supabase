@@ -281,7 +281,7 @@ export function AppSidebarV2({ scope }: AppSidebarV2Props = {}) {
 
   return (
     <>
-      <Sidebar collapsible="none" className="h-full min-h-0 w-full border-r border-default group">
+      <Sidebar collapsible="none" className="h-full w-full border-r border-default group">
         <SidebarHeader className="gap-2 pt-4">
           <div className="space-y-2">
             {isProjectScope ? <ProjectBranchSelector /> : IS_PLATFORM ? <OrgSelector /> : null}

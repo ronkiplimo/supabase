@@ -82,7 +82,7 @@ const ObservabilityLayoutContent = ({
 
   const { reportsAll } = useIsFeatureEnabled(['reports:all'])
 
-  if (reportsAll) {
+  if (IS_PLATFORM && reportsAll) {
     return (
       <ProjectLayout
         product="Observability"
@@ -102,7 +102,7 @@ const ObservabilityLayout = (props: PropsWithChildren<ObservabilityLayoutProps>)
   const { ref } = useParams()
   const { reportsAll } = useIsFeatureEnabled(['reports:all'])
 
-  if (reportsAll) {
+  if (IS_PLATFORM && reportsAll) {
     return <ObservabilityLayoutContent {...props} />
   } else {
     return <UnknownInterface urlBack={`/project/${ref}`} />

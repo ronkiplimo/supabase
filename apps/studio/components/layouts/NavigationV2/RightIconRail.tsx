@@ -1,7 +1,7 @@
 import { useBreakpoint } from 'common'
 import { SqlEditor } from 'icons'
 import { HelpCircle, Lightbulb } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { useSidebarManagerSnapshot } from 'state/sidebar-manager-state'
 import {
   AiIconAnimation,
@@ -14,6 +14,8 @@ import {
   TooltipTrigger,
 } from 'ui'
 
+import { useMobileSheet } from '../Navigation/NavigationBar/MobileSheetContext'
+import { isSidebarId } from '../ProjectLayout/LayoutSidebar'
 import { SIDEBAR_KEYS } from '../ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
 
 interface RailItem {
@@ -45,18 +47,37 @@ const RAIL_ITEMS: RailItem[] = [
     icon: () => <Lightbulb size={16} strokeWidth={1.5} />,
   },
   {
-    id: SIDEBAR_KEYS.SUPPORT_PANEL,
+    // id: SIDEBAR_KEYS.SUPPORT_PANEL,
+    id: SIDEBAR_KEYS.HELP_PANEL,
     label: 'Help & Support',
     icon: () => <HelpCircle size={16} strokeWidth={1.5} />,
   },
 ]
 
-const RIGHT_SIDEBAR_MIN_SIZE_PERCENTAGE = 22
-const RIGHT_SIDEBAR_DEFAULT_SIZE_PERCENTAGE = 34
-const RIGHT_SIDEBAR_MAX_SIZE_PERCENTAGE = 55
+const RIGHT_SIDEBAR_MIN_SIZE_PERCENTAGE = 300
+const RIGHT_SIDEBAR_DEFAULT_SIZE_PERCENTAGE = 340
+const RIGHT_SIDEBAR_MAX_SIZE_PERCENTAGE = 750
 
 function RightIconRail() {
   const { activeSidebar, toggleSidebar } = useSidebarManagerSnapshot()
+
+  const isMobile = useBreakpoint('md')
+  const { content: sheetContent, setContent: setMobileSheetContent } = useMobileSheet()
+
+  useEffect(() => {
+    if (!isMobile) {
+      setMobileSheetContent(null)
+      return
+    }
+    if (activeSidebar?.component) {
+      setMobileSheetContent(activeSidebar.id)
+    } else if (isSidebarId(sheetContent)) {
+      setMobileSheetContent(null)
+    }
+  }, [isMobile, activeSidebar, sheetContent, setMobileSheetContent])
+
+  // if (!activeSidebar?.component) return null
+  // if (isMobile) return null
 
   return (
     <aside className="bg-dash-sidebar text-foreground-lighter border-default flex w-10 shrink-0 border-l">
@@ -113,16 +134,15 @@ export function RightRailLayout({ children }: { children: ReactNode }) {
     <div className="flex min-h-0 flex-1 overflow-hidden">
       {showRightSidebar ? (
         <ResizablePanelGroup
-          direction="horizontal"
+          orientation="horizontal"
           autoSaveId="default-layout-v2-right-sidebar"
           className="min-h-0 min-w-0 flex-1 overflow-hidden"
         >
           <ResizablePanel
             id="panel-v2-right-main-content"
-            order={1}
-            minSize={100 - RIGHT_SIDEBAR_MAX_SIZE_PERCENTAGE}
-            maxSize={100 - RIGHT_SIDEBAR_MIN_SIZE_PERCENTAGE}
-            defaultSize={100 - RIGHT_SIDEBAR_DEFAULT_SIZE_PERCENTAGE}
+            // minSize={100 - RIGHT_SIDEBAR_MAX_SIZE_PERCENTAGE}
+            // maxSize={100 - RIGHT_SIDEBAR_MIN_SIZE_PERCENTAGE}
+            // defaultSize={100 - RIGHT_SIDEBAR_DEFAULT_SIZE_PERCENTAGE}
             className="h-full min-h-0 min-w-0 overflow-hidden"
           >
             <div className="min-h-0 min-w-0 h-full">{children}</div>
@@ -130,7 +150,6 @@ export function RightRailLayout({ children }: { children: ReactNode }) {
           <ResizableHandle withHandle className="hidden md:flex bg-background" />
           <ResizablePanel
             id="panel-v2-right-sidebar"
-            order={2}
             minSize={RIGHT_SIDEBAR_MIN_SIZE_PERCENTAGE}
             maxSize={RIGHT_SIDEBAR_MAX_SIZE_PERCENTAGE}
             defaultSize={RIGHT_SIDEBAR_DEFAULT_SIZE_PERCENTAGE}

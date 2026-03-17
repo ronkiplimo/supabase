@@ -17,9 +17,9 @@ export interface DefaultLayoutV2Props {
   headerTitle?: string
 }
 
-const LEFT_SIDEBAR_MIN_SIZE_PERCENTAGE = 14
-const LEFT_SIDEBAR_DEFAULT_SIZE_PERCENTAGE = 18
-const LEFT_SIDEBAR_MAX_SIZE_PERCENTAGE = 32
+const contentMaxSizePercentage = 70
+const leftSidebarMinSize = 220
+const leftSidebarMaxSize = 450
 
 /**
  * New three-column layout for the dashboard (V2 navigation).
@@ -57,9 +57,9 @@ export const DefaultLayoutV2 = ({ children }: PropsWithChildren<DefaultLayoutV2P
                     >
                       <ResizablePanel
                         id="panel-v2-left-sidebar"
-                        minSize={LEFT_SIDEBAR_MIN_SIZE_PERCENTAGE}
-                        maxSize={LEFT_SIDEBAR_MAX_SIZE_PERCENTAGE}
-                        defaultSize={LEFT_SIDEBAR_DEFAULT_SIZE_PERCENTAGE}
+                        minSize={leftSidebarMinSize}
+                        maxSize={leftSidebarMaxSize}
+                        defaultSize={`${contentMaxSizePercentage}`}
                         className="h-full min-h-0 overflow-hidden"
                       >
                         <AppSidebarV2 scope={scope} />
@@ -67,9 +67,9 @@ export const DefaultLayoutV2 = ({ children }: PropsWithChildren<DefaultLayoutV2P
                       <ResizableHandle withHandle className="hidden md:flex bg-background" />
                       <ResizablePanel
                         id="panel-v2-main-content"
-                        minSize={100 - LEFT_SIDEBAR_MAX_SIZE_PERCENTAGE}
-                        maxSize={100 - LEFT_SIDEBAR_MIN_SIZE_PERCENTAGE}
-                        defaultSize={100 - LEFT_SIDEBAR_DEFAULT_SIZE_PERCENTAGE}
+                        minSize={`${100 - contentMaxSizePercentage}`}
+                        // maxSize={`${100 - contentMinSizePercentage}`}
+                        defaultSize={`${100 - contentMaxSizePercentage}`}
                         className="h-full min-h-0 min-w-0 overflow-hidden"
                       >
                         <div className="flex h-full min-h-0 flex-1 overflow-hidden">{children}</div>

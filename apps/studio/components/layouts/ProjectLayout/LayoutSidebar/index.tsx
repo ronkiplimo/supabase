@@ -6,7 +6,7 @@ import { cn, ResizableHandle, ResizablePanel } from 'ui'
 
 import { SIDEBAR_KEYS, type TYPEOF_SIDEBAR_KEYS } from './LayoutSidebarProvider'
 
-function isSidebarId(content: unknown): content is TYPEOF_SIDEBAR_KEYS {
+export function isSidebarId(content: unknown): content is TYPEOF_SIDEBAR_KEYS {
   return (
     typeof content === 'string' &&
     Object.values(SIDEBAR_KEYS).includes(content as TYPEOF_SIDEBAR_KEYS)

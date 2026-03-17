@@ -33,6 +33,8 @@ import {
 } from 'ui'
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
+import { ProjectBranchSelectorTrigger } from '../Navigation/NavigationBar/ProjectBranchSelectorTrigger'
+
 function sanitizeRoute(route: string, routerQueries: ParsedUrlQuery) {
   const queryArray = Object.entries(routerQueries)
   if (queryArray.length > 1) {
@@ -141,69 +143,22 @@ export function ProjectBranchSelector() {
     )
   }
 
+  const triggerProps = {
+    displayProjectName: displayProject.name,
+    selectedOrgInitial,
+    isBranch,
+    isProductionBranch,
+    branchDisplayName,
+    onGoToOrganization: goToOrganization,
+    onClick: () => setOpen(true),
+  }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <Popover_Shadcn_ open={open} onOpenChange={setOpen} modal={false}>
-          <PopoverTrigger_Shadcn_ asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="group py-1 gap-2 w-full flex h-auto text-left data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <div
-                className={cn(
-                  'relative flex h-8 aspect-square shrink-0 items-center bg-background-muted hover:bg-selection hover:border-stronger justify-center rounded border border-strong text-xs font-medium'
-                  // isProductionBranch
-                  //   ? 'bg-warning-600 border-warning-600 text-white'
-                  //   : 'bg-surface-100 text-foreground-lighter'
-                )}
-              >
-                <span className="group-hover:hidden">{selectedOrgInitial}</span>
-                <button
-                  className={cn(
-                    'hidden group-hover:flex h-full w-full items-center justify-center  cursor-pointer',
-                    isProductionBranch
-                      ? 'text-foreground hover:text-foreground/90'
-                      : 'text-foreground hover:text-foreground-light'
-                  )}
-                  type="button"
-                  tabIndex={0}
-                  aria-label="Go to organization"
-                  onClick={(event) => {
-                    event.preventDefault()
-                    event.stopPropagation()
-                    goToOrganization()
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key !== 'Enter' && event.key !== ' ') return
-                    event.preventDefault()
-                    event.stopPropagation()
-                    goToOrganization()
-                  }}
-                >
-                  <ChevronLeft size={14} strokeWidth={1.5} />
-                </button>
-              </div>
-              <div className="text-left flex-grow min-w-0">
-                <div className="w-full truncate text-foreground font-medium leading-tight -mb-0.5">
-                  {displayProject.name}
-                </div>
-                <div
-                  className={cn(
-                    'flex items-center gap-1 -mb-0.5',
-                    isBranch ? 'text-green-900' : 'text-amber-900'
-                  )}
-                >
-                  <GitBranch size={12} className="shrink-0" />
-                  <span className="truncate min-w-0 leading-tight">{branchDisplayName}</span>
-                </div>
-              </div>
-
-              <ChevronsUpDown
-                strokeWidth={1.5}
-                className="ml-auto text-foreground-lighter !w-4 !h-4 hidden group-hover:flex"
-              />
-            </SidebarMenuButton>
+          <PopoverTrigger_Shadcn_>
+            <ProjectBranchSelectorTrigger {...triggerProps} />
           </PopoverTrigger_Shadcn_>
           <PopoverContent_Shadcn_ className="p-0 w-[780px]" side="bottom" align="start">
             <div className="flex divide-x h-[320px]">

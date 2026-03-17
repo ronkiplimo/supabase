@@ -80,6 +80,7 @@ export function ProjectBranchSelector() {
     isProductionBranch,
     branchDisplayName,
     onGoToOrganization: goToOrganization,
+    onClick: () => setOpen(true),
   }
 
   if (isMobile) {
@@ -105,7 +106,7 @@ export function ProjectBranchSelector() {
       <SidebarMenuItem>
         <Popover_Shadcn_ open={open} onOpenChange={setOpen} modal={false}>
           <PopoverTrigger_Shadcn_ asChild>
-            <ProjectBranchSelectorTrigger {...triggerProps} />
+            <ProjectBranchSelectorTrigger {...triggerProps} onClick={() => setOpen(true)} />
           </PopoverTrigger_Shadcn_>
           <PopoverContent_Shadcn_ className="p-0 w-[780px]" side="bottom" align="start">
             <ProjectBranchSelectorPopover onClose={() => setOpen(false)} />

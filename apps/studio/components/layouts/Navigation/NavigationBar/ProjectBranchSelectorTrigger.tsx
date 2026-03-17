@@ -1,3 +1,4 @@
+import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { ChevronsUpDown, GitBranch } from 'lucide-react'
 import { cn, SidebarMenuButton } from 'ui'
 
@@ -18,17 +19,24 @@ export function ProjectBranchSelectorTrigger({
   branchDisplayName,
   onClick,
 }: ProjectBranchSelectorTriggerProps) {
+  const isNavigationV2 = useIsNavigationV2Enabled()
+
   return (
     <SidebarMenuButton
       size="lg"
       className="group py-1 gap-1.5 w-full flex h-auto text-left data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground touch-manipulation"
-      onClick={onClick}
+      // onClick={onClick}
     >
       <div className="relative flex h-8 aspect-square shrink-0 items-center bg-background-muted group-hover:border-stronger justify-center rounded border border-strong text-xs">
         {selectedOrgInitial}
       </div>
       <div className="text-left flex-grow min-w-0">
-        <div className="w-full truncate text-foreground leading-tight max-w-[250px]">
+        <div
+          className={cn(
+            'w-full truncate text-foreground leading-tight',
+            !isNavigationV2 && 'max-w-[250px]'
+          )}
+        >
           {displayProjectName}
         </div>
         <div

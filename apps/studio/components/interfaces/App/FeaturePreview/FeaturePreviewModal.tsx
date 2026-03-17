@@ -67,8 +67,6 @@ export const FeaturePreviewModal = () => {
   const featurePreviewContext = useFeaturePreviewContext()
   const { mutate: sendEvent } = useSendEventMutation()
 
-  console.log('showFeaturePreviewModal', showFeaturePreviewModal)
-
   const [isDismissedTableFilterBar, setIsDismissedTableFilterBar] = useLocalStorageQuery(
     LOCAL_STORAGE_KEYS.TABLE_EDITOR_NEW_FILTER_BANNER_DISMISSED(ref ?? ''),
     false

@@ -31,6 +31,10 @@ import { parseAsBoolean, useQueryState } from 'nuqs'
 import { Button, Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from 'ui'
 import { useSetCommandMenuOpen } from 'ui-patterns'
 
+import { OrgSelector } from '../Navigation/NavigationBar/OrgSelector'
+// import { OrgSelector } from './OrgSelector'
+// import { ProjectBranchSelector } from './ProjectBranchSelector'
+import { ProjectBranchSelector } from '../Navigation/NavigationBar/ProjectBranchSelector'
 import { useGenerateSettingsMenu } from '../ProjectSettingsLayout/SettingsMenu.utils'
 import { NavGroup } from './NavGroup'
 import {
@@ -39,8 +43,6 @@ import {
   generatePlatformNavItems,
 } from './NavigationV2.utils'
 import { NavUser } from './NavUser'
-import { OrgSelector } from './OrgSelector'
-import { ProjectBranchSelector } from './ProjectBranchSelector'
 
 export type AppSidebarScope = 'project' | 'organization'
 
@@ -283,7 +285,7 @@ export function AppSidebarV2({ scope }: AppSidebarV2Props = {}) {
     <>
       <Sidebar
         collapsible="none"
-        className="hidden md:block h-full w-full border-r border-default group"
+        className="hidden md:flex h-full w-full border-r border-default group"
       >
         <SidebarHeader className="gap-2 pt-4">
           <div className="space-y-2">

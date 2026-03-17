@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { cn } from 'ui'
 
 type Framework = {
@@ -11,18 +11,26 @@ type Framework = {
   docsUrl: string
   darkHtml: string
   lightHtml: string
+  examples: { title: string; description: string; url: string }[]
 }
 
 export function FrameworksSectionClient({ frameworks }: { frameworks: Framework[] }) {
   const [activeIdx, setActiveIdx] = useState(0)
+  const prevIdx = useRef(0)
+  const direction = activeIdx > prevIdx.current ? -1 : 1
   const active = frameworks[activeIdx]
 
+  const handleTabChange = (index: number) => {
+    prevIdx.current = activeIdx
+    setActiveIdx(index)
+  }
+
   return (
-    <div className="border-b border-border">
-      <div className="mx-auto max-w-[var(--container-max-w,75rem)] pl-6 border-x border-border">
+    <div className="border-b border-border py-24">
+      <div className="mx-auto max-w-[var(--container-max-w,75rem)] pl-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
-          {/* Left: title */}
-          <div className="flex items-center py-16 lg:py-24 pr-6">
+          {/* Left: title + example cards */}
+          <div className="flex flex-col justify-between py-4 gap-10">
             <div className="text-2xl md:text-4xl text-foreground-lighter">
               Use Supabase with{' '}
               <span className="block">
@@ -39,16 +47,57 @@ export function FrameworksSectionClient({ frameworks }: { frameworks: Framework[
                 </AnimatePresence>
               </span>
             </div>
+
+            {active.examples.length > 0 && (
+              <AnimatePresence mode="wait" initial={false} custom={direction}>
+                <motion.div
+                  key={active.name}
+                  custom={direction}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  variants={{
+                    enter: (d: number) => ({ opacity: 0, x: -28 * d, filter: 'blur(2px)' }),
+                    center: {
+                      opacity: 1,
+                      x: 0,
+                      filter: 'blur(0px)',
+                      transition: { duration: 0.2, delay: 0.05 },
+                    },
+                    exit: (d: number) => ({
+                      opacity: 0,
+                      x: 28 * d,
+                      filter: 'blur(2px)',
+                      transition: { duration: 0.1 },
+                    }),
+                  }}
+                  className="flex flex-col gap-2.5 max-w-sm"
+                >
+                  {active.examples.map((example) => (
+                    <Link
+                      key={example.url}
+                      href={example.url}
+                      className="group block border border-border rounded-lg px-2.5 py-2 hover:bg-surface-200 transition-colors"
+                    >
+                      <span className="text-sm font-medium text-foreground">{example.title}</span>
+                      <span className="block text-xs text-foreground-lighter mt-0.5 truncate">
+                        {example.description}
+                      </span>
+                    </Link>
+                  ))}
+                </motion.div>
+              </AnimatePresence>
+            )}
           </div>
 
           {/* Right: icon tabs + code */}
-          <div className="border-l border-border flex flex-col">
+          <div className="border border-border flex flex-col rounded-md overflow-clip">
             {/* 6-col icon row */}
             <div className="grid grid-cols-6 border-b border-border">
               {frameworks.map((framework, index) => (
                 <button
                   key={framework.name}
-                  onClick={() => setActiveIdx(index)}
+                  onClick={() => handleTabChange(index)}
                   className={cn(
                     'flex items-center justify-center py-4 border-r border-border last:border-r-0 transition-colors',
                     index === activeIdx

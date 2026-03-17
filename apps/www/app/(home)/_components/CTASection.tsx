@@ -152,8 +152,8 @@ export function CTASection() {
   const contributors = useContributors()
 
   return (
-    <div className="relative overflow-hidden pt-32 pb-64">
-      <AvatarCloud contributors={contributors} />
+    <div className="relative overflow-hidden py-32">
+      {/*<AvatarCloud contributors={contributors} />*/}
       <div className="relative z-20 flex flex-col items-center text-center gap-6">
         <h2 className="h2">
           <span className="text-foreground-lighter">Build in a weekend,</span>

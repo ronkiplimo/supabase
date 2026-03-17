@@ -190,6 +190,35 @@ const { data: todos } = await useAsyncData(
   },
 ]
 
+// ── Example links per framework ──────────────────────────────────────────────
+
+const frameworkExamples: Record<string, { title: string; description: string; url: string }[]> = {
+  React: [
+    { title: 'Todo List', description: 'CRUD app with real-time and RLS.', url: '/docs/guides/getting-started/tutorials/with-react' },
+    { title: 'Auth & User Management', description: 'Email, social login, and user profiles.', url: '/docs/guides/auth/quickstarts/react' },
+  ],
+  'Next.js': [
+    { title: 'App Router Quickstart', description: 'Server Components with SSR auth.', url: '/docs/guides/getting-started/quickstarts/nextjs' },
+    { title: 'Auth with PKCE', description: 'Secure auth flow with middleware.', url: '/docs/guides/auth/server-side/nextjs' },
+  ],
+  Flutter: [
+    { title: 'User Management', description: 'Auth and profile management.', url: '/docs/guides/getting-started/tutorials/with-flutter' },
+    { title: 'Deep Linking', description: 'OAuth and magic link for mobile.', url: '/docs/guides/auth/native-mobile-deep-linking' },
+  ],
+  Svelte: [
+    { title: 'Todo List', description: 'Server-side auth and real-time data.', url: '/docs/guides/getting-started/tutorials/with-svelte' },
+    { title: 'Auth Helpers', description: 'Sessions and protected routes.', url: '/docs/guides/auth/server-side/sveltekit' },
+  ],
+  Vue: [
+    { title: 'Todo List', description: 'CRUD with Vue 3 Composition API.', url: '/docs/guides/getting-started/tutorials/with-vue-3' },
+    { title: 'Auth with Vue', description: 'Email and OAuth authentication.', url: '/docs/guides/getting-started/quickstarts/vuejs' },
+  ],
+  Nuxt: [
+    { title: 'Nuxt Module', description: 'Auto-configured auth and client.', url: '/docs/guides/getting-started/quickstarts/nuxtjs' },
+    { title: 'Server Routes', description: 'Service role access from server.', url: '/docs/guides/auth/server-side/nuxt' },
+  ],
+}
+
 // ── Server component: pre-highlights all code ───────────────────────────────
 
 export async function FrameworksSection() {
@@ -204,6 +233,7 @@ export async function FrameworksSection() {
     docsUrl: fw.docsUrl,
     darkHtml: hl.codeToHtml(fw.code, { lang: fw.lang, theme: 'supabase-dark' }),
     lightHtml: hl.codeToHtml(fw.code, { lang: fw.lang, theme: 'supabase-light' }),
+    examples: frameworkExamples[fw.name] ?? [],
   }))
 
   hl.dispose()

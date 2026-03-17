@@ -99,28 +99,26 @@ export function BuiltWithSupabaseSection() {
   const gridExamples = Examples.slice(2, 6)
 
   return (
-    <div>
+    <div className="py-24 flex flex-col gap-16">
       {/* Header row */}
-      <div className="border-b border-border">
-        <div className="mx-auto max-w-[var(--container-max-w,75rem)] px-6 border-x border-border">
-          <div className="flex items-end justify-between pt-40 pb-8">
-            <h3 className="text-2xl md:text-4xl text-foreground-lighter max-w-xl">
-              Kickstart your next project <br />
-              <span className="text-foreground">with production ready templates</span>
-            </h3>
-            <Link
-              href="/docs/guides/examples"
-              className="text-sm text-foreground-light hover:text-foreground underline"
-            >
-              View all examples
-            </Link>
-          </div>
+      <div className="mx-auto max-w-[var(--container-max-w,75rem)] w-full px-6">
+        <div className="flex items-end justify-between">
+          <h3 className="text-2xl md:text-4xl text-foreground-lighter max-w-xl">
+            Kickstart your next project <br />
+            <span className="text-foreground">with production ready templates</span>
+          </h3>
+          <Link
+            href="/docs/guides/examples"
+            className="text-sm text-foreground-light hover:text-foreground underline"
+          >
+            View all examples
+          </Link>
         </div>
       </div>
 
-      {/* Featured row - 2 large cells */}
-      <div className="border-b border-border max-w-[var(--container-max-w,75rem)] mx-auto">
-        <div className=" border-x border-border">
+      <div className="border border-border rounded-md overflow-clip mx-auto max-w-[var(--container-max-w,75rem)]">
+        {/* Featured row - 2 large cells */}
+        <div className="border-b border-border">
           <div className="grid grid-cols-1 md:grid-cols-2">
             {featuredExamples.map((example) => {
               const logo = EXAMPLE_LOGO[example.title]
@@ -167,36 +165,36 @@ export function BuiltWithSupabaseSection() {
             })}
           </div>
         </div>
-      </div>
 
-      {/* Grid row - 4 smaller cells */}
-      <div className="mx-auto max-w-[var(--container-max-w,75rem)] border-x border-border">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          {gridExamples.map((example) => {
-            const logo = EXAMPLE_LOGO[example.title]
-            return (
-              <Link
-                key={example.title}
-                href={example.repo_url ?? '#'}
-                target="_blank"
-                className="group flex flex-col border-b sm:border-b-0 sm:border-r border-border last:border-r-0 last:border-b-0 px-6 py-10 hover:bg-surface-75/50 transition-colors"
-              >
-                <div className="flex items-center gap-2 mb-3">
-                  {logo && (
-                    <img
-                      src={logo.src}
-                      alt=""
-                      className={`h-5 w-5 object-contain${logo.invert ? ' dark:invert' : ''}`}
-                    />
-                  )}
-                </div>
-                <h4 className="text-foreground text-sm font-medium">{example.title}</h4>
-                <p className="text-foreground-lighter text-sm mt-1 line-clamp-2">
-                  {example.description}
-                </p>
-              </Link>
-            )
-          })}
+        {/* Grid row - 4 smaller cells */}
+        <div className="">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            {gridExamples.map((example) => {
+              const logo = EXAMPLE_LOGO[example.title]
+              return (
+                <Link
+                  key={example.title}
+                  href={example.repo_url ?? '#'}
+                  target="_blank"
+                  className="group flex flex-col border-b sm:border-b-0 sm:border-r border-border last:border-r-0 last:border-b-0 px-6 py-10 hover:bg-surface-75/50 transition-colors"
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    {logo && (
+                      <img
+                        src={logo.src}
+                        alt=""
+                        className={`h-5 w-5 object-contain${logo.invert ? ' dark:invert' : ''}`}
+                      />
+                    )}
+                  </div>
+                  <h4 className="text-foreground text-sm font-medium">{example.title}</h4>
+                  <p className="text-foreground-lighter text-sm mt-1 line-clamp-2">
+                    {example.description}
+                  </p>
+                </Link>
+              )
+            })}
+          </div>
         </div>
       </div>
     </div>

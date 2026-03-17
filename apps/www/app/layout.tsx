@@ -3,7 +3,7 @@ import 'config/code-hike.scss'
 import '../styles/index.css'
 
 import { APP_NAME, DEFAULT_META_DESCRIPTION } from '~/lib/constants'
-import { ktfPrima } from '~/lib/fonts'
+import { geistMono, ktfPrima } from '~/lib/fonts'
 import { Agentation } from 'agentation'
 import { Metadata } from 'next'
 import type { Viewport } from 'next'
@@ -47,7 +47,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={ktfPrima.variable}>
+    <html lang="en" suppressHydrationWarning className={`${ktfPrima.variable} ${geistMono.variable}`}>
       <body>
         <Providers>{children}</Providers>
         {process.env.NODE_ENV === 'development' && <Agentation endpoint="http://localhost:4747" />}

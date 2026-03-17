@@ -52,8 +52,7 @@ const aiBuilderStories = [
   {
     name: 'Bolt',
     logo: '/images/logos/publicity/bolt.svg',
-    description:
-      'We store embeddings in a PostgreSQL database, hosted by Supabase, to perform a similarity search to identify',
+    description: 'We store embeddings in a PostgreSQL database, hosted by Supabase.',
     slug: 'bolt',
     gradient: 'linear-gradient(to top, #0a1a3a 0%, #1a3f6f 30%, #2563eb 65%, #60a5fa 100%)',
   },
@@ -61,7 +60,7 @@ const aiBuilderStories = [
     name: 'Lovable',
     logo: '/images/logos/publicity/lovable.svg',
     description:
-      'We store embeddings in a PostgreSQL database, hosted by Supabase, to perform a similarity search to identify',
+      'We store embeddings in a PostgreSQL database. Supabase is a great partner for us as we scale.',
     slug: 'lovable',
     gradient:
       'linear-gradient(to bottom, #c4b5fd 0%, #a78bfa 20%, #ec4899 50%, #fb7185 75%, #ef4444 100%)',
@@ -73,11 +72,11 @@ export function CustomerStoriesSection() {
   const active = customerStories[activeIdx]
 
   return (
-    <div>
+    <div className="py-24 flex flex-col gap-16 border-b border-border">
       {/* Header row */}
-      <div className="border-b border-border">
-        <div className="mx-auto max-w-[var(--container-max-w,75rem)] px-6 border-x border-border">
-          <div className="flex items-end justify-between pt-40 pb-8">
+      <div className="">
+        <div className="mx-auto max-w-[var(--container-max-w,75rem)] px-6">
+          <div className="flex items-end justify-between">
             <h3 className="text-2xl md:text-4xl text-foreground-lighter max-w-xl">
               How industry leaders <br />{' '}
               <span className="text-foreground">are building with Supabase</span>
@@ -93,8 +92,8 @@ export function CustomerStoriesSection() {
       </div>
 
       {/* Cards row */}
-      <div className="border-b border-border mx-auto max-w-[var(--container-max-w,75rem)]">
-        <div className="border-x border-border">
+      <div className="border border-border rounded-md overflow-clip mx-auto max-w-[var(--container-max-w,75rem)]">
+        <div className="">
           <motion.div
             className="grid min-h-[480px]"
             initial={false}
@@ -158,11 +157,11 @@ export function CustomerStoriesSection() {
       </div>
 
       {/* AI Builder stories */}
-      <div className="border-b border-border">
-        <div className="mx-auto max-w-[var(--container-max-w,75rem)] px-6 border-x border-border">
-          <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-8 py-20">
+      <div className="">
+        <div className="mx-auto max-w-[var(--container-max-w,75rem)] px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-8">
             <div className="flex flex-col min-h-[320px] gap-4 justify-between">
-              <h3 className="text-2xl md:text-4xl text-foreground-lighter">
+              <h3 className="text-xl md:text-3xl text-foreground-lighter">
                 Powering the next wave
                 <br />
                 <span className="text-foreground">of AI builders</span>

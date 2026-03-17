@@ -7,7 +7,17 @@ import { topTweets } from 'shared-data/tweets'
 import { Button } from 'ui'
 import { TweetCard } from 'ui-patterns/TweetCard'
 
+const COLS = 5
 const TWEETS_PER_PAGE = 15
+
+// V-shape offsets: outer columns high, center lowest
+const COL_OFFSETS = [0, 60, 100, 60, 0]
+
+function distributeToColumns(tweets: typeof topTweets, cols: number) {
+  const columns: (typeof topTweets)[] = Array.from({ length: cols }, () => [])
+  tweets.forEach((tweet, i) => columns[i % cols].push(tweet))
+  return columns
+}
 
 export function CommunitySectionV2() {
   const [page, setPage] = useState(0)
@@ -24,9 +34,11 @@ export function CommunitySectionV2() {
     return topTweets[idx]
   })
 
+  const columns = distributeToColumns(currentTweets, COLS)
+
   return (
     <div className="border-b border-border">
-      <div className="mx-auto max-w-[var(--container-max-w,75rem)] border-x border-border">
+      <div className="mx-auto">
         <div className="flex flex-col items-center gap-3 px-6 py-20">
           <h3 className="text-2xl md:text-4xl text-center">Join the community</h3>
           <p className="text-foreground-lighter text-center text-sm">
@@ -53,29 +65,36 @@ export function CommunitySectionV2() {
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.div
               key={page}
-              className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-2 -mx-4"
+              className="grid grid-cols-2 md:grid-cols-5 gap-2 -mx-4"
             >
-              {currentTweets.map((tweet, i) => (
-                <motion.div
-                  key={tweet.url}
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.98 }}
-                  transition={{
-                    duration: 0.45,
-                    delay: i * 0.03,
-                    ease: [0.25, 0.46, 0.45, 0.94],
-                  }}
-                  className="break-inside-avoid mb-2"
+              {columns.map((col, colIdx) => (
+                <div
+                  key={colIdx}
+                  className="flex flex-col gap-2"
+                  style={{ transform: `translateY(${COL_OFFSETS[colIdx]}px)` }}
                 >
-                  <Link href={tweet.url} target="_blank" className="block group/tweet-card">
-                    <TweetCard
-                      handle={`@${tweet.handle}`}
-                      quote={tweet.text}
-                      img_url={tweet.img_url}
-                    />
-                  </Link>
-                </motion.div>
+                  {col.map((tweet, i) => (
+                    <motion.div
+                      key={tweet.url}
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      transition={{
+                        duration: 0.45,
+                        delay: (colIdx + i * COLS) * 0.03,
+                        ease: [0.25, 0.46, 0.45, 0.94],
+                      }}
+                    >
+                      <Link href={tweet.url} target="_blank" className="block group/tweet-card">
+                        <TweetCard
+                          handle={`@${tweet.handle}`}
+                          quote={tweet.text}
+                          img_url={tweet.img_url}
+                        />
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
               ))}
             </motion.div>
           </AnimatePresence>

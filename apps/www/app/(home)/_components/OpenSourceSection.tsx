@@ -1,25 +1,80 @@
 'use client'
 
 import { useSendTelemetryEvent } from '~/lib/telemetry'
+import { useInView } from 'framer-motion'
 import Link from 'next/link'
+import { useRef } from 'react'
 import { Button } from 'ui'
+
+// ── Pixel font (5×7 per glyph) ─────────────────────────────────────────────
+
+const GLYPHS: Record<string, string[]> = {
+  '0': ['01110', '10001', '10011', '10101', '11001', '10001', '01110'],
+  '1': ['00100', '01100', '00100', '00100', '00100', '00100', '01110'],
+  '2': ['01110', '10001', '00001', '00110', '01000', '10000', '11111'],
+  '3': ['01110', '10001', '00001', '00110', '00001', '10001', '01110'],
+  '4': ['00010', '00110', '01010', '10010', '11111', '00010', '00010'],
+  '5': ['11111', '10000', '11110', '00001', '00001', '10001', '01110'],
+  '6': ['01110', '10001', '10000', '11110', '10001', '10001', '01110'],
+  '7': ['11111', '00001', '00010', '00100', '01000', '01000', '01000'],
+  '8': ['01110', '10001', '10001', '01110', '10001', '10001', '01110'],
+  '9': ['01110', '10001', '10001', '01111', '00001', '10001', '01110'],
+  '.': ['00000', '00000', '00000', '00000', '00000', '00000', '00100'],
+  K: ['10001', '10010', '10100', '11000', '10100', '10010', '10001'],
+  ' ': ['00000', '00000', '00000', '00000', '00000', '00000', '00000'],
+}
+
+function textToPixelMask(text: string): Set<string> {
+  const mask = new Set<string>()
+  let cursorX = 0
+  for (const ch of text) {
+    const glyph = GLYPHS[ch]
+    if (!glyph) {
+      cursorX += 3
+      continue
+    }
+    for (let row = 0; row < glyph.length; row++) {
+      for (let col = 0; col < glyph[row].length; col++) {
+        if (glyph[row][col] === '1') mask.add(`${cursorX + col},${row}`)
+      }
+    }
+    cursorX += 6 // 5 wide + 1 gap
+  }
+  return mask
+}
 
 // ── Contribution graph ──────────────────────────────────────────────────────
 
-const CELL = 7
-const GAP = 1
-const COLS = 16
-const ROWS = 12
+const CELL = 3
+const GAP = 0.5
+const COLS = 72
+const ROWS = 40
 
-const LEVELS = [
-  'hsl(var(--background-surface-300))',
+const TEXT = '98.4K'
+const TEXT_MASK = textToPixelMask(TEXT)
+const TEXT_W = TEXT.length * 6 - 1
+const TEXT_H = 7
+// Position text toward the right
+const TEXT_OFFSET_X = Math.floor(COLS * 0.56 - TEXT_W / 2)
+const TEXT_OFFSET_Y = Math.floor((ROWS - TEXT_H) / 2)
+
+const LEVELS_BG = [
+  'hsl(var(--background-surface-300) / 0.2)',
+  'hsl(var(--brand-400) / 0.08)',
+  'hsl(var(--brand-500) / 0.1)',
+  'hsl(var(--brand-600) / 0.12)',
+  'hsl(var(--brand-default) / 0.12)',
+]
+
+const LEVELS_TEXT = [
   'hsl(var(--brand-400))',
   'hsl(var(--brand-500))',
   'hsl(var(--brand-600))',
   'hsl(var(--brand-default))',
+  'hsl(var(--brand-default))',
 ]
 
-function makeGrid(): number[][] {
+function makeGrid(): { level: number; isText: boolean }[][] {
   let seed = 0x9e3779b9
   const rand = () => {
     seed ^= seed << 13
@@ -27,10 +82,14 @@ function makeGrid(): number[][] {
     seed ^= seed << 5
     return (seed >>> 0) / 0xffffffff
   }
-  return Array.from({ length: COLS }, () =>
-    Array.from({ length: ROWS }, () => {
+  return Array.from({ length: COLS }, (_, c) =>
+    Array.from({ length: ROWS }, (_, r) => {
       const v = rand()
-      return v < 0.45 ? 0 : v < 0.65 ? 1 : v < 0.8 ? 2 : v < 0.92 ? 3 : 4
+      const level = v < 0.45 ? 0 : v < 0.65 ? 1 : v < 0.8 ? 2 : v < 0.92 ? 3 : 4
+      const localX = c - TEXT_OFFSET_X
+      const localY = r - TEXT_OFFSET_Y
+      const isText = TEXT_MASK.has(`${localX},${localY}`)
+      return { level, isText }
     })
   )
 }
@@ -40,23 +99,31 @@ const SVG_W = COLS * (CELL + GAP) - GAP
 const SVG_H = ROWS * (CELL + GAP) - GAP
 
 function ContribGraph() {
+  const ref = useRef<SVGSVGElement>(null)
+  const isInView = useInView(ref, { once: true, margin: '-50px' })
+
   return (
     <svg
+      ref={ref}
       viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-      preserveAspectRatio="xMidYMid slice"
-      className="absolute inset-0 h-full w-full opacity-70"
+      preserveAspectRatio="xMaxYMid slice"
+      className="absolute inset-0 h-full w-full"
       aria-hidden
     >
       {GRID.map((col, c) =>
-        col.map((level, r) => (
+        col.map(({ level, isText }, r) => (
           <rect
             key={`${c}-${r}`}
             x={c * (CELL + GAP)}
             y={r * (CELL + GAP)}
             width={CELL}
             height={CELL}
-            rx={2}
-            fill={LEVELS[level]}
+            rx={1}
+            fill={isText ? LEVELS_TEXT[level] : LEVELS_BG[level]}
+            opacity={isInView ? 1 : 0}
+            style={{
+              transition: `opacity ${isText ? '0.6s' : '0.4s'} ease ${isText ? 0.3 + c * 0.015 : c * 0.02 + r * 0.01}s`,
+            }}
           />
         ))
       )}
@@ -69,17 +136,28 @@ function ContribGraph() {
 export function OpenSourceSection() {
   const sendTelemetryEvent = useSendTelemetryEvent()
 
-  const stars = '98.4K'
+  const starsNum = 98400
 
   return (
-    <div className="border-b border-border">
-      <div className="mx-auto max-w-[var(--container-max-w,75rem)] pl-6 border-x border-border">
-        <div className="grid grid-cols-1 md:grid-cols-3">
-          {/* Main content — spans 2 cols */}
-          <div className="col-span-1 md:col-span-2 flex flex-col justify-between gap-6 py-20 min-h-[400px]">
+    <div className="border-b border-border overflow-hidden">
+      <div className="relative py-24 flex flex-col justify-center">
+        {/* Contrib graph background — right-aligned, radial fade */}
+        <div
+          className="absolute inset-y-0 left-1/4 right-[calc((100%-var(--container-max-w,75rem))/2*-1)]"
+          style={{
+            maskImage: 'radial-gradient(ellipse 55% 90% at 58% 50%, black 15%, transparent 60%)',
+            WebkitMaskImage:
+              'radial-gradient(ellipse 55% 90% at 58% 50%, black 15%, transparent 60%)',
+          }}
+        >
+          <ContribGraph />
+        </div>
+
+        <div className="relative z-10 w-full max-w-[var(--container-max-w,75rem)] mx-auto px-6">
+          <div className="flex flex-col justify-between gap-6 py-10 max-w-lg">
             <div>
               <h2 className="text-4xl text-foreground text-balance">Open source from day one</h2>
-              <p className="mt-4 max-w-lg text-sm leading-relaxed text-foreground-lighter">
+              <p className="mt-4 text-sm leading-relaxed text-foreground-lighter">
                 Supabase is built in the open because we believe great developer tools should be
                 transparent, inspectable, and owned by the community. Read, contribute, self-host.
                 You&apos;re never locked in, and always in control.
@@ -111,22 +189,6 @@ export function OpenSourceSection() {
                 </Link>
               </Button>
             </div>
-          </div>
-
-          <div
-            className="relative flex flex-col items-start justify-end gap-2 overflow-hidden bg-surface-75 p-6 border-l border-border"
-          >
-            <ContribGraph />
-            <div className="absolute inset-0 bg-gradient-to-t from-background from-15% via-background/50 via-60% to-transparent" />
-            <span className="relative z-10 uppercase text-xs text-foreground-lighter">
-              GitHub Stars
-            </span>
-            <span className="relative z-10 text-5xl font-bold text-foreground tabular-nums">
-              {stars}
-            </span>
-            <span className="relative z-10 mt-1 text-xs text-foreground-lighter">
-              Top 100 GitHub repos
-            </span>
           </div>
         </div>
       </div>

@@ -31,7 +31,7 @@ import { parseAsBoolean, useQueryState } from 'nuqs'
 import { Button, Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from 'ui'
 import { useSetCommandMenuOpen } from 'ui-patterns'
 
-import { generateSettingsMenu } from '../ProjectSettingsLayout/SettingsMenu.utils'
+import { useGenerateSettingsMenu } from '../ProjectSettingsLayout/SettingsMenu.utils'
 import { NavGroup } from './NavGroup'
 import {
   generateDatabaseNavItems,
@@ -69,6 +69,8 @@ export function AppSidebarV2({ scope }: AppSidebarV2Props = {}) {
 
   const isActiveHealthy = project?.status === PROJECT_STATUS.ACTIVE_HEALTHY
   const isProjectBuilding = project?.status === PROJECT_STATUS.COMING_UP
+
+  const settingsMenu = useGenerateSettingsMenu()
 
   // Database flags
   const { data: extensions } = useDatabaseExtensionsQuery(
@@ -121,7 +123,7 @@ export function AppSidebarV2({ scope }: AppSidebarV2Props = {}) {
 
   const projectSettingsItems =
     isProjectScope && ref
-      ? generateSettingsMenu(ref, project, selectedOrganization)
+      ? settingsMenu
           .flatMap((group) => {
             if (group.title === 'Billing' && !selectedOrganization?.slug) return []
             return group.items

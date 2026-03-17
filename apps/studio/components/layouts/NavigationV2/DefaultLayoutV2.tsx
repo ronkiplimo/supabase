@@ -1,11 +1,15 @@
 import { useBreakpoint, useParams } from 'common'
 import { AppBannerWrapper } from 'components/interfaces/App/AppBannerWrapper'
+import { MobileSheetProvider } from 'components/layouts/Navigation/NavigationBar/MobileSheetContext'
+import { StudioMobileSheetNav } from 'components/layouts/Navigation/NavigationBar/StudioMobileSheetNav'
+import { LayoutSidebarProvider } from 'components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
+import { ProjectContextProvider } from 'components/layouts/ProjectLayout/ProjectContext'
+import { BannerStack } from 'components/ui/BannerStack/BannerStack'
+import { BannerStackProvider } from 'components/ui/BannerStack/BannerStackProvider'
 import { useRouter } from 'next/router'
 import { PropsWithChildren } from 'react'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup, SidebarProvider } from 'ui'
 
-import { LayoutSidebarProvider } from '../ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
-import { ProjectContextProvider } from '../ProjectLayout/ProjectContext'
 import { AppSidebarV2 } from './AppSidebarV2'
 import { RightRailLayout } from './RightIconRail'
 
@@ -39,44 +43,48 @@ export const DefaultLayoutV2 = ({ children }: PropsWithChildren<DefaultLayoutV2P
   return (
     <ProjectContextProvider projectRef={ref}>
       <LayoutSidebarProvider>
-        <div className="flex h-screen w-screen flex-col overflow-hidden">
-          <AppBannerWrapper />
-          <RightRailLayout>
-            <SidebarProvider defaultOpen={true} className="h-full min-h-0 overflow-hidden">
-              {showLeftSidebar ? (
-                <ResizablePanelGroup
-                  direction="horizontal"
-                  autoSaveId="default-layout-v2-left-sidebar"
-                  className="h-full w-full overflow-hidden"
-                >
-                  <ResizablePanel
-                    id="panel-v2-left-sidebar"
-                    order={1}
-                    minSize={LEFT_SIDEBAR_MIN_SIZE_PERCENTAGE}
-                    maxSize={LEFT_SIDEBAR_MAX_SIZE_PERCENTAGE}
-                    defaultSize={LEFT_SIDEBAR_DEFAULT_SIZE_PERCENTAGE}
-                    className="h-full min-h-0 overflow-hidden"
-                  >
-                    <AppSidebarV2 scope={scope} />
-                  </ResizablePanel>
-                  <ResizableHandle withHandle className="hidden md:flex bg-background" />
-                  <ResizablePanel
-                    id="panel-v2-main-content"
-                    order={2}
-                    minSize={100 - LEFT_SIDEBAR_MAX_SIZE_PERCENTAGE}
-                    maxSize={100 - LEFT_SIDEBAR_MIN_SIZE_PERCENTAGE}
-                    defaultSize={100 - LEFT_SIDEBAR_DEFAULT_SIZE_PERCENTAGE}
-                    className="h-full min-h-0 min-w-0 overflow-hidden"
-                  >
+        <MobileSheetProvider>
+          <BannerStackProvider>
+            <div className="flex h-screen w-screen flex-col overflow-hidden">
+              <AppBannerWrapper />
+              <RightRailLayout>
+                <SidebarProvider defaultOpen={true} className="h-full min-h-0 overflow-hidden">
+                  {showLeftSidebar ? (
+                    <ResizablePanelGroup
+                      orientation="horizontal"
+                      autoSaveId="default-layout-v2-left-sidebar"
+                      className="h-full w-full overflow-hidden"
+                    >
+                      <ResizablePanel
+                        id="panel-v2-left-sidebar"
+                        minSize={LEFT_SIDEBAR_MIN_SIZE_PERCENTAGE}
+                        maxSize={LEFT_SIDEBAR_MAX_SIZE_PERCENTAGE}
+                        defaultSize={LEFT_SIDEBAR_DEFAULT_SIZE_PERCENTAGE}
+                        className="h-full min-h-0 overflow-hidden"
+                      >
+                        <AppSidebarV2 scope={scope} />
+                      </ResizablePanel>
+                      <ResizableHandle withHandle className="hidden md:flex bg-background" />
+                      <ResizablePanel
+                        id="panel-v2-main-content"
+                        minSize={100 - LEFT_SIDEBAR_MAX_SIZE_PERCENTAGE}
+                        maxSize={100 - LEFT_SIDEBAR_MIN_SIZE_PERCENTAGE}
+                        defaultSize={100 - LEFT_SIDEBAR_DEFAULT_SIZE_PERCENTAGE}
+                        className="h-full min-h-0 min-w-0 overflow-hidden"
+                      >
+                        <div className="flex h-full min-h-0 flex-1 overflow-hidden">{children}</div>
+                      </ResizablePanel>
+                    </ResizablePanelGroup>
+                  ) : (
                     <div className="flex h-full min-h-0 flex-1 overflow-hidden">{children}</div>
-                  </ResizablePanel>
-                </ResizablePanelGroup>
-              ) : (
-                <div className="flex h-full min-h-0 flex-1 overflow-hidden">{children}</div>
-              )}
-            </SidebarProvider>
-          </RightRailLayout>
-        </div>
+                  )}
+                </SidebarProvider>
+              </RightRailLayout>
+            </div>
+            <BannerStack />
+            <StudioMobileSheetNav />
+          </BannerStackProvider>
+        </MobileSheetProvider>
       </LayoutSidebarProvider>
     </ProjectContextProvider>
   )

@@ -9,7 +9,8 @@ function getTableGrantsCTEs({
   search,
   ignoredSchemas = [],
 }: { search?: string; ignoredSchemas?: string[] } = {}) {
-  const IGNORED_SCHEMAS_LIST = ignoredSchemas.map((s) => `'${s}'`).join(', ')
+  const IGNORED_SCHEMAS_LIST = ignoredSchemas.length ? literal(ignoredSchemas) : ''
+  const searchPattern = search ? literal(`%${search}%`) : ''
 
   return /* SQL */ `
     table_privileges as (
@@ -46,7 +47,7 @@ function getTableGrantsCTEs({
         on pr.oid = acl.grantee
       where c.relkind in ('r', 'p', 'v', 'm', 'f')
         ${IGNORED_SCHEMAS_LIST ? `and n.nspname not in (${IGNORED_SCHEMAS_LIST})` : ''}
-        ${search ? `and (n.nspname || '.' || c.relname) ilike '%${search}%'` : ''}
+        ${searchPattern ? `and (n.nspname || '.' || c.relname) ilike ${searchPattern}` : ''}
       group by c.oid, n.nspname, c.relname, c.relkind
     ),
     table_grants as (

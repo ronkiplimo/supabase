@@ -17,10 +17,8 @@ import {
   FileText,
   Lightbulb,
   Network,
-  ScrollText,
   Settings,
   Telescope,
-  Zap,
 } from 'lucide-react'
 
 import type { NavGroupItem } from './NavGroup'
@@ -62,13 +60,11 @@ export function generateDatabaseNavItems(
   const buildingUrl = `/project/${ref}`
 
   const {
-    pgNetExtensionExists,
     pitrEnabled,
     columnLevelPrivileges,
     showPgReplicate,
     enablePgReplicate,
     showRoles,
-    showWrappers,
     pathname = '',
   } = flags || {}
 

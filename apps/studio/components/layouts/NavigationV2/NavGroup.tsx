@@ -41,16 +41,11 @@ export interface NavGroupProps {
 }
 
 export function NavGroup({ id, label, items, isCollapsible = true }: NavGroupProps) {
-  // Load the sidebar state from localStorage using react-query for cross-component sync
   const [sidebarState, setSidebarState] = useLocalStorageQuery<Record<string, boolean>>(
     LOCAL_STORAGE_KEYS.DASHBOARD_SIDEBAR_STATE,
     {}
   )
-
-  // Get the current group's open state, defaulting to true (open)
   const isOpen = id ? sidebarState[id] ?? true : true
-
-  // Handler to update the open state for this specific group
   const handleOpenChange = (open: boolean) => {
     if (id && isCollapsible) {
       setSidebarState((prev) => ({ ...prev, [id]: open }))

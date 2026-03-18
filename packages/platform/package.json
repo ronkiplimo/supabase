@@ -1,0 +1,25 @@
+{
+  "name": "platform",
+  "version": "0.0.0",
+  "main": "./index.tsx",
+  "types": "./index.tsx",
+  "license": "MIT",
+  "sideEffects": false,
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest --run",
+    "clean": "rimraf node_modules"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "tsconfig": "workspace:*",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "name": "studio-lite",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "dev": "next dev -p 3100",
+    "build": "next build",
+    "start": "next start -p 3100",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest --run",
+    "clean": "rimraf node_modules .next .turbo"
+  },
+  "dependencies": {
+    "common": "workspace:*",
+    "config": "workspace:*",
+    "icons": "workspace:*",
+    "lucide-react": "^0.436.0",
+    "next": "catalog:",
+    "next-themes": "^0.3.0",
+    "platform": "workspace:*",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "ui": "workspace:*",
+    "ui-patterns": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "tailwindcss": "catalog:",
+    "postcss": "^8.5.3",
+    "autoprefixer": "^10.4.19",
+    "tsconfig": "workspace:*",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -82,7 +82,7 @@ describe('model.utils', () => {
     it('should have openai provider with providerOptions', () => {
       expect(PROVIDERS.openai.providerOptions).toBeDefined()
       expect(PROVIDERS.openai.providerOptions?.openai).toBeDefined()
-      expect(PROVIDERS.openai.providerOptions?.openai?.reasoningEffort).toBe('minimal')
+      expect(PROVIDERS.openai.providerOptions?.openai?.reasoningEffort).toBe('low')
     })
   })
 })

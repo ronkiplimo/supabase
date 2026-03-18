@@ -7,3 +7,4 @@ export type {
   TableInfo,
 } from './types'
 export { MockDatabaseAdapter, MockQueryBuilder } from './mock'
+export { SqlJsDatabaseAdapter, SqlJsQueryBuilder } from './sqljs'

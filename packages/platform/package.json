@@ -12,7 +12,10 @@
     "clean": "rimraf node_modules"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.6.0",
     "@tanstack/react-query": "^5.0.0",
+    "sql.js": "^1.14.1",
+    "monaco-editor": "0.52.2",
     "react-data-grid": "7.0.0-beta.47",
     "valtio": "catalog:"
   },
@@ -21,6 +24,7 @@
     "@types/react-dom": "catalog:",
     "icons": "workspace:*",
     "lucide-react": "^0.436.0",
+    "next-themes": "^0.3.0",
     "tsconfig": "workspace:*",
     "typescript": "catalog:",
     "ui": "workspace:*",

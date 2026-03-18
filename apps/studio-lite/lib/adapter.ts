@@ -1,11 +1,5 @@
-import { MockDatabaseAdapter, type ColumnDef } from 'platform'
-
-/**
- * Singleton mock database adapter for studio-lite.
- * Pre-seeded with sample tables so the dashboard has data to work with.
- */
-
-const adapter = new MockDatabaseAdapter()
+import initSqlJs from 'sql.js'
+import { SqlJsDatabaseAdapter, type ColumnDef } from 'platform'
 
 // ---------------------------------------------------------------------------
 // Seed data
@@ -15,7 +9,7 @@ const todosColumns: ColumnDef[] = [
   { name: 'id', dataType: 'INTEGER', isPrimaryKey: true, isAutoIncrement: true, isNullable: false },
   { name: 'title', dataType: 'TEXT', isNullable: false },
   { name: 'completed', dataType: 'INTEGER', isNullable: false, defaultValue: '0' },
-  { name: 'created_at', dataType: 'TEXT', isNullable: false, defaultValue: 'datetime()' },
+  { name: 'created_at', dataType: 'TEXT', isNullable: false, defaultValue: "(datetime('now'))" },
 ]
 
 const profilesColumns: ColumnDef[] = [
@@ -24,7 +18,7 @@ const profilesColumns: ColumnDef[] = [
   { name: 'display_name', dataType: 'TEXT', isNullable: true },
   { name: 'email', dataType: 'TEXT', isNullable: true },
   { name: 'bio', dataType: 'TEXT', isNullable: true },
-  { name: 'created_at', dataType: 'TEXT', isNullable: false },
+  { name: 'created_at', dataType: 'TEXT', isNullable: false, defaultValue: "(datetime('now'))" },
 ]
 
 const postsColumns: ColumnDef[] = [
@@ -33,10 +27,10 @@ const postsColumns: ColumnDef[] = [
   { name: 'title', dataType: 'TEXT', isNullable: false },
   { name: 'body', dataType: 'TEXT', isNullable: true },
   { name: 'published', dataType: 'INTEGER', isNullable: false, defaultValue: '0' },
-  { name: 'created_at', dataType: 'TEXT', isNullable: false },
+  { name: 'created_at', dataType: 'TEXT', isNullable: false, defaultValue: "(datetime('now'))" },
 ]
 
-adapter.seed([
+const seedData = [
   {
     name: 'todos',
     columns: todosColumns,
@@ -67,6 +61,25 @@ adapter.seed([
       { id: 4, author_id: 3, title: 'Why SQLite rocks', body: 'SQLite handles most workloads beautifully with zero configuration.', published: 1, created_at: '2026-03-16T09:00:00Z' },
     ],
   },
-])
+]
 
-export { adapter }
+// ---------------------------------------------------------------------------
+// Singleton adapter (async init because sql.js loads WASM)
+// ---------------------------------------------------------------------------
+
+let _initPromise: Promise<SqlJsDatabaseAdapter> | null = null
+
+export function getAdapter(): Promise<SqlJsDatabaseAdapter> {
+  if (!_initPromise) {
+    _initPromise = initSqlJs({
+      locateFile: (file: string) => `/${file}`,
+    }).then((SQL: any) => {
+      const db = new SQL.Database()
+      const adapter = new SqlJsDatabaseAdapter(db)
+      adapter.seed(seedData)
+      return adapter
+    })
+  }
+
+  return _initPromise
+}

@@ -24,7 +24,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "./../../packages/ui/src/**/*.d.ts"
+    "./../../packages/ui/src/**/*.d.ts",
+    "./../../packages/platform/src/**/*.d.ts"
   ],
   "exclude": ["node_modules"]
 }

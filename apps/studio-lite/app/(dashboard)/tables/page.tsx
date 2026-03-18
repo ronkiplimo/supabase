@@ -2,8 +2,8 @@
 
 import { useState, useCallback } from 'react'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { AdapterProvider, TableList, TableDataGrid, CreateTableDialog } from 'platform'
-import { adapter } from '@/lib/adapter'
+import { TableList, TableDataGrid, CreateTableDialog } from 'platform'
+import { AdapterLoader } from '@/lib/AdapterLoader'
 import { queryClient } from '@/lib/query-client'
 
 export default function TablesPage() {
@@ -16,7 +16,7 @@ export default function TablesPage() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AdapterProvider adapter={adapter}>
+      <AdapterLoader>
         <div className="flex h-full">
           <TableList
             selectedTable={selectedTable}
@@ -38,7 +38,7 @@ export default function TablesPage() {
             onCreated={handleTableCreated}
           />
         </div>
-      </AdapterProvider>
+      </AdapterLoader>
     </QueryClientProvider>
   )
 }

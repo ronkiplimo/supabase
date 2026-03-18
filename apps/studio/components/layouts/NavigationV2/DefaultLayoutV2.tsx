@@ -37,9 +37,10 @@ export const DefaultLayoutV2 = ({
   hideMobileMenu,
 }: PropsWithChildren<DefaultLayoutV2Props>) => {
   const router = useRouter()
+  const isMobile = useBreakpoint('md')
   const appSnap = useAppStateSnapshot()
   const scope = router.pathname.startsWith('/project') ? 'project' : 'organization'
-  const showLeftSidebar = !router.pathname.startsWith('/account')
+  const showLeftSidebar = !isMobile && !router.pathname.startsWith('/account')
 
   const [lastVisitedOrganization] = useLocalStorageQuery(
     LOCAL_STORAGE_KEYS.LAST_VISITED_ORGANIZATION,
@@ -49,7 +50,7 @@ export const DefaultLayoutV2 = ({
   const backToDashboardURL = router.pathname.startsWith('/account')
     ? appSnap.lastRouteBeforeVisitingAccountPage.length > 0
       ? appSnap.lastRouteBeforeVisitingAccountPage
-      : !!lastVisitedOrganization
+      : lastVisitedOrganization
         ? `/org/${lastVisitedOrganization}`
         : '/organizations'
     : undefined

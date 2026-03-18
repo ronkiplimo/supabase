@@ -76,9 +76,6 @@ function RightIconRail() {
     }
   }, [isMobile, activeSidebar, sheetContent, setMobileSheetContent])
 
-  // if (!activeSidebar?.component) return null
-  // if (isMobile) return null
-
   return (
     <aside className="bg-dash-sidebar text-foreground-lighter border-default flex w-10 shrink-0 border-l">
       <nav className="flex flex-1 flex-col items-center justify-center gap-2 py-2 pt-3">
@@ -128,7 +125,7 @@ function RightSidebarPanel() {
 export function RightRailLayout({ children }: { children: ReactNode }) {
   const isMobile = useBreakpoint('md')
   const { activeSidebar } = useSidebarManagerSnapshot()
-  const showRightSidebar = !isMobile && activeSidebar?.component !== undefined
+  const showRightSidebar = activeSidebar?.component !== undefined
 
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden">
@@ -136,13 +133,10 @@ export function RightRailLayout({ children }: { children: ReactNode }) {
         <ResizablePanelGroup
           orientation="horizontal"
           autoSaveId="default-layout-v2-right-sidebar"
-          className="min-h-0 min-w-0 flex-1 overflow-hidden"
+          className="hidden md:flex min-h-0 min-w-0 flex-1 overflow-hidden"
         >
           <ResizablePanel
             id="panel-v2-right-main-content"
-            // minSize={100 - RIGHT_SIDEBAR_MAX_SIZE_PERCENTAGE}
-            // maxSize={100 - RIGHT_SIDEBAR_MIN_SIZE_PERCENTAGE}
-            // defaultSize={100 - RIGHT_SIDEBAR_DEFAULT_SIZE_PERCENTAGE}
             className="h-full min-h-0 min-w-0 overflow-hidden"
           >
             <div className="min-h-0 min-w-0 h-full">{children}</div>

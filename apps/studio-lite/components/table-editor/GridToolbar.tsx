@@ -95,7 +95,7 @@ export function GridToolbar(ctx: PlatformGridContext) {
             </DropdownMenuTrigger>
             <DropdownMenuContent side="bottom" align="end">
               <DropdownMenuItem
-                className="group space-x-2"
+                className="group flex gap-2"
                 onClick={ctx.onAddRow}
                 disabled={!ctx.pkColumn}
               >
@@ -114,7 +114,7 @@ export function GridToolbar(ctx: PlatformGridContext) {
                   <p className="text-foreground-light">Insert a new row into {ctx.tableName}</p>
                 </div>
               </DropdownMenuItem>
-              <DropdownMenuItem className="group space-x-2">
+              <DropdownMenuItem className="group flex gap-2">
                 <div className="flex -mt-2 pr-1.5">
                   <div className="border border-foreground-lighter w-[4px] h-[15px]" />
                   <div className="border border-foreground-lighter w-[4px] h-[15px] mx-[2px]" />
@@ -130,7 +130,7 @@ export function GridToolbar(ctx: PlatformGridContext) {
                   <p className="text-foreground-light">Insert a new column into {ctx.tableName}</p>
                 </div>
               </DropdownMenuItem>
-              <DropdownMenuItem className="group space-x-2">
+              <DropdownMenuItem className="group flex gap-2">
                 <div className="relative -mt-2">
                   <FileText size={18} strokeWidth={1.5} className="-translate-x-[2px]" />
                   <ArrowUp

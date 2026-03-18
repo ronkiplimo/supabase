@@ -69,13 +69,13 @@ export function ConnectDialog({ open, onOpenChange }: ConnectDialogProps) {
           </TabsList_Shadcn_>
 
           <div className="px-6 py-6 max-h-[60vh] overflow-y-auto">
-            <TabsContent_Shadcn_ value="direct" className="mt-0 space-y-6">
+            <TabsContent_Shadcn_ value="direct" className="mt-0 flex flex-col gap-6">
               <DirectConnectionContent />
             </TabsContent_Shadcn_>
-            <TabsContent_Shadcn_ value="sdk" className="mt-0 space-y-6">
+            <TabsContent_Shadcn_ value="sdk" className="mt-0 flex flex-col gap-6">
               <SdkContent />
             </TabsContent_Shadcn_>
-            <TabsContent_Shadcn_ value="orm" className="mt-0 space-y-6">
+            <TabsContent_Shadcn_ value="orm" className="mt-0 flex flex-col gap-6">
               <OrmContent />
             </TabsContent_Shadcn_>
           </div>
@@ -194,7 +194,7 @@ function ConnectStep({
       <div className="flex items-center justify-center w-6 h-6 rounded bg-surface-300 text-xs font-mono text-foreground-light flex-shrink-0 mt-0.5">
         {number}
       </div>
-      <div className="flex-1 space-y-3">
+      <div className="flex-1 flex flex-col gap-3">
         <p className="text-sm font-medium text-foreground">{title}</p>
         {children}
       </div>

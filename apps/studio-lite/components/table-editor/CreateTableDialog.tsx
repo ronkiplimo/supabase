@@ -97,9 +97,9 @@ export function CreateTableDialog({ visible, onClose, onCreated }: CreateTableDi
       confirmText="Create table"
       loading={createMutation.isPending}
     >
-      <div className="space-y-6 py-4">
+      <div className="flex flex-col gap-6 py-4">
         <SidePanel.Content>
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <label className="text-sm text-foreground-light">Table name</label>
             <Input_Shadcn_
               className="h-9"
@@ -114,7 +114,7 @@ export function CreateTableDialog({ visible, onClose, onCreated }: CreateTableDi
         <SidePanel.Separator />
 
         <SidePanel.Content>
-          <div className="space-y-3">
+          <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <label className="text-sm text-foreground-light">Columns</label>
               <Button
@@ -126,7 +126,7 @@ export function CreateTableDialog({ visible, onClose, onCreated }: CreateTableDi
                 Add column
               </Button>
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               {columns.map((col, i) => (
                 <ColumnDefForm
                   key={i}

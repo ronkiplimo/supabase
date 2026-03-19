@@ -1,6 +1,6 @@
 'use client'
 
-import { Plus, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { cn } from 'ui'
 
@@ -24,7 +24,13 @@ export function DataTabBar() {
   const { projectRef } = useV2Params()
   const { dataTabs, closeDataTab } = useV2DashboardStore()
 
-  const activeTab = useActiveTab(dataTabs, pathname)
+  // Only show detail tabs — list navigation happens via the browser panel
+  const detailTabs = dataTabs.filter((t) => t.type === 'detail')
+  // Always call hooks before any early return
+  const activeTab = useActiveTab(detailTabs, pathname)
+
+  // Don't render the bar at all when there are no detail tabs
+  if (detailTabs.length === 0) return null
   const chooserPath = projectRef ? `/dashboard/v2/project/${projectRef}/data` : '#'
 
   const handleClose = (tab: DataTab, e: React.MouseEvent) => {
@@ -32,9 +38,9 @@ export function DataTabBar() {
     e.stopPropagation()
     closeDataTab(tab.id)
     if (activeTab?.id === tab.id) {
-      const remaining = dataTabs.filter((t) => t.id !== tab.id)
+      const remaining = detailTabs.filter((t) => t.id !== tab.id)
       if (remaining.length > 0) {
-        const idx = dataTabs.indexOf(tab)
+        const idx = detailTabs.indexOf(tab)
         const next = remaining[Math.min(idx, remaining.length - 1)]
         router.push(next.path)
       } else {
@@ -43,15 +49,14 @@ export function DataTabBar() {
     }
   }
 
-  const isChooser = !activeTab && pathname !== null
-
   return (
     <div className="flex items-center border-b border-border bg-background shrink-0 min-h-[36px] overflow-x-auto">
-      {dataTabs.map((tab) => {
+      {detailTabs.map((tab) => {
         const isActive = activeTab?.id === tab.id
         return (
-          <div
+          <button
             key={tab.id}
+            type="button"
             className={cn(
               'group relative flex items-center gap-1.5 pl-2.5 pr-1 py-1.5 border-r border-border shrink-0 max-w-[200px] cursor-pointer select-none',
               isActive
@@ -70,23 +75,9 @@ export function DataTabBar() {
             >
               <X className="h-3 w-3" />
             </button>
-          </div>
+          </button>
         )
       })}
-
-      {/* "+" button — opens chooser */}
-      <button
-        type="button"
-        onClick={() => router.push(chooserPath)}
-        className={cn(
-          'flex items-center justify-center w-8 h-[36px] shrink-0 text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50',
-          isChooser && 'text-foreground bg-sidebar-accent/50'
-        )}
-        title="Open data chooser"
-        aria-label="Open data chooser"
-      >
-        <Plus className="h-4 w-4" />
-      </button>
     </div>
   )
 }

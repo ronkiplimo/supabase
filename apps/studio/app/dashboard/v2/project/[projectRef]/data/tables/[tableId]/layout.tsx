@@ -15,11 +15,7 @@ const SUB_TABS = [
   { slug: 'settings', label: 'Settings' },
 ]
 
-export default function TableDetailLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function TableDetailLayout({ children }: { children: React.ReactNode }) {
   const params = useParams()
   const pathname = usePathname()
   const { projectRef } = useV2Params()
@@ -30,7 +26,7 @@ export default function TableDetailLayout({
   return (
     <StudioDataWorkspace projectRef={projectRef} id={tableId}>
       <div className="flex flex-col h-full">
-        <div className="flex items-center gap-1 px-4 py-2 border-b border-border shrink-0">
+        <div className="flex items-center border-b border-border shrink-0">
           {SUB_TABS.map((tab) => {
             const href = `${base}/${tab.slug}`
             const isActive = pathname === href || pathname?.startsWith(href + '/')
@@ -39,10 +35,11 @@ export default function TableDetailLayout({
                 key={tab.slug}
                 href={href}
                 className={cn(
-                  'px-3 py-1.5 text-xs rounded',
+                  'relative px-3 py-2.5 text-xs transition-colors',
+                  'after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-t',
                   isActive
-                    ? 'bg-sidebar-accent text-foreground font-medium'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'text-foreground font-medium after:bg-foreground'
+                    : 'text-foreground-lighter hover:text-foreground after:bg-transparent'
                 )}
               >
                 {tab.label}

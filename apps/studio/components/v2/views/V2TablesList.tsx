@@ -2,7 +2,7 @@
 
 import type { PostgresTable } from '@supabase/postgres-meta'
 import Link from 'next/link'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import {
   Select_Shadcn_,
   SelectContent_Shadcn_,
@@ -25,19 +25,6 @@ export function V2TablesList() {
   const { projectRef } = useV2Params()
   const openDataTab = useV2DashboardStore((s) => s.openDataTab)
   const [schema, setSchema] = useState('public')
-
-  // Register this list as an open tab
-  useEffect(() => {
-    if (!projectRef) return
-    openDataTab({
-      id: 'tables',
-      label: 'Tables',
-      type: 'list',
-      category: 'tables',
-      domain: 'db',
-      path: `/dashboard/v2/project/${projectRef}/data/tables`,
-    })
-  }, [projectRef, openDataTab])
   const [search, setSearch] = useState('')
 
   const { data: project, isPending: isProjectPending } = useProjectDetailQuery(

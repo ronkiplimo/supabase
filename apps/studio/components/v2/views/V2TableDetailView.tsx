@@ -18,18 +18,26 @@ export function V2TableDetailView({ subTab }: { subTab: string }) {
   const tableId = params?.tableId as string
   const id = tableId ? Number(tableId) : undefined
 
-  const { data: project } = useProjectDetailQuery(
+  const { data: project, isPending: isProjectPending } = useProjectDetailQuery(
     { ref: projectRef },
     { enabled: Boolean(projectRef) }
   )
-  const { data: table, isPending, isError } = useTableEditorQuery(
+  const connectionString = project?.connectionString
+
+  const { data: table, isPending: isTablePending, isError } = useTableEditorQuery(
+    { projectRef, connectionString, id },
     {
-      projectRef,
-      connectionString: project?.connectionString,
-      id,
-    },
-    { enabled: Boolean(projectRef) && typeof id === 'number' && !Number.isNaN(id) }
+      // Wait for the project (and its connectionString) before running the SQL query.
+      // Without a valid connectionString the query returns null and the loader never clears.
+      enabled:
+        Boolean(projectRef) &&
+        Boolean(connectionString) &&
+        typeof id === 'number' &&
+        !Number.isNaN(id),
+    }
   )
+
+  const isPending = isProjectPending || isTablePending
 
   // Register this detail tab once we know the table name
   useEffect(() => {

@@ -1,9 +1,11 @@
 'use client'
 
+import { useState } from 'react'
+import { PanelLeftOpen } from 'lucide-react'
 import { MobileSheetProvider } from 'components/layouts/Navigation/NavigationBar/MobileSheetContext'
 import { LayoutSidebar } from 'components/layouts/ProjectLayout/LayoutSidebar'
 import { usePathname } from 'next/navigation'
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup, SidebarProvider } from 'ui'
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup, SidebarProvider, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
 
 import { LeftActivityBar } from './ActivityBar'
 import { BrowserPanel } from './BrowserPanel'
@@ -17,6 +19,7 @@ import { V2DashboardProvider } from '@/stores/v2-dashboard'
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { projectRef } = useV2Params()
+  const [isBrowserCollapsed, setIsBrowserCollapsed] = useState(false)
 
   const isHomeActive =
     Boolean(projectRef) &&
@@ -25,12 +28,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
     !pathname?.includes('/obs/') &&
     !pathname?.includes('/settings/')
 
-  // Data activity also hides the browser panel (Figma tab model)
-  const isDataActivity =
-    Boolean(projectRef) &&
-    Boolean(pathname?.includes('/data/') || pathname?.endsWith('/data'))
-
-  const hideBrowser = isHomeActive || isDataActivity
+  // Home hides the browser panel; all other activities show it
+  const hideBrowser = isHomeActive
+  const showCollapsed = !hideBrowser && isBrowserCollapsed
+  const showExpanded = !hideBrowser && !isBrowserCollapsed
 
   return (
     <V2DashboardProvider>
@@ -41,35 +42,58 @@ export function Shell({ children }: { children: React.ReactNode }) {
               <TopBar />
               <div className="flex flex-1 min-h-0">
                 <LeftActivityBar />
+
+                {/* Collapsed browser strip — narrow column with expand button */}
+                {showCollapsed && (
+                  <div className="flex flex-col items-center w-9 shrink-0 border-r border-border bg-dash-sidebar pt-1.5 gap-1">
+                    <Tooltip delayDuration={0}>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => setIsBrowserCollapsed(false)}
+                          className="flex items-center justify-center w-7 h-7 rounded text-foreground-lighter hover:text-foreground hover:bg-sidebar-accent"
+                          aria-label="Expand panel"
+                        >
+                          <PanelLeftOpen className="h-4 w-4" strokeWidth={1.5} />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="text-xs">Expand panel</TooltipContent>
+                    </Tooltip>
+                  </div>
+                )}
+
                 <ResizablePanelGroup
                   orientation="horizontal"
                   className="h-full w-full overflow-x-hidden flex-1 flex flex-row gap-0"
-                  autoSaveId={hideBrowser ? 'v2-shell-content-wide' : 'v2-shell-content'}
+                  autoSaveId={
+                    hideBrowser
+                      ? 'v2-shell-wide'
+                      : isBrowserCollapsed
+                        ? 'v2-shell-collapsed'
+                        : 'v2-shell-content'
+                  }
                 >
-                  {!hideBrowser && (
+                  {showExpanded && (
                     <>
                       <ResizablePanel
                         id="panel-browser"
-                        minSize={200}
+                        minSize={160}
                         maxSize={400}
                         defaultSize={'240px'}
                       >
-                        <BrowserPanel />
+                        <BrowserPanel onCollapse={() => setIsBrowserCollapsed(true)} />
                       </ResizablePanel>
                       <ResizableHandle withHandle />
                     </>
                   )}
-                  <ResizablePanel
-                    id="panel-content"
-                    // minSize={isHomeActive ? 55 : 35}
-                    // defaultSize={isHomeActive ? 70 : 80}
-                  >
+                  <ResizablePanel id="panel-content">
                     <main className="flex-1 min-w-0 flex flex-col overflow-hidden h-full">
                       <EditorFrame>{children}</EditorFrame>
                     </main>
                   </ResizablePanel>
                   <LayoutSidebar minSize={300} maxSize={500} defaultSize={340} />
                 </ResizablePanelGroup>
+
                 <RightActivityBar />
               </div>
             </div>

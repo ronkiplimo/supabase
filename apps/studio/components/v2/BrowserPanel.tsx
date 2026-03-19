@@ -1,9 +1,9 @@
 'use client'
 
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, PanelLeftClose } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { cn } from 'ui'
+import { cn, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
 
 import { useV2DataCounts } from './useV2DataCounts'
 import { useV2Params } from '@/app/v2/V2ParamsContext'
@@ -116,27 +116,6 @@ const SETTINGS_GROUPS = [
   },
 ]
 
-type GroupStatus = 'green' | 'yellow' | 'red'
-
-function getMockGroupStatus(groupId: string): GroupStatus {
-  const statuses: GroupStatus[] = ['green', 'yellow', 'red']
-  const hash = groupId.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
-  return statuses[hash % statuses.length]
-}
-
-function getStatusClass(status: GroupStatus): string {
-  switch (status) {
-    case 'green':
-      return 'bg-emerald-500'
-    case 'yellow':
-      return 'bg-amber-500'
-    case 'red':
-      return 'bg-red-500'
-    default:
-      return 'bg-muted-foreground'
-  }
-}
-
 function getCount(counts: ReturnType<typeof useV2DataCounts>, key: string): number | string {
   switch (key) {
     case 'tables':
@@ -168,9 +147,9 @@ function getCount(counts: ReturnType<typeof useV2DataCounts>, key: string): numb
   }
 }
 
-export function BrowserPanel() {
+export function BrowserPanel({ onCollapse }: { onCollapse?: () => void }) {
   const pathname = usePathname()
-  const { orgSlug, projectRef } = useV2Params()
+  const { projectRef } = useV2Params()
   const { expandedGroups, toggleGroup } = useV2DashboardStore()
   const counts = useV2DataCounts(projectRef)
 
@@ -185,13 +164,29 @@ export function BrowserPanel() {
 
   return (
     <div className="w-full h-full flex flex-col border-r border-border bg-dash-sidebar">
-      <div className="px-3 py-2 border-b border-border text-sm font-medium text-foreground">
-        {title}
+      <div className="flex items-center justify-between pl-3 pr-2 py-1.5 border-b border-border shrink-0">
+        <span className="text-sm font-medium text-foreground">{title}</span>
+        {onCollapse && (
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={onCollapse}
+                className="flex items-center justify-center w-6 h-6 rounded text-foreground-lighter hover:text-foreground hover:bg-sidebar-accent"
+                aria-label="Collapse panel"
+              >
+                <PanelLeftClose className="h-3.5 w-3.5" strokeWidth={1.5} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="text-xs">
+              Collapse panel
+            </TooltipContent>
+          </Tooltip>
+        )}
       </div>
       <div className="flex-1 overflow-auto py-1">
         {groups.map((group) => {
           const isExpanded = expandedGroups[group.id] !== false
-          const status = getMockGroupStatus(group.id)
           return (
             <div key={group.id} className="py-0.5">
               <button

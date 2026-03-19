@@ -27,7 +27,7 @@ export const ProjectBranchSelectorTrigger = React.forwardRef<
       <SidebarMenuButtonComponent
         ref={ref}
         size="lg"
-        className="group py-1 gap-1.5 w-full max-w-[250px] flex h-auto text-left data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground touch-manipulation"
+        className="group p-0.5  gap-1.5 w-full max-w-[250px] flex h-auto text-left data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground touch-manipulation"
         {...buttonProps}
       >
         <div className="relative flex h-8 aspect-square shrink-0 items-center bg-background-muted group-hover:border-stronger justify-center rounded border border-strong text-xs">

@@ -1,12 +1,11 @@
 'use client'
 
 import { useProjectLintsQuery } from 'data/lint/lint-query'
-import { ChartArea, Home, Settings, Table } from 'lucide-react'
+import { ChartArea, Home, Settings, Table2 } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
-
-import dynamic from 'next/dynamic'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
 
@@ -151,7 +150,7 @@ export function LeftActivityBar() {
         },
         {
           id: 'data',
-          icon: <Table className="h-4 w-4" strokeWidth={1.5} />,
+          icon: <Table2 className="h-4 w-4" strokeWidth={1.5} />,
           label: 'Data',
           href: `${base}/data/tables`,
         },

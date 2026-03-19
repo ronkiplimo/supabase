@@ -1,12 +1,18 @@
 'use client'
 
 import { useProjectLintsQuery } from 'data/lint/lint-query'
-import { ChartArea, Database, Home, Settings, Table } from 'lucide-react'
+import { ChartArea, Home, Settings, Table } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
 
+import dynamic from 'next/dynamic'
+
 import { useV2Params } from '@/app/v2/V2ParamsContext'
+
+const AccountNav = dynamic(() => import('./Navigation/AccountNav').then((m) => m.AccountNav), {
+  ssr: false,
+})
 
 export type ActivityId = 'home' | 'data' | 'obs' | 'settings'
 
@@ -129,7 +135,7 @@ export function LeftActivityBar() {
   const hasAdvisorWarnings = (lints?.length ?? 0) > 0
 
   const base = projectRef ? `/dashboard/v2/project/${projectRef}` : '#'
-  const homeBase = projectRef && orgSlug ? `/dashboard/v2/${orgSlug}/${projectRef}` : '#'
+  const homeBase = projectRef && orgSlug ? `/dashboard/v2/project/${projectRef}` : '#'
 
   return (
     <ActivityBar
@@ -164,6 +170,11 @@ export function LeftActivityBar() {
         },
       ]}
       tooltipSide="right"
+      bottomContent={
+        <div className="p-1.5">
+          <AccountNav />
+        </div>
+      }
     />
   )
 }

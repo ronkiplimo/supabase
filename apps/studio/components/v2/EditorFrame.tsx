@@ -36,7 +36,7 @@ export function EditorFrame({ children }: { children: React.ReactNode }) {
     !pathname?.includes('/settings/')
 
   return (
-    <div className="flex flex-col flex-1 min-w-0 bg-background">
+    <div className="flex flex-col flex-1 min-w-0 overflow-hidden bg-background">
       {isDataCategory ? null : isHome ? null : <StaticTitle />}
       {isDataCategory && <TabBar />}
       <div

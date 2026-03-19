@@ -29,7 +29,7 @@ export const InlineEditorButton = () => {
       size="tiny"
       id="editor-trigger"
       className={cn(
-        'rounded-full w-[32px] h-[32px] flex items-center justify-center p-0 text-foreground-light hover:text-foreground',
+        'rounded-full w-[32px] h-[32px] flex items-center justify-center p-0 text-foreground-light hover:text-foreground border-transparent',
         isOpen && 'bg-foreground text-background hover:text-background'
       )}
       onClick={handleClick}

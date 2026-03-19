@@ -197,17 +197,17 @@ export function BrowserPanel() {
               <button
                 type="button"
                 onClick={() => toggleGroup(group.id)}
-                className="flex items-center justify-between w-full px-3 py-1.5 text-left font-mono uppercase text-xs text-foreground-lighter hover:bg-sidebar-accent gap-2"
+                className="group/browser-panel-collapsible flex items-center justify-between w-full px-3 py-1.5 text-left font-mono uppercase text-xs text-foreground-lighter hover:text-foreground-light hover:bg-sidebar-accent gap-2"
               >
                 <span className="truncate">{group.label}</span>
                 <span className="flex items-center gap-1.5 shrink-0">
-                  <span
+                  {/* <span
                     className={cn('h-1.5 w-1.5 rounded-full', getStatusClass(status))}
                     aria-label={`${status} status`}
-                  />
+                  /> */}
                   <ChevronRight
                     className={cn(
-                      'h-4 w-4 shrink-0 transition-transform',
+                      'h-4 w-4 shrink-0 transition-transform text-foreground-muted group-hover/browser-panel-collapsible:text-foreground-light',
                       isExpanded && 'rotate-90'
                     )}
                   />

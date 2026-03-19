@@ -1,10 +1,5 @@
-import { redirect } from 'next/navigation'
+import { HomeView } from '@/components/v2/HomeView'
 
-export default async function V2ProjectPage({
-  params,
-}: {
-  params: Promise<{ projectRef: string }>
-}) {
-  const { projectRef } = await params
-  redirect(`/dashboard/v2/project/${projectRef}/data/tables`)
+export default function V2ProjectPage() {
+  return <HomeView />
 }

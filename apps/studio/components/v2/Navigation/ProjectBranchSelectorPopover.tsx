@@ -1,24 +1,11 @@
-import type { ParsedUrlQuery } from 'querystring'
-import { useParams } from 'common'
-import { OrganizationDropdownCommandContent } from 'components/layouts/AppLayout/OrganizationDropdownCommandContent'
-import { OrganizationProjectSelector } from 'components/ui/OrganizationProjectSelector'
-import { useBranchesQuery } from 'data/branches/branches-query'
-import type { Branch } from 'data/branches/branches-query'
-import { useOrganizationsQuery } from 'data/organizations/organizations-query'
-import { useProjectDetailQuery } from 'data/projects/project-detail-query'
-import { useIsFeatureEnabled } from 'hooks/misc/useIsFeatureEnabled'
-import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
-import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
-import { IS_PLATFORM } from 'lib/constants'
+'use client'
+
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { Check, ListTree, MessageCircle, Plus, Shield } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
-import { useAppStateSnapshot } from 'state/app-state'
-import type { Organization } from 'types'
+
 import {
-  Button,
-  cn,
   Command_Shadcn_,
   CommandEmpty_Shadcn_,
   CommandGroup_Shadcn_,
@@ -29,6 +16,16 @@ import {
 } from 'ui'
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
+import { useV2Params } from '@/app/v2/V2ParamsContext'
+import { useBranchesQuery } from 'data/branches/branches-query'
+import type { Branch } from 'data/branches/branches-query'
+import { useOrganizationsQuery } from 'data/organizations/organizations-query'
+import { useOrgProjectsInfiniteQuery } from 'data/projects/org-projects-infinite-query'
+import { useProjectDetailQuery } from 'data/projects/project-detail-query'
+import { useIsFeatureEnabled } from 'hooks/misc/useIsFeatureEnabled'
+import { useAppStateSnapshot } from 'state/app-state'
+import { IS_PLATFORM } from 'lib/constants'
+
 const BRANCHING_GITHUB_DISCUSSION_LINK = 'https://github.com/orgs/supabase/discussions/18937'
 
 export interface ProjectBranchSelectorPopoverProps {
@@ -37,37 +34,38 @@ export interface ProjectBranchSelectorPopoverProps {
 
 export function ProjectBranchSelectorPopover({ onClose }: ProjectBranchSelectorPopoverProps) {
   const router = useRouter()
-  const { ref, slug: routeSlug } = useParams()
   const snap = useAppStateSnapshot()
-  const { data: selectedOrganization } = useSelectedOrganizationQuery()
+  const { orgSlug, projectRef } = useV2Params()
   const { data: organizations } = useOrganizationsQuery()
-  const { data: project } = useSelectedProjectQuery()
-  const projectCreationEnabled = useIsFeatureEnabled('projects:create')
   const organizationCreationEnabled = useIsFeatureEnabled('organizations:create')
+  const projectCreationEnabled = useIsFeatureEnabled('projects:create')
 
-  const isBranch = project?.parentRef !== project?.ref
-  const { data: parentProject } = useProjectDetailQuery(
-    { ref: project?.parent_project_ref },
-    { enabled: isBranch }
-  )
-  const displayProject = parentProject ?? project
-  const parentRef = project?.parent_project_ref || ref
-
-  const [activeOrganizationSlug, setActiveOrganizationSlug] = useState<string | undefined>(
-    selectedOrganization?.slug
-  )
+  const [activeOrganizationSlug, setActiveOrganizationSlug] = useState<string | undefined>(orgSlug)
 
   useEffect(() => {
-    setActiveOrganizationSlug(selectedOrganization?.slug)
-  }, [selectedOrganization?.slug])
+    setActiveOrganizationSlug(orgSlug)
+  }, [orgSlug])
+
+  const { data: project } = useProjectDetailQuery(
+    { ref: projectRef },
+    { enabled: Boolean(projectRef) }
+  )
+
+  const isBranch =
+    Boolean(project?.parent_project_ref) && project?.parent_project_ref !== project?.ref
+  const { data: parentProject } = useProjectDetailQuery(
+    { ref: project?.parent_project_ref },
+    { enabled: Boolean(isBranch && project?.parent_project_ref) }
+  )
+  const parentRef = parentProject?.ref ?? project?.parent_project_ref ?? projectRef
 
   const { data: branches, isSuccess: isBranchesSuccess } = useBranchesQuery(
     { projectRef: parentRef },
-    { enabled: Boolean(project) }
+    { enabled: IS_PLATFORM && Boolean(parentRef) }
   )
 
   const isBranchingEnabled = project?.is_branch_enabled === true
-  const selectedBranch = branches?.find((b) => b.project_ref === ref)
+  const selectedBranch = branches?.find((b) => b.project_ref === projectRef)
   const mainBranch = branches?.find((b) => b.is_default)
   const restOfBranches = branches
     ?.filter((b) => !b.is_default)
@@ -76,7 +74,7 @@ export function ProjectBranchSelectorPopover({ onClose }: ProjectBranchSelectorP
   const defaultMainBranch = {
     id: 'main',
     name: 'main',
-    project_ref: parentRef ?? ref ?? '',
+    project_ref: parentRef ?? projectRef ?? '',
     is_default: true,
   } as unknown as Branch
 
@@ -88,25 +86,24 @@ export function ProjectBranchSelectorPopover({ onClose }: ProjectBranchSelectorP
       : [defaultMainBranch]
   const branchList = isBranchingEnabled ? sortedBranches : [defaultMainBranch]
 
-  if (!IS_PLATFORM) return null
-  if (!displayProject) return null
-
   return (
     <div className="flex divide-x h-[320px]">
       <OrganizationColumn
-        routePathname={router.pathname}
-        hasRouteSlug={Boolean(routeSlug)}
         organizations={organizations ?? []}
-        selectedSlug={activeOrganizationSlug ?? selectedOrganization?.slug}
-        onSelect={(slug) => setActiveOrganizationSlug(slug)}
+        selectedSlug={activeOrganizationSlug}
         organizationCreationEnabled={organizationCreationEnabled}
+        onSelect={(slug) => setActiveOrganizationSlug(slug)}
         onClose={onClose}
       />
       <ProjectColumn
-        selectedRef={ref}
-        onClose={onClose}
-        organizationSlug={activeOrganizationSlug ?? selectedOrganization?.slug}
+        organizationSlug={activeOrganizationSlug}
+        selectedRef={projectRef}
         projectCreationEnabled={projectCreationEnabled}
+        onSelect={(ref) => {
+          onClose()
+          router.push(`/dashboard/v2/project/${ref}/data/tables`)
+        }}
+        onClose={onClose}
       />
       <BranchColumn
         branches={branchList}
@@ -114,11 +111,8 @@ export function ProjectBranchSelectorPopover({ onClose }: ProjectBranchSelectorP
         isBranchingEnabled={isBranchingEnabled}
         isBranchesLoaded={isBranchesSuccess}
         onSelect={(branch) => {
-          const sanitizedRoute = sanitizeRoute(router.route, router.query)
-          const href =
-            sanitizedRoute?.replace('[ref]', branch.project_ref) ?? `/project/${branch.project_ref}`
           onClose()
-          router.push(href)
+          router.push(`/dashboard/v2/project/${branch.project_ref}/data/tables`)
         }}
         onCreateBranch={() => {
           onClose()
@@ -126,7 +120,7 @@ export function ProjectBranchSelectorPopover({ onClose }: ProjectBranchSelectorP
         }}
         onManageBranches={() => {
           onClose()
-          router.push(`/project/${ref}/branches`)
+          router.push(`/dashboard/v2/project/${projectRef}/settings/branches`)
         }}
         onClose={onClose}
       />
@@ -134,101 +128,150 @@ export function ProjectBranchSelectorPopover({ onClose }: ProjectBranchSelectorP
   )
 }
 
-function sanitizeRoute(route: string, routerQueries: ParsedUrlQuery) {
-  const queryArray = Object.entries(routerQueries)
-  if (queryArray.length > 1) {
-    const isStorageBucketRoute = 'bucketId' in routerQueries
-    const isSecurityAdvisorRoute = 'preset' in routerQueries
-    return route
-      .split('/')
-      .slice(0, isStorageBucketRoute || isSecurityAdvisorRoute ? 5 : 4)
-      .join('/')
-  }
-  return route
-}
+// --- Columns ---
 
 function OrganizationColumn({
-  routePathname,
-  hasRouteSlug,
   organizations,
   selectedSlug,
-  onSelect,
   organizationCreationEnabled,
+  onSelect,
   onClose,
 }: {
-  routePathname: string
-  hasRouteSlug: boolean
-  organizations: Array<{ slug: string; name: string }>
+  organizations: Array<{ id: number; slug: string; name: string }>
   selectedSlug?: string
-  onSelect: (slug: string) => void
   organizationCreationEnabled: boolean
+  onSelect: (slug: string) => void
   onClose: () => void
 }) {
+  const [search, setSearch] = useState('')
+  const lowerSearch = search.toLowerCase()
+  const filtered = organizations.filter(
+    (o) => o.name.toLowerCase().includes(lowerSearch) || o.slug.toLowerCase().includes(lowerSearch)
+  )
+
   return (
-    <OrganizationDropdownCommandContent
-      embedded={false}
-      className="bg-transparent border-0 shadow-none min-h-0 flex-1 flex flex-col overflow-hidden rounded-none"
-      organizations={organizations as Organization[]}
-      selectedSlug={selectedSlug}
-      routePathname={routePathname}
-      hasRouteSlug={hasRouteSlug}
-      organizationCreationEnabled={organizationCreationEnabled}
-      onClose={onClose}
-      onSelectOrganization={(org) => onSelect(org.slug)}
-    />
+    <div className="flex flex-col flex-1 min-w-0">
+      <Command_Shadcn_ shouldFilter={false} className="min-h-0 flex-1 rounded-none border-0">
+        <CommandInput_Shadcn_
+          value={search}
+          onValueChange={setSearch}
+          placeholder="Find organization..."
+          showResetIcon
+          handleReset={() => setSearch('')}
+        />
+        <CommandList_Shadcn_ className="max-h-none flex-1 overflow-y-auto">
+          <CommandEmpty_Shadcn_>No organizations found</CommandEmpty_Shadcn_>
+          <CommandGroup_Shadcn_>
+            {filtered.map((org) => (
+              <CommandItem_Shadcn_
+                key={org.id}
+                value={`${org.name.replaceAll('"', '')} - ${org.slug}`}
+                className="cursor-pointer w-full"
+                onSelect={() => onSelect(org.slug)}
+              >
+                <span className="truncate flex flex-1 items-center gap-1.5">{org.name}</span>
+                {org.slug === selectedSlug && <Check size={14} className="shrink-0 ml-2" />}
+              </CommandItem_Shadcn_>
+            ))}
+          </CommandGroup_Shadcn_>
+        </CommandList_Shadcn_>
+        {organizationCreationEnabled && (
+          <>
+            <CommandSeparator_Shadcn_ />
+            <CommandGroup_Shadcn_>
+              <CommandItem_Shadcn_ className="cursor-pointer w-full" onSelect={() => onClose()}>
+                <Link href="/new" className="flex items-center gap-2 w-full" onClick={onClose}>
+                  <Plus size={14} strokeWidth={1.5} />
+                  <p>New organization</p>
+                </Link>
+              </CommandItem_Shadcn_>
+            </CommandGroup_Shadcn_>
+          </>
+        )}
+      </Command_Shadcn_>
+    </div>
   )
 }
 
 function ProjectColumn({
-  selectedRef,
-  onClose,
   organizationSlug,
+  selectedRef,
   projectCreationEnabled,
+  onSelect,
+  onClose,
 }: {
-  selectedRef?: string
-  onClose: () => void
   organizationSlug?: string
+  selectedRef?: string
   projectCreationEnabled: boolean
+  onSelect: (ref: string) => void
+  onClose: () => void
 }) {
-  const router = useRouter()
+  const [search, setSearch] = useState('')
+  const lowerSearch = search.toLowerCase()
+
+  const { data: projectsData, isPending: isProjectsPending } = useOrgProjectsInfiniteQuery(
+    { slug: organizationSlug, limit: 50 },
+    { enabled: Boolean(organizationSlug) }
+  )
+  const projects = projectsData?.pages?.flatMap((p) => p.projects) ?? []
+  const filtered = projects.filter((p) => p.name.toLowerCase().includes(lowerSearch))
 
   return (
     <div className="flex flex-col flex-1 min-w-0">
-      <OrganizationProjectSelector
-        renderOnlyContent
-        fetchOnMount
-        slug={organizationSlug}
-        selectedRef={selectedRef ?? null}
-        className="bg-transparent border-0 shadow-none min-h-0 flex-1 flex flex-col overflow-hidden rounded-none"
-        onSelect={(project) => {
-          const sanitizedRoute = sanitizeRoute(router.route, router.query)
-          const href = sanitizedRoute?.replace('[ref]', project.ref) ?? `/project/${project.ref}`
-          onClose()
-          router.push(href)
-        }}
-        renderActions={() =>
-          projectCreationEnabled && organizationSlug ? (
+      <Command_Shadcn_ shouldFilter={false} className="min-h-0 flex-1 rounded-none border-0">
+        <CommandInput_Shadcn_
+          value={search}
+          onValueChange={setSearch}
+          placeholder="Find project..."
+          showResetIcon
+          handleReset={() => setSearch('')}
+        />
+        <CommandList_Shadcn_ className="max-h-none flex-1 overflow-y-auto">
+          {isProjectsPending ? (
+            <div className="space-y-1 p-2">
+              <ShimmeringLoader className="py-2" />
+              <ShimmeringLoader className="py-2 w-4/5" />
+            </div>
+          ) : (
+            <>
+              <CommandEmpty_Shadcn_>No projects found</CommandEmpty_Shadcn_>
+              <CommandGroup_Shadcn_>
+                {filtered.map((proj) => (
+                  <CommandItem_Shadcn_
+                    key={proj.ref}
+                    value={`${proj.name.replaceAll('"', '')} ${proj.ref}`}
+                    className="cursor-pointer w-full"
+                    onSelect={() => onSelect(proj.ref)}
+                  >
+                    <span className="truncate flex flex-1 items-center gap-1.5">{proj.name}</span>
+                    {proj.ref === selectedRef && <Check size={14} className="shrink-0 ml-2" />}
+                  </CommandItem_Shadcn_>
+                ))}
+              </CommandGroup_Shadcn_>
+            </>
+          )}
+        </CommandList_Shadcn_>
+        {projectCreationEnabled && organizationSlug && (
+          <>
+            <CommandSeparator_Shadcn_ />
             <CommandGroup_Shadcn_>
               <CommandItem_Shadcn_
                 className="cursor-pointer w-full"
-                onSelect={() => {
-                  onClose()
-                  router.push(`/new/${organizationSlug}`)
-                }}
+                onSelect={() => onClose()}
               >
                 <Link
                   href={`/new/${organizationSlug}`}
+                  className="flex items-center gap-2 w-full"
                   onClick={onClose}
-                  className="w-full flex items-center gap-2"
                 >
                   <Plus size={14} strokeWidth={1.5} />
                   <p>New project</p>
                 </Link>
               </CommandItem_Shadcn_>
             </CommandGroup_Shadcn_>
-          ) : null
-        }
-      />
+          </>
+        )}
+      </Command_Shadcn_>
     </div>
   )
 }
@@ -314,7 +357,7 @@ function BranchColumn({
           </CommandItem_Shadcn_>
         </CommandGroup_Shadcn_>
         <CommandSeparator_Shadcn_ />
-        <CommandGroup_Shadcn_ className=" space-y-0.5">
+        <CommandGroup_Shadcn_ className="space-y-0.5">
           {isBranchingEnabled && (
             <CommandItem_Shadcn_ className="cursor-pointer w-full" onSelect={() => onClose()}>
               <button

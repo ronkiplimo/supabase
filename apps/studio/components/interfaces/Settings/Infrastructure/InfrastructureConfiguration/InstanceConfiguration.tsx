@@ -9,6 +9,7 @@ import ReactFlow, { Background, Edge, ReactFlowProvider, useReactFlow } from 're
 import 'reactflow/dist/style.css'
 
 import { useParams } from 'common'
+import { useV2Params } from '@/app/v2/V2ParamsContext'
 import AlertError from 'components/ui/AlertError'
 import { ButtonTooltip } from 'components/ui/ButtonTooltip'
 import { useLoadBalancersQuery } from 'data/read-replicas/load-balancers-query'
@@ -25,7 +26,7 @@ import {
   useSelectedProjectQuery,
 } from 'hooks/misc/useSelectedProject'
 import { timeout } from 'lib/helpers'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/compat/router'
 import {
   Button,
   cn,
@@ -54,7 +55,9 @@ const InstanceConfigurationUI = ({ diagramOnly = false }: InstanceConfigurationU
   const reactFlow = useReactFlow()
   const isOrioleDb = useIsOrioleDb()
   const { resolvedTheme } = useTheme()
-  const { ref: projectRef } = useParams()
+  const { projectRef: v2ProjectRef } = useV2Params()
+  const { ref: commonProjectRef } = useParams()
+  const projectRef = v2ProjectRef ?? commonProjectRef
   const { isPending: isLoadingProject } = useSelectedProjectQuery()
 
   const isAws = useIsAwsCloudProvider()
@@ -325,7 +328,7 @@ const InstanceConfigurationUI = ({ diagramOnly = false }: InstanceConfigurationU
               </ReactFlow>
             ) : (
               <MapView
-                onSelectDeployNewReplica={() => router.push(newReplicaURL)}
+                onSelectDeployNewReplica={() => router?.push(newReplicaURL)}
                 onSelectRestartReplica={setSelectedReplicaToRestart}
                 onSelectDropReplica={setSelectedReplicaToDrop}
               />

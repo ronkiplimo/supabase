@@ -1,14 +1,14 @@
 'use client'
 
 import { useProjectLintsQuery } from 'data/lint/lint-query'
-import { Database, LayoutDashboard, Settings } from 'lucide-react'
+import { Database, Home, LayoutDashboard, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
 
-export type ActivityId = 'data' | 'obs' | 'settings'
+export type ActivityId = 'home' | 'data' | 'obs' | 'settings'
 
 interface ActivityBarProps {
   side: 'left' | 'right'
@@ -20,6 +20,7 @@ interface ActivityBarProps {
     label: string
     badge?: boolean
     href?: string
+    separatorAfter?: boolean
   }>
   /** For right bar, tooltips show on the left of the icon */
   tooltipSide?: 'left' | 'right'
@@ -90,7 +91,12 @@ export function ActivityBar({
               </TooltipContent>
             </Tooltip>
           )
-          return content
+          return (
+            <div key={item.id} className="contents">
+              {content}
+              {item.separatorAfter && <div className="h-px w-full bg-border/80 my-1" />}
+            </div>
+          )
         })}
       </div>
       {bottomContent && <div className="mt-auto">{bottomContent}</div>}
@@ -100,25 +106,43 @@ export function ActivityBar({
 
 export function LeftActivityBar() {
   const pathname = usePathname()
-  const { projectRef } = useV2Params()
-  const activeId: ActivityId | null = pathname?.includes('/data/')
-    ? 'data'
-    : pathname?.includes('/obs/')
-      ? 'obs'
-      : pathname?.includes('/settings/')
-        ? 'settings'
-        : null
+  const { projectRef, orgSlug } = useV2Params()
+
+  const isHomeActive =
+    Boolean(projectRef && orgSlug) &&
+    pathname?.endsWith(`/${projectRef}`) &&
+    !pathname?.includes('/data/') &&
+    !pathname?.includes('/obs/') &&
+    !pathname?.includes('/settings/')
+
+  const activeId: ActivityId | null = isHomeActive
+    ? 'home'
+    : pathname?.includes('/data/')
+      ? 'data'
+      : pathname?.includes('/obs/')
+        ? 'obs'
+        : pathname?.includes('/settings/')
+          ? 'settings'
+          : null
 
   const { data: lints } = useProjectLintsQuery({ projectRef })
   const hasAdvisorWarnings = (lints?.length ?? 0) > 0
 
   const base = projectRef ? `/dashboard/v2/project/${projectRef}` : '#'
+  const homeBase = projectRef && orgSlug ? `/dashboard/v2/${orgSlug}/${projectRef}` : '#'
 
   return (
     <ActivityBar
       side="left"
       activeId={activeId}
       items={[
+        {
+          id: 'home',
+          icon: <Home className="h-4 w-4" strokeWidth={1.5} />,
+          label: 'Home',
+          href: homeBase,
+          separatorAfter: true,
+        },
         {
           id: 'data',
           icon: <Database className="h-4 w-4" strokeWidth={1.5} />,

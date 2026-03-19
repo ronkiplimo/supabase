@@ -28,13 +28,17 @@ export function EditorFrame({ children }: { children: React.ReactNode }) {
     pathname?.includes('/data/edge-functions') ||
     pathname?.includes('/data/channels')
 
+  const isHome =
+    Boolean(projectRef) &&
+    pathname?.endsWith(`/${projectRef}`) &&
+    !pathname?.includes('/data/') &&
+    !pathname?.includes('/obs/') &&
+    !pathname?.includes('/settings/')
+
   return (
     <div className="flex flex-col flex-1 min-w-0 bg-background">
-      {isDataCategory ? (
-        <TabBar />
-      ) : (
-        <StaticTitle />
-      )}
+      {isDataCategory ? null : isHome ? null : <StaticTitle />}
+      {isDataCategory && <TabBar />}
       <div className="flex-1 flex flex-col min-h-0 overflow-auto">
         {children}
       </div>

@@ -2,6 +2,7 @@
 
 import { MobileSheetProvider } from 'components/layouts/Navigation/NavigationBar/MobileSheetContext'
 import { LayoutSidebar } from 'components/layouts/ProjectLayout/LayoutSidebar'
+import { usePathname } from 'next/navigation'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup, SidebarProvider } from 'ui'
 
 import { LeftActivityBar } from './ActivityBar'
@@ -10,9 +11,20 @@ import { EditorFrame } from './EditorFrame'
 import { RightActivityBar } from './RightActivityBar'
 import { TopBar } from './TopBar'
 import { V2LayoutSidebarProvider } from './V2LayoutSidebarProvider'
+import { useV2Params } from '@/app/v2/V2ParamsContext'
 import { V2DashboardProvider } from '@/stores/v2-dashboard'
 
 export function Shell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+  const { projectRef, orgSlug } = useV2Params()
+
+  const isHomeActive =
+    Boolean(projectRef && orgSlug) &&
+    pathname?.endsWith(`/${projectRef}`) &&
+    !pathname?.includes('/data/') &&
+    !pathname?.includes('/obs/') &&
+    !pathname?.includes('/settings/')
+
   return (
     <V2DashboardProvider>
       <SidebarProvider defaultOpen={false}>
@@ -25,18 +37,31 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 <ResizablePanelGroup
                   orientation="horizontal"
                   className="h-full w-full overflow-x-hidden flex-1 flex flex-row gap-0"
-                  autoSaveId="v2-shell-content"
+                  autoSaveId={isHomeActive ? 'v2-shell-content-home' : 'v2-shell-content'}
                 >
-                  <ResizablePanel id="panel-browser" minSize={200} maxSize={350} defaultSize={240}>
-                    <BrowserPanel />
-                  </ResizablePanel>
-                  <ResizableHandle withHandle />
-                  <ResizablePanel id="panel-content">
+                  {!isHomeActive && (
+                    <>
+                      <ResizablePanel
+                        id="panel-browser"
+                        minSize={200}
+                        maxSize={400}
+                        defaultSize={'240px'}
+                      >
+                        <BrowserPanel />
+                      </ResizablePanel>
+                      <ResizableHandle withHandle />
+                    </>
+                  )}
+                  <ResizablePanel
+                    id="panel-content"
+                    // minSize={isHomeActive ? 55 : 35}
+                    // defaultSize={isHomeActive ? 70 : 80}
+                  >
                     <main className="flex-1 min-w-0 flex flex-col overflow-hidden h-full">
                       <EditorFrame>{children}</EditorFrame>
                     </main>
                   </ResizablePanel>
-                  <LayoutSidebar minSize={350} maxSize={500} defaultSize={350} />
+                  <LayoutSidebar minSize={300} maxSize={500} defaultSize={340} />
                 </ResizablePanelGroup>
                 <RightActivityBar />
               </div>

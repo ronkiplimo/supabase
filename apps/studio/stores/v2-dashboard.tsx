@@ -11,10 +11,15 @@ import {
 } from 'react'
 
 export type RightPanelType = 'chat' | 'sql' | 'adv' | null
+export type DataTabDomain = 'db' | 'auth' | 'st' | 'fn' | 'rt'
+export type DataTabType = 'list' | 'detail'
 
-export interface DetailTab {
+export interface DataTab {
   id: string
   label: string
+  type: DataTabType
+  category: string
+  domain: DataTabDomain
   path: string
 }
 
@@ -22,18 +27,47 @@ export interface RecentItem {
   id: string
   label: string
   path: string
-  type: string
+  category: string
+  domain: DataTabDomain
   timestamp: number
+}
+
+// Exported so components can reference canonical mappings
+export const CATEGORY_DOMAIN: Record<string, DataTabDomain> = {
+  tables: 'db',
+  functions: 'db',
+  types: 'db',
+  roles: 'db',
+  extensions: 'db',
+  indexes: 'db',
+  publications: 'db',
+  users: 'auth',
+  providers: 'auth',
+  'oauth-apps': 'auth',
+  buckets: 'st',
+  'edge-functions': 'fn',
+  channels: 'rt',
+}
+
+export const CATEGORY_LABELS: Record<string, string> = {
+  tables: 'Tables',
+  functions: 'Functions',
+  types: 'Enumerated types',
+  roles: 'Roles',
+  extensions: 'Extensions',
+  indexes: 'Indexes',
+  publications: 'Publications',
+  users: 'Users',
+  providers: 'Providers',
+  'oauth-apps': 'OAuth apps',
+  buckets: 'Buckets',
+  'edge-functions': 'Edge functions',
+  channels: 'Channels',
 }
 
 const RECENT_ITEMS_STORAGE_KEY = 'v2-recent-items'
 
 const defaultExpandedGroups: Record<string, boolean> = {
-  'data-database': true,
-  'data-auth': true,
-  'data-storage': true,
-  'data-edge-functions': true,
-  'data-realtime': true,
   'obs-logs': true,
   'obs-metrics': true,
   'obs-alerts': true,
@@ -44,15 +78,15 @@ const defaultExpandedGroups: Record<string, boolean> = {
 }
 
 interface V2DashboardState {
-  detailTabs: DetailTab[]
+  // Flat data tabs (Figma model)
+  dataTabs: DataTab[]
   expandedGroups: Record<string, boolean>
   rightPanel: RightPanelType
   recentItems: RecentItem[]
 
-  addDetailTab: (tab: DetailTab) => void
+  openDataTab: (tab: DataTab) => void
+  closeDataTab: (id: string) => void
   addRecentItem: (item: Omit<RecentItem, 'timestamp'>) => void
-  removeDetailTab: (id: string) => void
-  setDetailTabs: (tabs: DetailTab[]) => void
   toggleGroup: (groupId: string) => void
   setExpandedGroup: (groupId: string, expanded: boolean) => void
   toggleRightPanel: (panel: 'chat' | 'sql' | 'adv') => void
@@ -61,29 +95,13 @@ interface V2DashboardState {
 
 const V2DashboardContext = createContext<V2DashboardState | null>(null)
 
-const inferRecentTypeFromPath = (path: string): string => {
-  if (path.includes('/data/tables/')) return 'Table'
-  if (path.includes('/data/functions/')) return 'Function'
-  if (path.includes('/data/types/')) return 'Type'
-  if (path.includes('/data/roles/')) return 'Role'
-  if (path.includes('/data/users/')) return 'User'
-  if (path.includes('/data/buckets/')) return 'Bucket'
-  if (path.includes('/data/extensions/')) return 'Extension'
-  if (path.includes('/data/indexes/')) return 'Index'
-  if (path.includes('/data/providers/')) return 'Provider'
-  if (path.includes('/data/oauth-apps/')) return 'OAuth App'
-  if (path.includes('/data/publications/')) return 'Publication'
-  if (path.includes('/data/edge-functions/')) return 'Edge Function'
-  if (path.includes('/data/channels/')) return 'Channel'
-  return 'Item'
-}
-
 export function V2DashboardProvider({ children }: { children: ReactNode }) {
-  const [detailTabs, setDetailTabsState] = useState<DetailTab[]>([])
+  const [dataTabs, setDataTabs] = useState<DataTab[]>([])
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(defaultExpandedGroups)
   const [rightPanel, setRightPanel] = useState<RightPanelType>(null)
   const [recentItems, setRecentItems] = useState<RecentItem[]>([])
 
+  // Load persisted recents from localStorage once
   useEffect(() => {
     if (typeof window === 'undefined') return
     try {
@@ -94,65 +112,69 @@ export function V2DashboardProvider({ children }: { children: ReactNode }) {
       const normalized = parsed
         .filter((x) => x && typeof x === 'object')
         .map((x) => x as Partial<RecentItem>)
-        .filter((x) => typeof x.id === 'string' && typeof x.label === 'string' && typeof x.path === 'string')
+        .filter(
+          (x) =>
+            typeof x.id === 'string' &&
+            typeof x.label === 'string' &&
+            typeof x.path === 'string'
+        )
         .map((x) => ({
           id: x.id as string,
           label: x.label as string,
           path: x.path as string,
-          type: typeof x.type === 'string' ? x.type : 'Item',
+          category: typeof x.category === 'string' ? x.category : 'tables',
+          domain: (typeof x.domain === 'string' ? x.domain : 'db') as DataTabDomain,
           timestamp: typeof x.timestamp === 'number' ? x.timestamp : 0,
         }))
-
       setRecentItems(normalized.sort((a, b) => b.timestamp - a.timestamp).slice(0, 20))
     } catch {
-      // Ignore corrupted localStorage.
+      // Ignore corrupted localStorage
     }
   }, [])
 
+  // Persist recents to localStorage on change
   useEffect(() => {
     if (typeof window === 'undefined') return
     try {
       localStorage.setItem(RECENT_ITEMS_STORAGE_KEY, JSON.stringify(recentItems))
     } catch {
-      // Ignore write failures (e.g. quota).
+      // Ignore write failures
     }
   }, [recentItems])
 
   const addRecentItem = useCallback((item: Omit<RecentItem, 'timestamp'>) => {
-    const now = Date.now()
     setRecentItems((prev) => {
-      const withoutDup = prev.filter((x) => x.id !== item.id)
-      const next: RecentItem = { ...item, timestamp: now }
-      return [next, ...withoutDup].slice(0, 20)
+      const without = prev.filter((x) => x.id !== item.id)
+      return [{ ...item, timestamp: Date.now() }, ...without].slice(0, 20)
     })
   }, [])
 
-  const addDetailTab = useCallback((tab: DetailTab) => {
-    addRecentItem({
-      id: tab.id,
-      label: tab.label,
-      path: tab.path,
-      type: inferRecentTypeFromPath(tab.path),
-    })
+  const openDataTab = useCallback(
+    (tab: DataTab) => {
+      setDataTabs((prev) => {
+        if (prev.some((t) => t.id === tab.id)) return prev
+        return [...prev, tab]
+      })
+      // Add to recents for detail tabs only
+      if (tab.type === 'detail') {
+        addRecentItem({
+          id: tab.id,
+          label: tab.label,
+          path: tab.path,
+          category: tab.category,
+          domain: tab.domain,
+        })
+      }
+    },
+    [addRecentItem]
+  )
 
-    setDetailTabsState((state) =>
-      state.some((t) => t.id === tab.id) ? state : [...state, tab]
-    )
-  }, [addRecentItem])
-
-  const removeDetailTab = useCallback((id: string) => {
-    setDetailTabsState((state) => state.filter((t) => t.id !== id))
-  }, [])
-
-  const setDetailTabs = useCallback((tabs: DetailTab[]) => {
-    setDetailTabsState(tabs)
+  const closeDataTab = useCallback((id: string) => {
+    setDataTabs((prev) => prev.filter((t) => t.id !== id))
   }, [])
 
   const toggleGroup = useCallback((groupId: string) => {
-    setExpandedGroups((state) => ({
-      ...state,
-      [groupId]: !state[groupId],
-    }))
+    setExpandedGroups((state) => ({ ...state, [groupId]: !state[groupId] }))
   }, [])
 
   const setExpandedGroup = useCallback((groupId: string, expanded: boolean) => {
@@ -167,28 +189,26 @@ export function V2DashboardProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<V2DashboardState>(
     () => ({
-      detailTabs,
+      dataTabs,
       expandedGroups,
       rightPanel,
       recentItems,
-      addDetailTab,
+      openDataTab,
+      closeDataTab,
       addRecentItem,
-      removeDetailTab,
-      setDetailTabs,
       toggleGroup,
       setExpandedGroup,
       toggleRightPanel,
       closeRightPanel,
     }),
     [
-      detailTabs,
+      dataTabs,
       expandedGroups,
       rightPanel,
       recentItems,
-      addDetailTab,
+      openDataTab,
+      closeDataTab,
       addRecentItem,
-      removeDetailTab,
-      setDetailTabs,
       toggleGroup,
       setExpandedGroup,
       toggleRightPanel,
@@ -196,18 +216,14 @@ export function V2DashboardProvider({ children }: { children: ReactNode }) {
     ]
   )
 
-  return (
-    <V2DashboardContext.Provider value={value}>{children}</V2DashboardContext.Provider>
-  )
+  return <V2DashboardContext.Provider value={value}>{children}</V2DashboardContext.Provider>
 }
 
 export function useV2DashboardStore(): V2DashboardState
 export function useV2DashboardStore<T>(selector: (s: V2DashboardState) => T): T
 export function useV2DashboardStore<T>(selector?: (s: V2DashboardState) => T) {
   const ctx = useContext(V2DashboardContext)
-  if (!ctx) {
-    throw new Error('useV2DashboardStore must be used within V2DashboardProvider')
-  }
+  if (!ctx) throw new Error('useV2DashboardStore must be used within V2DashboardProvider')
   if (selector) return selector(ctx)
   return ctx
 }

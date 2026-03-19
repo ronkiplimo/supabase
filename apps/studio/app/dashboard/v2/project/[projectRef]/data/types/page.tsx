@@ -1,5 +1,5 @@
 import { V2PlaceholderView } from '@/components/v2/views/V2PlaceholderView'
 
 export default function DataTypesPage() {
-  return <V2PlaceholderView title="Enumerated types" />
+  return <V2PlaceholderView title="Enumerated types" tabCategory="types" />
 }

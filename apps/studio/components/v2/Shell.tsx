@@ -16,14 +16,21 @@ import { V2DashboardProvider } from '@/stores/v2-dashboard'
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const { projectRef, orgSlug } = useV2Params()
+  const { projectRef } = useV2Params()
 
   const isHomeActive =
-    Boolean(projectRef && orgSlug) &&
+    Boolean(projectRef) &&
     pathname?.endsWith(`/${projectRef}`) &&
-    !pathname?.includes('/data/') &&
+    !pathname?.includes('/data') &&
     !pathname?.includes('/obs/') &&
     !pathname?.includes('/settings/')
+
+  // Data activity also hides the browser panel (Figma tab model)
+  const isDataActivity =
+    Boolean(projectRef) &&
+    Boolean(pathname?.includes('/data/') || pathname?.endsWith('/data'))
+
+  const hideBrowser = isHomeActive || isDataActivity
 
   return (
     <V2DashboardProvider>
@@ -37,9 +44,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 <ResizablePanelGroup
                   orientation="horizontal"
                   className="h-full w-full overflow-x-hidden flex-1 flex flex-row gap-0"
-                  autoSaveId={isHomeActive ? 'v2-shell-content-home' : 'v2-shell-content'}
+                  autoSaveId={hideBrowser ? 'v2-shell-content-wide' : 'v2-shell-content'}
                 >
-                  {!isHomeActive && (
+                  {!hideBrowser && (
                     <>
                       <ResizablePanel
                         id="panel-browser"

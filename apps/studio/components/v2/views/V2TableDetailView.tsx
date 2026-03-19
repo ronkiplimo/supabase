@@ -1,17 +1,20 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
 import { TableGridEditor } from 'components/interfaces/TableGridEditor/TableGridEditor'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
+import { useV2DashboardStore } from '@/stores/v2-dashboard'
 import { useProjectDetailQuery } from 'data/projects/project-detail-query'
 import { useTableEditorQuery } from 'data/table-editor/table-editor-query'
 
 export function V2TableDetailView({ subTab }: { subTab: string }) {
   const params = useParams()
   const { projectRef } = useV2Params()
+  const openDataTab = useV2DashboardStore((s) => s.openDataTab)
   const tableId = params?.tableId as string
   const id = tableId ? Number(tableId) : undefined
 
@@ -27,6 +30,19 @@ export function V2TableDetailView({ subTab }: { subTab: string }) {
     },
     { enabled: Boolean(projectRef) && typeof id === 'number' && !Number.isNaN(id) }
   )
+
+  // Register this detail tab once we know the table name
+  useEffect(() => {
+    if (!table || !projectRef || !tableId) return
+    openDataTab({
+      id: `tables-${tableId}`,
+      label: table.name,
+      type: 'detail',
+      category: 'tables',
+      domain: 'db',
+      path: `/dashboard/v2/project/${projectRef}/data/tables/${tableId}/data`,
+    })
+  }, [table, projectRef, tableId, openDataTab])
 
   if (isError) {
     return (

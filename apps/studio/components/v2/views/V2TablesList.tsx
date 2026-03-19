@@ -2,7 +2,7 @@
 
 import type { PostgresTable } from '@supabase/postgres-meta'
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Select_Shadcn_,
   SelectContent_Shadcn_,
@@ -23,8 +23,21 @@ import { useTablesQuery } from 'data/tables/tables-query'
 
 export function V2TablesList() {
   const { projectRef } = useV2Params()
-  const addDetailTab = useV2DashboardStore((s) => s.addDetailTab)
+  const openDataTab = useV2DashboardStore((s) => s.openDataTab)
   const [schema, setSchema] = useState('public')
+
+  // Register this list as an open tab
+  useEffect(() => {
+    if (!projectRef) return
+    openDataTab({
+      id: 'tables',
+      label: 'Tables',
+      type: 'list',
+      category: 'tables',
+      domain: 'db',
+      path: `/dashboard/v2/project/${projectRef}/data/tables`,
+    })
+  }, [projectRef, openDataTab])
   const [search, setSearch] = useState('')
 
   const { data: project, isPending: isProjectPending } = useProjectDetailQuery(
@@ -57,10 +70,20 @@ export function V2TablesList() {
 
   const base = projectRef ? `/dashboard/v2/project/${projectRef}` : ''
 
-  const openTable = (table: PostgresTable) => {
-    const path = `${base}/data/tables/${table.id}`
-    addDetailTab({ id: String(table.id), label: table.name, path })
-  }
+  const openTable = useCallback(
+    (table: PostgresTable) => {
+      const path = `${base}/data/tables/${table.id}/data`
+      openDataTab({
+        id: `tables-${table.id}`,
+        label: table.name,
+        type: 'detail',
+        category: 'tables',
+        domain: 'db',
+        path,
+      })
+    },
+    [base, openDataTab]
+  )
 
   const columns = useMemo<DataListColumnDef<PostgresTable>[]>(
     () => [
@@ -71,7 +94,7 @@ export function V2TablesList() {
         sortValue: (row) => row.name,
         renderCell: (row) => (
           <Link
-            href={`${base}/data/tables/${row.id}`}
+            href={`${base}/data/tables/${row.id}/data`}
             onClick={() => openTable(row)}
             className="truncate font-mono text-foreground hover:underline"
           >
@@ -101,7 +124,7 @@ export function V2TablesList() {
           ),
       },
     ],
-    [base, schema]
+    [base, schema, openTable]
   )
 
   if (isTablesError) {
@@ -147,7 +170,7 @@ export function V2TablesList() {
         emptyMessage={
           search.trim() ? 'No tables match your filter.' : 'No tables in this schema.'
         }
-        onRowDoubleClick={(row) => openTable(row)}
+        onRowDoubleClick={openTable}
       />
     </div>
   )

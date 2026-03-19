@@ -62,6 +62,7 @@ const itemHeight = 'h-[22px]'
 const hiddenNodeConnector = '!h-px !w-px !min-w-0 !min-h-0 !cursor-grab !border-0 !opacity-0'
 
 export const TableNode = memo(function TableNode({
+  id,
   data,
   targetPosition,
   sourcePosition,
@@ -72,6 +73,7 @@ export const TableNode = memo(function TableNode({
   const router = useRouter()
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
   const [columns, persistColumns] = useTableOrderedColumns({
+    nodeId: id,
     projectRef: project?.ref,
     table: data,
   })

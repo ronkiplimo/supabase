@@ -37,7 +37,8 @@ export const useTableOrderedColumns = ({
       {} as Record<string, TableNodeColumnData>
     )
 
-    const orderedColumn = columns.map((columnId) => columnsById[columnId])
+    const missingColumns = table.columns.filter(column => !columns.includes(column.id))
+    const orderedColumn = columns.map((columnId) => columnsById[columnId]).concat(missingColumns)
 
     return [orderedColumn, persistColumns]
   }, [columns, table.columns, setColumns])

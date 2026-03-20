@@ -13,6 +13,7 @@ import {
   FormField_Shadcn_,
   Switch,
 } from 'ui'
+import { Admonition } from 'ui-patterns'
 import { FormItemLayout } from 'ui-patterns/form/FormItemLayout/FormItemLayout'
 import { GenericSkeletonLoader } from 'ui-patterns/ShimmeringLoader'
 import z from 'zod'
@@ -38,13 +39,12 @@ import { DOCS_URL } from '@/lib/constants'
 const FormSchema = z
   .object({
     enabled: z.boolean(),
-    domains: z
-      .array(
-        z.object({
-          value: z.string().trim().min(1, 'Please provide a domain'),
-        })
-      )
-      .min(1, 'At least one domain is required'),
+    enableSpInitiated: z.boolean(),
+    domains: z.array(
+      z.object({
+        value: z.string().trim().min(1, 'Please provide a domain'),
+      })
+    ),
     metadataXmlUrl: z.string().trim().optional(),
     metadataXmlFile: z.string().trim().optional(),
     emailMapping: z.array(z.object({ value: z.string().trim().min(1, 'This field is required') })),
@@ -54,6 +54,19 @@ const FormSchema = z
     joinOrgOnSignup: z.boolean(),
     roleOnJoin: z.string().optional(),
   })
+  .refine(
+    (data) => {
+      // When SP-initiated is enabled, require at least one domain
+      if (data.enableSpInitiated && (!data.domains || data.domains.length === 0)) {
+        return false
+      }
+      return true
+    },
+    {
+      message: 'At least one domain is required when SP-initiated login is enabled',
+      path: ['domains'],
+    }
+  )
   // set the error on both fields
   .refine((data) => data.metadataXmlUrl || data.metadataXmlFile, {
     message: 'Please provide either a metadata XML URL or upload a metadata XML file',
@@ -99,20 +112,30 @@ export const SSOConfig = () => {
   const ssoMemberCount = members.filter((m) => m.is_sso_user === true).length
   const isSSOProviderNotFound = ssoConfig === null
 
+  const defaultValues = {
+    enabled: false,
+    enableSpInitiated: false,
+    domains: [],
+    metadataXmlUrl: '',
+    metadataXmlFile: '',
+    emailMapping: [{ value: '' }],
+    userNameMapping: [{ value: '' }],
+    firstNameMapping: [{ value: '' }],
+    lastNameMapping: [{ value: '' }],
+    joinOrgOnSignup: false,
+    roleOnJoin: 'Developer',
+  }
   const form = useForm<SSOConfigFormSchema>({
     resolver: zodResolver(FormSchema),
     defaultValues,
   })
 
   const isSSOEnabled = form.watch('enabled')
+  const enableSpInitiated = form.watch('enableSpInitiated')
 
-  const { mutate: createSSOConfig, isPending: isCreating } = useSSOConfigCreateMutation({
-    onSuccess: () => form.reset(),
-  })
+  const { mutate: createSSOConfig, isPending: isCreating } = useSSOConfigCreateMutation()
 
-  const { mutate: updateSSOConfig, isPending: isUpdating } = useSSOConfigUpdateMutation({
-    onSuccess: () => form.reset(),
-  })
+  const { mutate: updateSSOConfig, isPending: isUpdating } = useSSOConfigUpdateMutation()
 
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false)
 
@@ -136,7 +159,8 @@ export const SSOConfig = () => {
       slug: organization!.slug,
       config: {
         enabled: values.enabled,
-        domains: values.domains.map((d) => d.value),
+        // Send empty array if SP-initiated is disabled
+        domains: values.enableSpInitiated ? values.domains.map((d) => d.value).filter(Boolean) : [],
         metadata_xml_file: values.metadataXmlFile!,
         metadata_xml_url: values.metadataXmlUrl!,
         email_mapping: values.emailMapping.map((item) => item.value).filter(Boolean),
@@ -161,21 +185,41 @@ export const SSOConfig = () => {
   }
 
   useEffect(() => {
-    if (ssoConfig) {
-      form.reset({
-        enabled: ssoConfig.enabled,
-        domains: ssoConfig.domains.map((domain) => ({ value: domain })),
-        metadataXmlUrl: ssoConfig.metadata_xml_url,
-        metadataXmlFile: ssoConfig.metadata_xml_file,
-        emailMapping: ssoConfig.email_mapping.map((email) => ({ value: email })),
-        userNameMapping: ssoConfig.user_name_mapping?.map((userName) => ({ value: userName })),
-        firstNameMapping: ssoConfig.first_name_mapping?.map((firstName) => ({ value: firstName })),
-        lastNameMapping: ssoConfig.last_name_mapping?.map((lastName) => ({ value: lastName })),
-        joinOrgOnSignup: ssoConfig.join_org_on_signup_enabled,
-        roleOnJoin: ssoConfig.join_org_on_signup_role,
-      })
+    // Reset form when organization changes or SSO config loads
+    // Only reset if user hasn't made changes (not dirty)
+    if (!form.formState.isDirty) {
+      if (ssoConfig) {
+        form.reset({
+          enabled: ssoConfig.enabled,
+          // Infer SP-initiated from domains presence
+          enableSpInitiated: ssoConfig.domains && ssoConfig.domains.length > 0,
+          domains: ssoConfig.domains?.map((domain) => ({ value: domain })) || [],
+          metadataXmlUrl: ssoConfig.metadata_xml_url,
+          metadataXmlFile: ssoConfig.metadata_xml_file,
+          emailMapping: ssoConfig.email_mapping.map((email) => ({ value: email })),
+          userNameMapping:
+            ssoConfig.user_name_mapping?.map((userName) => ({ value: userName })) || [],
+          firstNameMapping:
+            ssoConfig.first_name_mapping?.map((firstName) => ({ value: firstName })) || [],
+          lastNameMapping:
+            ssoConfig.last_name_mapping?.map((lastName) => ({ value: lastName })) || [],
+          joinOrgOnSignup: ssoConfig.join_org_on_signup_enabled,
+          roleOnJoin: ssoConfig.join_org_on_signup_role,
+        })
+      } else {
+        // Reset to defaults when no SSO config exists or org changes
+        form.reset(defaultValues)
+      }
     }
-  }, [ssoConfig, form])
+  }, [ssoConfig, organization?.slug, form.formState.isDirty])
+
+  // Automatically add an empty domain field when SP-initiated is enabled
+  useEffect(() => {
+    const currentDomains = form.getValues('domains')
+    if (enableSpInitiated && (!currentDomains || currentDomains.length === 0)) {
+      form.setValue('domains', [{ value: '' }], { shouldValidate: false })
+    }
+  }, [enableSpInitiated])
 
   return (
     <ScaffoldContainer size="small" className="px-6 xl:px-10">
@@ -234,11 +278,62 @@ export const SSOConfig = () => {
                     />
                   </CardContent>
 
-                  {(isSSOEnabled || ssoConfig) && (
+                  {isSSOEnabled && (
                     <>
                       <CardContent>
-                        <SSODomains form={form} />
+                        <FormField_Shadcn_
+                          control={form.control}
+                          name="enableSpInitiated"
+                          render={({ field }) => (
+                            <FormItemLayout
+                              layout="flex-row-reverse"
+                              label="Enable SP-initiated login"
+                              description="Allow users to start the login flow from the Supabase dashboard by entering their email address. Requires configuring email domains below."
+                            >
+                              <FormControl_Shadcn_>
+                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                              </FormControl_Shadcn_>
+                            </FormItemLayout>
+                          )}
+                        />
+
+                        {form.watch('enableSpInitiated') && (
+                          <Admonition
+                            type="note"
+                            title="Understanding SSO login flows"
+                            className="mt-4"
+                          >
+                            <div className="space-y-3 text-sm">
+                              <div>
+                                <strong>SP-initiated (Service Provider):</strong> Users start at
+                                supabase.com, enter their email address, and are redirected to your
+                                identity provider (Okta, Azure AD, etc.) for authentication.
+                                Requires configuring email domains.
+                              </div>
+                              <div>
+                                <strong>IdP-initiated (Identity Provider):</strong> Users click an
+                                app tile or bookmark in your identity provider dashboard and are
+                                directly authenticated into Supabase. Works automatically without
+                                domain configuration.
+                              </div>
+                              <p className="text-foreground-lighter">
+                                Most enterprises use IdP-initiated flow for its simplicity. Enable
+                                SP-initiated only if you need users to start at supabase.com.{' '}
+                                <InlineLink href={`${DOCS_URL}/guides/platform/sso#login-flows`}>
+                                  Learn more about SSO flows
+                                </InlineLink>
+                                .
+                              </p>
+                            </div>
+                          </Admonition>
+                        )}
                       </CardContent>
+
+                      {form.watch('enableSpInitiated') && (
+                        <CardContent>
+                          <SSODomains form={form} />
+                        </CardContent>
+                      )}
 
                       <CardContent>
                         <SSOMetadata form={form} />
@@ -303,16 +398,23 @@ export const SSOConfig = () => {
               variant="destructive"
               title="Delete SSO Provider"
               loading={isDeleting}
-              confirmString={ssoConfig?.domains?.[0] ?? ''}
-              confirmPlaceholder="Type the domain above to confirm"
+              confirmString={ssoConfig?.domains?.[0] || organization?.slug || ''}
+              confirmPlaceholder={`Type ${ssoConfig?.domains?.[0] ? 'the first domain' : 'the organization slug'} to confirm`}
               confirmLabel="I understand, delete SSO provider and members"
               onConfirm={onDeleteSSOConfig}
               onCancel={() => setIsDeleteModalVisible(false)}
             >
               <div className="space-y-3">
                 <p className="text-sm text-foreground-lighter">
-                  You are about to delete the SSO provider for{' '}
-                  <span className="text-foreground font-semibold">{ssoConfig?.domains?.[0]}</span>.
+                  You are about to delete the SSO provider
+                  {ssoConfig?.domains?.[0] && (
+                    <>
+                      {' '}
+                      for{' '}
+                      <span className="text-foreground font-semibold">{ssoConfig.domains[0]}</span>
+                    </>
+                  )}
+                  .
                 </p>
 
                 {ssoMemberCount > 0 && (

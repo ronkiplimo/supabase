@@ -175,7 +175,7 @@ const MappingFieldArray = ({
   })
 
   return (
-    <div className="w-96 space-y-1">
+    <div className="w-full space-y-1">
       <div className="flex justify-between items-center">
         <span className="text-foreground-light">{label}</span>
         {required ? <></> : <span className="text-foreground-muted">Optional</span>}

@@ -21,11 +21,11 @@ export const SSODomains = ({ form }: { form: ReturnType<typeof useForm<SSOConfig
   return (
     <>
       <FormItemLayout
-        label="Domains"
+        label="Email Domains"
         layout="flex-row-reverse"
-        description="Provide one or more domains"
+        description="Users with these email domains will be redirected to your identity provider when logging in from Supabase."
       >
-        <div className="grid gap-2 w-96">
+        <div className="grid gap-2 w-full">
           {fields.map((field, idx) => (
             <div key={field.id} className="flex gap-2 items-top">
               <FormField_Shadcn_
@@ -44,7 +44,7 @@ export const SSODomains = ({ form }: { form: ReturnType<typeof useForm<SSOConfig
                 type="default"
                 icon={<Trash size={12} />}
                 className="h-[34px] w-[34px]"
-                disabled={fields.length <= 1}
+                disabled={fields.length <= 0}
                 onClick={() => remove(idx)}
               />
             </div>

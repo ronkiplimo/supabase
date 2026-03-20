@@ -37,6 +37,7 @@ import { HomeIcon } from './HomeIcon'
 import { LocalVersionPopover } from './LocalVersionPopover'
 import { MergeRequestButton } from './MergeRequestButton'
 import type { ConnectSectionVariant } from '@/components/interfaces/ProjectHome/ConnectSection.config'
+import { ADVISOR_URGENT_PROTOTYPE } from '@/components/layouts/AppLayout/advisor-urgent-prototype.constants'
 
 const LayoutHeaderDivider = ({ className, ...props }: React.HTMLProps<HTMLSpanElement>) => (
   <span className={cn('text-border-stronger pr-2', className)} {...props}>
@@ -167,7 +168,7 @@ export const LayoutHeader = ({
                     {IS_PLATFORM && <LayoutHeaderDivider />}
                     <ProjectDropdown />
 
-                    {exceedingLimits && (
+                    {exceedingLimits && !ADVISOR_URGENT_PROTOTYPE.enabled && (
                       <div className="ml-2">
                         <Link href={`/org/${selectedOrganization?.slug}/usage`}>
                           <Badge variant="destructive">Exceeding usage limits</Badge>

@@ -48,7 +48,7 @@ custom_edit_url: https://github.com/supabase/supabase/edit/master/apps/docs/spec
 
     supabase-py uses the Data API to query and mutate your Postgres data. You first need to grant Data API roles permissions to access your tables and functions.
 
-    In [Data API integrations settings](/dashboard/project/_/integrations/data_api/settings), expose specific tables (recommended), or an entire schema like `public` or `api` for automation.
+    In [Data API integrations settings](/dashboard/project/_/integrations/data_api/settings), expose the specific tables and functions you want to access. To automatically grant access for new tables and functions in `public`, enable **Default privileges for new entities**.
 
     Alternatively, use SQL to grant the required permissions:
 

@@ -5,13 +5,13 @@ description: 'Quick options for managing Data API exposure and access.'
 
 The Supabase Data API is a standalone server that sits between your application client code and your database. It automatically generates a fully RESTful API based on your database structure, allowing you to interact with your database through HTTP endpoints.
 
-With the Data API, you have granular control over exposure: you can choose to generate API routes for specific tables, individual functions, or even entire schemas—depending on the needs of your application.
+With the Data API, you have granular control over exposure: expose specific tables and functions by granting Data API roles the access they need, or enable **Default privileges for new entities** to automatically grant access to new tables and functions in `public`.
 
 **Important:** Any table that is exposed through the Data API should have [Row Level Security (RLS) enabled](/docs/guides/database/postgres/row-level-security) to prevent unauthorized data access.
 
 ## Expose specific tables and functions (recommended)
 
-In [Data API integrations settings](/dashboard/project/_/integrations/data_api/settings), you can expose specific tables from specific schemas and grant only the privileges each role needs.
+In [Data API integrations settings](/dashboard/project/_/integrations/data_api/settings), expose specific tables and functions and grant only the privileges each role needs.
 
 ```sql
 grant select on table public.your_table to anon;
@@ -19,16 +19,16 @@ grant select, insert, update, delete on table public.your_table to authenticated
 grant execute on function public.your_function to anon, authenticated;
 ```
 
-## Use schema-level defaults for automation
+## Use default privileges for new entities in `public`
 
-If you need schema-wide automation, expose an entire schema like `public` or `api` and set default privileges for new objects:
+If you want new entities in `public` to be accessible automatically, enable **Default privileges for new entities** in [Data API integrations settings](/dashboard/project/_/integrations/data_api/settings). This applies only to new tables and functions in `public`.
 
 ```sql
-alter default privileges in schema api
-grant select, insert, update, delete on tables to anon, authenticated;
+alter default privileges for role postgres in schema public
+grant select, insert, update, delete on tables to anon, authenticated, service_role;
 
-alter default privileges in schema api
-grant execute on functions to anon, authenticated;
+alter default privileges for role postgres in schema public
+grant execute on functions to anon, authenticated, service_role;
 ```
 
 ## Disable the Data API completely

@@ -24,9 +24,7 @@ export function V2ParamsProvider({
   orgSlug: string | undefined
 }) {
   return (
-    <V2ParamsContext.Provider value={{ orgSlug, projectRef }}>
-      {children}
-    </V2ParamsContext.Provider>
+    <V2ParamsContext.Provider value={{ orgSlug, projectRef }}>{children}</V2ParamsContext.Provider>
   )
 }
 

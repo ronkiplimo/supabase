@@ -5,7 +5,15 @@ import { PanelLeftOpen } from 'lucide-react'
 import { MobileSheetProvider } from 'components/layouts/Navigation/NavigationBar/MobileSheetContext'
 import { LayoutSidebar } from 'components/layouts/ProjectLayout/LayoutSidebar'
 import { usePathname } from 'next/navigation'
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup, SidebarProvider, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+  SidebarProvider,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from 'ui'
 
 import { LeftActivityBar } from './ActivityBar'
 import { BrowserPanel } from './BrowserPanel'
@@ -57,7 +65,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
                           <PanelLeftOpen className="h-4 w-4" strokeWidth={1.5} />
                         </button>
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="text-xs">Expand panel</TooltipContent>
+                      <TooltipContent side="right" className="text-xs">
+                        Expand panel
+                      </TooltipContent>
                     </Tooltip>
                   </div>
                 )}

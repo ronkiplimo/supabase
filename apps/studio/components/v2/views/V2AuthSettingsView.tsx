@@ -2,12 +2,7 @@
 
 import { useMemo } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import {
-  Tabs_Shadcn_,
-  TabsContent_Shadcn_,
-  TabsList_Shadcn_,
-  TabsTrigger_Shadcn_,
-} from 'ui'
+import { Tabs_Shadcn_, TabsContent_Shadcn_, TabsList_Shadcn_, TabsTrigger_Shadcn_ } from 'ui'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
 import { StudioDataWorkspace } from '@/components/v2/data/StudioDataWorkspace'
@@ -41,7 +36,7 @@ const TABS: Array<{ key: string; label: string; content: NextPageWithLayout }> =
   { key: 'oauth-server', label: 'OAuth server', content: OAuthServerPage },
   { key: 'audit-logs', label: 'Audit logs', content: AuditLogsPage },
   { key: 'performance', label: 'Performance', content: PerformancePage },
-] 
+]
 
 const DEFAULT_TAB = TABS[0].key
 
@@ -52,7 +47,7 @@ export function V2AuthSettingsView() {
   const { projectRef } = useV2Params()
 
   const tabParam = searchParams?.get('tab')
-  const activeTab = TABS.some((t) => t.key === tabParam) ? tabParam ?? DEFAULT_TAB : DEFAULT_TAB
+  const activeTab = TABS.some((t) => t.key === tabParam) ? (tabParam ?? DEFAULT_TAB) : DEFAULT_TAB
 
   const currentQuery = useMemo(
     () => new URLSearchParams(searchParams?.toString() ?? ''),
@@ -86,7 +81,7 @@ export function V2AuthSettingsView() {
             return (
               <TabsContent_Shadcn_ key={tab.key} value={tab.key} className="m-0">
                 <div className="hidden" />
-                  <Content dehydratedState={undefined} />
+                <Content dehydratedState={undefined} />
               </TabsContent_Shadcn_>
             )
           })}
@@ -95,4 +90,3 @@ export function V2AuthSettingsView() {
     </StudioDataWorkspace>
   )
 }
-

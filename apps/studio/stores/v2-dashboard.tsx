@@ -97,7 +97,8 @@ const V2DashboardContext = createContext<V2DashboardState | null>(null)
 
 export function V2DashboardProvider({ children }: { children: ReactNode }) {
   const [dataTabs, setDataTabs] = useState<DataTab[]>([])
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(defaultExpandedGroups)
+  const [expandedGroups, setExpandedGroups] =
+    useState<Record<string, boolean>>(defaultExpandedGroups)
   const [rightPanel, setRightPanel] = useState<RightPanelType>(null)
   const [recentItems, setRecentItems] = useState<RecentItem[]>([])
 
@@ -114,9 +115,7 @@ export function V2DashboardProvider({ children }: { children: ReactNode }) {
         .map((x) => x as Partial<RecentItem>)
         .filter(
           (x) =>
-            typeof x.id === 'string' &&
-            typeof x.label === 'string' &&
-            typeof x.path === 'string'
+            typeof x.id === 'string' && typeof x.label === 'string' && typeof x.path === 'string'
         )
         .map((x) => ({
           id: x.id as string,

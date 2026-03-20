@@ -8,4 +8,3 @@ export default async function V2OrgProjectPage({
   const { projectRef } = await params
   redirect(`/v2/project/${projectRef}`)
 }
-

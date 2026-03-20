@@ -18,9 +18,7 @@ const AdvisorPanel = dynamic(() =>
 const AIAssistant = dynamic(() =>
   import('components/ui/AIAssistantPanel/AIAssistant').then((m) => m.AIAssistant)
 )
-const SqlPanel = dynamic(() =>
-  import('components/v2/SqlPanel').then((m) => m.SqlPanel)
-)
+const SqlPanel = dynamic(() => import('components/v2/SqlPanel').then((m) => m.SqlPanel))
 
 export const V2LayoutSidebarProvider = ({ children }: PropsWithChildren) => {
   const { projectRef } = useV2Params()
@@ -49,4 +47,3 @@ export const V2LayoutSidebarProvider = ({ children }: PropsWithChildren) => {
 
   return <>{children}</>
 }
-

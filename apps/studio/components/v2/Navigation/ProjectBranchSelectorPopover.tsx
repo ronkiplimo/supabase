@@ -82,7 +82,7 @@ export function ProjectBranchSelectorPopover({ onClose }: ProjectBranchSelectorP
     branches && branches.length > 0
       ? mainBranch
         ? [mainBranch].concat(restOfBranches ?? [])
-        : restOfBranches ?? []
+        : (restOfBranches ?? [])
       : [defaultMainBranch]
   const branchList = isBranchingEnabled ? sortedBranches : [defaultMainBranch]
 
@@ -255,10 +255,7 @@ function ProjectColumn({
           <>
             <CommandSeparator_Shadcn_ />
             <CommandGroup_Shadcn_>
-              <CommandItem_Shadcn_
-                className="cursor-pointer w-full"
-                onSelect={() => onClose()}
-              >
+              <CommandItem_Shadcn_ className="cursor-pointer w-full" onSelect={() => onClose()}>
                 <Link
                   href={`/new/${organizationSlug}`}
                   className="flex items-center gap-2 w-full"

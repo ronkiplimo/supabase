@@ -25,8 +25,7 @@ export default function V2ProjectDisambiguationPage() {
 
   const { data: organizations = [], isPending: isLoadingOrgs } = useOrganizationsQuery()
   const [selectedOrgSlug, setSelectedOrgSlug] = useState<string | undefined>(undefined)
-  const activeOrg =
-    organizations.find((o) => o.slug === selectedOrgSlug) ?? organizations[0]
+  const activeOrg = organizations.find((o) => o.slug === selectedOrgSlug) ?? organizations[0]
 
   const [search, setSearch] = useState('')
 
@@ -65,7 +64,7 @@ export default function V2ProjectDisambiguationPage() {
             </div>
           ) : (
             organizations.map((org) => {
-              const isActive = org.slug === (activeOrg?.slug)
+              const isActive = org.slug === activeOrg?.slug
               return (
                 <button
                   key={org.slug}

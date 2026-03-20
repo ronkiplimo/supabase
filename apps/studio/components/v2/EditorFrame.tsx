@@ -15,26 +15,25 @@ export function EditorFrame({ children }: { children: React.ReactNode }) {
 
   // Any /data route (including the chooser at /data with no further segment)
   const isDataActivity =
-    Boolean(projectRef) &&
-    Boolean(pathname?.includes('/data/') || pathname?.endsWith('/data'))
+    Boolean(projectRef) && Boolean(pathname?.includes('/data/') || pathname?.endsWith('/data'))
 
   // Sub-routes deeper than /data (list + detail views) need overflow:hidden for grids
   const isDataSubRoute =
     Boolean(projectRef) &&
     Boolean(
       pathname?.includes('/data/tables') ||
-        pathname?.includes('/data/functions') ||
-        pathname?.includes('/data/types') ||
-        pathname?.includes('/data/roles') ||
-        pathname?.includes('/data/extensions') ||
-        pathname?.includes('/data/indexes') ||
-        pathname?.includes('/data/publications') ||
-        pathname?.includes('/data/users') ||
-        pathname?.includes('/data/providers') ||
-        pathname?.includes('/data/oauth-apps') ||
-        pathname?.includes('/data/buckets') ||
-        pathname?.includes('/data/edge-functions') ||
-        pathname?.includes('/data/channels')
+      pathname?.includes('/data/functions') ||
+      pathname?.includes('/data/types') ||
+      pathname?.includes('/data/roles') ||
+      pathname?.includes('/data/extensions') ||
+      pathname?.includes('/data/indexes') ||
+      pathname?.includes('/data/publications') ||
+      pathname?.includes('/data/users') ||
+      pathname?.includes('/data/providers') ||
+      pathname?.includes('/data/oauth-apps') ||
+      pathname?.includes('/data/buckets') ||
+      pathname?.includes('/data/edge-functions') ||
+      pathname?.includes('/data/channels')
     )
 
   const isHome =

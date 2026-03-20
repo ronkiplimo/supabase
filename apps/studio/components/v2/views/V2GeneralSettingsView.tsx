@@ -70,4 +70,3 @@ export function V2GeneralSettingsView() {
     </StudioDataWorkspace>
   )
 }
-

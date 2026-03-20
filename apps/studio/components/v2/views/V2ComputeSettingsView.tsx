@@ -13,4 +13,3 @@ export function V2ComputeSettingsView() {
     </StudioDataWorkspace>
   )
 }
-

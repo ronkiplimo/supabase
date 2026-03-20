@@ -37,4 +37,3 @@ export function StudioDataWorkspace({
 
   return <RouteParamsOverrideProvider value={value}>{children}</RouteParamsOverrideProvider>
 }
-

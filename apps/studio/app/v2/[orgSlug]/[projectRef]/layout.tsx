@@ -17,4 +17,3 @@ export default function V2HomeLayout({ children }: { children: ReactNode }) {
     </V2ParamsProvider>
   )
 }
-

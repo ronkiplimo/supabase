@@ -22,10 +22,7 @@ export function useV2DataCounts(projectRef: string | undefined) {
     { projectRef, connectionString: conn, schema: 'public' },
     { enabled: Boolean(projectRef) }
   )
-  const { data: usersCount } = useUsersCountQuery(
-    { projectRef },
-    { enabled: Boolean(projectRef) }
-  )
+  const { data: usersCount } = useUsersCountQuery({ projectRef }, { enabled: Boolean(projectRef) })
   const { data: bucketsPages } = usePaginatedBucketsQuery(
     { projectRef },
     { enabled: Boolean(projectRef) }

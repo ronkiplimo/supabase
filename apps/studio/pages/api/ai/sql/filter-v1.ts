@@ -1,7 +1,5 @@
-import { generateObject } from 'ai'
+import { generateText, Output } from 'ai'
 import { source } from 'common-tags'
-import { NextApiRequest, NextApiResponse } from 'next'
-
 import { getModel } from 'lib/ai/model'
 import apiWrapper from 'lib/api/apiWrapper'
 import {
@@ -12,6 +10,7 @@ import {
   serializeOptions,
   validateFilterGroup,
 } from 'lib/api/filterHelpers'
+import { NextApiRequest, NextApiResponse } from 'next'
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { method } = req
@@ -36,7 +35,11 @@ export async function handlePost(req: NextApiRequest, res: NextApiResponse) {
   const { prompt, filterProperties } = parseResult.data
 
   try {
-    const { model, error: modelError } = await getModel({
+    const {
+      model,
+      error: modelError,
+      providerOptions,
+    } = await getModel({
       provider: 'openai',
       routingKey: 'sql',
     })
@@ -59,9 +62,10 @@ export async function handlePost(req: NextApiRequest, res: NextApiResponse) {
       options: property.options,
     }))
 
-    const result = await generateObject({
+    const result = await generateText({
       model,
-      schema: filterGroupSchema,
+      providerOptions,
+      output: Output.object({ schema: filterGroupSchema }),
       prompt: source`
         You are an expert Postgres filter builder. Convert the user's request into structured filters.
 
@@ -74,12 +78,13 @@ export async function handlePost(req: NextApiRequest, res: NextApiResponse) {
         - When unsure, default to simple equality comparisons with reasonable values.
         - Values should respect property types: booleans must be true/false, dates should be ISO date strings (YYYY-MM-DD), and numbers must be numbers.
         - If options are provided for a property, choose from those values when appropriate.
+        - The "is" operator is used for NULL checks. Valid values are: null, not null. For boolean columns, true and false are also valid.
 
         User request: "${prompt}"
       `,
     })
 
-    const generatedFilters = result.object
+    const generatedFilters = result.output
 
     if (!validateFilterGroup(generatedFilters, normalizedFilterProperties)) {
       return res.status(400).json({

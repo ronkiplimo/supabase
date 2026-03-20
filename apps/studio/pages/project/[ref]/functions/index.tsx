@@ -1,7 +1,3 @@
-import { ExternalLink, Search, X } from 'lucide-react'
-import { parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
-import React, { useMemo } from 'react'
-
 import { useParams } from 'common'
 import { DeployEdgeFunctionButton } from 'components/interfaces/EdgeFunctions/DeployEdgeFunctionButton'
 import {
@@ -23,6 +19,9 @@ import AlertError from 'components/ui/AlertError'
 import { DocsButton } from 'components/ui/DocsButton'
 import { useEdgeFunctionsQuery } from 'data/edge-functions/edge-functions-query'
 import { DOCS_URL, IS_PLATFORM } from 'lib/constants'
+import { ExternalLink, Search, X } from 'lucide-react'
+import { parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
+import React, { useMemo } from 'react'
 import type { NextPageWithLayout } from 'types'
 import { Button, Card, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui'
 import { Admonition } from 'ui-patterns'
@@ -114,6 +113,7 @@ const EdgeFunctionsPage: NextPageWithLayout = () => {
                             actions={[
                               search && (
                                 <Button
+                                  key="clear"
                                   size="tiny"
                                   type="text"
                                   icon={<X />}
@@ -128,6 +128,11 @@ const EdgeFunctionsPage: NextPageWithLayout = () => {
                       <div className="flex items-center gap-2">
                         <EdgeFunctionsSortDropdown value={sort} onChange={setSortQueryParam} />
                       </div>
+                      <span className="border-l border-default pl-2 text-xs text-foreground-light">
+                        {search && filteredFunctions.length !== functions.length
+                          ? `Viewing ${filteredFunctions.length} of ${functions.length} functions in total`
+                          : `Viewing ${functions.length} ${functions.length === 1 ? 'function' : 'functions'} in total`}
+                      </span>
                     </div>
                     <Card>
                       <Table>
@@ -178,7 +183,7 @@ const EdgeFunctionsPage: NextPageWithLayout = () => {
 EdgeFunctionsPage.getLayout = (page: React.ReactElement) => {
   return (
     <DefaultLayout>
-      <EdgeFunctionsLayout>
+      <EdgeFunctionsLayout title="Edge Functions">
         <div className="w-full min-h-full flex flex-col items-stretch">
           <PageHeader size="large">
             <PageHeaderMeta>

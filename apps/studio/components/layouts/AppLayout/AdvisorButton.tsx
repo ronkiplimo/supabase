@@ -13,6 +13,8 @@ import { useNotificationsV2Query } from '@/data/notifications/notifications-v2-q
 const COLLAPSED_BUTTON_SIZE = 32
 const MOBILE_BREAKPOINT = 768
 const MARQUEE_CHARACTER_THRESHOLD = 20
+const ADVISOR_URGENT_LABEL_CLASSNAME =
+  'inline-flex items-center justify-center whitespace-nowrap text-[9px] font-medium uppercase tracking-[0.07em] leading-none text-destructive-600'
 
 const AdvisorUrgentLabel = ({
   label,
@@ -34,7 +36,10 @@ const AdvisorUrgentLabel = ({
           <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-3 bg-gradient-to-r from-destructive-300 to-transparent" />
           <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-3 bg-gradient-to-l from-destructive-300 to-transparent" />
           <motion.div
-            className="flex w-max min-w-full items-center gap-6 whitespace-nowrap text-[11px] font-medium"
+            className={cn(
+              'flex w-max min-w-full items-center gap-6 whitespace-nowrap',
+              ADVISOR_URGENT_LABEL_CLASSNAME
+            )}
             animate={reducedMotion ? { x: 0 } : { x: ['0%', '-50%'] }}
             transition={
               reducedMotion
@@ -54,7 +59,7 @@ const AdvisorUrgentLabel = ({
           </motion.div>
         </>
       ) : (
-        <span className="block truncate text-[11px] font-medium">{label}</span>
+        <span className={cn('block truncate', ADVISOR_URGENT_LABEL_CLASSNAME)}>{label}</span>
       )}
     </div>
   )
@@ -130,6 +135,12 @@ export const AdvisorButton = ({ projectRef }: { projectRef?: string }) => {
 
   return (
     <div className="relative">
+      {showUrgentPrototype && !isPrototypeExpanded && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-[3px] rounded-full bg-destructive/20 animate-[ping_2.8s_cubic-bezier(0,0,0.2,1)_infinite] [animation-delay:1s]"
+        />
+      )}
       <Tooltip>
         <TooltipTrigger asChild>
           <motion.button
@@ -155,7 +166,7 @@ export const AdvisorButton = ({ projectRef }: { projectRef?: string }) => {
                 ? {
                     width: COLLAPSED_BUTTON_SIZE,
                     scale: 1,
-                    boxShadow: '0 0 0 rgba(0, 0, 0, 0)',
+                    // boxShadow: '0 0 0 rgba(0, 0, 0, 0)',
                   }
                 : false
             }
@@ -163,10 +174,10 @@ export const AdvisorButton = ({ projectRef }: { projectRef?: string }) => {
               width:
                 showUrgentPrototype && isPrototypeExpanded ? expandedWidth : COLLAPSED_BUTTON_SIZE,
               scale: showUrgentPrototype && isPrototypeExpanded && !reducedMotion ? 1.02 : 1,
-              boxShadow:
-                showUrgentPrototype && isPrototypeExpanded && !reducedMotion
-                  ? '0 10px 28px rgba(160, 32, 32, 0.22)'
-                  : '0 0 0 rgba(0, 0, 0, 0)',
+              // boxShadow:
+              //   showUrgentPrototype && isPrototypeExpanded && !reducedMotion
+              //     ? '0 10px 28px rgba(160, 32, 32, 0.22)'
+              //     : '0 0 0 rgba(0, 0, 0, 0)',
             }}
             transition={
               reducedMotion

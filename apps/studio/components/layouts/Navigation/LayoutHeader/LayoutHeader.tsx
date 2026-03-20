@@ -106,7 +106,7 @@ export const LayoutHeader = ({
     <>
       <header
         className={cn(
-          'flex h-11 md:h-12 items-center flex-shrink-0 border-b',
+          'flex h-11 md:h-12 items-center flex-shrink-0 border-b overflow-hidden',
           showFloatingMobileToolbar && 'hidden md:flex'
         )}
       >
@@ -122,7 +122,7 @@ export const LayoutHeader = ({
         )}
         <div
           className={cn(
-            'flex items-center justify-between h-full pr-3 flex-1 overflow-x-auto gap-x-8 pl-4'
+            'flex items-center justify-between h-full pr-3 flex-1 overflow-x-auto overflow-y-hidden gap-x-8 pl-4'
           )}
         >
           <div className="flex md:hidden items-center text-sm not-sr-only">

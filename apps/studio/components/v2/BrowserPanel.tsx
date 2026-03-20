@@ -77,8 +77,8 @@ const OBS_GROUPS = [
   {
     id: 'obs-alerts',
     label: 'Advisors',
-    items: [{ href: 'alerts', label: 'Security' }, { href: 'alerts', label: 'Active alerts' }],
-  },
+    items: [{ href: 'alerts', label: 'Security' }, { href: 'alerts', label: 'Active alerts' }, { href: 'alerts', label: 'Active alerts' }],
+  }
 ]
 
 const SETTINGS_GROUPS = [

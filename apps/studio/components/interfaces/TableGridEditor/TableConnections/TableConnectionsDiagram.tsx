@@ -4,7 +4,7 @@ import ReactFlow, { Background, Edge, Node, ReactFlowProvider, useReactFlow } fr
 import 'reactflow/dist/style.css'
 
 import { Entity } from 'data/table-editor/table-editor-types'
-import { applyDagreLayout } from './applyDagreLayout'
+import { applyDagreLayout } from './TableConnectionsDiagram.utils'
 import { CenterTableNode, CenterTableNodeData } from './CenterTableNode'
 import { ConnectionNode, ConnectionNodeData } from './ConnectionNode'
 import { useTableConnectionsContext } from './TableConnectionsProvider'

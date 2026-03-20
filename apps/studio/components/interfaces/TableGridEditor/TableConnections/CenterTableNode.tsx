@@ -1,7 +1,7 @@
 import { Table2 } from 'lucide-react'
 import { Handle, Position } from 'reactflow'
 import type { NodeProps } from 'reactflow'
-import { DIAGRAM_NODE_WIDTH } from './diagramConstants'
+import { DIAGRAM_NODE_WIDTH } from './TableConnectionsDiagram.constants'
 
 export type CenterTableNodeData = {
   name: string

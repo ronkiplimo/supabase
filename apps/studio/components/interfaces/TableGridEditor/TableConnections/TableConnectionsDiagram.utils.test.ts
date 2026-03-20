@@ -1,7 +1,6 @@
 import { Edge, Node, Position } from 'reactflow'
 import { describe, expect, it } from 'vitest'
-import { applyDagreLayout } from './applyDagreLayout'
-import { DIAGRAM_NODE_HEIGHT, DIAGRAM_NODE_WIDTH } from './diagramConstants'
+import { applyDagreLayout } from './TableConnectionsDiagram.utils'
 
 function makeNode(id: string): Node {
   return { id, position: { x: 0, y: 0 }, data: {} }

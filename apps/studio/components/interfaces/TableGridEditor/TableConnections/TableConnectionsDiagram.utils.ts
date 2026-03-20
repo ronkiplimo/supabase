@@ -1,6 +1,6 @@
 import dagre from '@dagrejs/dagre'
 import { Edge, Node, Position } from 'reactflow'
-import { DIAGRAM_NODE_HEIGHT, DIAGRAM_NODE_WIDTH } from './diagramConstants'
+import { DIAGRAM_NODE_HEIGHT, DIAGRAM_NODE_WIDTH } from './TableConnectionsDiagram.constants'
 
 export function applyDagreLayout(nodes: Node[], edges: Edge[]) {
   const dagreGraph = new dagre.graphlib.Graph()

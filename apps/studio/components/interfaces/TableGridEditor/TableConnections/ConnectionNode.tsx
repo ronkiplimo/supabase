@@ -2,7 +2,7 @@ import { LucideIcon } from 'lucide-react'
 import { Handle, Position } from 'reactflow'
 import type { NodeProps } from 'reactflow'
 import { cn } from 'ui'
-import { DIAGRAM_NODE_WIDTH } from './diagramConstants'
+import { DIAGRAM_NODE_WIDTH } from './TableConnectionsDiagram.constants'
 
 export type ConnectionNodeData = {
   label: string

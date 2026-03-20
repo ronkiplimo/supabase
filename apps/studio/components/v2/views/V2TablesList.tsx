@@ -1,25 +1,25 @@
 'use client'
 
 import type { PostgresTable } from '@supabase/postgres-meta'
+import { useSchemasQuery } from 'data/database/schemas-query'
+import { isValidConnString } from 'data/fetchers'
+import { useProjectDetailQuery } from 'data/projects/project-detail-query'
+import { useTablesQuery } from 'data/tables/tables-query'
 import Link from 'next/link'
 import { useCallback, useMemo, useState } from 'react'
 import {
+  Badge,
+  Input,
   Select_Shadcn_,
   SelectContent_Shadcn_,
   SelectItem_Shadcn_,
   SelectTrigger_Shadcn_,
   SelectValue_Shadcn_,
-  Input,
-  Badge,
 } from 'ui'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
 import { DataListGrid, type DataListColumnDef } from '@/components/v2/DataListGrid'
 import { useV2DashboardStore } from '@/stores/v2-dashboard'
-import { isValidConnString } from 'data/fetchers'
-import { useSchemasQuery } from 'data/database/schemas-query'
-import { useProjectDetailQuery } from 'data/projects/project-detail-query'
-import { useTablesQuery } from 'data/tables/tables-query'
 
 export function V2TablesList() {
   const { projectRef } = useV2Params()
@@ -38,7 +38,11 @@ export function V2TablesList() {
     { projectRef, connectionString: project?.connectionString },
     { enabled: shouldFetch }
   )
-  const { data: tables, isPending: isTablesPending, isError: isTablesError } = useTablesQuery(
+  const {
+    data: tables,
+    isPending: isTablesPending,
+    isError: isTablesError,
+  } = useTablesQuery(
     {
       projectRef,
       connectionString: project?.connectionString,
@@ -95,7 +99,7 @@ export function V2TablesList() {
         minWidth: 140,
         sortValue: (row) => row.schema ?? schema,
         renderCell: (row) => (
-          <span className="truncate text-muted-foreground">{row.schema ?? schema}</span>
+          <span className="truncate text-foreground-lighter">{row.schema ?? schema}</span>
         ),
       },
       {
@@ -107,7 +111,7 @@ export function V2TablesList() {
           row.rls_enabled ? (
             <Badge variant="success">On</Badge>
           ) : (
-            <span className="text-muted-foreground">Off</span>
+            <span className="text-foreground-lighter">Off</span>
           ),
       },
     ],
@@ -154,9 +158,7 @@ export function V2TablesList() {
         rows={filtered}
         rowKeyGetter={(row) => row.id}
         isLoading={isProjectPending || !shouldFetch || isTablesPending}
-        emptyMessage={
-          search.trim() ? 'No tables match your filter.' : 'No tables in this schema.'
-        }
+        emptyMessage={search.trim() ? 'No tables match your filter.' : 'No tables in this schema.'}
         onRowDoubleClick={openTable}
       />
     </div>

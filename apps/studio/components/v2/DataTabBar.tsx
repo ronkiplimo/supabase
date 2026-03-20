@@ -1,19 +1,17 @@
 'use client'
 
 import { X } from 'lucide-react'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { cn } from 'ui'
 
+import { TypeBadge } from './TypeBadge'
 import { useV2Params } from '@/app/v2/V2ParamsContext'
 import { useV2DashboardStore, type DataTab } from '@/stores/v2-dashboard'
-import { TypeBadge } from './TypeBadge'
 
 /** Returns the most specific (longest-path) tab that the current pathname is under. */
 function useActiveTab(dataTabs: DataTab[], pathname: string | null): DataTab | null {
   if (!pathname) return null
-  const matches = dataTabs.filter(
-    (t) => pathname === t.path || pathname.startsWith(t.path + '/')
-  )
+  const matches = dataTabs.filter((t) => pathname === t.path || pathname.startsWith(t.path + '/'))
   if (matches.length === 0) return null
   return matches.reduce((best, t) => (t.path.length > best.path.length ? t : best))
 }
@@ -61,7 +59,7 @@ export function DataTabBar() {
               'group relative flex items-center gap-1.5 pl-2.5 pr-1 py-1.5 border-r border-border shrink-0 max-w-[200px] cursor-pointer select-none',
               isActive
                 ? 'bg-background text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-foreground'
-                : 'text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50'
+                : 'text-foreground-lighter hover:text-foreground hover:bg-sidebar-accent/50'
             )}
             onClick={() => router.push(tab.path)}
           >
@@ -70,7 +68,7 @@ export function DataTabBar() {
             <button
               type="button"
               onClick={(e) => handleClose(tab, e)}
-              className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-sidebar-accent text-muted-foreground hover:text-foreground shrink-0"
+              className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-sidebar-accent text-foreground-lighter hover:text-foreground shrink-0"
               aria-label={`Close ${tab.label}`}
             >
               <X className="h-3 w-3" />

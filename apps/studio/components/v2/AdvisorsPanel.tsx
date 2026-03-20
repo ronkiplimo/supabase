@@ -1,9 +1,10 @@
 'use client'
 
-import Link from 'next/link'
-import { useV2Params } from '@/app/v2/V2ParamsContext'
 import { useProjectLintsQuery } from 'data/lint/lint-query'
+import Link from 'next/link'
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
+
+import { useV2Params } from '@/app/v2/V2ParamsContext'
 
 export function AdvisorsPanel() {
   const { projectRef } = useV2Params()
@@ -15,7 +16,7 @@ export function AdvisorsPanel() {
   const list = lints ?? []
   if (list.length === 0) {
     return (
-      <div className="p-3 text-sm text-muted-foreground">
+      <div className="p-3 text-sm text-foreground-lighter">
         No advisor warnings. Your project looks good.
       </div>
     )
@@ -34,14 +35,14 @@ export function AdvisorsPanel() {
           className="block p-2 rounded border border-border hover:bg-sidebar-accent text-left"
         >
           <div className="text-xs font-medium text-foreground">{lint.name}</div>
-          <div className="text-xs text-muted-foreground truncate">{lint.description}</div>
+          <div className="text-xs text-foreground-lighter truncate">{lint.description}</div>
           <span
             className={`inline-block mt-1 text-[10px] px-1.5 py-0 rounded ${
               lint.level === 'ERROR'
                 ? 'bg-destructive/20 text-destructive'
                 : lint.level === 'WARN'
                   ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
-                  : 'bg-muted text-muted-foreground'
+                  : 'bg-muted text-foreground-lighter'
             }`}
           >
             {lint.level}

@@ -221,7 +221,7 @@ export function BrowserPanel({ onCollapse }: { onCollapse?: () => void }) {
                       key={item.href}
                       href={itemHref}
                       className={cn(
-                        'flex items-center justify-between pl-8 pr-4 py-1.5 text-sm',
+                        'flex items-center justify-between pl-8 pr-4 py-1 text-xs',
                         isActive
                           ? 'bg-sidebar-accent text-foreground font-medium'
                           : 'text-foreground-light hover:text-foreground hover:bg-sidebar-accent/50'

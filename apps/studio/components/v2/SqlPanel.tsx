@@ -1,11 +1,11 @@
 'use client'
 
+import { useProjectDetailQuery } from 'data/projects/project-detail-query'
+import { useExecuteSqlMutation } from 'data/sql/execute-sql-mutation'
 import { useState } from 'react'
 import { Button } from 'ui'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
-import { useExecuteSqlMutation } from 'data/sql/execute-sql-mutation'
-import { useProjectDetailQuery } from 'data/projects/project-detail-query'
 
 export function SqlPanel() {
   const { projectRef } = useV2Params()
@@ -49,7 +49,10 @@ export function SqlPanel() {
         </pre>
       )}
       {data?.result && (
-        <pre className="mt-2 p-2 text-xs text-muted-foreground bg-muted/30 rounded overflow-auto max-h-40">
+        <pre
+          className="mt-2 p-2 text-xs text-foreground
+foreground-muted bg-muted/30 rounded overflow-auto max-h-40"
+        >
           {JSON.stringify(data.result, null, 2)}
         </pre>
       )}

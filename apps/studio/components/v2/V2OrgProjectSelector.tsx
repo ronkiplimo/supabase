@@ -1,5 +1,9 @@
 'use client'
 
+import { useOrganizationsQuery } from 'data/organizations/organizations-query'
+import { useOrgProjectsInfiniteQuery } from 'data/projects/org-projects-infinite-query'
+import { useProjectDetailQuery } from 'data/projects/project-detail-query'
+import { ChevronsUpDown } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import {
@@ -15,10 +19,6 @@ import {
 } from 'ui'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
-import { useOrganizationsQuery } from 'data/organizations/organizations-query'
-import { useOrgProjectsInfiniteQuery } from 'data/projects/org-projects-infinite-query'
-import { useProjectDetailQuery } from 'data/projects/project-detail-query'
-import { ChevronsUpDown } from 'lucide-react'
 
 export function V2OrgProjectSelector() {
   const router = useRouter()
@@ -51,18 +51,14 @@ export function V2OrgProjectSelector() {
   return (
     <Popover_Shadcn_ open={open} onOpenChange={setOpen}>
       <PopoverTrigger_Shadcn_ asChild>
-        <Button
-          variant="ghost"
-          size="tiny"
-          className="gap-1 text-foreground font-medium h-7 px-2"
-        >
-          <span className="text-muted-foreground text-xs truncate max-w-[120px]">
+        <Button variant="ghost" size="tiny" className="gap-1 text-foreground font-medium h-7 px-2">
+          <span className="text-foreground-lighter text-xs truncate max-w-[120px]">
             {selectedOrg?.name ?? orgSlug ?? 'Org'}
           </span>
           <span className="text-foreground truncate max-w-[140px]">
             / {project?.name ?? projectRef ?? 'Project'}
           </span>
-          <ChevronsUpDown className="h-3 w-3 text-muted-foreground shrink-0" />
+          <ChevronsUpDown className="h-3 w-3 text-foreground-lighter shrink-0" />
         </Button>
       </PopoverTrigger_Shadcn_>
       <PopoverContent_Shadcn_ className="w-[280px] p-0" align="start">

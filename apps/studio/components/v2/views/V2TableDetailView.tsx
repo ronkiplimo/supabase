@@ -1,15 +1,14 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useParams } from 'next/navigation'
-import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
-
 import { TableGridEditor } from 'components/interfaces/TableGridEditor/TableGridEditor'
+import { useProjectDetailQuery } from 'data/projects/project-detail-query'
+import { useTableEditorQuery } from 'data/table-editor/table-editor-query'
+import { useParams } from 'next/navigation'
+import { useEffect } from 'react'
+import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
 import { useV2DashboardStore } from '@/stores/v2-dashboard'
-import { useProjectDetailQuery } from 'data/projects/project-detail-query'
-import { useTableEditorQuery } from 'data/table-editor/table-editor-query'
 
 export function V2TableDetailView({ subTab }: { subTab: string }) {
   const params = useParams()
@@ -24,7 +23,11 @@ export function V2TableDetailView({ subTab }: { subTab: string }) {
   )
   const connectionString = project?.connectionString
 
-  const { data: table, isPending: isTablePending, isError } = useTableEditorQuery(
+  const {
+    data: table,
+    isPending: isTablePending,
+    isError,
+  } = useTableEditorQuery(
     { projectRef, connectionString, id },
     {
       // Wait for the project (and its connectionString) before running the SQL query.
@@ -53,9 +56,7 @@ export function V2TableDetailView({ subTab }: { subTab: string }) {
   }, [table, projectRef, tableId, openDataTab])
 
   if (isError) {
-    return (
-      <div className="p-4 text-destructive text-sm">Failed to load table.</div>
-    )
+    return <div className="p-4 text-destructive text-sm">Failed to load table.</div>
   }
   if (isPending || !table) {
     return <ShimmeringLoader className="m-4 h-8 rounded" />
@@ -74,8 +75,9 @@ export function V2TableDetailView({ subTab }: { subTab: string }) {
       <h2 className="text-sm font-medium text-foreground mb-2">
         {table.schema}.{table.name} — {subTab}
       </h2>
-      <p className="text-sm text-muted-foreground">
-        Content for {subTab} will use existing components (e.g. data grid, schema editor, policy editor).
+      <p className="text-sm text-foreground-lighter">
+        Content for {subTab} will use existing components (e.g. data grid, schema editor, policy
+        editor).
       </p>
     </div>
   )

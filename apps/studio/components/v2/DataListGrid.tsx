@@ -2,7 +2,7 @@
 
 import { ArrowDown, ArrowUp } from 'lucide-react'
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
-import DataGrid, { type Column, Row } from 'react-data-grid'
+import DataGrid, { Row, type Column } from 'react-data-grid'
 import { cn } from 'ui'
 import { GenericSkeletonLoader } from 'ui-patterns/ShimmeringLoader'
 
@@ -129,7 +129,9 @@ export function DataListGrid<TRow>({
           )
         },
         renderCell: (props) => (
-          <div className="flex h-full w-full items-center px-2 text-xs">{col.renderCell(props.row)}</div>
+          <div className="flex h-full w-full items-center px-2 text-xs">
+            {col.renderCell(props.row)}
+          </div>
         ),
       })),
     [columnDefs, sortKey, sortDir, onHeaderClick]
@@ -141,7 +143,7 @@ export function DataListGrid<TRow>({
         <div className="flex h-10 shrink-0 items-center justify-between gap-2 overflow-x-auto border-b border-border bg-dash-sidebar px-1.5 py-1.5 dark:bg-surface-100">
           <div className="flex min-w-0 flex-1 items-center gap-2">{toolbar}</div>
           {toolbarTrailing != null ? (
-            <div className="shrink-0 text-xs text-muted-foreground">{toolbarTrailing}</div>
+            <div className="shrink-0 text-xs text-foreground-lighter">{toolbarTrailing}</div>
           ) : null}
         </div>
       )}
@@ -180,7 +182,7 @@ export function DataListGrid<TRow>({
                 <GenericSkeletonLoader />
               </div>
             ) : (
-              <div className="flex h-full items-center justify-center p-8 text-center text-sm text-muted-foreground">
+              <div className="flex h-full items-center justify-center p-8 text-center text-sm text-foreground-lighter">
                 {emptyMessage ?? 'No rows'}
               </div>
             ),

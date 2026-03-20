@@ -1,5 +1,9 @@
 'use client'
 
+import { useBranchesQuery } from 'data/branches/branches-query'
+import { useProjectDetailQuery } from 'data/projects/project-detail-query'
+import { IS_PLATFORM } from 'lib/constants'
+import { GitBranch } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import {
@@ -13,12 +17,8 @@ import {
   PopoverContent_Shadcn_,
   PopoverTrigger_Shadcn_,
 } from 'ui'
-import { GitBranch } from 'lucide-react'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
-import { useBranchesQuery } from 'data/branches/branches-query'
-import { useProjectDetailQuery } from 'data/projects/project-detail-query'
-import { IS_PLATFORM } from 'lib/constants'
 
 export function V2BranchSelector() {
   const router = useRouter()
@@ -53,7 +53,7 @@ export function V2BranchSelector() {
 
   if (!IS_PLATFORM) {
     return (
-      <span className="text-muted-foreground text-xs flex items-center gap-1">
+      <span className="text-foreground-lighter text-xs flex items-center gap-1">
         <GitBranch className="h-3 w-3" />
         main
       </span>

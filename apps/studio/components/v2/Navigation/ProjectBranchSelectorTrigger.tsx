@@ -27,10 +27,10 @@ export const ProjectBranchSelectorTrigger = React.forwardRef<
       <SidebarMenuButtonComponent
         ref={ref}
         size="lg"
-        className="group p-0.5  gap-1.5 w-full max-w-[250px] flex h-auto text-left data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground touch-manipulation"
+        className="group px-1 py-0.5 gap-1.5 w-full max-w-[250px] flex h-auto text-left data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground touch-manipulation"
         {...buttonProps}
       >
-        <div className="relative flex h-8 aspect-square shrink-0 items-center bg-background-muted group-hover:border-stronger justify-center rounded border border-strong text-xs">
+        <div className="relative flex h-7 aspect-square shrink-0 items-center bg-background-muted group-hover:border-stronger justify-center rounded border border-strong text-xs">
           {selectedOrgInitial}
         </div>
         <div className="text-left flex-grow min-w-0">
@@ -42,7 +42,7 @@ export const ProjectBranchSelectorTrigger = React.forwardRef<
             )}
           >
             <GitBranch className="shrink-0 size-3" strokeWidth={1.5} />
-            <span className="truncate min-w-0 leading-tight text-xs">{branchDisplayName}</span>
+            <span className="truncate min-w-0 leading-tight text-[11px]">{branchDisplayName}</span>
           </div>
         </div>
 

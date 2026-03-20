@@ -100,7 +100,7 @@ export const ComputeBadgeWrapper = ({
   const isComputeNearExhaustion =
     !!resourceWarnings?.cpu_exhaustion || !!resourceWarnings?.memory_and_swap_exhaustion
 
-  const hasUpgradeAvailable = true || ((isFreeOnNano || isEligibleForFreeUpgrade) && isComputeNearExhaustion)
+  const hasUpgradeAvailable = (isFreeOnNano || isEligibleForFreeUpgrade) && isComputeNearExhaustion
 
   if (!computeSize) return null
 

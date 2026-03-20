@@ -121,39 +121,6 @@ from
 where h.x_real_ip is not null and r.method = "GET";
 ```
 
-## Logs field reference
-
-Refer to the full field reference for each available source below. To access each nested key, you need to perform the [necessary unnesting joins](#unnesting-arrays)
-
-<SharedData data="logConstants">
-  {(logConstants) => (
-    <Tabs scrollable size="small" type="underlined" defaultActiveId="edge_logs" queryGroup="source">
-      {logConstants.schemas.map((schema) => (
-        <TabPanel id={schema.reference} key={schema.reference} label={schema.name}>
-          <table>
-            <thead>
-              <tr>
-                <th className="font-bold">Path</th>
-                <th className="font-bold">Type</th>
-              </tr>
-            </thead>
-            <tbody>
-              {schema.fields
-                .sort((a, b) => a.path - b.path)
-                .map((field) => (
-                  <tr>
-                    <td className="font-mono">{field.path}</td>
-                    <td className="font-mono">{field.type}</td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </TabPanel>
-      ))}
-    </Tabs>
-  )}
-</SharedData>
-
 ## Understanding field references
 
 You query log tables with a subset of BigQuery SQL syntax. They all have three columns: `event_message`, `timestamp`, and `metadata`.

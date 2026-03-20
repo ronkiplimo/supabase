@@ -40,12 +40,12 @@ export function V2OrgProjectSelector() {
   const handleSelectProject = (ref: string) => {
     if (!orgSlug) return
     setOpen(false)
-    router.push(`/dashboard/v2/project/${ref}/data/tables`)
+    router.push(`/v2/project/${ref}/data/tables`)
   }
 
   const handleSelectOrg = (slug: string) => {
     setOpen(false)
-    router.push(`/dashboard/v2/org/${slug}`)
+    router.push(`/v2/org/${slug}`)
   }
 
   return (

@@ -55,7 +55,7 @@ export function V2TablesList() {
     return tables.filter((t) => t.name.toLowerCase().includes(q))
   }, [tables, search])
 
-  const base = projectRef ? `/dashboard/v2/project/${projectRef}` : ''
+  const base = projectRef ? `/v2/project/${projectRef}` : ''
 
   const openTable = useCallback(
     (table: PostgresTable) => {

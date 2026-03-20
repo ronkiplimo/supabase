@@ -133,8 +133,8 @@ export function LeftActivityBar() {
   const { data: lints } = useProjectLintsQuery({ projectRef })
   const hasAdvisorWarnings = (lints?.length ?? 0) > 0
 
-  const base = projectRef ? `/dashboard/v2/project/${projectRef}` : '#'
-  const homeBase = projectRef && orgSlug ? `/dashboard/v2/project/${projectRef}` : '#'
+  const base = projectRef ? `/v2/project/${projectRef}` : '#'
+  const homeBase = projectRef && orgSlug ? `/v2/project/${projectRef}` : '#'
 
   return (
     <ActivityBar

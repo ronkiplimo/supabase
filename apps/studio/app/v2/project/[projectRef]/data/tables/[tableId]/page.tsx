@@ -6,5 +6,5 @@ export default async function TableDetailPage({
   params: Promise<{ projectRef: string; tableId: string }>
 }) {
   const { projectRef, tableId } = await params
-  redirect(`/dashboard/v2/project/${projectRef}/data/tables/${tableId}/data`)
+  redirect(`/v2/project/${projectRef}/data/tables/${tableId}/data`)
 }

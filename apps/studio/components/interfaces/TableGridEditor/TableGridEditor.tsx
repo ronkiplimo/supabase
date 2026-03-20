@@ -66,7 +66,7 @@ export const TableGridEditor = ({
   const onTableCreated = useCallback(
     (table: { id: number }) => {
       if (variant === 'v2') {
-        const base = projectRef ? `/dashboard/v2/project/${projectRef}` : ''
+        const base = projectRef ? `/v2/project/${projectRef}` : ''
         router.push(
           `${base}/data/tables/${table.id}/data${
             !!selectedSchema ? `?schema=${selectedSchema}` : ''
@@ -95,7 +95,7 @@ export const TableGridEditor = ({
       tabs.removeTab(tabId)
       setLastVisitedTable(undefined)
 
-      const base = projectRef ? `/dashboard/v2/project/${projectRef}` : ''
+      const base = projectRef ? `/v2/project/${projectRef}` : ''
       router.push(`${base}/data/tables`)
       return
     }
@@ -158,7 +158,7 @@ export const TableGridEditor = ({
                     onClick={() => {
                       tabs.removeTab(tabId)
                       setLastVisitedTable(undefined)
-                      const base = projectRef ? `/dashboard/v2/project/${projectRef}` : ''
+                      const base = projectRef ? `/v2/project/${projectRef}` : ''
                       router.push(`${base}/data/tables`)
                     }}
                   >
@@ -172,7 +172,7 @@ export const TableGridEditor = ({
                     onClick={() => setLastVisitedTable(undefined)}
                   >
                     <Link
-                      href={`/dashboard/v2/project/${projectRef}/data/tables/${openTabs[0].split('-')[1]}/data`}
+                      href={`/v2/project/${projectRef}/data/tables/${openTabs[0].split('-')[1]}/data`}
                     >
                       Close tab
                     </Link>
@@ -184,7 +184,7 @@ export const TableGridEditor = ({
                     className="mt-2"
                     onClick={() => setLastVisitedTable(undefined)}
                   >
-                    <Link href={`/dashboard/v2/project/${projectRef}/data/tables`}>Head back</Link>
+                    <Link href={`/v2/project/${projectRef}/data/tables`}>Head back</Link>
                   </Button>
                 )
               ) : !!tabId ? (

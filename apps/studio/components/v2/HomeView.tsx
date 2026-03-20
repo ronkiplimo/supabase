@@ -269,19 +269,19 @@ export function HomeView() {
         {[
           {
             title: '+ New table',
-            href: projectRef ? `/dashboard/v2/project/${projectRef}/data/tables` : '#',
+            href: projectRef ? `/v2/project/${projectRef}/data/tables` : '#',
           },
           {
             title: '+ New bucket',
-            href: projectRef ? `/dashboard/v2/project/${projectRef}/data/buckets` : '#',
+            href: projectRef ? `/v2/project/${projectRef}/data/buckets` : '#',
           },
           {
             title: '+ New function',
-            href: projectRef ? `/dashboard/v2/project/${projectRef}/data/edge-functions` : '#',
+            href: projectRef ? `/v2/project/${projectRef}/data/edge-functions` : '#',
           },
           {
             title: '+ Add user',
-            href: projectRef ? `/dashboard/v2/project/${projectRef}/data/users` : '#',
+            href: projectRef ? `/v2/project/${projectRef}/data/users` : '#',
           },
         ].map((a) => (
           <button

@@ -48,7 +48,7 @@ export function V2TableDetailView({ subTab }: { subTab: string }) {
       type: 'detail',
       category: 'tables',
       domain: 'db',
-      path: `/dashboard/v2/project/${projectRef}/data/tables/${tableId}/data`,
+      path: `/v2/project/${projectRef}/data/tables/${tableId}/data`,
     })
   }, [table, projectRef, tableId, openDataTab])
 

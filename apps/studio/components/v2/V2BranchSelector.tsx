@@ -42,13 +42,13 @@ export function V2BranchSelector() {
   const handleSelectBranch = (ref: string) => {
     if (!orgSlug) return
     setOpen(false)
-    router.push(`/dashboard/v2/project/${ref}/data/tables`)
+    router.push(`/v2/project/${ref}/data/tables`)
   }
 
   const handleManageBranches = () => {
     if (!orgSlug || !projectRef) return
     setOpen(false)
-    router.push(`/dashboard/v2/project/${projectRef}/settings/branches`)
+    router.push(`/v2/project/${projectRef}/settings/branches`)
   }
 
   if (!IS_PLATFORM) {

@@ -102,7 +102,7 @@ export function Chooser() {
   const [search, setSearch] = useState('')
   const lowerSearch = search.toLowerCase()
 
-  const base = projectRef ? `/dashboard/v2/project/${projectRef}` : ''
+  const base = projectRef ? `/v2/project/${projectRef}` : ''
 
   const openCategory = (category: string) => {
     const domain = CATEGORY_DOMAIN[category] ?? 'db'

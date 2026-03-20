@@ -36,7 +36,7 @@ function OrgDashboardContent() {
           {projects.map((proj) => (
             <li key={proj.ref}>
               <Link
-                href={`/dashboard/v2/project/${proj.ref}`}
+                href={`/v2/project/${proj.ref}`}
                 className="text-sm text-foreground hover:underline"
               >
                 {proj.name}

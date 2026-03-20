@@ -21,7 +21,7 @@ export default function TableDetailLayout({ children }: { children: React.ReactN
   const { projectRef } = useV2Params()
   const tableId = params?.tableId as string
 
-  const base = projectRef ? `/dashboard/v2/project/${projectRef}/data/tables/${tableId}` : ''
+  const base = projectRef ? `/v2/project/${projectRef}/data/tables/${tableId}` : ''
 
   return (
     <StudioDataWorkspace projectRef={projectRef} id={tableId}>

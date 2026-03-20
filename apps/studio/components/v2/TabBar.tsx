@@ -29,7 +29,7 @@ export function TabBar() {
   const { projectRef } = useV2Params()
   const { detailTabs, removeDetailTab } = useV2DashboardStore()
 
-  const base = projectRef ? `/dashboard/v2/project/${projectRef}` : ''
+  const base = projectRef ? `/v2/project/${projectRef}` : ''
   const pathParts = pathname?.replace(/^\/v2\/[^/]+\/[^/]+/, '').split('/').filter(Boolean) ?? []
   const activity = pathParts[0]
   const category = pathParts[1]

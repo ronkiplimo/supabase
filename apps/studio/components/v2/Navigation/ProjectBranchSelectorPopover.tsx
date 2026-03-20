@@ -101,7 +101,7 @@ export function ProjectBranchSelectorPopover({ onClose }: ProjectBranchSelectorP
         projectCreationEnabled={projectCreationEnabled}
         onSelect={(ref) => {
           onClose()
-          router.push(`/dashboard/v2/project/${ref}/data/tables`)
+          router.push(`/v2/project/${ref}/data/tables`)
         }}
         onClose={onClose}
       />
@@ -112,7 +112,7 @@ export function ProjectBranchSelectorPopover({ onClose }: ProjectBranchSelectorP
         isBranchesLoaded={isBranchesSuccess}
         onSelect={(branch) => {
           onClose()
-          router.push(`/dashboard/v2/project/${branch.project_ref}/data/tables`)
+          router.push(`/v2/project/${branch.project_ref}/data/tables`)
         }}
         onCreateBranch={() => {
           onClose()
@@ -120,7 +120,7 @@ export function ProjectBranchSelectorPopover({ onClose }: ProjectBranchSelectorP
         }}
         onManageBranches={() => {
           onClose()
-          router.push(`/dashboard/v2/project/${projectRef}/settings/branches`)
+          router.push(`/v2/project/${projectRef}/settings/branches`)
         }}
         onClose={onClose}
       />

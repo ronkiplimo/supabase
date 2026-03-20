@@ -153,7 +153,7 @@ export function BrowserPanel({ onCollapse }: { onCollapse?: () => void }) {
   const { expandedGroups, toggleGroup } = useV2DashboardStore()
   const counts = useV2DataCounts(projectRef)
 
-  const base = projectRef ? `/dashboard/v2/project/${projectRef}` : ''
+  const base = projectRef ? `/v2/project/${projectRef}` : ''
   const isData = pathname?.includes('/data/')
   const isObs = pathname?.includes('/obs/')
   const isSettings = pathname?.includes('/settings/')

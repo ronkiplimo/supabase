@@ -31,7 +31,7 @@ export function DataTabBar() {
 
   // Don't render the bar at all when there are no detail tabs
   if (detailTabs.length === 0) return null
-  const chooserPath = projectRef ? `/dashboard/v2/project/${projectRef}/data` : '#'
+  const chooserPath = projectRef ? `/v2/project/${projectRef}/data` : '#'
 
   const handleClose = (tab: DataTab, e: React.MouseEvent) => {
     e.preventDefault()

@@ -6,6 +6,6 @@ export default async function V2OrgProjectPage({
   params: Promise<{ projectRef: string }>
 }) {
   const { projectRef } = await params
-  redirect(`/dashboard/v2/project/${projectRef}`)
+  redirect(`/v2/project/${projectRef}`)
 }
 

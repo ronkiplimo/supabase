@@ -7,7 +7,7 @@ import { HelpCircle } from 'lucide-react'
 import { useSidebarManagerSnapshot } from 'state/sidebar-manager-state'
 import { cn } from 'ui'
 
-export const HelpButton = () => {
+export const HelpButton = ({ side }: { side?: 'left' | 'right' }) => {
   const { toggleSidebar, activeSidebar } = useSidebarManagerSnapshot()
   const { data: project } = useSelectedProjectQuery()
   const { data: org } = useSelectedOrganizationQuery()
@@ -33,7 +33,7 @@ export const HelpButton = () => {
           })
         }
       }}
-      tooltip={{ content: { text: 'Help' } }}
+      tooltip={{ content: { side, text: 'Help' } }}
     >
       <HelpCircle
         size={16}

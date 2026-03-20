@@ -15,7 +15,7 @@ const InlineEditorKeyboardTooltip = () => {
   return hotkeyEnabled ? <KeyboardShortcut keys={['Meta', 'E']} /> : null
 }
 
-export const InlineEditorButton = () => {
+export const InlineEditorButton = ({ side }: { side?: 'left' | 'right' }) => {
   const { activeSidebar, toggleSidebar } = useSidebarManagerSnapshot()
   const isOpen = activeSidebar?.id === SIDEBAR_KEYS.EDITOR_PANEL
 
@@ -35,6 +35,7 @@ export const InlineEditorButton = () => {
       onClick={handleClick}
       tooltip={{
         content: {
+          side,
           className: 'p-1 pl-2.5',
           text: (
             <div className="flex items-center gap-2.5">

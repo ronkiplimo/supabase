@@ -8,7 +8,13 @@ import { cn } from 'ui'
 
 import { useNotificationsV2Query } from '@/data/notifications/notifications-v2-query'
 
-export const AdvisorButton = ({ projectRef }: { projectRef?: string }) => {
+export const AdvisorButton = ({
+  projectRef,
+  side,
+}: {
+  projectRef?: string
+  side?: 'left' | 'right'
+}) => {
   const { toggleSidebar, activeSidebar } = useSidebarManagerSnapshot()
 
   const { data: lints } = useProjectLintsQuery({ projectRef })
@@ -46,6 +52,7 @@ export const AdvisorButton = ({ projectRef }: { projectRef?: string }) => {
         onClick={handleClick}
         tooltip={{
           content: {
+            side,
             text: 'Advisor Center',
           },
         }}

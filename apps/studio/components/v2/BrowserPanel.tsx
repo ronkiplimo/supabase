@@ -100,18 +100,10 @@ const SETTINGS_GROUPS = [
     id: 'settings-modules',
     label: 'Modules',
     items: [
-      { href: 'auth', label: 'Auth config' },
-      { href: 'storage', label: 'Storage config' },
-      { href: 'functions', label: 'Functions config' },
-      { href: 'realtime', label: 'Realtime config' },
-    ],
-  },
-  {
-    id: 'settings-org',
-    label: 'Organization',
-    items: [
-      { href: 'members', label: 'Members' },
-      { href: 'billing', label: 'Billing' },
+      { href: 'auth', label: 'Auth' },
+      { href: 'storage', label: 'Storage' },
+      { href: 'functions', label: 'Functions' },
+      { href: 'realtime', label: 'Realtime' },
     ],
   },
 ]

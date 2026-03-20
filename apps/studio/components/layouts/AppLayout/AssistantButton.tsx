@@ -6,7 +6,7 @@ import { useAiAssistantStateSnapshot } from 'state/ai-assistant-state'
 import { useSidebarManagerSnapshot } from 'state/sidebar-manager-state'
 import { AiIconAnimation, cn, KeyboardShortcut } from 'ui'
 
-export const AssistantButton = () => {
+export const AssistantButton = ({ side }: { side?: 'left' | 'right' }) => {
   const { activeSidebar, toggleSidebar } = useSidebarManagerSnapshot()
   const [isAIAssistantHotkeyEnabled] = useLocalStorageQuery<boolean>(
     LOCAL_STORAGE_KEYS.HOTKEY_SIDEBAR(SIDEBAR_KEYS.AI_ASSISTANT),
@@ -29,6 +29,7 @@ export const AssistantButton = () => {
       }}
       tooltip={{
         content: {
+          side,
           className: 'p-1 pl-2.5',
           text: (
             <div className="flex items-center gap-2.5">

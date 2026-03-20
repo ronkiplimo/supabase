@@ -20,7 +20,15 @@ export const ProjectBranchSelectorTrigger = React.forwardRef<
     >
 >(
   (
-    { displayProjectName, selectedOrgInitial, isBranch, branchDisplayName, ...buttonProps },
+    {
+      displayProjectName,
+      selectedOrgInitial,
+      isBranch,
+      isProductionBranch: _isProductionBranch,
+      branchDisplayName,
+      onGoToOrganization: _onGoToOrganization,
+      ...buttonProps
+    },
     ref
   ) => {
     return (

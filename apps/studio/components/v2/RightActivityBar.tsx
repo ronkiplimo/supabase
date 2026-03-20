@@ -13,13 +13,13 @@ export function RightActivityBar() {
   return (
     <aside className="w-11 flex flex-col shrink-0 border-l border-border bg-dash-sidebar py-2 h-full">
       <div className="flex flex-col items-center gap-2">
-        <AssistantButton />
-        <InlineEditorButton />
-        <AdvisorButton projectRef={projectRef} />
+        <AssistantButton side="left" />
+        <InlineEditorButton side="left" />
+        <AdvisorButton projectRef={projectRef} side="left" />
       </div>
       <div className="flex-1" />
       <div className="flex flex-col items-center">
-        <HelpButton />
+        <HelpButton side="left" />
       </div>
     </aside>
   )

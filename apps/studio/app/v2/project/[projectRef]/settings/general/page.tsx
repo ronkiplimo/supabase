@@ -1,5 +1,5 @@
-import { V2PlaceholderView } from '@/components/v2/views/V2PlaceholderView'
+import { V2GeneralSettingsView } from '@/components/v2/views/V2GeneralSettingsView'
 
 export default function SettingsGeneralPage() {
-  return <V2PlaceholderView title="General settings" />
+  return <V2GeneralSettingsView />
 }

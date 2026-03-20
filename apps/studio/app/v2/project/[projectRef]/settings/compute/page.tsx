@@ -1,5 +1,5 @@
-import { V2PlaceholderView } from '@/components/v2/views/V2PlaceholderView'
+import { V2ComputeSettingsView } from '@/components/v2/views/V2ComputeSettingsView'
 
 export default function SettingsComputePage() {
-  return <V2PlaceholderView title="Compute & disk" />
+  return <V2ComputeSettingsView />
 }

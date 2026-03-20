@@ -1,14 +1,8 @@
-import { LucideIcon, Table2 } from 'lucide-react'
+import { LucideIcon } from 'lucide-react'
 import { Handle, Position } from 'reactflow'
 import type { NodeProps } from 'reactflow'
 import { cn } from 'ui'
-
-const NODE_WIDTH = 220
-
-export type CenterTableNodeData = {
-  name: string
-  schema: string
-}
+import { DIAGRAM_NODE_WIDTH } from './diagramConstants'
 
 export type ConnectionNodeData = {
   label: string
@@ -18,31 +12,12 @@ export type ConnectionNodeData = {
   borderColor: string
 }
 
-export const CenterTableNode = ({ data }: NodeProps<CenterTableNodeData>) => {
-  return (
-    <div
-      style={{ width: NODE_WIDTH }}
-      className="rounded-md border-2 border-brand bg-surface-100 shadow-md"
-    >
-      <div className="flex items-center gap-2 px-3 py-2 bg-brand/10 border-b border-brand/20">
-        <Table2 size={14} className="text-brand" />
-        <span className="text-sm font-medium text-foreground truncate">{data.name}</span>
-      </div>
-      <div className="px-3 py-1.5">
-        <span className="text-xs text-foreground-lighter">{data.schema}</span>
-      </div>
-      <Handle type="source" position={Position.Right} className="!opacity-0" />
-      <Handle type="target" position={Position.Left} className="!opacity-0" />
-    </div>
-  )
-}
-
 export const ConnectionNode = ({ data }: NodeProps<ConnectionNodeData>) => {
   const Icon = data.icon
 
   return (
     <div
-      style={{ width: NODE_WIDTH }}
+      style={{ width: DIAGRAM_NODE_WIDTH }}
       className={cn('rounded-md border bg-surface-100 shadow-sm', data.borderColor)}
     >
       <div className="flex items-center gap-2 px-3 py-2">
@@ -61,6 +36,3 @@ export const ConnectionNode = ({ data }: NodeProps<ConnectionNodeData>) => {
     </div>
   )
 }
-
-export const DIAGRAM_NODE_WIDTH = NODE_WIDTH
-export const DIAGRAM_NODE_HEIGHT = 56

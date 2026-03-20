@@ -1,19 +1,13 @@
-import dagre from '@dagrejs/dagre'
 import { useTheme } from 'next-themes'
 import { useEffect, useMemo } from 'react'
-import ReactFlow, { Background, Edge, Node, Position, ReactFlowProvider, useReactFlow } from 'reactflow'
+import ReactFlow, { Background, Edge, Node, ReactFlowProvider, useReactFlow } from 'reactflow'
 import 'reactflow/dist/style.css'
 
 import { Entity } from 'data/table-editor/table-editor-types'
+import { applyDagreLayout } from './applyDagreLayout'
+import { CenterTableNode, CenterTableNodeData } from './CenterTableNode'
+import { ConnectionNode, ConnectionNodeData } from './ConnectionNode'
 import { useTableConnectionsContext } from './TableConnectionsProvider'
-import {
-  CenterTableNode,
-  CenterTableNodeData,
-  ConnectionNode,
-  ConnectionNodeData,
-  DIAGRAM_NODE_HEIGHT,
-  DIAGRAM_NODE_WIDTH,
-} from './ConnectionNodes'
 
 interface TableConnectionsDiagramProps {
   table: Entity
@@ -136,39 +130,4 @@ function DiagramContent({ table }: TableConnectionsDiagramProps) {
       <Background color={backgroundPatternColor} />
     </ReactFlow>
   )
-}
-
-function applyDagreLayout(nodes: Node[], edges: Edge[]) {
-  const dagreGraph = new dagre.graphlib.Graph()
-  dagreGraph.setDefaultEdgeLabel(() => ({}))
-  dagreGraph.setGraph({
-    rankdir: 'LR',
-    nodesep: 30,
-    ranksep: 80,
-  })
-
-  nodes.forEach((node) => {
-    dagreGraph.setNode(node.id, {
-      width: DIAGRAM_NODE_WIDTH,
-      height: DIAGRAM_NODE_HEIGHT,
-    })
-  })
-
-  edges.forEach((edge) => {
-    dagreGraph.setEdge(edge.source, edge.target)
-  })
-
-  dagre.layout(dagreGraph)
-
-  nodes.forEach((node) => {
-    const pos = dagreGraph.node(node.id)
-    node.targetPosition = Position.Left
-    node.sourcePosition = Position.Right
-    node.position = {
-      x: pos.x - DIAGRAM_NODE_WIDTH / 2,
-      y: pos.y - DIAGRAM_NODE_HEIGHT / 2,
-    }
-  })
-
-  return { nodes, edges }
 }

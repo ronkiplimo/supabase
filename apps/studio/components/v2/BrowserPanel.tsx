@@ -52,7 +52,7 @@ const DATA_GROUPS = [
 const OBS_GROUPS = [
   {
     id: 'obs-logs',
-    label: 'Log streams',
+    label: 'Logs',
     items: [
       { href: 'logs', label: 'All logs' },
       { href: 'logs/api', label: 'API gateway' },
@@ -62,18 +62,22 @@ const OBS_GROUPS = [
   },
   {
     id: 'obs-metrics',
-    label: 'Metrics',
+    label: 'Observability',
     items: [
-      { href: 'metrics/connections', label: 'Connections' },
-      { href: 'metrics/cpu', label: 'CPU' },
-      { href: 'metrics/memory', label: 'Memory' },
-      { href: 'metrics/disk', label: 'Disk' },
+      { href: 'metrics/connections', label: 'Query Performance' },
+      { href: 'metrics/connections', label: 'API gateway' },
+      { href: 'metrics/connections', label: 'Database' },
+      { href: 'metrics/cpu', label: 'Data API' },
+      { href: 'metrics/memory', label: 'Auth' },
+      { href: 'metrics/disk', label: 'Edge Functions' },
+      { href: 'metrics/disk', label: 'Storage' },
+      { href: 'metrics/disk', label: 'Realtime' },
     ],
   },
   {
     id: 'obs-alerts',
-    label: 'Alerts',
-    items: [{ href: 'alerts', label: 'Active alerts' }],
+    label: 'Advisors',
+    items: [{ href: 'alerts', label: 'Security' }, { href: 'alerts', label: 'Active alerts' }],
   },
 ]
 

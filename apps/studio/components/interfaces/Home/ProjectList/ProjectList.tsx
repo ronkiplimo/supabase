@@ -287,6 +287,7 @@ export const ProjectList = ({ organization: organization_, rewriteHref }: Projec
               'sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'
             )}
           >
+           <div className="w-full aspect-video border border-brand-500 p-4">asd</div> 
             {orgProjects?.map((project) => (
               <ProjectCard
                 key={project.ref}

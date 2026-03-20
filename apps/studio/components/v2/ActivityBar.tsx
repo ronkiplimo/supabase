@@ -6,7 +6,6 @@ import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
-
 import { useV2Params } from '@/app/v2/V2ParamsContext'
 
 const AccountNav = dynamic(() => import('./Navigation/AccountNav').then((m) => m.AccountNav), {

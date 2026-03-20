@@ -72,7 +72,7 @@ export const HomePageActions = ({ slug: _slug, hideNewProject = false }: HomePag
           placeholder="Search for a project"
           icon={<Search />}
           size="tiny"
-          className="w-full sm:w-32 md:w-64 !border-brand"
+          className="w-full sm:w-32 md:w-64"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           actions={[

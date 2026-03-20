@@ -19,27 +19,27 @@ const BADGE_CONFIG: Record<
   },
   db: {
     label: 'Database',
-    icon: <Database className="h-3 w-3" strokeWidth={1} />,
+    icon: <Database className="h-3 w-3" strokeWidth={1.5} />,
     className: 'text-foreground-lighter',
   },
   auth: {
     label: 'Auth',
-    icon: <Auth className="h-3 w-3" strokeWidth={1} />,
+    icon: <Auth className="h-3 w-3" strokeWidth={1.5} />,
     className: 'text-foreground-lighter',
   },
   st: {
     label: 'Storage',
-    icon: <Storage className="h-3 w-3" strokeWidth={1} />,
+    icon: <Storage className="h-3 w-3" strokeWidth={1.5} />,
     className: 'text-foreground-lighter',
   },
   fn: {
     label: 'Edge Functions',
-    icon: <EdgeFunctions className="h-3 w-3" strokeWidth={1} />,
+    icon: <EdgeFunctions className="h-3 w-3" strokeWidth={1.5} />,
     className: 'text-foreground-lighter',
   },
   rt: {
     label: 'Realtime',
-    icon: <Realtime className="h-3 w-3" strokeWidth={1} />,
+    icon: <Realtime className="h-3 w-3" strokeWidth={1.5} />,
     className: 'text-foreground-lighter',
   },
 }

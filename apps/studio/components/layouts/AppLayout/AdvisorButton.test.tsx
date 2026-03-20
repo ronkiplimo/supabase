@@ -72,7 +72,7 @@ describe('AdvisorButton', () => {
     })
 
     expect(button).toHaveAttribute('data-state', 'prototype-collapsed')
-    expect(screen.getByTestId('advisor-urgent-label-track')).toHaveAttribute('data-marquee', 'false')
+    expect(screen.queryByTestId('advisor-urgent-label-track')).not.toBeInTheDocument()
     expect(screen.getByTestId('advisor-status-indicator')).toBeInTheDocument()
   })
 

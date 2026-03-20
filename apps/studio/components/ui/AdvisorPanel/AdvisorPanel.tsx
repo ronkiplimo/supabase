@@ -7,6 +7,7 @@ import {
 } from 'data/notifications/notifications-v2-query'
 import { useNotificationsV2UpdateMutation } from 'data/notifications/notifications-v2-update-mutation'
 import dayjs from 'dayjs'
+import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
 import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
 import { IS_PLATFORM } from 'lib/constants'
 import { useTrack } from 'lib/telemetry/track'
@@ -19,6 +20,10 @@ import { AdvisorFilters } from './AdvisorFilters'
 import type { AdvisorItem } from './AdvisorPanel.types'
 import { AdvisorPanelBody } from './AdvisorPanelBody'
 import { AdvisorPanelHeader } from './AdvisorPanelHeader'
+import {
+  ADVISOR_URGENT_PROTOTYPE,
+  ADVISOR_URGENT_PROTOTYPE_NOTIFICATION_ID,
+} from '@/components/layouts/AppLayout/advisor-urgent-prototype.constants'
 
 const severityOrder: Record<AdvisorSeverity, number> = {
   critical: 0,
@@ -64,6 +69,7 @@ export const AdvisorPanel = () => {
     setNotificationFilters,
     resetNotificationFilters,
   } = useAdvisorStateSnapshot()
+  const { data: organization } = useSelectedOrganizationQuery()
   const { data: project } = useSelectedProjectQuery()
   const { activeSidebar, closeSidebar } = useSidebarManagerSnapshot()
 
@@ -154,7 +160,7 @@ export const AdvisorPanel = () => {
 
   const notificationItems = useMemo<AdvisorItem[]>(() => {
     if (!IS_PLATFORM) return []
-    return notifications?.map((notification): AdvisorItem => {
+    const items = notifications?.map((notification): AdvisorItem => {
       const data = notification.data as NotificationData
       return {
         id: notification.id,
@@ -166,7 +172,33 @@ export const AdvisorPanel = () => {
         original: notification,
       }
     })
-  }, [notifications])
+
+    if (ADVISOR_URGENT_PROTOTYPE.enabled && organization?.slug) {
+      items.unshift({
+        id: ADVISOR_URGENT_PROTOTYPE_NOTIFICATION_ID,
+        title: ADVISOR_URGENT_PROTOTYPE.label,
+        severity: 'critical',
+        createdAt: dayjs().valueOf(),
+        tab: 'messages',
+        source: 'notification',
+        original: {
+          id: ADVISOR_URGENT_PROTOTYPE_NOTIFICATION_ID,
+          priority: 'Critical',
+          status: 'seen',
+          inserted_at: new Date().toISOString(),
+          data: {
+            title: ADVISOR_URGENT_PROTOTYPE.label,
+            message:
+              'Your organization is over its included usage limits. This is a prototype Advisor message to preview how urgent overage guidance could appear inside the panel.',
+            org_slug: organization.slug,
+            actions: [{ label: 'View usage', url: '/org/[slug]/usage' }],
+          },
+        } as Notification,
+      })
+    }
+
+    return items
+  }, [notifications, organization?.slug])
 
   const combinedItems = useMemo<AdvisorItem[]>(() => {
     const all = [...lintItems, ...notificationItems]
@@ -249,7 +281,11 @@ export const AdvisorPanel = () => {
 
     if (item.source === 'notification') {
       const notification = item.original as Notification
-      if (notification.status === 'new' && !markedRead.current.includes(notification.id)) {
+      if (
+        notification.id !== ADVISOR_URGENT_PROTOTYPE_NOTIFICATION_ID &&
+        notification.status === 'new' &&
+        !markedRead.current.includes(notification.id)
+      ) {
         markedRead.current.push(notification.id)
       }
     }

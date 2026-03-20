@@ -5,10 +5,10 @@ import { motion } from 'framer-motion'
 import { Lightbulb } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useSidebarManagerSnapshot } from 'state/sidebar-manager-state'
-import { Tooltip, TooltipContent, TooltipTrigger, buttonVariants, cn } from 'ui'
+import { buttonVariants, cn, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
 
-import { useNotificationsV2Query } from '@/data/notifications/notifications-v2-query'
 import { ADVISOR_URGENT_PROTOTYPE } from './advisor-urgent-prototype.constants'
+import { useNotificationsV2Query } from '@/data/notifications/notifications-v2-query'
 
 const COLLAPSED_BUTTON_SIZE = 32
 const MOBILE_BREAKPOINT = 768
@@ -146,7 +146,7 @@ export const AdvisorButton = ({ projectRef }: { projectRef?: string }) => {
                 type: showUrgentPrototype ? 'danger' : isOpen ? 'secondary' : 'outline',
                 size: 'tiny',
               }),
-              'group relative flex shrink-0 items-center overflow-hidden rounded-full !border !px-0 !py-0 !h-8 !min-h-8',
+              'group relative flex shrink-0 items-center overflow-hidden rounded-full !border !px-0 !py-0 !h-8 !min-h-8 !space-x-0',
               showUrgentPrototype ? 'justify-start' : 'justify-center'
             )}
             onClick={handleClick}
@@ -216,20 +216,19 @@ export const AdvisorButton = ({ projectRef }: { projectRef?: string }) => {
                     showUrgentPrototype
                       ? 'text-foreground group-hover:text-hi-contrast'
                       : 'text-foreground-light group-hover:text-foreground',
-                    !showUrgentPrototype &&
-                      isOpen &&
-                      'text-background group-hover:text-background'
+                    !showUrgentPrototype && isOpen && 'text-background group-hover:text-background'
                   )}
                 />
               </motion.span>
-              {showUrgentPrototype && (
+              {showUrgentPrototype && isPrototypeExpanded && (
                 <motion.span
+                  key="advisor-urgent-label"
                   className="min-w-0 overflow-hidden"
-                  aria-hidden={!isPrototypeExpanded}
+                  initial={{ opacity: 0, x: -8, maxWidth: 0 }}
                   animate={{
-                    opacity: isPrototypeExpanded ? 1 : 0,
-                    x: isPrototypeExpanded ? 0 : -8,
-                    maxWidth: isPrototypeExpanded ? labelMaxWidth : 0,
+                    opacity: 1,
+                    x: 0,
+                    maxWidth: labelMaxWidth,
                   }}
                   transition={reducedMotion ? { duration: 0.12 } : { duration: 0.2 }}
                 >
@@ -243,18 +242,7 @@ export const AdvisorButton = ({ projectRef }: { projectRef?: string }) => {
             </span>
           </motion.button>
         </TooltipTrigger>
-        <TooltipContent>
-          {showUrgentPrototype ? (
-            <div className="space-y-1">
-              <div>Advisor Center</div>
-              <div className="text-xs text-foreground-light">
-                {ADVISOR_URGENT_PROTOTYPE.label}
-              </div>
-            </div>
-          ) : (
-            'Advisor Center'
-          )}
-        </TooltipContent>
+        <TooltipContent>Advisor Center</TooltipContent>
       </Tooltip>
       {statusDotClassName ? (
         <span

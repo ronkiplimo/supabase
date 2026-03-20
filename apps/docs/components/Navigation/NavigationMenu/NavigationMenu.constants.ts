@@ -2790,7 +2790,7 @@ export const telemetry: NavMenuConstant = {
           url: '/guides/telemetry/advanced-log-filtering' as `/${string}`,
         },
         {
-          name: 'Log field reference',
+          name: 'Logs field reference',
           url: '/guides/telemetry/log-field-reference' as `/${string}`,
         },
         {

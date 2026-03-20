@@ -37,7 +37,7 @@ select datetime(timestamp) from ....
 
 ## Unnesting arrays
 
-Each log event stores metadata an array of objects with multiple levels, as you can see by selecting single log events in the Logs Explorer. To query arrays, use `unnest()` on each array field and add it to the query as a join. This allows you to reference the nested objects with an alias and select their individual fields.
+Each log event stores metadata as an array of objects with multiple levels, as you can see by selecting single log events in the Logs Explorer. To query arrays, use `unnest()` on each array field and add it to the query as a join. This allows you to reference the nested objects with an alias and select their individual fields.
 
 For example, to query the edge logs without any joins:
 
@@ -78,7 +78,7 @@ The Logs Explorer has a maximum of 1000 rows per run. Use `LIMIT` to optimize yo
 
 1. Include a filter over **timestamp**
 
-  Querying your entire log history might seem appealing. For **Enterprise** customers that have a large retention range, you run the risk of timeouts due additional time required to scan the larger dataset.
+  Querying your entire log history might seem appealing. For **Enterprise** customers that have a large retention range, you run the risk of timeouts due to additional time required to scan the larger dataset.
 
 2. Avoid selecting large nested objects. Select individual values instead.
 

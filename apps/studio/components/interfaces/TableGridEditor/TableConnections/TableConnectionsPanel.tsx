@@ -1,18 +1,9 @@
-import {
-  ArrowDownLeft,
-  ArrowUpRight,
-  Loader2,
-  Radio,
-  Shield,
-  Webhook,
-  Zap,
-} from 'lucide-react'
-import { useParams } from 'common'
+import { Loader2 } from 'lucide-react'
+import React from 'react'
 import { SidePanel } from 'ui'
 import { Entity } from 'data/table-editor/table-editor-types'
-import { useTableConnections } from './useTableConnections'
-import { ConnectionSection } from './ConnectionSection'
-import { ConnectionItem } from './ConnectionItem'
+import { TableConnectionsProvider, useTableConnectionsContext } from './TableConnectionsProvider'
+import { ConnectionList } from './ConnectionList'
 import { TableConnectionsDiagram } from './TableConnectionsDiagram'
 
 interface TableConnectionsPanelProps {
@@ -22,19 +13,15 @@ interface TableConnectionsPanelProps {
 }
 
 export function TableConnectionsPanel({ visible, onClose, table }: TableConnectionsPanelProps) {
-  const { ref } = useParams()
+  return (
+    <TableConnectionsProvider target={{ schema: table.schema, name: table.name, id: table.id }}>
+      <TableConnectionsPanelContent visible={visible} onClose={onClose} table={table} />
+    </TableConnectionsProvider>
+  )
+}
 
-  const {
-    triggers,
-    hooks,
-    policies,
-    outgoingForeignKeys,
-    incomingForeignKeys,
-    isRealtimeEnabled,
-    isLoading,
-    counts,
-    total,
-  } = useTableConnections({ schema: table.schema, name: table.name, id: table.id })
+function TableConnectionsPanelContent({ visible, onClose, table }: TableConnectionsPanelProps) {
+  const { categories, total, isLoading } = useTableConnectionsContext()
 
   return (
     <SidePanel
@@ -61,112 +48,24 @@ export function TableConnectionsPanel({ visible, onClose, table }: TableConnecti
             <TableConnectionsDiagram table={table} />
           </div>
 
-          <div className="py-2 overflow-auto">
-            <ConnectionSection
-              title="Foreign Keys (outgoing)"
-              icon={<ArrowUpRight size={14} className="text-foreground-muted" />}
-              count={counts.outgoingForeignKeys}
-            >
-              {outgoingForeignKeys.map((fk) => (
-                <ConnectionItem
-                  key={fk.id}
-                  name={fk.constraint_name}
-                  description={`→ ${fk.target_schema}.${fk.target_table}`}
-                  href={`/project/${ref}/editor/${fk.target_id}`}
-                  icon={<ArrowUpRight size={14} />}
-                  badges={[
-                    `${fk.source_columns.join(', ')} → ${fk.target_columns.join(', ')}`,
-                  ]}
-                />
-              ))}
-            </ConnectionSection>
-
-            <ConnectionSection
-              title="Foreign Keys (incoming)"
-              icon={<ArrowDownLeft size={14} className="text-foreground-muted" />}
-              count={counts.incomingForeignKeys}
-            >
-              {incomingForeignKeys.map((fk) => (
-                <ConnectionItem
-                  key={fk.id}
-                  name={fk.constraint_name}
-                  description={`← ${fk.source_schema}.${fk.source_table}`}
-                  href={`/project/${ref}/editor/${fk.source_id}`}
-                  icon={<ArrowDownLeft size={14} />}
-                  badges={[
-                    `${fk.source_columns.join(', ')} → ${fk.target_columns.join(', ')}`,
-                  ]}
-                />
-              ))}
-            </ConnectionSection>
-
-            <ConnectionSection
-              title="Triggers"
-              icon={<Zap size={14} className="text-foreground-muted" />}
-              count={counts.triggers}
-            >
-              {triggers.map((trigger) => (
-                <ConnectionItem
-                  key={trigger.id}
-                  name={trigger.name}
-                  description={`${trigger.activation} ${trigger.events.join('/')} → ${trigger.function_name}`}
-                  href={`/project/${ref}/database/triggers`}
-                  icon={<Zap size={14} />}
-                  badges={[trigger.activation, ...trigger.events]}
-                />
-              ))}
-            </ConnectionSection>
-
-            <ConnectionSection
-              title="Database Hooks"
-              icon={<Webhook size={14} className="text-foreground-muted" />}
-              count={counts.hooks}
-            >
-              {hooks.map((hook) => (
-                <ConnectionItem
-                  key={hook.id}
-                  name={hook.name}
-                  description={`${hook.events.join('/')} → ${hook.function_name}`}
-                  href={`/project/${ref}/database/hooks`}
-                  icon={<Webhook size={14} />}
-                  badges={hook.events}
-                />
-              ))}
-            </ConnectionSection>
-
-            <ConnectionSection
-              title="RLS Policies"
-              icon={<Shield size={14} className="text-foreground-muted" />}
-              count={counts.policies}
-            >
-              {policies.map((policy) => (
-                <ConnectionItem
-                  key={policy.id}
-                  name={policy.name}
-                  description={`${policy.command} — ${policy.action}`}
-                  href={`/project/${ref}/auth/policies?search=${table.name}&schema=${table.schema}`}
-                  icon={<Shield size={14} />}
-                  badges={[policy.command, ...policy.roles]}
-                />
-              ))}
-            </ConnectionSection>
-
-            <ConnectionSection
-              title="Realtime"
-              icon={<Radio size={14} className="text-foreground-muted" />}
-              count={counts.realtime}
-            >
-              {isRealtimeEnabled && (
-                <ConnectionItem
-                  name="supabase_realtime"
-                  description="Table is published to realtime"
-                  href={`/project/${ref}/database/publications`}
-                  icon={<Radio size={14} />}
-                  badges={['Enabled']}
-                />
-              )}
-            </ConnectionSection>
-          </div>
+          <ConnectionList>
+            {Array.from(categories.values()).map((resolved) => {
+              const { definition, items } = resolved
+              const Icon = definition.display.icon
+              return (
+                <ConnectionList.Section
+                  key={definition.categoryId}
+                  title={definition.display.title}
+                  icon={<Icon size={14} className="text-foreground-muted" />}
+                  count={items.length}
+                >
+                  {items.map((item) => (
+                    <ConnectionList.Item key={item.id} item={item} />
+                  ))}
+                </ConnectionList.Section>
+              )
+            })}
+          </ConnectionList>
         </div>
       )}
     </SidePanel>

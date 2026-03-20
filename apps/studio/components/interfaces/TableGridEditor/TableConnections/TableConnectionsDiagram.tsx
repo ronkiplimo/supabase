@@ -5,7 +5,7 @@ import ReactFlow, { Background, Edge, Node, Position, ReactFlowProvider, useReac
 import 'reactflow/dist/style.css'
 
 import { Entity } from 'data/table-editor/table-editor-types'
-import { useTableConnections } from './useTableConnections'
+import { useTableConnectionsContext } from './TableConnectionsProvider'
 import {
   CenterTableNode,
   CenterTableNodeData,
@@ -35,16 +35,7 @@ export function TableConnectionsDiagram({ table }: TableConnectionsDiagramProps)
 function DiagramContent({ table }: TableConnectionsDiagramProps) {
   const reactFlow = useReactFlow()
   const { resolvedTheme } = useTheme()
-
-  const {
-    triggers,
-    hooks,
-    policies,
-    outgoingForeignKeys,
-    incomingForeignKeys,
-    isRealtimeEnabled,
-    isLoading,
-  } = useTableConnections({ schema: table.schema, name: table.name, id: table.id })
+  const { categories, isLoading } = useTableConnectionsContext()
 
   const { nodes, edges } = useMemo(() => {
     const nodes: Node<CenterTableNodeData | ConnectionNodeData>[] = []
@@ -59,97 +50,45 @@ function DiagramContent({ table }: TableConnectionsDiagramProps) {
     })
 
     let nodeIndex = 0
-    const addConnection = (
-      id: string,
-      label: string,
-      description: string,
-      category: ConnectionNodeData['category'],
-      direction: 'left' | 'right'
-    ) => {
-      const nodeId = `${category}-${id}-${nodeIndex++}`
-      nodes.push({
-        id: nodeId,
-        type: 'connection',
-        data: { label, description, category },
-        position: { x: 0, y: 0 },
+    categories.forEach(({ definition, items }) => {
+      const direction = definition.diagram.direction
+
+      items.forEach((item) => {
+        const nodeId = `${definition.categoryId}-${item.id}-${nodeIndex++}`
+        nodes.push({
+          id: nodeId,
+          type: 'connection',
+          data: {
+            label: item.name,
+            description: item.description,
+            icon: definition.display.icon,
+            color: definition.display.color,
+            borderColor: definition.display.borderColor,
+          },
+          position: { x: 0, y: 0 },
+        })
+        if (direction === 'right') {
+          edges.push({
+            id: `e-${nodeId}`,
+            source: centerId,
+            target: nodeId,
+            type: 'smoothstep',
+            animated: true,
+          })
+        } else {
+          edges.push({
+            id: `e-${nodeId}`,
+            source: nodeId,
+            target: centerId,
+            type: 'smoothstep',
+            animated: true,
+          })
+        }
       })
-      if (direction === 'right') {
-        edges.push({
-          id: `e-${nodeId}`,
-          source: centerId,
-          target: nodeId,
-          type: 'smoothstep',
-          animated: true,
-        })
-      } else {
-        edges.push({
-          id: `e-${nodeId}`,
-          source: nodeId,
-          target: centerId,
-          type: 'smoothstep',
-          animated: true,
-        })
-      }
-    }
-
-    // Incoming FKs on the left
-    incomingForeignKeys.forEach((fk) => {
-      addConnection(
-        String(fk.id),
-        fk.constraint_name,
-        `${fk.source_schema}.${fk.source_table}`,
-        'fk-incoming',
-        'left'
-      )
     })
-
-    // Outgoing FKs on the right
-    outgoingForeignKeys.forEach((fk) => {
-      addConnection(
-        String(fk.id),
-        fk.constraint_name,
-        `→ ${fk.target_schema}.${fk.target_table}`,
-        'fk-outgoing',
-        'right'
-      )
-    })
-
-    // Triggers on the right
-    triggers.forEach((t) => {
-      addConnection(
-        String(t.id),
-        t.name,
-        `${t.activation} ${t.events.join('/')}`,
-        'trigger',
-        'right'
-      )
-    })
-
-    // Hooks on the right
-    hooks.forEach((h) => {
-      addConnection(String(h.id), h.name, h.events.join('/'), 'hook', 'right')
-    })
-
-    // Policies on the right
-    policies.forEach((p) => {
-      addConnection(String(p.id), p.name, `${p.command} — ${p.action}`, 'policy', 'right')
-    })
-
-    // Realtime on the right
-    if (isRealtimeEnabled) {
-      addConnection('realtime', 'supabase_realtime', 'Published', 'realtime', 'right')
-    }
 
     return applyDagreLayout(nodes, edges)
-  }, [
-    table,
-    triggers,
-    hooks,
-    policies,
-    outgoingForeignKeys,
-    incomingForeignKeys,
-    isRealtimeEnabled,
-  ])
+  }, [table, categories])
 
   useEffect(() => {
     if (!isLoading && nodes.length > 0) {

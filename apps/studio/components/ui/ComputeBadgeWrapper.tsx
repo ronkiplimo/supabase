@@ -14,6 +14,22 @@ import { ComputeBadge } from 'ui-patterns/ComputeBadge'
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 import { UpgradePlanButton } from './UpgradePlanButton'
 
+const ChevronsUpAnimated = () => (
+  <svg
+    width={10}
+    height={10}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="17 18 12 13 7 18" className="animate-chevron-up" style={{ animationDelay: '0s' }} />
+    <polyline points="17 11 12 6 7 11" className="animate-chevron-up" style={{ animationDelay: '0.3s' }} />
+  </svg>
+)
+
 const Row = ({ label, stat }: { label: string; stat: React.ReactNode | string }) => {
   return (
     <div className="flex flex-row gap-2">
@@ -84,7 +100,7 @@ export const ComputeBadgeWrapper = ({
   const isComputeNearExhaustion =
     !!resourceWarnings?.cpu_exhaustion || !!resourceWarnings?.memory_and_swap_exhaustion
 
-  const hasUpgradeAvailable = (isFreeOnNano || isEligibleForFreeUpgrade) && isComputeNearExhaustion
+  const hasUpgradeAvailable = true || ((isFreeOnNano || isEligibleForFreeUpgrade) && isComputeNearExhaustion)
 
   if (!computeSize) return null
 
@@ -100,8 +116,9 @@ export const ComputeBadgeWrapper = ({
           >
             <ComputeBadge
               infraComputeSize={computeSize}
+              icon={hasUpgradeAvailable && <ChevronsUpAnimated />}
               className={cn(
-                hasUpgradeAvailable && 'text-brand-600 border-brand-500 bg-brand/10',
+                hasUpgradeAvailable && 'text-brand-600 border-brand-500 bg-brand/10 gap-1',
                 badgeClassName
               )}
             />

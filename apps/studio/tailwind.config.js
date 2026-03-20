@@ -82,6 +82,7 @@ module.exports = config({
         shimmer: 'shimmer 2s infinite linear',
         'badge-shimmer': 'badge-shimmer 2.4s ease-in-out infinite',
         'badge-pulse': 'badge-pulse 2.4s ease-in-out infinite',
+        'chevron-up': 'chevron-up 1.2s ease-in-out infinite',
         sway: 'sway 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
@@ -102,6 +103,10 @@ module.exports = config({
         'badge-pulse': {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.8' },
+        },
+        'chevron-up': {
+          '0%, 100%': { opacity: '0.2' },
+          '50%': { opacity: '1' },
         },
         sway: {
           '0%, 100%': {

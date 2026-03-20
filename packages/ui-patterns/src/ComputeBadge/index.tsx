@@ -1,5 +1,5 @@
 import { components } from 'api-types'
-import type { HTMLAttributes } from 'react'
+import type { HTMLAttributes, ReactNode } from 'react'
 import { cn } from 'ui'
 
 interface ComputeBadgeProps extends HTMLAttributes<HTMLDivElement> {
@@ -7,9 +7,10 @@ interface ComputeBadgeProps extends HTMLAttributes<HTMLDivElement> {
     | components['schemas']['ProjectDetailResponse']['infra_compute_size']
     | '>16XL'
     | undefined
+  icon?: ReactNode
 }
 
-export function ComputeBadge({ infraComputeSize, className, ...props }: ComputeBadgeProps) {
+export function ComputeBadge({ infraComputeSize, className, icon, ...props }: ComputeBadgeProps) {
   const smallCompute =
     infraComputeSize?.toLocaleLowerCase() === 'micro' ||
     infraComputeSize?.toLocaleLowerCase() === 'nano'
@@ -39,6 +40,7 @@ export function ComputeBadge({ infraComputeSize, className, ...props }: ComputeB
       {...props}
     >
       {infraComputeSize}
+      {icon && <span className="flex items-center">{icon}</span>}
     </div>
   )
 }

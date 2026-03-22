@@ -73,6 +73,12 @@ describe('AdvisorButton', () => {
 
     expect(button).toHaveAttribute('data-state', 'prototype-collapsed')
     expect(screen.queryByTestId('advisor-urgent-label-track')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('advisor-status-indicator')).not.toBeInTheDocument()
+
+    act(() => {
+      vi.advanceTimersByTime(1000)
+    })
+
     expect(screen.getByTestId('advisor-status-indicator')).toBeInTheDocument()
   })
 

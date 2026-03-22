@@ -13,6 +13,7 @@ import { useNotificationsV2Query } from '@/data/notifications/notifications-v2-q
 const COLLAPSED_BUTTON_SIZE = 32
 const MOBILE_BREAKPOINT = 768
 const MARQUEE_CHARACTER_THRESHOLD = 20
+const COLLAPSED_PULSE_DELAY_MS = 1000
 const ADVISOR_URGENT_LABEL_CLASSNAME =
   'inline-flex items-center justify-center whitespace-nowrap text-[9px] font-medium uppercase tracking-[0.07em] leading-none text-destructive-600'
 
@@ -72,6 +73,7 @@ export const AdvisorButton = ({ projectRef }: { projectRef?: string }) => {
   const [isPrototypeExpanded, setIsPrototypeExpanded] = useState(
     ADVISOR_URGENT_PROTOTYPE.enabled && Boolean(projectRef)
   )
+  const [showCollapsedIndicator, setShowCollapsedIndicator] = useState(false)
 
   const { data: lints } = useProjectLintsQuery({ projectRef })
 
@@ -101,13 +103,15 @@ export const AdvisorButton = ({ projectRef }: { projectRef?: string }) => {
     isPrototypeExpanded &&
     !reducedMotion &&
     ADVISOR_URGENT_PROTOTYPE.label.length > MARQUEE_CHARACTER_THRESHOLD
-  const statusDotClassName = showUrgentPrototype
-    ? 'bg-destructive'
-    : hasCriticalIssues
+  const statusDotClassName = !showUrgentPrototype
+    ? hasCriticalIssues
       ? 'bg-destructive'
       : hasUnreadNotifications
         ? 'bg-brand'
         : undefined
+    : !isPrototypeExpanded && showCollapsedIndicator
+      ? 'bg-destructive'
+      : undefined
   const buttonState = showUrgentPrototype
     ? isPrototypeExpanded
       ? 'prototype-expanded'
@@ -121,10 +125,12 @@ export const AdvisorButton = ({ projectRef }: { projectRef?: string }) => {
   useEffect(() => {
     if (!showUrgentPrototype) {
       setIsPrototypeExpanded(false)
+      setShowCollapsedIndicator(false)
       return
     }
 
     setIsPrototypeExpanded(true)
+    setShowCollapsedIndicator(false)
 
     const timeoutId = window.setTimeout(() => {
       setIsPrototypeExpanded(false)
@@ -133,12 +139,26 @@ export const AdvisorButton = ({ projectRef }: { projectRef?: string }) => {
     return () => window.clearTimeout(timeoutId)
   }, [showUrgentPrototype])
 
+  useEffect(() => {
+    if (!showUrgentPrototype || isPrototypeExpanded) {
+      setShowCollapsedIndicator(false)
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setShowCollapsedIndicator(true)
+    }, COLLAPSED_PULSE_DELAY_MS)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [isPrototypeExpanded, showUrgentPrototype])
+
   return (
     <div className="relative">
       {showUrgentPrototype && !isPrototypeExpanded && (
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-[3px] rounded-full bg-destructive/20 animate-[ping_2.8s_cubic-bezier(0,0,0.2,1)_infinite] [animation-delay:1s]"
+          className="pointer-events-none absolute inset-[3px] rounded-full bg-destructive/20 animate-[ping_2.8s_cubic-bezier(0,0,0.2,1)_infinite]"
+          style={{ animationDelay: `${COLLAPSED_PULSE_DELAY_MS}ms` }}
         />
       )}
       <Tooltip>

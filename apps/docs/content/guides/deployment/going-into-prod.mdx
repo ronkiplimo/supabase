@@ -63,6 +63,12 @@ After developing your project and deciding it's production ready, you should run
   - Use PITR if you require durability resilience to a disk failure event
 - Upgrading to the Supabase Pro Plan will give you [access to our support team](/dashboard/support/new).
 
+## Deployment
+
+- Connect your GitHub repository to automate deployments from your `main` branch ([set up the integration](/dashboard/project/_/settings/integrations))
+  - This ensures schema changes are deployed consistently and avoids manual `supabase db push` from a local machine
+- If you're on the Pro plan, consider enabling [branching](/docs/guides/deployment/branching) to test migrations in a preview environment before they reach production
+
 ## Rate limiting, resource allocation, & abuse prevention
 
 - Supabase employs a number of safeguards against bursts of incoming traffic to prevent abuse and help maximize stability across the platform

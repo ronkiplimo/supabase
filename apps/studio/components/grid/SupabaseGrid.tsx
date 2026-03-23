@@ -29,7 +29,7 @@ import { useTableFilter } from './hooks/useTableFilter'
 import { useTableSort } from './hooks/useTableSort'
 import { validateMsSqlSorting } from './MsSqlValidation'
 import { GridProps } from './types'
-import { reapplyOptimisticUpdates } from './utils/queueOperationUtils'
+import { reapplyOptimisticUpdates } from './utils/reapplyOptimisticUpdates'
 
 export const SupabaseGrid = ({
   customHeader,

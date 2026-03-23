@@ -149,7 +149,7 @@ View the [complete code](https://github.com/supabase/supabase/tree/master/exampl
 
 ### Seeding data
 
-Now that you are managing your database with migrations scripts, it would be great have some seed data to use every time you reset the database.
+Now that you are managing your database with migrations, it would be great have some seed data to use every time you reset the database.
 
 <StepHikeCompact>
 
@@ -465,7 +465,7 @@ This shows which migrations are applied locally, which are applied on the remote
 
 ### Step 2: If you made changes on the remote database directly
 
-If someone used the Dashboard's SQL editor or Table Editor on the remote database, the schema has changed but there's no migration file for it. Pull the current remote state into a migration file to get back in sync:
+Pull the current remote state into a migration file to get back in sync:
 
 ```bash name=Terminal
 supabase db pull

@@ -248,3 +248,55 @@ export function queueRowDeletesWithOptimisticUpdate({
     })
   }
 }
+
+interface ReapplyOptimisticUpdatesParams {
+  queryClient: QueryClient
+  projectRef: string
+  tableId: number
+  operations: readonly QueuedOperation[]
+}
+
+/**
+ * Re-applies pending queue operations to cached row data after a refetch.
+ */
+export function reapplyOptimisticUpdates({
+  queryClient,
+  projectRef,
+  tableId,
+  operations,
+}: ReapplyOptimisticUpdatesParams) {
+  const tableOperations = operations.filter((op) => op.tableId === tableId)
+  if (tableOperations.length === 0) return
+
+  const queryKey = tableRowKeys.tableRows(projectRef, { table: { id: tableId } })
+  queryClient.setQueriesData<TableRowsData>({ queryKey }, (old) => {
+    if (!old) return old
+
+    let rows = [...old.rows]
+    for (const operation of tableOperations) {
+      switch (operation.type) {
+        case QueuedOperationType.EDIT_CELL_CONTENT: {
+          const { rowIdentifiers, columnName, newValue } = operation.payload
+          rows = applyCellEdit(rows, columnName, rowIdentifiers, newValue)
+          break
+        }
+        case QueuedOperationType.ADD_ROW: {
+          const { tempId, rowData } = operation.payload
+          const idx = Number(tempId)
+          rows = applyRowAdd(rows, tempId, idx, rowData)
+          break
+        }
+        case QueuedOperationType.DELETE_ROW: {
+          const { rowIdentifiers } = operation.payload
+          rows = markRowAsDeleted(rows, rowIdentifiers)
+          break
+        }
+        default: {
+          throw new Error(`Unknown operation type: ${(operation as never)['type']}`)
+        }
+      }
+    }
+
+    return { ...old, rows }
+  })
+}

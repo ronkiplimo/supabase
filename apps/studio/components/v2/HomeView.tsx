@@ -4,7 +4,6 @@ import {
   parseConnectionsData,
   parseInfrastructureMetrics,
 } from 'components/interfaces/Observability/DatabaseInfrastructureSection.utils'
-import { InstanceConfiguration } from 'components/interfaces/Settings/Infrastructure/InfrastructureConfiguration/InstanceConfiguration'
 import { SIDEBAR_KEYS } from 'components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
 import { useInfraMonitoringAttributesQuery } from 'data/analytics/infra-monitoring-query'
 import { getKeys, useAPIKeysQuery } from 'data/api-keys/api-keys-query'
@@ -15,9 +14,9 @@ import { useOrganizationsQuery } from 'data/organizations/organizations-query'
 import { useProjectDetailQuery } from 'data/projects/project-detail-query'
 import dayjs from 'dayjs'
 import { API_URL, IS_PLATFORM } from 'lib/constants'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { useMemo } from 'react'
-import { ReactFlowProvider } from 'reactflow'
 import { useAdvisorStateSnapshot } from 'state/advisor-state'
 import { useSidebarManagerSnapshot } from 'state/sidebar-manager-state'
 import { Badge, Button, cn, copyToClipboard } from 'ui'
@@ -25,6 +24,20 @@ import { Badge, Button, cn, copyToClipboard } from 'ui'
 import { useV2Params } from '@/app/v2/V2ParamsContext'
 import { useV2DashboardStore } from '@/stores/v2-dashboard'
 import type { InfraMonitoringAttribute } from 'data/analytics/infra-monitoring-query'
+
+const HomeViewInfrastructureDiagram = dynamic(
+  () =>
+    import('./HomeViewInfrastructureDiagram').then((m) => m.HomeViewInfrastructureDiagram),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="h-full min-h-[200px] animate-pulse rounded-md bg-surface-200"
+        aria-hidden
+      />
+    ),
+  }
+)
 
 function maskConnectionString(conn: string | null | undefined) {
   if (!conn) return ''
@@ -161,9 +174,7 @@ export function HomeView() {
       {/* b) Infrastructure diagram */}
       <div className="h-[280px]">
         <div className="h-full border border-muted rounded-md overflow-hidden flex flex-col">
-          <ReactFlowProvider>
-            <InstanceConfiguration diagramOnly />
-          </ReactFlowProvider>
+          <HomeViewInfrastructureDiagram />
         </div>
       </div>
 

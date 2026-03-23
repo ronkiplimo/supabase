@@ -6,7 +6,7 @@ import { CommandWrapper, MobileSheetNav } from 'ui-patterns'
 import {
   SIDEBAR_KEYS,
   type TYPEOF_SIDEBAR_KEYS,
-} from '../../ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
+} from 'components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
 import type { MobileSheetContentType } from './MobileSheetContext'
 import { useMobileSheet } from './MobileSheetContext'
 
@@ -29,7 +29,7 @@ function getSheetChildren(
       </CommandWrapper>
     )
   }
-  if (isSidebarId(content) && activeSidebar?.id === content) {
+  if (isSidebarId(content) && activeSidebar && activeSidebar.id === content) {
     return activeSidebar.component?.() ?? null
   }
   if (!isSidebarId(content)) return content

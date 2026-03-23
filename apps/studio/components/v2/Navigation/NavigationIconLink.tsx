@@ -1,17 +1,12 @@
 import { noop } from 'lodash'
 import Link from 'next/link'
-import {
-  AnchorHTMLAttributes,
-  cloneElement,
-  ComponentPropsWithoutRef,
-  forwardRef,
-  isValidElement,
-} from 'react'
+import { cloneElement, forwardRef, isValidElement } from 'react'
 import { cn, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
 
 import type { Route } from 'components/ui/ui.types'
 import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
 import { LOCAL_STORAGE_KEYS } from 'common'
+import type { AnchorHTMLAttributes } from 'react'
 
 interface NavigationIconButtonProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
   route: Route
@@ -46,48 +41,64 @@ const NavigationIconLink = forwardRef<HTMLAnchorElement, NavigationIconButtonPro
       `${isActive && '!bg-selection shadow-sm'}`,
     ]
 
-    const LinkComponent = forwardRef<HTMLAnchorElement, ComponentPropsWithoutRef<typeof Link>>(
-      function LinkComponent(props, ref) {
-        if (route.linkElement && isValidElement(route.linkElement)) {
-          return cloneElement<any>(route.linkElement, { ...props, ref })
+    const sharedProps = {
+      role: 'button' as const,
+      'aria-current': isActive,
+      ref,
+      href: route.link || '#',
+      ...props,
+      onClick: (e: React.MouseEvent<HTMLAnchorElement>) => {
+        if (!route.link) {
+          e.preventDefault()
         }
-
-        return <Link ref={ref} {...props} />
-      }
-    )
+        onClick(e)
+      },
+      className: cn(classes, props.className),
+    }
 
     const linkContent = (
-      <LinkComponent
-        role="button"
-        aria-current={isActive}
-        ref={ref}
-        href={route.link || '#'} // Provide a fallback href
-        {...props}
-        onClick={(e) => {
-          if (!route.link) {
-            e.preventDefault() // Prevent navigation if there's no link
-          }
-          onClick(e)
-        }}
-        className={cn(classes, props.className)}
-      >
-        <span id="icon-link" className={cn(...iconClasses)} {...props}>
-          {route.icon}
-        </span>
-        <span
-          className={cn(
-            'min-w-[128px] text-sm text-foreground-light',
-            'group-hover/item:text-foreground',
-            'group-aria-current/item:text-foreground',
-            'absolute left-10 md:left-7 md:group-data-[state=expanded]:left-12',
-            'opacity-100 md:opacity-0 md:group-data-[state=expanded]:opacity-100',
-            `${isActive && 'text-foreground hover:text-foreground'}`,
-            'transition-all'
-          )}
-        >
-          {route.label}
-        </span>
-      </LinkComponent>
+      <>
+        {route.linkElement && isValidElement(route.linkElement) ? (
+          cloneElement(route.linkElement, sharedProps, [
+            <span key="icon" id="icon-link" className={cn(...iconClasses)} {...props}>
+              {route.icon}
+            </span>,
+            <span
+              key="label"
+              className={cn(
+                'min-w-[128px] text-sm text-foreground-light',
+                'group-hover/item:text-foreground',
+                'group-aria-current/item:text-foreground',
+                'absolute left-10 md:left-7 md:group-data-[state=expanded]:left-12',
+                'opacity-100 md:opacity-0 md:group-data-[state=expanded]:opacity-100',
+                `${isActive && 'text-foreground hover:text-foreground'}`,
+                'transition-all'
+              )}
+            >
+              {route.label}
+            </span>,
+          ])
+        ) : (
+          <Link {...sharedProps}>
+            <span id="icon-link" className={cn(...iconClasses)} {...props}>
+              {route.icon}
+            </span>
+            <span
+              className={cn(
+                'min-w-[128px] text-sm text-foreground-light',
+                'group-hover/item:text-foreground',
+                'group-aria-current/item:text-foreground',
+                'absolute left-10 md:left-7 md:group-data-[state=expanded]:left-12',
+                'opacity-100 md:opacity-0 md:group-data-[state=expanded]:opacity-100',
+                `${isActive && 'text-foreground hover:text-foreground'}`,
+                'transition-all'
+              )}
+            >
+              {route.label}
+            </span>
+          </Link>
+        )}
+      </>
     )
 
     if (!allowNavPanelToExpand) {

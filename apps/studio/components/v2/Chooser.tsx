@@ -17,7 +17,6 @@ import {
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { cn } from 'ui'
 import { Input } from 'ui/src/components/shadcn/ui/input'
 
 import { TypeBadge } from './TypeBadge'
@@ -72,7 +71,6 @@ const COUNT_KEY_MAP: Record<string, keyof ReturnType<typeof useV2DataCounts>> = 
   types: 'types',
   roles: 'roles',
   extensions: 'extensions',
-  indexes: 'indexes',
   publications: 'publications',
   users: 'users',
   buckets: 'buckets',

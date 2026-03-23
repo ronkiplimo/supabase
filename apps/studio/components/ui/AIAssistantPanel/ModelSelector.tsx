@@ -26,8 +26,7 @@ interface ModelSelectorProps {
 export const ModelSelector = ({ selectedModel, onSelectModel }: ModelSelectorProps) => {
   const router = useRouter()
   const { data: organization } = useSelectedOrganizationQuery()
-  const { hasAccess: hasAccessToAdvanceModel, isLoading: isLoadingEntitlements } =
-    useCheckEntitlements('assistant.advance_model')
+  const { hasAccess: hasAccessToAdvanceModel } = useCheckEntitlements('assistant.advance_model')
 
   const [open, setOpen] = useState(false)
 
@@ -38,7 +37,8 @@ export const ModelSelector = ({ selectedModel, onSelectModel }: ModelSelectorPro
   const handleSelectModel = (model: 'gpt-5' | 'gpt-5-mini') => {
     if (model === 'gpt-5' && !hasAccessToAdvanceModel) {
       setOpen(false)
-      void router.push(upgradeHref)
+      if (router) void router.push(upgradeHref)
+      else if (typeof window !== 'undefined') window.location.assign(upgradeHref)
       return
     }
 
@@ -83,7 +83,7 @@ export const ModelSelector = ({ selectedModel, onSelectModel }: ModelSelectorPro
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div>
-                        <Badge role="button" variant="warning">
+                        <Badge variant="warning">
                           Upgrade
                         </Badge>
                       </div>

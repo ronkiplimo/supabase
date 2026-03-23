@@ -7,12 +7,10 @@ import { useParams } from 'common'
 import { SupabaseGrid } from 'components/grid/SupabaseGrid'
 import { useSyncTableEditorStateFromLocalStorageWithUrl } from 'components/grid/SupabaseGrid.utils'
 import {
-  Entity,
   isForeignTable,
   isMaterializedView,
   isTableLike,
   isView,
-  TableLike,
 } from 'data/table-editor/table-editor-types'
 import { useAsyncCheckPermissions } from 'hooks/misc/useCheckPermissions'
 import { useDashboardHistory } from 'hooks/misc/useDashboardHistory'
@@ -23,6 +21,8 @@ import { TableEditorTableStateContextProvider } from 'state/table-editor-table'
 import { createTabId, useTabsStateSnapshot } from 'state/tabs'
 import { Button } from 'ui'
 import { Admonition, GenericSkeletonLoader } from 'ui-patterns'
+
+import type { Entity, TableLike } from 'data/table-editor/table-editor-types'
 import DeleteConfirmationDialogs from './DeleteConfirmationDialogs'
 import { SidePanelEditor } from './SidePanelEditor/SidePanelEditor'
 import { TableDefinition } from './TableDefinition'
@@ -67,14 +67,23 @@ export const TableGridEditor = ({
     (table: { id: number }) => {
       if (variant === 'v2') {
         const base = projectRef ? `/v2/project/${projectRef}` : ''
-        router.push(
-          `${base}/data/tables/${table.id}/data${
-            !!selectedSchema ? `?schema=${selectedSchema}` : ''
-          }`
-        )
+        if (router) {
+          router.push(
+            `${base}/data/tables/${table.id}/data${
+              !!selectedSchema ? `?schema=${selectedSchema}` : ''
+            }`
+          )
+        } else if (typeof window !== 'undefined') {
+          window.location.assign(
+            `${base}/data/tables/${table.id}/data${
+              !!selectedSchema ? `?schema=${selectedSchema}` : ''
+            }`
+          )
+        }
         return
       }
 
+      if (!router) return
       router.push(
         `/project/${projectRef}/editor/${table.id}${
           !!selectedSchema ? `?schema=${selectedSchema}` : ''
@@ -82,6 +91,19 @@ export const TableGridEditor = ({
       )
     },
     [projectRef, router, selectedSchema, variant]
+  )
+
+  const closeLegacyTab = useCallback(
+    (id: string) => {
+      if (!router) return
+      tabs.handleTabClose({
+        id,
+        router,
+        editor: 'table',
+        onClearDashboardHistory: () => setLastVisitedTable(undefined),
+      })
+    },
+    [router, setLastVisitedTable, tabs]
   )
 
   const onTableDeleted = useCallback(async () => {
@@ -96,17 +118,16 @@ export const TableGridEditor = ({
       setLastVisitedTable(undefined)
 
       const base = projectRef ? `/v2/project/${projectRef}` : ''
-      router.push(`${base}/data/tables`)
+      if (router) {
+        router.push(`${base}/data/tables`)
+      } else if (typeof window !== 'undefined') {
+        window.location.assign(`${base}/data/tables`)
+      }
       return
     }
 
-    tabs.handleTabClose({
-      id: tabId,
-      router,
-      editor: 'table',
-      onClearDashboardHistory: () => setLastVisitedTable(undefined),
-    })
-  }, [projectRef, router, selectedTable, tabs, setLastVisitedTable, variant])
+    closeLegacyTab(tabId)
+  }, [closeLegacyTab, projectRef, router, selectedTable, tabs, setLastVisitedTable, variant])
 
   const { isSchemaLocked } = useIsProtectedSchema({ schema: selectedTable?.schema ?? '' })
 
@@ -141,7 +162,7 @@ export const TableGridEditor = ({
 
   return (
     // When any click happens in a table tab, the tab becomes permanent
-    <div className="h-full" onClick={() => tabs.makeActiveTabPermanent()}>
+    <div className="h-full" onPointerDownCapture={() => tabs.makeActiveTabPermanent()}>
       {!selectedTable ? (
         <div className="flex items-center justify-center h-full">
           <div className="w-[400px]">
@@ -159,7 +180,11 @@ export const TableGridEditor = ({
                       tabs.removeTab(tabId)
                       setLastVisitedTable(undefined)
                       const base = projectRef ? `/v2/project/${projectRef}` : ''
-                      router.push(`${base}/data/tables`)
+                      if (router) {
+                        router.push(`${base}/data/tables`)
+                      } else if (typeof window !== 'undefined') {
+                        window.location.assign(`${base}/data/tables`)
+                      }
                     }}
                   >
                     Close tab
@@ -188,18 +213,7 @@ export const TableGridEditor = ({
                   </Button>
                 )
               ) : !!tabId ? (
-                <Button
-                  type="default"
-                  className="mt-2"
-                  onClick={() => {
-                    tabs.handleTabClose({
-                      id: tabId,
-                      router,
-                      editor: 'table',
-                      onClearDashboardHistory: () => setLastVisitedTable(undefined),
-                    })
-                  }}
-                >
+                <Button type="default" className="mt-2" onClick={() => closeLegacyTab(tabId)}>
                   Close tab
                 </Button>
               ) : openTabs.length > 0 ? (
@@ -261,9 +275,7 @@ export const TableGridEditor = ({
 
       <SidePanelEditor
         editable={editable}
-        selectedTable={
-          isTableSelected || isForeignTableSelected ? (selectedTable as TableLike) : undefined
-        }
+        selectedTable={isTableSelected || isForeignTableSelected ? (selectedTable as TableLike) : undefined}
         onTableCreated={onTableCreated}
       />
     </div>

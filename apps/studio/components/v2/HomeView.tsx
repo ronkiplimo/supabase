@@ -24,6 +24,7 @@ import { Badge, Button, cn, copyToClipboard } from 'ui'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
 import { useV2DashboardStore } from '@/stores/v2-dashboard'
+import type { InfraMonitoringAttribute } from 'data/analytics/infra-monitoring-query'
 
 function maskConnectionString(conn: string | null | undefined) {
   if (!conn) return ''
@@ -69,7 +70,7 @@ export function HomeView() {
   const startDate = now.subtract(1, 'day').toISOString()
   const endDate = now.toISOString()
 
-  const attributes = useMemo(
+  const attributes = useMemo<InfraMonitoringAttribute[]>(
     () => [
       'avg_cpu_usage',
       'ram_usage',
@@ -83,7 +84,7 @@ export function HomeView() {
     []
   )
 
-  const { data: infraData, isLoading: infraLoading } = useInfraMonitoringAttributesQuery(
+  const { data: infraData } = useInfraMonitoringAttributesQuery(
     {
       projectRef,
       attributes,
@@ -103,7 +104,7 @@ export function HomeView() {
   const connections = parseConnectionsData(infraData, maxConnectionsData)
 
   const { recentItems } = useV2DashboardStore((s) => ({ recentItems: s.recentItems }))
-  const addDetailTab = useV2DashboardStore((s) => s.addDetailTab)
+  const openDataTab = useV2DashboardStore((s) => s.openDataTab)
 
   const { openSidebar } = useSidebarManagerSnapshot()
   const { setSelectedItem } = useAdvisorStateSnapshot()
@@ -114,9 +115,16 @@ export function HomeView() {
     openSidebar(SIDEBAR_KEYS.ADVISOR_PANEL)
   }
 
-  const handleOpenRecent = (item: { id: string; label: string; path: string }) => {
+  const handleOpenRecent = (item: (typeof recentItems)[number]) => {
     if (!projectRef) return
-    addDetailTab({ id: item.id, label: item.label, path: item.path })
+    openDataTab({
+      id: item.id,
+      label: item.label,
+      type: 'detail',
+      category: item.category,
+      domain: item.domain,
+      path: item.path,
+    })
     router.push(item.path)
   }
 
@@ -257,7 +265,7 @@ export function HomeView() {
                 className="text-left border border-border rounded-md p-3 hover:bg-sidebar-accent/50"
               >
                 <div className="text-sm  truncate">{item.label}</div>
-                <div className="text-xs text-foreground-lighter truncate">{item.type}</div>
+                <div className="text-xs text-foreground-lighter truncate">{item.category}</div>
               </button>
             ))}
           </div>

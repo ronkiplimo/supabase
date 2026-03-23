@@ -2,9 +2,7 @@
 
 import { ArrowDown, ArrowUp } from 'lucide-react'
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
-import DataGrid, { Row, type Column } from 'react-data-grid'
 import { cn } from 'ui'
-import { GenericSkeletonLoader } from 'ui-patterns/ShimmeringLoader'
 
 export type DataListColumnDef<TRow> = {
   key: string
@@ -93,50 +91,6 @@ export function DataListGrid<TRow>({
     [columnDefs, sortKey]
   )
 
-  const columns: Column<TRow>[] = useMemo(
-    () =>
-      columnDefs.map((col) => ({
-        key: col.key,
-        name: col.name,
-        resizable: true,
-        minWidth: col.minWidth ?? 120,
-        sortable: false,
-        headerCellClass: 'sb-grid-column-header sb-grid-column-header--cursor',
-        renderHeaderCell: () => {
-          const active = sortKey === col.key
-          const canSort = Boolean(col.sortValue)
-          return (
-            <button
-              type="button"
-              className={cn(
-                'sb-grid-column-header flex h-full w-full items-center px-2 text-left',
-                canSort && 'hover:bg-surface-200/80 dark:hover:bg-surface-200/20'
-              )}
-              disabled={!canSort}
-              onClick={() => canSort && onHeaderClick(col.key)}
-            >
-              <div className="sb-grid-column-header__inner min-w-0 flex-1">
-                <span className="sb-grid-column-header__inner__name">{col.name}</span>
-              </div>
-              {canSort && active ? (
-                sortDir === 'asc' ? (
-                  <ArrowUp className="h-3.5 w-3.5 shrink-0 text-foreground-light" />
-                ) : (
-                  <ArrowDown className="h-3.5 w-3.5 shrink-0 text-foreground-light" />
-                )
-              ) : null}
-            </button>
-          )
-        },
-        renderCell: (props) => (
-          <div className="flex h-full w-full items-center px-2 text-xs">
-            {col.renderCell(props.row)}
-          </div>
-        ),
-      })),
-    [columnDefs, sortKey, sortDir, onHeaderClick]
-  )
-
   return (
     <div className={cn('sb-grid flex h-full min-h-0 flex-col', className)}>
       {(toolbar != null || toolbarTrailing != null) && (
@@ -151,43 +105,74 @@ export function DataListGrid<TRow>({
         <div className="flex h-9 shrink-0 items-center border-b border-border px-2">{tabs}</div>
       ) : null}
       <div className="relative min-h-0 flex-1">
-        <DataGrid
-          className="h-full flex-1"
-          style={{ height: '100%' }}
-          rowHeight={36}
-          headerRowHeight={34}
-          columns={columns}
-          rows={sortedRows}
-          rowKeyGetter={(row) => rowKeyGetter(row)}
-          rowClass={() =>
-            cn(
-              '[&>.rdg-cell]:flex [&>.rdg-cell]:items-center',
-              '[&>.rdg-cell]:border-box [&>.rdg-cell]:outline-none [&>.rdg-cell]:shadow-none',
-              (onRowClick || onRowDoubleClick) && 'cursor-pointer'
-            )
-          }
-          renderers={{
-            renderRow(_, props) {
-              return (
-                <Row
-                  key={rowKeyGetter(props.row)}
-                  {...props}
-                  onClick={() => onRowClick?.(props.row)}
-                  onDoubleClick={() => onRowDoubleClick?.(props.row)}
-                />
-              )
-            },
-            noRowsFallback: isLoading ? (
-              <div className="absolute top-10 w-full px-4">
-                <GenericSkeletonLoader />
-              </div>
-            ) : (
-              <div className="flex h-full items-center justify-center p-8 text-center text-sm text-foreground-lighter">
-                {emptyMessage ?? 'No rows'}
-              </div>
-            ),
-          }}
-        />
+        {isLoading ? (
+          <div className="absolute top-10 w-full px-4">Loading...</div>
+        ) : sortedRows.length === 0 ? (
+          <div className="flex h-full items-center justify-center p-8 text-center text-sm text-foreground-lighter">
+            {emptyMessage ?? 'No rows'}
+          </div>
+        ) : (
+          <div className="h-full overflow-auto">
+            <table className="w-full border-collapse text-xs">
+              <thead className="sticky top-0 z-10 bg-background">
+                <tr className="border-b border-border">
+                  {columnDefs.map((col) => {
+                    const active = sortKey === col.key
+                    const canSort = Boolean(col.sortValue)
+                    return (
+                      <th
+                        key={col.key}
+                        className="h-[34px] px-2 text-left font-medium text-foreground-light"
+                        style={{ minWidth: col.minWidth ?? 120 }}
+                      >
+                        <button
+                          type="button"
+                          className={cn(
+                            'flex h-full w-full items-center gap-1 text-left',
+                            canSort && 'hover:text-foreground'
+                          )}
+                          disabled={!canSort}
+                          onClick={() => canSort && onHeaderClick(col.key)}
+                        >
+                          <span className="min-w-0 flex-1 truncate">{col.name}</span>
+                          {canSort && active ? (
+                            sortDir === 'asc' ? (
+                              <ArrowUp className="h-3.5 w-3.5 shrink-0" />
+                            ) : (
+                              <ArrowDown className="h-3.5 w-3.5 shrink-0" />
+                            )
+                          ) : null}
+                        </button>
+                      </th>
+                    )
+                  })}
+                </tr>
+              </thead>
+              <tbody>
+                {sortedRows.map((row) => {
+                  const key = rowKeyGetter(row)
+                  return (
+                    <tr
+                      key={key}
+                      className={cn(
+                        'h-9 border-b border-border',
+                        (onRowClick || onRowDoubleClick) && 'cursor-pointer hover:bg-surface-200/30'
+                      )}
+                      onClick={() => onRowClick?.(row)}
+                      onDoubleClick={() => onRowDoubleClick?.(row)}
+                    >
+                      {columnDefs.map((col) => (
+                        <td key={col.key} className="px-2 align-middle">
+                          <div className="min-w-0 truncate">{col.renderCell(row)}</div>
+                        </td>
+                      ))}
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   )

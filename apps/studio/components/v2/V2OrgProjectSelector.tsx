@@ -51,7 +51,7 @@ export function V2OrgProjectSelector() {
   return (
     <Popover_Shadcn_ open={open} onOpenChange={setOpen}>
       <PopoverTrigger_Shadcn_ asChild>
-        <Button variant="ghost" size="tiny" className="gap-1 text-foreground font-medium h-7 px-2">
+        <Button type="text" size="tiny" className="gap-1 text-foreground font-medium h-7 px-2">
           <span className="text-foreground-lighter text-xs truncate max-w-[120px]">
             {selectedOrg?.name ?? orgSlug ?? 'Org'}
           </span>

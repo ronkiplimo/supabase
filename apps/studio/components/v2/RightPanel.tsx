@@ -1,8 +1,7 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
 import { X } from 'lucide-react'
-import { Button, cn } from 'ui'
+import { Button } from 'ui'
 
 import { useV2DashboardStore } from '@/stores/v2-dashboard'
 
@@ -24,13 +23,13 @@ export function RightPanel() {
       <div className="flex items-center justify-between px-3 py-2 border-b border-border shrink-0">
         <span className="text-sm font-medium text-foreground">{title}</span>
         <Button
-          variant="ghost"
-          size="icon"
+          type="text"
+          size="tiny"
           className="h-7 w-7"
           onClick={closeRightPanel}
-          aria-label="Close panel"
+          icon={<X className="h-4 w-4" />}
         >
-          <X className="h-4 w-4" />
+          <span className="sr-only">Close panel</span>
         </Button>
       </div>
       <div className="flex-1 min-h-0 overflow-auto">

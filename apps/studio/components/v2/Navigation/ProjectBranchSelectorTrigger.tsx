@@ -1,10 +1,17 @@
+import type { OrganizationsData } from 'data/organizations/organizations-query'
 import { ChevronsUpDown, GitBranch } from 'lucide-react'
 import * as React from 'react'
-import { cn, SidebarMenuButton as SidebarMenuButtonComponent } from 'ui'
+import {
+  cn,
+  SidebarMenuButton as SidebarMenuButtonComponent,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from 'ui'
 
 export interface ProjectBranchSelectorTriggerProps {
   displayProjectName: string
-  selectedOrgInitial: string
+  selectedOrg: OrganizationsData
   isBranch: boolean
   isProductionBranch: boolean
   branchDisplayName: string
@@ -22,7 +29,7 @@ export const ProjectBranchSelectorTrigger = React.forwardRef<
   (
     {
       displayProjectName,
-      selectedOrgInitial,
+      selectedOrg,
       isBranch,
       isProductionBranch: _isProductionBranch,
       branchDisplayName,
@@ -31,6 +38,8 @@ export const ProjectBranchSelectorTrigger = React.forwardRef<
     },
     ref
   ) => {
+    const selectedOrgInitial = selectedOrg?.name?.trim().charAt(0).toUpperCase() ?? 'O'
+
     return (
       <SidebarMenuButtonComponent
         ref={ref}
@@ -38,9 +47,14 @@ export const ProjectBranchSelectorTrigger = React.forwardRef<
         className="group px-1 py-0.5 gap-1.5 w-full max-w-[250px] flex h-auto text-left data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground touch-manipulation"
         {...buttonProps}
       >
-        <div className="relative flex h-7 aspect-square shrink-0 items-center bg-background-muted group-hover:border-stronger justify-center rounded border border-strong text-xs">
-          {selectedOrgInitial}
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="relative flex h-7 aspect-square shrink-0 items-center bg-background-muted group-hover:border-stronger justify-center rounded border border-strong text-xs">
+              {selectedOrgInitial}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>{selectedOrg.name}</TooltipContent>
+        </Tooltip>
         <div className="text-left flex-grow min-w-0">
           <div className="w-full truncate text-foreground leading-tight">{displayProjectName}</div>
           <div

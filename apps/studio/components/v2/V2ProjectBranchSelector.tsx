@@ -1,25 +1,23 @@
 'use client'
 
+import { useBranchesQuery } from 'data/branches/branches-query'
+import { useOrganizationsQuery } from 'data/organizations/organizations-query'
+import { useProjectDetailQuery } from 'data/projects/project-detail-query'
+import { IS_PLATFORM } from 'lib/constants'
 import { useMemo, useState } from 'react'
-
 import {
+  Popover_Shadcn_,
   PopoverContent_Shadcn_,
   PopoverTrigger_Shadcn_,
-  Popover_Shadcn_,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from 'ui'
-
-import { IS_PLATFORM } from 'lib/constants'
+import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
 import { ProjectBranchSelectorPopover } from '@/components/v2/Navigation/ProjectBranchSelectorPopover'
 import { ProjectBranchSelectorTrigger } from '@/components/v2/Navigation/ProjectBranchSelectorTrigger'
-import { useBranchesQuery } from 'data/branches/branches-query'
-import { useOrganizationsQuery } from 'data/organizations/organizations-query'
-import { useProjectDetailQuery } from 'data/projects/project-detail-query'
-import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
 export function V2ProjectBranchSelector() {
   const { orgSlug, projectRef } = useV2Params()
@@ -53,7 +51,6 @@ export function V2ProjectBranchSelector() {
   const selectedBranch = branches?.find((b) => b.project_ref === projectRef)
   const branchDisplayName = selectedBranch?.name ?? 'main'
   const isProductionBranch = selectedBranch?.is_default ?? true
-  const selectedOrgInitial = selectedOrg?.name?.trim().charAt(0).toUpperCase() ?? 'O'
 
   const isTriggerLoading = Boolean(projectRef) && (isProjectPending || !displayProject)
 
@@ -81,7 +78,7 @@ export function V2ProjectBranchSelector() {
             ) : (
               <ProjectBranchSelectorTrigger
                 displayProjectName={displayProject?.name ?? projectRef ?? 'Project'}
-                selectedOrgInitial={selectedOrgInitial}
+                selectedOrg={selectedOrg}
                 isBranch={!isProductionBranch}
                 isProductionBranch={isProductionBranch}
                 branchDisplayName={branchDisplayName}

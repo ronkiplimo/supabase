@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { cn } from 'ui'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
-import { useV2DashboardStore } from '@/stores/v2-dashboard'
+import { useV2DashboardStore, type DataTab } from '@/stores/v2-dashboard'
 
 const CATEGORY_LABELS: Record<string, string> = {
   tables: 'Tables',
@@ -27,7 +27,8 @@ const CATEGORY_LABELS: Record<string, string> = {
 export function TabBar() {
   const pathname = usePathname()
   const { projectRef } = useV2Params()
-  const { detailTabs, removeDetailTab } = useV2DashboardStore()
+  const { dataTabs, closeDataTab } = useV2DashboardStore()
+  const detailTabs = dataTabs.filter((t) => t.type === 'detail')
 
   const base = projectRef ? `/v2/project/${projectRef}` : ''
   const pathParts =
@@ -35,7 +36,6 @@ export function TabBar() {
       ?.replace(/^\/v2\/[^/]+\/[^/]+/, '')
       .split('/')
       .filter(Boolean) ?? []
-  const activity = pathParts[0]
   const category = pathParts[1]
   const categoryLabel = category ? (CATEGORY_LABELS[category] ?? category) : 'Data'
   const categoryListHref = category ? `${base}/data/${category}` : `${base}/data/tables`
@@ -64,7 +64,7 @@ export function TabBar() {
       >
         <Plus className="h-4 w-4" />
       </button>
-      {detailTabs.map((tab) => {
+      {detailTabs.map((tab: DataTab) => {
         const isActive = activeTabPath === tab.path
         return (
           <div
@@ -83,7 +83,7 @@ export function TabBar() {
               type="button"
               onClick={(e) => {
                 e.preventDefault()
-                removeDetailTab(tab.id)
+                closeDataTab(tab.id)
               }}
               className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-background rounded text-foreground-light hover:text-foreground"
               aria-label="Close tab"

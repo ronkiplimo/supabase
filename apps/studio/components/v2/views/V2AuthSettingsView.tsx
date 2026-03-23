@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Tabs_Shadcn_, TabsContent_Shadcn_, TabsList_Shadcn_, TabsTrigger_Shadcn_ } from 'ui'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
+import { BannerStackProvider } from '@/components/ui/BannerStack/BannerStackProvider'
 import { StudioDataWorkspace } from '@/components/v2/data/StudioDataWorkspace'
 
 import UrlConfigurationPage from '@/pages/project/[ref]/auth/url-configuration'
@@ -76,15 +77,17 @@ export function V2AuthSettingsView() {
               ))}
             </TabsList_Shadcn_>
           </div>
-          {TABS.map((tab) => {
-            const Content = tab.content
-            return (
-              <TabsContent_Shadcn_ key={tab.key} value={tab.key} className="m-0">
-                <div className="hidden" />
-                <Content dehydratedState={undefined} />
-              </TabsContent_Shadcn_>
-            )
-          })}
+          <BannerStackProvider>
+            {TABS.map((tab) => {
+              const Content = tab.content
+              return (
+                <TabsContent_Shadcn_ key={tab.key} value={tab.key} className="m-0">
+                  <div className="hidden" />
+                  <Content dehydratedState={undefined} />
+                </TabsContent_Shadcn_>
+              )
+            })}
+          </BannerStackProvider>
         </Tabs_Shadcn_>
       </div>
     </StudioDataWorkspace>

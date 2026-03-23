@@ -449,7 +449,7 @@ If `db push` fails with errors suggesting you run `supabase migration repair`, y
 
 ### How migration tracking works
 
-Supabase tracks which migrations have been applied on each database in a table called `supabase_migrations.schema_migrations`. When you run `supabase db push`, it compares your local `supabase/migrations` folder against that table and runs only the unapplied ones, in order.
+Supabase tracks which migrations have been applied on each database in a table called `supabase_migrations.schema_migrations`. When you run `supabase db push`, it compares your local `supabase/migrations` folder against that table and runs only the ones not yet applied, in order.
 
 Git tracks your migration _files_. Supabase tracks what's been _applied to each database_. These are two separate systems that need to stay in sync.
 

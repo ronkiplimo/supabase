@@ -131,28 +131,6 @@ const Footer = (props: Props) => {
       <h2 id="footerHeading" className="sr-only">
         Footer
       </h2>
-      <div className="w-full !py-0">
-        <SectionContainer className="grid grid-cols-2 md:flex items-center justify-between text-foreground md:justify-center gap-8 md:gap-16 xl:gap-28 !py-6 md:!py-10 text-sm">
-          <div className="flex flex-col md:flex-row gap-2 md:items-center">
-            We protect your data.
-            <Link href="/security" className="text-brand-link hover:underline">
-              More on Security
-            </Link>
-          </div>
-          <ul className="flex flex-col md:flex-row gap-2 md:gap-8 justify-center md:items-center">
-            <li className="flex items-center gap-2 whitespace-nowrap flex-nowrap">
-              <Soc2Seal className="shrink-0 w-12 h-12 md:w-20 md:h-20 text-foreground-muted" />
-              SOC2 Type 2{' '}
-              <span className="text-foreground-lighter hidden sm:inline">Certified</span>
-            </li>
-            <li className="flex items-center gap-2 whitespace-nowrap flex-nowrap">
-              <HipaaSeal className="shrink-0 w-12 h-12 md:w-20 md:h-20 text-foreground-muted" />
-              HIPAA <span className="text-foreground-lighter hidden sm:inline">Compliant</span>
-            </li>
-          </ul>
-        </SectionContainer>
-        <div className="w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-      </div>
       <SectionContainer className="py-8">
         <div className="xl:grid xl:grid-cols-7 xl:gap-4">
           <div className="space-y-8 xl:col-span-2">
@@ -254,8 +232,20 @@ const Footer = (props: Props) => {
             </div>
           </div>
         </div>
-        <div className="border-default mt-32 flex justify-between border-t pt-8">
-          <small className="small">&copy; Supabase Inc</small>
+        <div className="border-muted mt-32 flex flex-wrap items-center justify-between gap-4 border-t pt-8">
+          <div className="flex flex-wrap items-center gap-3">
+            <small className="small">&copy; Supabase Inc</small>
+            <span className="text-foreground-muted text-xs">·</span>
+            <span className="flex items-center gap-1.5 text-foreground-muted text-xs">
+              <Soc2Seal className="w-5 h-5 shrink-0" />
+              SOC2 Type 2
+            </span>
+            <span className="text-foreground-muted text-xs">·</span>
+            <span className="flex items-center gap-1.5 text-foreground-muted text-xs">
+              <HipaaSeal className="w-5 h-5 shrink-0" />
+              HIPAA Compliant
+            </span>
+          </div>
           <div className={cn(forceDark && 'hidden')}>
             <ThemeToggle forceDark={forceDark} />
           </div>

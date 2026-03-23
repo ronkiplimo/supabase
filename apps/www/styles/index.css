@@ -130,7 +130,7 @@ h6:not(.overwrite) {
 
 .prose-toc a {
   transition: all 0.07s ease-in-out;
-  color: hsl(var(--foreground-muted)) !important;
+  color: hsl(var(--foreground-light)) !important;
   font-weight: 400 !important;
 }
 

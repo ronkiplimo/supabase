@@ -5,6 +5,7 @@ import Link from 'next/link'
 import authors from '@/lib/authors.json'
 import type Author from '@/types/author'
 import type PostTypes from '@/types/post'
+import AuthorAvatars from './AuthorAvatars'
 
 interface Props {
   post: PostTypes
@@ -38,21 +39,23 @@ const BlogGridItem = ({ post }: Props) => {
     <Link
       href={post.path}
       prefetch={false}
-      className="group flex flex-col h-full hover:bg-surface-75/50 transition-colors p-6"
+      className="group flex flex-col h-full p-6"
     >
-      <div className="relative w-full aspect-[1.91/1] overflow-hidden">
+      <div className="relative w-full aspect-[16/10] overflow-hidden rounded-md border border-foreground/10">
         <Image
           fill
           sizes="100%"
           quality={100}
           src={imageUrl}
-          className="object-cover overflow-hidden rounded-md"
+          className="object-cover"
           alt={`${post.title} thumbnail`}
         />
       </div>
       <div className="flex flex-col gap-1 pt-4">
+        <h3 className="text-foreground text-lg group-hover:underline">{post.title}</h3>
+        <p className="text-foreground-lighter text-sm mt-1 line-clamp-2">{post.description}</p>
         {post.date && (
-          <div className="text-foreground-lighter flex items-center space-x-1.5 text-sm">
+          <div className="text-foreground-lighter flex items-center space-x-1.5 text-[11px] mt-3">
             <p>{dayjs(post.date).format('D MMM YYYY')}</p>
             {post.readingTime && (
               <>
@@ -62,8 +65,9 @@ const BlogGridItem = ({ post }: Props) => {
             )}
           </div>
         )}
-        <h3 className="text-foreground text-lg group-hover:underline">{post.title}</h3>
-        <p className="text-foreground-lighter text-sm mt-1 line-clamp-2">{post.description}</p>
+        <div className="mt-1.5">
+          <AuthorAvatars authors={author} />
+        </div>
       </div>
     </Link>
   )

@@ -9,61 +9,97 @@ const customerStories = [
   {
     name: 'Resend',
     logo: '/images/customers/logos/resend.png',
-    description:
-      'Scaling seamlessly to 5,000+ paying customers and millions of emails sent daily with Supabase.',
-    author: 'Zeno Rocha, CEO',
+    icon: '/images/customers/logos/resend-icon.svg',
+    tagline: 'Scaling seamlessly to 5,000+ paying customers and millions of emails sent daily.',
+    quote:
+      "The Supabase YC Program made it a no-brainer for us. We didn't have to worry about backend costs in the early days, which gave us more runway to focus on product-market fit.",
+    author: 'Zeno Rocha, CEO, Resend',
+    authorImg: '/images/blog/avatars/zeno-rocha.png',
     slug: 'resend',
-  },
-  {
-    name: 'Hyper',
-    logo: '/images/customers/logos/hyper.svg',
-    description:
-      'Hyper is an AI-native marketing platform with agents that operate across the entire marketing workflow, powered by Supabase.',
-    author: 'Hyper Team',
-    slug: 'hyper',
+    bgColor: '#000000',
+    bgGradient: 'linear-gradient(to bottom left, #0a0a0a 0%, #000000 100%)',
+    dimBgColor: '#080808',
+    textColor: 'light' as 'light' | 'dark',
   },
   {
     name: 'Firecrawl',
     logo: '/images/customers/logos/firecrawl.png',
-    description:
-      'Firecrawl switched from Pinecone to Supabase Vector to boost efficiency and accuracy of chat powered search for documentation.',
-    author: 'Mendable Team',
+    icon: '/images/customers/logos/firecrawl-icon.svg',
+    tagline: 'Switched from Pinecone to Supabase Vector to boost efficiency and accuracy.',
+    quote:
+      "We looked at the alternatives and chose Supabase because it's open source, it's simpler, and for all the ways we need to use it, Supabase has been just as performant — if not more performant — than the other vector databases.",
+    author: 'Caleb Peffer, CEO, Firecrawl',
+    authorImg: '/images/blog/avatars/caleb-peffer.jpg',
     slug: 'firecrawl',
+    rawIcon: true,
+    bgColor: '#7a3818',
+    bgGradient: 'linear-gradient(to bottom left, #7a3818 0%, #4a1e08 100%)',
+    dimBgColor: '#5a2a10',
+    textColor: 'light' as 'light' | 'dark',
   },
   {
-    name: 'Mobbin',
-    logo: '/images/customers/logos/mobbin.png',
-    description:
-      'How Mobbin migrated 200,000 users from Firebase for a better authentication experience with Supabase.',
-    author: 'Anselm Bild, Co-Founder',
-    slug: 'mobbin',
+    name: 'Hyper',
+    logo: '/images/customers/logos/hyper.svg',
+    icon: '/images/customers/logos/hyper-icon.svg',
+    tagline: 'An AI-native marketing platform with agents that operate across the entire workflow.',
+    quote:
+      'I will get on a podcast and talk about how much I love Supabase. With Supabase we can move fast and build things that delight our customers without having to worry about infrastructure.',
+    author: 'Elliot Fleck, Co-founder, Hyper',
+    authorImg: '/images/blog/avatars/elliot-fleck-hyper.jpeg',
+    slug: 'hyper',
+    bgColor: '#222222',
+    bgGradient: 'linear-gradient(to bottom left, #2a2a2a 0%, #181818 100%)',
+    dimBgColor: '#1e1e1e',
+    textColor: 'light' as 'light' | 'dark',
   },
   {
     name: 'E2B',
     logo: '/images/customers/logos/e2b.png',
-    description:
-      'E2B leveraged Supabase to streamline its platform, allowing secure, scalable execution of AI-generated code in the cloud.',
-    author: 'Vasek Mlejnsky, Co-Founder',
+    icon: '/images/customers/logos/e2b-icon.svg',
+    tagline: 'Secure, scalable execution of AI-generated code in the cloud.',
+    quote:
+      "Supabase empowers us to focus on innovation rather than infrastructure. It's the backbone of our platform, enabling scalability and seamless developer experiences.",
+    author: 'Vasek Mlejnsky, CEO, E2B',
+    authorImg: '/images/blog/avatars/vasek-mlejnsky.jpg',
     slug: 'e2b',
+    rawIcon: true,
+    bgColor: '#7a4400',
+    bgGradient: 'linear-gradient(to bottom left, #7a4400 0%, #4a2800 100%)',
+    dimBgColor: '#5a3200',
+    textColor: 'light' as 'light' | 'dark',
+  },
+  {
+    name: 'Mobbin',
+    logo: '/images/customers/logos/mobbin.png',
+    icon: '/images/customers/logos/mobbin-icon.svg',
+    tagline: 'Migrated 200,000 users from Firebase for a better authentication experience.',
+    quote:
+      'Migrating to Supabase meant that we could instantly fix our Auth problems and save money. Just being on Supabase alone gives us confidence we can deliver on whatever users need in the future.',
+    author: 'Jian Jie Liau, Co-founder & CTO, Mobbin',
+    authorImg: '/images/blog/avatars/jian-mobbin.jpg',
+    slug: 'mobbin',
+    bgColor: '#000000',
+    bgGradient: 'linear-gradient(to bottom left, #0a0a0a 0%, #000000 100%)',
+    dimBgColor: '#080808',
+    textColor: 'light' as 'light' | 'dark',
   },
 ]
 
 const aiBuilderStories = [
-  {
-    name: 'Bolt',
-    logo: '/images/logos/publicity/bolt.svg',
-    description: 'We store embeddings in a PostgreSQL database, hosted by Supabase.',
-    slug: 'bolt',
-    gradient: 'linear-gradient(to top, #0a1a3a 0%, #1a3f6f 30%, #2563eb 65%, #60a5fa 100%)',
-  },
   {
     name: 'Lovable',
     logo: '/images/logos/publicity/lovable.svg',
     description:
       'We store embeddings in a PostgreSQL database. Supabase is a great partner for us as we scale.',
     slug: 'lovable',
-    gradient:
-      'linear-gradient(to bottom, #c4b5fd 0%, #a78bfa 20%, #ec4899 50%, #fb7185 75%, #ef4444 100%)',
+    photo: '/images/logos/publicity/lovable-team.png',
+  },
+  {
+    name: 'Bolt',
+    logo: '/images/logos/publicity/bolt.svg',
+    description: 'We store embeddings in a PostgreSQL database, hosted by Supabase.',
+    slug: 'bolt',
+    photo: '/images/logos/publicity/bolt-team.png',
   },
 ]
 
@@ -79,6 +115,32 @@ function LovableLogo({ className }: { className?: string }) {
     </svg>
   )
 }
+
+function IconChip({
+  story,
+  size = 'md',
+}: {
+  story: (typeof customerStories)[0]
+  size?: 'sm' | 'md'
+}) {
+  const isLight = story.textColor === 'light'
+  const s = story as any
+  const filter = s.iconFilter ?? (s.rawIcon ? undefined : isLight ? 'brightness(0) invert(1)' : 'brightness(0)')
+  return (
+    <img
+      src={story.icon}
+      alt={story.name}
+      className={cn('object-contain shrink-0', size === 'md' ? 'h-8 w-8' : 'h-6 w-6')}
+      style={filter ? { filter } : undefined}
+    />
+  )
+}
+
+// Change INACTIVE_PAD to adjust closed column width automatically
+const INACTIVE_PAD = 22 // px padding on each side of icon in closed columns
+const ACTIVE_PAD = 32 // px padding on each side when card is open
+const ICON_PX = 32 // w-8 = 32px
+const INACTIVE_COL_WIDTH = INACTIVE_PAD * 2 + ICON_PX // = 76px
 
 export function CustomerStoriesSection() {
   const [activeIdx, setActiveIdx] = useState(0)
@@ -105,106 +167,147 @@ export function CustomerStoriesSection() {
       </div>
 
       {/* Cards row */}
-      <div className="px-6 mx-auto max-w-[var(--container-max-w,75rem)]">
-        <div className="border border-border rounded-md overflow-clip">
-          {/* Mobile: stacked cards */}
-          <div className="flex flex-col md:hidden">
-            {customerStories.map((story, index) => {
-              const isActive = index === activeIdx
-              return (
-                <button
-                  key={story.slug}
-                  onClick={() => setActiveIdx(index)}
-                  className={cn(
-                    'text-left border-b border-border last:border-b-0 p-6 flex flex-col gap-4 overflow-hidden',
-                    isActive ? 'bg-surface-75' : 'hover:bg-surface-75/50'
-                  )}
-                >
-                  <img
-                    src={story.logo}
-                    alt={story.name}
-                    className="size-16 rounded object-contain shrink-0 dark:invert"
-                  />
-                  {isActive && (
-                    <div className="flex flex-col gap-1.5 flex-1">
-                      <p className="text-foreground text-sm font-medium">{story.name}</p>
-                      <p className="text-foreground-lighter text-sm leading-relaxed text-pretty">
-                        {story.description}
+      <div className="px-6 mx-auto max-w-[var(--container-max-w,75rem)] w-full">
+        {/* Mobile: stacked cards */}
+        <div className="flex flex-col gap-2 md:hidden">
+          {customerStories.map((story, index) => {
+            const isActive = index === activeIdx
+            const isDark = story.textColor === 'dark'
+            return (
+              <button
+                key={story.slug}
+                onClick={() => setActiveIdx(index)}
+                className="text-left rounded-lg p-5 flex flex-col gap-4 overflow-hidden transition-opacity"
+                style={{ background: isActive ? story.bgGradient : story.dimBgColor }}
+              >
+                <IconChip story={story} size="sm" />
+                {isActive && (
+                  <div className="flex flex-col gap-3 flex-1">
+                    <div>
+                      <p className="text-sm font-medium" style={{ color: isDark ? '#111' : 'white' }}>
+                        {story.name}
                       </p>
-                      <p className="text-foreground-muted text-xs mt-1">{story.author}</p>
-                      <Link
-                        href={`/customers/${story.slug}`}
-                        className="text-sm text-foreground-light hover:text-foreground underline mt-2"
-                      >
-                        View more about {story.name}
-                      </Link>
+                      <p className="text-xs mt-0.5" style={{ color: isDark ? '#888' : 'rgba(255,255,255,0.6)' }}>
+                        {story.tagline}
+                      </p>
                     </div>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Desktop: animated accordion grid */}
-          <motion.div
-            className="hidden md:grid min-h-[480px]"
-            initial={false}
-            animate={{
-              gridTemplateColumns: customerStories
-                .map((_, i) => (i === activeIdx ? '4fr' : '1fr'))
-                .join(' '),
-            }}
-            transition={{ type: 'spring', duration: 0.4, bounce: 0 }}
-          >
-            {customerStories.map((story, index) => {
-              const isActive = index === activeIdx
-              return (
-                <button
-                  key={story.slug}
-                  onClick={() => setActiveIdx(index)}
-                  className={cn(
-                    'text-left border-r border-border last:border-r-0 p-6 flex flex-col gap-8 overflow-hidden',
-                    isActive ? 'bg-surface-75' : 'hover:bg-surface-75/50'
-                  )}
-                >
-                  <motion.img
-                    layoutId={`logo-${story.slug}`}
-                    src={story.logo}
-                    alt={story.name}
-                    className="size-20 rounded object-contain shrink-0 dark:invert"
-                    style={{ alignSelf: isActive ? 'flex-start' : 'center' }}
-                    transition={{ type: 'spring', duration: 0.4, bounce: 0 }}
-                  />
-
-                  <motion.div
-                    className="flex flex-col gap-1.5 flex-1 w-[30rem]"
-                    initial={false}
-                    animate={{
-                      opacity: isActive ? 1 : 0,
-                      filter: isActive ? 'blur(0px)' : 'blur(2px)',
-                    }}
-                    transition={{
-                      duration: 0.42,
-                      ease: [0.165, 0.84, 0.44, 1],
-                      delay: isActive ? 0.2 : 0,
-                    }}
-                  >
-                    <p className="text-foreground text-sm font-medium">{story.name}</p>
-                    <p className="text-foreground-lighter text-sm leading-relaxed text-pretty">
-                      {story.description}
+                    <p
+                      className="text-xl font-normal leading-relaxed text-pretty"
+                      style={{ color: isDark ? '#222' : 'white' }}
+                    >
+                      "{story.quote}"
                     </p>
-                    <p className="text-foreground-muted text-xs mt-1">{story.author}</p>
+                    <div className="flex items-center gap-2 mb-4">
+                      <img src={story.authorImg} alt={story.author} className="h-6 w-6 rounded-full object-cover shrink-0 ring-1 ring-white/30" />
+                      <p className="text-xs" style={{ color: isDark ? '#888' : 'rgba(255,255,255,0.65)' }}>
+                        {story.author}
+                      </p>
+                    </div>
                     <Link
                       href={`/customers/${story.slug}`}
-                      className="text-sm text-foreground-light hover:text-foreground underline mt-auto"
+                      className="text-xs underline"
+                      style={{ color: isDark ? '#555' : 'rgba(255,255,255,0.7)' }}
                     >
-                      View more about {story.name}
+                      Read the story →
                     </Link>
-                  </motion.div>
-                </button>
-              )
-            })}
-          </motion.div>
+                  </div>
+                )}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Desktop: animated accordion grid */}
+        <div
+          className="hidden md:grid min-h-[480px] gap-2"
+          style={{
+            gridTemplateColumns: customerStories
+              .map((_, i) => (i === activeIdx ? '1fr' : `${INACTIVE_COL_WIDTH}px`))
+              .join(' '),
+          }}
+        >
+          {customerStories.map((story, index) => {
+            const isActive = index === activeIdx
+            const isDark = story.textColor === 'dark'
+            return (
+              <motion.button
+                layout
+                key={story.slug}
+                onClick={() => setActiveIdx(index)}
+                className="text-left flex flex-col items-start gap-8 overflow-hidden transition-opacity hover:opacity-90"
+                style={{
+                  background: isActive ? story.bgGradient : story.dimBgColor,
+                  borderRadius: 8,
+                  padding: isActive ? ACTIVE_PAD : `${ACTIVE_PAD}px ${INACTIVE_PAD}px`,
+                  boxShadow: isDark
+                    ? 'inset 0 0 0 1px rgba(0,0,0,0.07)'
+                    : 'inset 0 0 0 1px rgba(255,255,255,0.12)',
+                }}
+                transition={{ type: 'spring', duration: 0.4, bounce: 0 }}
+              >
+                <motion.div layout>
+                  <IconChip story={story} />
+                </motion.div>
+
+                <motion.div
+                  className="flex flex-col gap-1.5 flex-1 w-[30rem]"
+                  initial={false}
+                  animate={{
+                    opacity: isActive ? 1 : 0,
+                    filter: isActive ? 'blur(0px)' : 'blur(2px)',
+                  }}
+                  transition={{
+                    duration: 0.42,
+                    ease: [0.165, 0.84, 0.44, 1],
+                    delay: isActive ? 0.2 : 0,
+                  }}
+                >
+                  {/* Top: company name + tagline */}
+                  <div className="flex flex-col gap-1">
+                    <p className="text-sm font-medium" style={{ color: isDark ? '#111' : 'white' }}>
+                      {story.name}
+                    </p>
+                    <p
+                      className="text-xs leading-relaxed text-pretty"
+                      style={{ color: isDark ? '#888' : 'rgba(255,255,255,0.6)' }}
+                    >
+                      {story.tagline}
+                    </p>
+                  </div>
+
+                  {/* Bottom: quote + author */}
+                  <div className="flex flex-col gap-4 mt-auto">
+                    <p
+                      className="text-xl font-normal leading-relaxed text-pretty"
+                      style={{ color: isDark ? '#222' : 'white' }}
+                    >
+                      "{story.quote}"
+                    </p>
+                    <div className="flex items-center gap-2.5 mb-4">
+                      <img
+                        src={story.authorImg}
+                        alt={story.author}
+                        className="h-7 w-7 rounded-full object-cover shrink-0 ring-1 ring-white/30"
+                      />
+                      <p
+                        className="text-xs"
+                        style={{ color: isDark ? '#888' : 'rgba(255,255,255,0.65)' }}
+                      >
+                        {story.author}
+                      </p>
+                    </div>
+                    <Link
+                      href={`/customers/${story.slug}`}
+                      className="text-xs underline"
+                      style={{ color: isDark ? '#555' : 'rgba(255,255,255,0.7)' }}
+                    >
+                      Read the story →
+                    </Link>
+                  </div>
+                </motion.div>
+              </motion.button>
+            )
+          })}
         </div>
       </div>
 
@@ -233,27 +336,52 @@ export function CustomerStoriesSection() {
                 <Link
                   key={story.slug}
                   href={`/customers/${story.slug}`}
-                  className="group relative overflow-hidden rounded-md w-full aspect-[4/2.5] md:aspect-auto md:h-full flex items-center justify-center"
-                  style={{ background: story.gradient }}
+                  className="group relative overflow-hidden rounded-lg w-full aspect-video border border-white/10 flex flex-col justify-end p-5"
                 >
-                  {story.slug === 'lovable' ? (
-                    <LovableLogo className="h-12 w-auto relative z-10 select-none" />
-                  ) : (
+                  {/* Photo background */}
+                  <img
+                    src={story.photo}
+                    alt={story.name}
+                    className="absolute inset-0 w-full h-full object-cover select-none scale-[1.015]"
+                  />
+                  {/* Dark gradient overlay — heavier at bottom */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+                  {/* Logo + description at bottom */}
+                  <div className="relative z-10 flex flex-col gap-2">
                     <img
                       src={story.logo}
                       alt={story.name}
-                      className="h-12 w-auto object-contain brightness-0 invert relative z-10 select-none"
+                      className="h-6 w-auto object-contain object-left brightness-0 invert select-none"
                     />
-                  )}
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <p className="text-white text-sm font-medium mb-1">{story.name}</p>
-                    <p className="text-white/70 text-xs leading-relaxed text-pretty">
+                    <p className="text-white/75 text-sm leading-relaxed text-pretty">
                       {story.description}
                     </p>
                   </div>
                 </Link>
               ))}
             </div>
+          </div>
+
+          {/* Builder logo strip — full width below */}
+          <div className="mt-8 pt-6 border-t border-muted flex flex-wrap items-center gap-x-8 gap-y-4">
+            {[
+              { name: 'Lovable', logo: '/images/logos/publicity/lovable.svg' },
+              { name: 'Figma', logo: '/images/logos/publicity/figma.svg' },
+              { name: 'v0', logo: '/images/logos/publicity/v0.svg' },
+              { name: 'Bolt', logo: '/images/logos/publicity/bolt.svg' },
+              { name: 'Tempo', logo: '/images/logos/publicity/tempo.svg' },
+              { name: 'Gumloop', logo: '/images/logos/publicity/gumloop.svg' },
+              { name: 'Pika', logo: '/images/logos/publicity/pika.svg' },
+              { name: 'Udio', logo: '/images/logos/publicity/udio.svg' },
+            ].map((b) => (
+              <img
+                key={b.name}
+                src={b.logo}
+                alt={b.name}
+                className="h-5 w-auto object-contain opacity-40 brightness-0 invert"
+              />
+            ))}
           </div>
         </div>
       </div>

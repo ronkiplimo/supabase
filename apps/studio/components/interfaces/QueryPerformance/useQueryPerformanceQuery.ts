@@ -14,6 +14,7 @@ export function generateQueryPerformanceSql({
   minTotalTime = 0,
   runIndexAdvisor = false,
   filterIndexAdvisor = false,
+  limit,
 }: QueryPerformanceSQLParams) {
   const queryPerfQueries = PRESET_CONFIG[Presets.QUERY_PERFORMANCE]
   const baseSQL = queryPerfQueries.queries[preset]
@@ -49,7 +50,8 @@ export function generateQueryPerformanceSql({
     whereSql.length > 0 ? `WHERE ${whereSql}` : undefined,
     orderBySql,
     runIndexAdvisor,
-    filterIndexAdvisor
+    filterIndexAdvisor,
+    limit
   )
 
   return { sql, whereSql, orderBySql }

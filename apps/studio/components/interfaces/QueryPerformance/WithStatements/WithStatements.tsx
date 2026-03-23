@@ -30,12 +30,18 @@ interface WithStatementsProps {
   queryHitRate: PresetHookResult
   queryPerformanceQuery: DbQueryHook<any>
   queryMetrics: PresetHookResult
+  pageSize: number
+  onPageSizeChange: (size: number | null) => void
+  onLoadMore: () => void
 }
 
 export const WithStatements = ({
   queryHitRate,
   queryPerformanceQuery,
   queryMetrics,
+  pageSize,
+  onPageSizeChange,
+  onLoadMore,
 }: WithStatementsProps) => {
   const { ref } = useParams()
   const { data: project } = useSelectedProjectQuery()
@@ -193,6 +199,11 @@ export const WithStatements = ({
             : null
         }
         onRetry={handleRefresh}
+        pageSize={pageSize}
+        hasMore={processedData.length > 0 && processedData.length % pageSize === 0}
+        onPageSizeChange={onPageSizeChange}
+        onLoadMore={onLoadMore}
+        isLoadingMore={isRefetching && processedData.length > 0}
       />
       <div
         className={cn('px-6 py-6 flex gap-x-4 border-t relative', {

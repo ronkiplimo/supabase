@@ -1,29 +1,37 @@
-import { ArrowDown, ArrowRight, ArrowUp, ChevronDown, TextSearch } from 'lucide-react'
+import { useParams } from 'common'
+import { NumericFilter } from 'components/interfaces/Reports/v2/ReportsNumericFilter'
+import { ButtonTooltip } from 'components/ui/ButtonTooltip'
+import { ArrowDown, ArrowRight, ArrowUp, ChevronDown, Loader2, TextSearch } from 'lucide-react'
+import { parseAsArrayOf, parseAsJson, parseAsString, useQueryStates } from 'nuqs'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DataGrid, { Column, DataGridHandle, Row } from 'react-data-grid'
-
-import { useParams } from 'common'
-import { ButtonTooltip } from 'components/ui/ButtonTooltip'
 import {
   Button,
+  cn,
   CodeBlock,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  Select_Shadcn_,
+  SelectContent_Shadcn_,
+  SelectItem_Shadcn_,
+  SelectTrigger_Shadcn_,
+  SelectValue_Shadcn_,
   Sheet,
   SheetContent,
   SheetDescription,
   SheetTitle,
+  Tabs_Shadcn_,
   TabsContent_Shadcn_,
   TabsList_Shadcn_,
   TabsTrigger_Shadcn_,
-  Tabs_Shadcn_,
-  cn,
 } from 'ui'
+import { Admonition } from 'ui-patterns'
 import { InfoTooltip } from 'ui-patterns/info-tooltip'
 import { GenericSkeletonLoader } from 'ui-patterns/ShimmeringLoader'
-import { Admonition } from 'ui-patterns'
+
+import { PAGE_SIZE_OPTIONS } from './hooks/useQueryPerformancePagination'
 import { useQueryPerformanceSort } from './hooks/useQueryPerformanceSort'
 import {
   hasIndexRecommendations,
@@ -38,8 +46,6 @@ import {
 } from './QueryPerformance.constants'
 import { QueryPerformanceRow } from './QueryPerformance.types'
 import { formatDuration } from './QueryPerformance.utils'
-import { parseAsString, parseAsArrayOf, parseAsJson, useQueryStates } from 'nuqs'
-import { NumericFilter } from 'components/interfaces/Reports/v2/ReportsNumericFilter'
 
 interface QueryPerformanceGridProps {
   aggregatedData: QueryPerformanceRow[]
@@ -48,6 +54,11 @@ interface QueryPerformanceGridProps {
   currentSelectedQuery?: string | null
   onCurrentSelectQuery?: (query: string) => void
   onRetry?: () => void
+  pageSize: number
+  hasMore: boolean
+  onPageSizeChange: (size: number | null) => void
+  onLoadMore: () => void
+  isLoadingMore: boolean
 }
 
 const calculateTimeConsumedWidth = (data: QueryPerformanceRow[]) => {
@@ -79,6 +90,11 @@ export const QueryPerformanceGrid = ({
   currentSelectedQuery,
   onCurrentSelectQuery,
   onRetry,
+  pageSize,
+  hasMore,
+  onPageSizeChange,
+  onLoadMore,
+  isLoadingMore,
 }: QueryPerformanceGridProps) => {
   const { sort, setSortConfig } = useQueryPerformanceSort()
   const gridRef = useRef<DataGridHandle>(null)
@@ -456,6 +472,35 @@ export const QueryPerformanceGrid = ({
     }
   }, [handleKeyDown])
 
+  // Infinite scroll: detect when user scrolls near the bottom of the DataGrid.
+  const loadMoreFiredRef = useRef(false)
+
+  // Reset the guard when loading finishes so the next scroll can fire
+  useEffect(() => {
+    if (!isLoadingMore) {
+      loadMoreFiredRef.current = false
+    }
+  }, [isLoadingMore])
+
+  useEffect(() => {
+    const container = dataGridContainerRef.current
+    const gridElement = container?.querySelector<HTMLDivElement>('.rdg')
+    if (!gridElement || !hasMore) return
+
+    const handleScroll = () => {
+      if (isLoading || isLoadingMore || loadMoreFiredRef.current) return
+      const { scrollTop, scrollHeight, clientHeight } = gridElement
+      const nearBottom = scrollTop + clientHeight >= scrollHeight - 100
+      if (nearBottom) {
+        loadMoreFiredRef.current = true
+        onLoadMore()
+      }
+    }
+
+    gridElement.addEventListener('scroll', handleScroll, { passive: true })
+    return () => gridElement.removeEventListener('scroll', handleScroll)
+  }, [hasMore, isLoading, isLoadingMore, onLoadMore])
+
   const isSelectQuery = (query: string | undefined): boolean => {
     if (!query) return false
     const formattedQuery = query.trim().toLowerCase()
@@ -502,149 +547,182 @@ export const QueryPerformanceGrid = ({
   const canShowIndexesTab = isSelectQuery(selectedQuery) && !isProtectedSchemaQuery
 
   return (
-    <div className="relative flex flex-grow bg-alternative min-h-0">
-      <div ref={dataGridContainerRef} className="flex-1 min-w-0 overflow-x-auto">
-        <DataGrid
-          ref={gridRef}
-          style={{ height: '100%' }}
-          className={cn('flex-1 flex-grow h-full')}
-          rowHeight={44}
-          headerRowHeight={36}
-          columns={columns}
-          rows={reportData}
-          rowClass={(_, idx) => {
-            const isSelected = idx === selectedRow
-            const query = reportData[idx]?.query
-            const isCharted = currentSelectedQuery ? currentSelectedQuery === query : false
-            const hasRecommendations = hasIndexRecommendations(
-              reportData[idx]?.index_advisor_result,
-              true
-            )
-
-            return [
-              `${isSelected ? (hasRecommendations ? 'bg-warning/10 hover:bg-warning/20' : 'bg-surface-300 dark:bg-surface-300') : hasRecommendations ? 'bg-warning/10 hover:bg-warning/20' : 'bg-200 hover:bg-surface-200'} cursor-pointer`,
-              `${isSelected ? (hasRecommendations ? '[&>div:first-child]:border-l-4 border-l-warning [&>div]:border-l-warning' : '[&>div:first-child]:border-l-4 border-l-secondary [&>div]:!border-l-foreground') : ''}`,
-              `${isCharted ? 'bg-surface-200 dark:bg-surface-200' : ''}`,
-              `${isCharted ? '[&>div:first-child]:border-l-4 border-l-secondary [&>div]:border-l-brand' : ''}`,
-              '[&>.rdg-cell]:box-border [&>.rdg-cell]:outline-none [&>.rdg-cell]:shadow-none',
-              '[&>.rdg-cell.column-prop_total_time]:relative',
-            ].join(' ')
-          }}
-          renderers={{
-            renderRow(idx, props) {
-              return (
-                <Row
-                  {...props}
-                  key={`qp-row-${props.rowIdx}`}
-                  onClick={(event) => {
-                    event.stopPropagation()
-
-                    if (typeof idx === 'number' && idx >= 0) {
-                      if (onCurrentSelectQuery) {
-                        const query = reportData[idx]?.query
-                        if (query) {
-                          onCurrentSelectQuery(query)
-                        }
-                      } else {
-                        setSelectedRow(idx)
-                        const hasRecommendations = hasIndexRecommendations(
-                          reportData[idx]?.index_advisor_result,
-                          true
-                        )
-                        setView(hasRecommendations ? 'suggestion' : 'details')
-                        gridRef.current?.scrollToCell({ idx: 0, rowIdx: idx })
-                      }
-                    }
-                  }}
-                />
+    <div className="relative flex flex-col flex-grow bg-alternative min-h-0">
+      <div className="relative flex flex-grow min-h-0">
+        <div ref={dataGridContainerRef} className="flex-1 min-w-0 overflow-x-auto">
+          <DataGrid
+            ref={gridRef}
+            style={{ height: '100%' }}
+            className={cn('flex-1 flex-grow h-full')}
+            rowHeight={44}
+            headerRowHeight={36}
+            columns={columns}
+            rows={reportData}
+            rowClass={(_, idx) => {
+              const isSelected = idx === selectedRow
+              const query = reportData[idx]?.query
+              const isCharted = currentSelectedQuery ? currentSelectedQuery === query : false
+              const hasRecommendations = hasIndexRecommendations(
+                reportData[idx]?.index_advisor_result,
+                true
               )
-            },
-            noRowsFallback: isLoading ? (
-              <div className="absolute top-14 px-6 w-full">
-                <GenericSkeletonLoader />
-              </div>
-            ) : (
-              <div className="absolute top-20 px-6 flex flex-col items-center justify-center w-full gap-y-2">
-                <TextSearch className="text-foreground-muted" strokeWidth={1} />
-                <div className="text-center">
-                  <p className="text-foreground">No queries detected</p>
-                  <p className="text-foreground-light">
-                    There are no actively running queries that match the criteria
-                  </p>
-                </div>
-              </div>
-            ),
-          }}
-        />
-      </div>
 
-      <Sheet
-        open={selectedRow !== undefined}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelectedRow(undefined)
-          }
-        }}
-        modal={false}
-      >
-        <SheetTitle className="sr-only">Query details</SheetTitle>
-        <SheetDescription className="sr-only">
-          Query Performance Details &amp; Indexes
-        </SheetDescription>
-        <SheetContent
-          side="right"
-          className="flex flex-col h-full bg-studio border-l lg:!w-[calc(100vw-802px)] max-w-[700px] w-full"
-          hasOverlay={false}
-          onInteractOutside={(event) => {
-            if (dataGridContainerRef.current?.contains(event.target as Node)) {
-              event.preventDefault()
+              return [
+                `${isSelected ? (hasRecommendations ? 'bg-warning/10 hover:bg-warning/20' : 'bg-surface-300 dark:bg-surface-300') : hasRecommendations ? 'bg-warning/10 hover:bg-warning/20' : 'bg-200 hover:bg-surface-200'} cursor-pointer`,
+                `${isSelected ? (hasRecommendations ? '[&>div:first-child]:border-l-4 border-l-warning [&>div]:border-l-warning' : '[&>div:first-child]:border-l-4 border-l-secondary [&>div]:!border-l-foreground') : ''}`,
+                `${isCharted ? 'bg-surface-200 dark:bg-surface-200' : ''}`,
+                `${isCharted ? '[&>div:first-child]:border-l-4 border-l-secondary [&>div]:border-l-brand' : ''}`,
+                '[&>.rdg-cell]:box-border [&>.rdg-cell]:outline-none [&>.rdg-cell]:shadow-none',
+                '[&>.rdg-cell.column-prop_total_time]:relative',
+              ].join(' ')
+            }}
+            renderers={{
+              renderRow(idx, props) {
+                return (
+                  <Row
+                    {...props}
+                    key={`qp-row-${props.rowIdx}`}
+                    onClick={(event) => {
+                      event.stopPropagation()
+
+                      if (typeof idx === 'number' && idx >= 0) {
+                        if (onCurrentSelectQuery) {
+                          const query = reportData[idx]?.query
+                          if (query) {
+                            onCurrentSelectQuery(query)
+                          }
+                        } else {
+                          setSelectedRow(idx)
+                          const hasRecommendations = hasIndexRecommendations(
+                            reportData[idx]?.index_advisor_result,
+                            true
+                          )
+                          setView(hasRecommendations ? 'suggestion' : 'details')
+                          gridRef.current?.scrollToCell({ idx: 0, rowIdx: idx })
+                        }
+                      }
+                    }}
+                  />
+                )
+              },
+              noRowsFallback: isLoading ? (
+                <div className="absolute top-14 px-6 w-full">
+                  <GenericSkeletonLoader />
+                </div>
+              ) : (
+                <div className="absolute top-20 px-6 flex flex-col items-center justify-center w-full gap-y-2">
+                  <TextSearch className="text-foreground-muted" strokeWidth={1} />
+                  <div className="text-center">
+                    <p className="text-foreground">No queries detected</p>
+                    <p className="text-foreground-light">
+                      There are no actively running queries that match the criteria
+                    </p>
+                  </div>
+                </div>
+              ),
+            }}
+          />
+        </div>
+
+        <Sheet
+          open={selectedRow !== undefined}
+          onOpenChange={(open) => {
+            if (!open) {
+              setSelectedRow(undefined)
             }
           }}
+          modal={false}
         >
-          <Tabs_Shadcn_
-            value={view}
-            className="flex flex-col h-full"
-            onValueChange={(value: any) => setView(value)}
+          <SheetTitle className="sr-only">Query details</SheetTitle>
+          <SheetDescription className="sr-only">
+            Query Performance Details &amp; Indexes
+          </SheetDescription>
+          <SheetContent
+            side="right"
+            className="flex flex-col h-full bg-studio border-l lg:!w-[calc(100vw-802px)] max-w-[700px] w-full"
+            hasOverlay={false}
+            onInteractOutside={(event) => {
+              if (dataGridContainerRef.current?.contains(event.target as Node)) {
+                event.preventDefault()
+              }
+            }}
           >
-            <div className="px-5 border-b">
-              <TabsList_Shadcn_ className="px-0 flex gap-x-4 min-h-[46px] border-b-0 [&>button]:h-[47px]">
-                <TabsTrigger_Shadcn_
-                  value="details"
-                  className="px-0 pb-0 data-[state=active]:bg-transparent !shadow-none"
-                >
-                  Query details
-                </TabsTrigger_Shadcn_>
-                {selectedRow !== undefined && canShowIndexesTab && (
+            <Tabs_Shadcn_
+              value={view}
+              className="flex flex-col h-full"
+              onValueChange={(value: any) => setView(value)}
+            >
+              <div className="px-5 border-b">
+                <TabsList_Shadcn_ className="px-0 flex gap-x-4 min-h-[46px] border-b-0 [&>button]:h-[47px]">
                   <TabsTrigger_Shadcn_
-                    value="suggestion"
+                    value="details"
                     className="px-0 pb-0 data-[state=active]:bg-transparent !shadow-none"
                   >
-                    Indexes
+                    Query details
                   </TabsTrigger_Shadcn_>
-                )}
-              </TabsList_Shadcn_>
-            </div>
+                  {selectedRow !== undefined && canShowIndexesTab && (
+                    <TabsTrigger_Shadcn_
+                      value="suggestion"
+                      className="px-0 pb-0 data-[state=active]:bg-transparent !shadow-none"
+                    >
+                      Indexes
+                    </TabsTrigger_Shadcn_>
+                  )}
+                </TabsList_Shadcn_>
+              </div>
 
-            <TabsContent_Shadcn_ value="details" className="mt-0 flex-grow min-h-0 overflow-y-auto">
-              {selectedRow !== undefined && (
-                <QueryDetail
-                  selectedRow={reportData[selectedRow]}
-                  onClickViewSuggestion={() => setView('suggestion')}
-                  onClose={() => setSelectedRow(undefined)}
-                />
-              )}
-            </TabsContent_Shadcn_>
-            {selectedRow !== undefined && canShowIndexesTab && (
               <TabsContent_Shadcn_
-                value="suggestion"
+                value="details"
                 className="mt-0 flex-grow min-h-0 overflow-y-auto"
               >
-                <QueryIndexes selectedRow={reportData[selectedRow]} />
+                {selectedRow !== undefined && (
+                  <QueryDetail
+                    selectedRow={reportData[selectedRow]}
+                    onClickViewSuggestion={() => setView('suggestion')}
+                    onClose={() => setSelectedRow(undefined)}
+                  />
+                )}
               </TabsContent_Shadcn_>
-            )}
-          </Tabs_Shadcn_>
-        </SheetContent>
-      </Sheet>
+              {selectedRow !== undefined && canShowIndexesTab && (
+                <TabsContent_Shadcn_
+                  value="suggestion"
+                  className="mt-0 flex-grow min-h-0 overflow-y-auto"
+                >
+                  <QueryIndexes selectedRow={reportData[selectedRow]} />
+                </TabsContent_Shadcn_>
+              )}
+            </Tabs_Shadcn_>
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      <div className="flex items-center justify-between border-t px-4 py-2 text-xs text-foreground-light">
+        <div className="flex items-center gap-x-2">
+          <span>Showing {reportData.length} queries</span>
+          {isLoadingMore && <Loader2 size={14} className="animate-spin text-foreground-muted" />}
+          {!isLoading && hasMore && !isLoadingMore && (
+            <span className="text-foreground-muted">&middot; Scroll down for more</span>
+          )}
+        </div>
+        <div className="flex items-center gap-x-2">
+          <span>Results per page</span>
+          <Select_Shadcn_
+            value={String(pageSize)}
+            onValueChange={(value) => onPageSizeChange(Number(value))}
+          >
+            <SelectTrigger_Shadcn_ className="w-[70px] h-[26px] text-xs">
+              <SelectValue_Shadcn_ />
+            </SelectTrigger_Shadcn_>
+            <SelectContent_Shadcn_>
+              {PAGE_SIZE_OPTIONS.map((size) => (
+                <SelectItem_Shadcn_ key={size} value={String(size)} className="text-xs">
+                  {size}
+                </SelectItem_Shadcn_>
+              ))}
+            </SelectContent_Shadcn_>
+          </Select_Shadcn_>
+        </div>
+      </div>
     </div>
   )
 }

@@ -26,7 +26,8 @@ export interface ReportQuery {
     where?: string,
     orderBy?: string,
     runIndexAdvisor?: boolean,
-    filterIndexAdvisor?: boolean
+    filterIndexAdvisor?: boolean,
+    limit?: number
   ) => string
 }
 

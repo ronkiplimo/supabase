@@ -546,7 +546,16 @@ select
       },
       unified: {
         queryType: 'db',
-        sql: (_params, where, orderBy, runIndexAdvisor = false, filterIndexAdvisor = false) => {
+        sql: (
+          _params,
+          where,
+          orderBy,
+          runIndexAdvisor = false,
+          filterIndexAdvisor = false,
+          limit?: number
+        ) => {
+          const resolvedLimit = limit ?? 20
+
           const baseQuery = `
         -- reports-query-performance-unified
         set search_path to public, extensions;
@@ -586,7 +595,7 @@ select
           -- skip queries that were never actually executed
           WHERE statements.calls > 0 ${where ? where.replace(/^WHERE/, 'AND') : ''}
           ${orderBy || 'order by total_time desc'}
-          limit 50
+          limit ${resolvedLimit}
         ),
         query_results as (
           select
@@ -616,7 +625,7 @@ select
         from query_results
         ${filterIndexAdvisor && runIndexAdvisor ? `where (index_advisor_result->>'has_suggestion')::boolean = true` : ''}
         ${orderBy || 'order by total_time desc'}
-        limit 20`
+        limit ${resolvedLimit}`
 
           return baseQuery
         },

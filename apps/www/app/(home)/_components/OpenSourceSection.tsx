@@ -67,11 +67,11 @@ const LEVELS_BG = [
 ]
 
 const LEVELS_TEXT = [
-  'hsl(var(--brand-400))',
-  'hsl(var(--brand-500))',
   'hsl(var(--brand-600))',
   'hsl(var(--brand-default))',
   'hsl(var(--brand-default))',
+  'hsl(var(--brand-600))',
+  'hsl(var(--brand-500))',
 ]
 
 function makeGrid(): { level: number; isText: boolean }[][] {

@@ -3,7 +3,6 @@
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useState } from 'react'
-import { cn } from 'ui'
 
 const LocalDXImage = dynamic(() => import('~/components/Products/Functions/LocalDXImage'))
 const ParityImage = dynamic(() => import('~/components/Products/Functions/ParityImage'))
@@ -15,14 +14,14 @@ function EcosystemCard() {
 
   return (
     <div
-      className={cn('flex flex-col border-b border-border', 'col-span-1 md:row-span-2 !border-b-0')}
+      className="flex flex-col bg-surface-75 border border-border rounded-lg overflow-hidden  col-span-1 md:row-span-2"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex-1 relative overflow-hidden min-h-[320px] md:min-h-0">
         <NpmEcosystem isHovered={isHovered} />
       </div>
-      <div className="flex flex-col gap-1 px-6 py-5 border-t border-border bg-surface-200">
+      <div className="flex flex-col gap-1 px-6 py-5">
         <h4 className="text-foreground text-sm font-medium">Use any NPM module</h4>
         <p className="text-foreground-lighter text-sm">
           Tap into the 2+ million modules in the Deno and NPM ecosystem
@@ -32,25 +31,19 @@ function EcosystemCard() {
   )
 }
 
-const GRID_CLASS: Record<string, string> = {
-  localDX: 'col-span-1 md:border-r',
-  parity: 'col-span-1 xl:border-r',
-  ci: 'col-span-1 md:col-span-2 xl:border-r !border-b-0',
-}
-
 function ParityCard() {
   const [isHovered, setIsHovered] = useState(false)
 
   return (
     <div
-      className={cn('flex flex-col border-b border-border', GRID_CLASS['parity'])}
+      className="flex flex-col bg-surface-75 border border-border rounded-lg overflow-hidden "
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="aspect-[3/2] w-full flex items-center justify-center overflow-hidden">
         <ParityImage isHovered={isHovered} />
       </div>
-      <div className="flex flex-col gap-1 px-6 py-5 border-t border-border bg-surface-200">
+      <div className="flex flex-col gap-1 px-6 py-5">
         <h4 className="text-foreground text-sm font-medium">Dev and Prod parity</h4>
         <p className="text-foreground-lighter text-sm">
           The open source{' '}
@@ -73,14 +66,20 @@ function CICard() {
 
   return (
     <div
-      className={cn('flex flex-col border-b border-border', GRID_CLASS['ci'])}
+      className="flex flex-col bg-surface-75 border border-border rounded-lg overflow-hidden  md:col-span-2"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="flex-1 flex items-center justify-center overflow-hidden pl-2 pt-8 md:pt-12">
+      <div
+        className="flex-1 flex items-center justify-center overflow-hidden pl-2 pt-8 md:pt-12"
+        style={{
+          maskImage: 'linear-gradient(to bottom, black 95%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, black 95%, transparent 100%)',
+        }}
+      >
         <CI isHovered={isHovered} />
       </div>
-      <div className="flex flex-col gap-1 px-6 py-5 border-t border-border bg-surface-200">
+      <div className="flex flex-col gap-1 px-6 py-5">
         <h4 className="text-foreground text-sm font-medium">Continuous Integration</h4>
         <p className="text-foreground-lighter text-sm">
           Use the{' '}
@@ -103,14 +102,14 @@ function LocalDXCard() {
 
   return (
     <div
-      className={cn('flex flex-col border-b border-border', GRID_CLASS['localDX'])}
+      className="flex flex-col bg-surface-75 border border-border rounded-lg overflow-hidden "
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="aspect-[3/2] w-full flex items-center justify-center overflow-hidden">
         <LocalDXImage isHovered={isHovered} />
       </div>
-      <div className="flex flex-col gap-1 px-6 py-5 border-t border-border bg-surface-200">
+      <div className="flex flex-col gap-1 px-6 py-5">
         <h4 className="text-foreground text-sm font-medium">First-class local dev experience</h4>
         <p className="text-foreground-lighter text-sm">
           Write code with hot code reloading, a fast Language server for autocompletion, type
@@ -148,13 +147,11 @@ export function LocalDXSection() {
 
       {/* Bento grid */}
       <div className="mx-auto max-w-[var(--container-max-w,75rem)] px-6 w-full">
-        <div className="border border-border rounded-md overflow-clip">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 grid-flow-dense">
-            <LocalDXCard />
-            <ParityCard />
-            <CICard />
-            <EcosystemCard />
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 grid-flow-dense gap-3">
+          <LocalDXCard />
+          <ParityCard />
+          <CICard />
+          <EcosystemCard />
         </div>
       </div>
     </div>

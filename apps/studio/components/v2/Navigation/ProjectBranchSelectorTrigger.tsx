@@ -53,7 +53,7 @@ export const ProjectBranchSelectorTrigger = React.forwardRef<
               {selectedOrgInitial}
             </div>
           </TooltipTrigger>
-          <TooltipContent>{selectedOrg.name}</TooltipContent>
+          <TooltipContent>{selectedOrg?.name ?? 'No Organization selected'}</TooltipContent>
         </Tooltip>
         <div className="text-left flex-grow min-w-0">
           <div className="w-full truncate text-foreground leading-tight">{displayProjectName}</div>

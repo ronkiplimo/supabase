@@ -196,6 +196,7 @@ allow_list = [
     "dotenvx",
     "Drizzle",
     "ElevenLabs",
+    "[Ee]nablement",
     "EnterpriseDB",
     "Entra",
     "ePHI",

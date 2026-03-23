@@ -178,7 +178,7 @@ Test with 2-3 additional users to verify:
 
 ## Testing auto-join
 
-<Admonition type="important">
+<Admonition type="caution">
 
 **Recent improvement:** Auto-join now applies on EVERY login, not just first signup. This resolves a common issue where org owners would test with auto-join disabled, enable it, then log in again expecting to auto-join.
 
@@ -230,13 +230,12 @@ Test with 2-3 additional users to verify:
    This test is critical if you're using multiple environments under the same domain. See [Multiple SSO Providers](/docs/guides/platform/sso/multiple-providers) for details.
 
    </Admonition>
-   - If you configured SSO without domains (IdP-initiated only):
-     - Enable auto-join
-     - New user accesses via IdP app tile
-     - Verify auto-join works without domain check
-     - User automatically added to organization
-     - Correct role assigned
-
+- If you configured SSO without domains (IdP-initiated only):
+  - Enable auto-join
+  - New user accesses via IdP app tile
+  - Verify auto-join works without domain check
+  - User automatically added to organization
+  - Correct role assigned
    - Expected: Auto-join works for IdP-initiated regardless of email domain
 
 8. **Test auto-join re-enablement**:
@@ -261,7 +260,7 @@ Test with 2-3 additional users to verify:
 
 ## Testing invitations
 
-<Admonition type="important">
+<Admonition type="caution">
 
 **Recent improvement:** You can now explicitly choose whether an invitation requires SSO or non-SSO authentication. Previously, this was inherited from the inviter's account type, which caused confusion.
 
@@ -314,7 +313,7 @@ If you're configuring multiple SSO providers for different environments (dev/sta
 
 SSO accounts have specific restrictions to prevent accidental organization lockouts.
 
-<Admonition type="important">
+<Admonition type="caution">
 
 **Safety mechanism:** SSO accounts cannot delete SSO providers. This prevents scenarios where an SSO user could accidentally lock out the entire organization by deleting the SSO provider they use to authenticate.
 
@@ -377,7 +376,7 @@ Based on customer pain points that previously required support intervention:
 
 ### Critical issues
 
-#### "I enabled auto-join but users aren't automatically joining"
+#### "Enabled auto-join but users aren't automatically joining"
 
 **Common workflow that causes this:**
 
@@ -391,7 +390,7 @@ Based on customer pain points that previously required support intervention:
 - To test: Enable auto-join, log out completely, log back in via SSO
 - If still not working, verify domain configuration matches user email exactly
 
-#### "I can't invite users with the right authentication type"
+#### "Can't invite users with the right authentication type"
 
 **Previous limitation:**
 
@@ -417,7 +416,7 @@ Based on customer pain points that previously required support intervention:
 4. Accept the invitation
 5. Contact the person who sent the invitation if unsure about the type
 
-#### "I deleted my SSO provider and now members can't log in"
+#### "Deleted my SSO provider and now members can't log in"
 
 **Recent safety improvements:**
 
@@ -449,7 +448,7 @@ When an SSO provider is deleted:
 3. SSO provider configuration is deleted
 4. Organization continues operating with remaining non-SSO members
 
-**This behavior prevents "orphaned" SSO accounts that can no longer authenticate.**
+This behavior prevents "orphaned" SSO accounts that can no longer authenticate.
 
 ### Test 1: Deletion without non-SSO accounts (should fail)
 

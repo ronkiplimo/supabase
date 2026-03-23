@@ -7,7 +7,7 @@ Not sure which SSO login flow to enable? This guide maps common enterprise scena
 
 <Admonition type="tip">
 
-**Quick answer:** Start with IdP-initiated only (the default). It's simpler, requires no domain configuration, and works for 90% of enterprise use cases. You can always enable SP-initiated later if needed.
+Start with IdP-initiated, the default behavior. It requires no domain configuration, and works for most of enterprise use cases. You can enable SP-initiated later if needed.
 
 </Admonition>
 
@@ -35,7 +35,7 @@ Do users need to start login at supabase.com?
 
 ## Common scenarios
 
-### Scenario 1: Multiple environments (Dev, Staging, Prod)
+### Scenario 1: Multiple environments (dev, staging, prod)
 
 **Your situation:**
 
@@ -43,7 +43,7 @@ Do users need to start login at supabase.com?
 - All employees use `company.com` email addresses
 - You can't assign different email domains to different environments
 
-**Recommended configuration:** **IdP-initiated only** ✅
+**Recommended configuration:** IdP-initiated only ✅
 
 **Why:**
 
@@ -76,7 +76,7 @@ Do users need to start login at supabase.com?
 - All employees use company email domain
 - Users are comfortable with IdP dashboard
 
-**Recommended configuration:** **IdP-initiated only** ✅
+**Recommended configuration:** IdP-initiated only ✅
 
 **Why:**
 
@@ -104,7 +104,7 @@ Do users need to start login at supabase.com?
 - You want to support starting login from Supabase
 - Single domain, single organization
 
-**Recommended configuration:** **Enable both flows** ✅
+**Recommended configuration:** Enable both flows ✅
 
 **Why:**
 
@@ -132,7 +132,7 @@ Do users need to start login at supabase.com?
 - Transitioning to SSO
 - Users are used to starting at supabase.com
 
-**Recommended configuration:** **Enable both flows** ✅
+**Recommended configuration:** Enable both flows ✅
 
 **Why:**
 
@@ -167,7 +167,7 @@ Do users need to start login at supabase.com?
 - All use the same Supabase organization
 - Each domain maps to same identity provider
 
-**Recommended configuration:** **SP-initiated with multiple domains** ✅
+**Recommended configuration:** SP-initiated with multiple domains ✅
 
 **Why:**
 
@@ -195,7 +195,7 @@ Do users need to start login at supabase.com?
 - Each customer has their own organization
 - Each customer uses their own identity provider
 
-**Recommended configuration:** **Per-customer decision** (typically IdP-initiated)
+**Recommended configuration:** Per-customer decision (typically IdP-initiated)
 
 **Why:**
 
@@ -224,7 +224,7 @@ Do users need to start login at supabase.com?
 - Some users use password/social auth (contractors, external partners)
 - Single organization with mixed membership
 
-**Recommended configuration:** **Both flows with careful planning** ⚠️
+**Recommended configuration:** Both flows with careful planning ⚠️
 
 **Why:**
 
@@ -300,11 +300,11 @@ You can safely change login flow configuration at any time:
 
 If you're uncertain which configuration to use:
 
-1. **Start with IdP-initiated only** (simplest, works for most cases)
-2. **Test with a small group** of users
-3. **Gather feedback** on user experience
-4. **Enable SP-initiated** if users request it
-5. **Monitor usage** to see which flow is preferred
+1. Start with IdP-initiated only (simplest, works for most cases)
+2. Test with a small group of users
+3. Gather feedback on user experience
+4. Enable SP-initiated if users request it
+5. Monitor usage to see which flow is preferred
 
 <Admonition type="tip">
 

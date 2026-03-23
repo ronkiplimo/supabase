@@ -40,20 +40,20 @@ You can automate deployments using:
 ## Frequently asked questions
 
 
-**Do I need to use GitHub?**
+**Is GitHub required?**
 No. GitHub integration is recommended for the simplest setup, but you can deploy using the [Supabase CLI](/docs/guides/local-development) in your own CI/CD pipeline without connecting a GitHub repository.
 
-**Do I need a paid plan?**
+**Do you need a paid plan?**
 No. The GitHub integration and CLI-based deployments work on all plans. Branching (preview environments for pull requests) requires the Pro plan.
 
 
 **What gets deployed?**
 Everything in your `supabase/` directory: database migrations, Edge Functions, storage configuration, and project settings. See the [local development guide](/docs/guides/local-development) for details on the directory structure.
 
-**Can I use my own CI/CD pipeline?**
+**Can you use your own CI/CD pipeline?**
 Yes. You can use the [Supabase CLI](/docs/guides/local-development) or the [Terraform provider](/docs/guides/deployment/terraform) in any CI/CD system (GitHub Actions, GitLab CI, CircleCI, etc.).
 
-**How do I collaborate with other developers?**
+**How does collaboration with other developers work?**
 Use Git branches to work on changes independently and share them with your team. When a change is ready, merge it into `main` to deploy it to production. If you're on the Pro plan, you can enable [branching](/docs/guides/deployment/branching) to automatically create a preview environment for each pull request, so you can review and test database changes before they go live.
 
 **What is branching?**

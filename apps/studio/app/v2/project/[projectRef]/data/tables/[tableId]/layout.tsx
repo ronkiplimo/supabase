@@ -26,7 +26,7 @@ export default function TableDetailLayout({ children }: { children: React.ReactN
   return (
     <StudioDataWorkspace projectRef={projectRef} id={tableId}>
       <div className="flex flex-col h-full">
-        <div className="flex items-center border-b border-border shrink-0">
+        <div className="flex items-center border-b border-border shrink-0 min-h-[36px] h-[var(--header-height)]">
           {SUB_TABS.map((tab) => {
             const href = `${base}/${tab.slug}`
             const isActive = pathname === href || pathname?.startsWith(href + '/')
@@ -47,7 +47,8 @@ export default function TableDetailLayout({ children }: { children: React.ReactN
             )
           })}
         </div>
-        <div className="flex-1 min-h-0 overflow-auto">{children}</div>
+        {/* Let TableGridEditor / SupabaseGrid own vertical scrolling; overflow-auto here collapses flex height */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>
       </div>
     </StudioDataWorkspace>
   )

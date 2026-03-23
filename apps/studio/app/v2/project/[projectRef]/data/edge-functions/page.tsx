@@ -1,5 +1,5 @@
-import { V2PlaceholderView } from '@/components/v2/views/V2PlaceholderView'
+import { V2EdgeFunctionsList } from '@/components/v2/views/V2EdgeFunctionsList'
 
 export default function DataEdgeFunctionsPage() {
-  return <V2PlaceholderView title="Edge functions" />
+  return <V2EdgeFunctionsList />
 }

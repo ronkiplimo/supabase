@@ -6,10 +6,9 @@ import { isValidConnString } from 'data/fetchers'
 import { useProjectDetailQuery } from 'data/projects/project-detail-query'
 import { useTablesQuery } from 'data/tables/tables-query'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useCallback, useMemo, useState } from 'react'
 import {
-  Badge,
-  Input,
   Select_Shadcn_,
   SelectContent_Shadcn_,
   SelectItem_Shadcn_,
@@ -18,14 +17,15 @@ import {
 } from 'ui'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
-import { DataListGrid, type DataListColumnDef } from '@/components/v2/DataListGrid'
+import { DataTableRenderer } from '@/components/v2/DataTableRenderer'
+import type { DataTableColumn } from '@/components/v2/DataTableRenderer'
 import { useV2DashboardStore } from '@/stores/v2-dashboard'
 
 export function V2TablesList() {
+  const router = useRouter()
   const { projectRef } = useV2Params()
   const openDataTab = useV2DashboardStore((s) => s.openDataTab)
   const [schema, setSchema] = useState('public')
-  const [search, setSearch] = useState('')
 
   const { data: project, isPending: isProjectPending } = useProjectDetailQuery(
     { ref: projectRef },
@@ -40,8 +40,9 @@ export function V2TablesList() {
   )
   const {
     data: tables,
-    isPending: isTablesPending,
+    isLoading: isTablesLoading,
     isError: isTablesError,
+    error: tablesError,
   } = useTablesQuery(
     {
       projectRef,
@@ -51,13 +52,6 @@ export function V2TablesList() {
     },
     { enabled: shouldFetch }
   )
-
-  const filtered = useMemo(() => {
-    if (!Array.isArray(tables)) return []
-    if (!search.trim()) return tables
-    const q = search.toLowerCase()
-    return tables.filter((t) => t.name.toLowerCase().includes(q))
-  }, [tables, search])
 
   const base = projectRef ? `/v2/project/${projectRef}` : ''
 
@@ -72,95 +66,96 @@ export function V2TablesList() {
         domain: 'db',
         path,
       })
+      router.push(path)
     },
-    [base, openDataTab]
+    [base, openDataTab, router]
   )
 
-  const columns = useMemo<DataListColumnDef<PostgresTable>[]>(
+  const columns = useMemo<DataTableColumn<PostgresTable>[]>(
     () => [
       {
-        key: 'name',
+        id: 'name',
         name: 'Name',
-        minWidth: 220,
-        sortValue: (row) => row.name,
-        renderCell: (row) => (
+        width: 280,
+        minWidth: 160,
+        frozen: true,
+        renderCell: (_value, row) => (
           <Link
             href={`${base}/data/tables/${row.id}/data`}
             onClick={() => openTable(row)}
-            className="truncate font-mono text-foreground hover:underline"
+            className="truncate font-mono text-xs text-foreground hover:underline"
           >
             {row.name}
           </Link>
         ),
       },
       {
-        key: 'schema',
+        id: 'schema',
         name: 'Schema',
-        minWidth: 140,
-        sortValue: (row) => row.schema ?? schema,
-        renderCell: (row) => (
+        width: 160,
+        minWidth: 100,
+        type: 'text',
+        renderCell: (_value, row) => (
           <span className="truncate text-foreground-lighter">{row.schema ?? schema}</span>
         ),
       },
       {
-        key: 'rls',
+        id: 'rls_enabled',
         name: 'RLS',
-        minWidth: 100,
-        sortValue: (row) => (row.rls_enabled ? 1 : 0),
-        renderCell: (row) =>
-          row.rls_enabled ? (
-            <Badge variant="success">On</Badge>
-          ) : (
-            <span className="text-foreground-lighter">Off</span>
-          ),
+        width: 80,
+        type: 'badge',
+        badgeMap: {
+          true: { label: 'On', variant: 'success' },
+          false: { label: 'Off', variant: 'warning' },
+        },
       },
     ],
     [base, schema, openTable]
   )
 
-  if (isTablesError) {
-    return <div className="p-4 text-destructive text-sm">Failed to load tables.</div>
-  }
+  const schemaSelector = (
+    <Select_Shadcn_ value={schema} onValueChange={setSchema}>
+      <SelectTrigger_Shadcn_ className="h-8 w-[140px] text-xs">
+        <SelectValue_Shadcn_ />
+      </SelectTrigger_Shadcn_>
+      <SelectContent_Shadcn_>
+        {schemas?.map((s) => (
+          <SelectItem_Shadcn_ key={s.name} value={s.name}>
+            {s.name}
+          </SelectItem_Shadcn_>
+        ))}
+      </SelectContent_Shadcn_>
+    </Select_Shadcn_>
+  )
+
+  const tableCount = Array.isArray(tables) ? tables.length : 0
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <DataListGrid<PostgresTable>
-        toolbar={
-          <>
-            <Select_Shadcn_ value={schema} onValueChange={setSchema}>
-              <SelectTrigger_Shadcn_ className="h-8 w-[140px] text-xs">
-                <SelectValue_Shadcn_ />
-              </SelectTrigger_Shadcn_>
-              <SelectContent_Shadcn_>
-                {schemas?.map((s) => (
-                  <SelectItem_Shadcn_ key={s.name} value={s.name}>
-                    {s.name}
-                  </SelectItem_Shadcn_>
-                ))}
-              </SelectContent_Shadcn_>
-            </Select_Shadcn_>
-            <Input
-              placeholder="Filter tables…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-8 max-w-[240px] text-xs"
-            />
-          </>
-        }
-        toolbarTrailing={
-          <>
-            {Array.isArray(tables) ? tables.length : 0} table
-            {Array.isArray(tables) && tables.length === 1 ? '' : 's'}
-            {search.trim() ? ` · ${filtered.length} shown` : null}
-          </>
-        }
-        columns={columns}
-        rows={filtered}
-        rowKeyGetter={(row) => row.id}
-        isLoading={isProjectPending || !shouldFetch || isTablesPending}
-        emptyMessage={search.trim() ? 'No tables match your filter.' : 'No tables in this schema.'}
-        onRowDoubleClick={openTable}
-      />
-    </div>
+    <DataTableRenderer<PostgresTable>
+      columns={columns}
+      rows={Array.isArray(tables) ? tables : []}
+      rowKey="id"
+      isLoading={isProjectPending || isTablesLoading}
+      error={isTablesError ? (tablesError as Error) : null}
+      filters={[
+        {
+          id: 'search',
+          label: 'Search',
+          type: 'search',
+          placeholder: 'Filter tables…',
+        },
+      ]}
+      toolbarLeft={schemaSelector}
+      toolbarRight={
+        <span className="text-xs text-foreground-lighter shrink-0">
+          {tableCount} {tableCount === 1 ? 'table' : 'tables'}
+        </span>
+      }
+      onRowDoubleClick={openTable}
+      emptyState={{
+        title: 'No tables found',
+        description: 'Create your first table to get started.',
+      }}
+    />
   )
 }

@@ -17,7 +17,7 @@ export function V2TableDetailView({ subTab }: { subTab: string }) {
   const tableId = params?.tableId as string
   const id = tableId ? Number(tableId) : undefined
 
-  const { data: project, isPending: isProjectPending } = useProjectDetailQuery(
+  const { data: project, isLoading: isProjectLoading } = useProjectDetailQuery(
     { ref: projectRef },
     { enabled: Boolean(projectRef) }
   )
@@ -25,7 +25,7 @@ export function V2TableDetailView({ subTab }: { subTab: string }) {
 
   const {
     data: table,
-    isPending: isTablePending,
+    isLoading: isTableLoading,
     isError,
   } = useTableEditorQuery(
     { projectRef, connectionString, id },
@@ -40,7 +40,12 @@ export function V2TableDetailView({ subTab }: { subTab: string }) {
     }
   )
 
-  const isPending = isProjectPending || isTablePending
+  const shouldFetchTable =
+    Boolean(projectRef) &&
+    Boolean(connectionString) &&
+    typeof id === 'number' &&
+    !Number.isNaN(id)
+  const isPending = isProjectLoading || (shouldFetchTable && isTableLoading)
 
   // Register this detail tab once we know the table name
   useEffect(() => {
@@ -58,14 +63,30 @@ export function V2TableDetailView({ subTab }: { subTab: string }) {
   if (isError) {
     return <div className="p-4 text-destructive text-sm">Failed to load table.</div>
   }
-  if (isPending || !table) {
+  if (isPending) {
     return <ShimmeringLoader className="m-4 h-8 rounded" />
+  }
+  if (!shouldFetchTable) {
+    return (
+      <div className="p-4 text-sm text-foreground-lighter">
+        Waiting for project connection details before loading table data.
+      </div>
+    )
+  }
+  if (!table) {
+    return <div className="p-4 text-sm text-foreground-lighter">Unable to find this table.</div>
   }
 
   if (subTab === 'data') {
     return (
-      <div className="h-full min-h-0">
-        <TableGridEditor isLoadingSelectedTable={isPending} selectedTable={table} variant="v2" />
+      <div className="flex h-full min-h-0 flex-1 flex-col">
+        <TableGridEditor
+          isLoadingSelectedTable={false}
+          selectedTable={table}
+          variant="v2"
+          projectRefOverride={projectRef}
+          tableIdOverride={tableId}
+        />
       </div>
     )
   }

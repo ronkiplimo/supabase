@@ -4,6 +4,7 @@ import { useCallback } from 'react'
 import { useRouter } from 'next/compat/router'
 
 import { useParams } from 'common'
+import { Footer } from 'components/grid/components/footer/Footer'
 import { SupabaseGrid } from 'components/grid/SupabaseGrid'
 import { useSyncTableEditorStateFromLocalStorageWithUrl } from 'components/grid/SupabaseGrid.utils'
 import {
@@ -23,6 +24,7 @@ import { Button } from 'ui'
 import { Admonition, GenericSkeletonLoader } from 'ui-patterns'
 
 import type { Entity, TableLike } from 'data/table-editor/table-editor-types'
+import { V2TableDataGrid } from '@/components/v2/views/V2TableDataGrid'
 import DeleteConfirmationDialogs from './DeleteConfirmationDialogs'
 import { SidePanelEditor } from './SidePanelEditor/SidePanelEditor'
 import { TableDefinition } from './TableDefinition'
@@ -31,15 +33,21 @@ export interface TableGridEditorProps {
   isLoadingSelectedTable?: boolean
   selectedTable?: Entity
   variant?: 'pages' | 'v2'
+  projectRefOverride?: string
+  tableIdOverride?: string | number
 }
 
 export const TableGridEditor = ({
   isLoadingSelectedTable = false,
   selectedTable,
   variant = 'pages',
+  projectRefOverride,
+  tableIdOverride,
 }: TableGridEditorProps) => {
   const router = useRouter()
-  const { ref: projectRef, id } = useParams()
+  const { ref: routeProjectRef, id: routeId } = useParams()
+  const projectRef = projectRefOverride ?? routeProjectRef
+  const id = tableIdOverride ? String(tableIdOverride) : routeId
   const { setLastVisitedTable } = useDashboardHistory()
   const { selectedSchema } = useQuerySchemaState()
 
@@ -261,9 +269,19 @@ export const TableGridEditor = ({
               ) : null
             }
           >
-            {(isViewSelected || isTableSelected) && selectedView === 'definition' && (
+            {(isViewSelected || isTableSelected) && selectedView === 'definition' ? (
               <TableDefinition entity={selectedTable} />
-            )}
+            ) : variant === 'v2' && selectedView === 'data' ? (
+              <>
+                <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                  <V2TableDataGrid
+                    projectRef={projectRef}
+                    tableId={selectedTable?.id ?? (id ? Number(id) : undefined)}
+                  />
+                </div>
+                <Footer />
+              </>
+            ) : null}
           </SupabaseGrid>
 
           <DeleteConfirmationDialogs

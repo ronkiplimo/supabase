@@ -1,5 +1,5 @@
-import { V2PlaceholderView } from '@/components/v2/views/V2PlaceholderView'
+import { V2PublicationsList } from '@/components/v2/views/V2PublicationsList'
 
 export default function DataPublicationsPage() {
-  return <V2PlaceholderView title="Publications" />
+  return <V2PublicationsList />
 }

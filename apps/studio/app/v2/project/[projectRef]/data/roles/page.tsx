@@ -1,5 +1,5 @@
-import { V2PlaceholderView } from '@/components/v2/views/V2PlaceholderView'
+import { V2RolesList } from '@/components/v2/views/V2RolesList'
 
 export default function DataRolesPage() {
-  return <V2PlaceholderView title="Roles" />
+  return <V2RolesList />
 }

@@ -380,8 +380,9 @@ async function getTableRows(
       signal
     )
 
+    // Spread first so the positional grid index always wins over a real table column named `idx`
     const rows = result.map((x: any, index: number) => {
-      return { idx: index, ...x }
+      return { ...x, idx: index }
     }) as SupaRow[]
 
     return { rows }

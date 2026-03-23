@@ -1,5 +1,5 @@
-import { V2PlaceholderView } from '@/components/v2/views/V2PlaceholderView'
+import { V2ExtensionsList } from '@/components/v2/views/V2ExtensionsList'
 
 export default function DataExtensionsPage() {
-  return <V2PlaceholderView title="Extensions" />
+  return <V2ExtensionsList />
 }

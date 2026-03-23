@@ -1,5 +1,5 @@
-import { V2PlaceholderView } from '@/components/v2/views/V2PlaceholderView'
+import { V2UsersList } from '@/components/v2/views/V2UsersList'
 
 export default function DataUsersPage() {
-  return <V2PlaceholderView title="Auth users" />
+  return <V2UsersList />
 }

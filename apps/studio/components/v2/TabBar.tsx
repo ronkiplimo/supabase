@@ -43,7 +43,7 @@ export function TabBar() {
   const activeTabPath = pathname ?? ''
 
   return (
-    <div className="flex items-center border-b border-border bg-background shrink-0 min-h-[36px]">
+    <div className="flex items-center border-b border-border bg-background shrink-0 min-h-[36px] h-[var(--header-height)]">
       <Link
         href={categoryListHref}
         className={cn(
@@ -59,7 +59,7 @@ export function TabBar() {
       </Link>
       <button
         type="button"
-        className="flex items-center justify-center w-8 h-8 shrink-0 text-foreground-light hover:text-foreground hover:bg-sidebar-accent"
+        className="flex items-center justify-center h-full aspect-square min-h-8 shrink-0 text-foreground-light hover:text-foreground hover:bg-sidebar-accent"
         title={`New ${categoryLabel.toLowerCase().replace(/s$/, '')}`}
       >
         <Plus className="h-4 w-4" />

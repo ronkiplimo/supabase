@@ -1,5 +1,5 @@
-import { V2PlaceholderView } from '@/components/v2/views/V2PlaceholderView'
+import { V2BucketsList } from '@/components/v2/views/V2BucketsList'
 
 export default function DataBucketsPage() {
-  return <V2PlaceholderView title="Storage buckets" />
+  return <V2BucketsList />
 }

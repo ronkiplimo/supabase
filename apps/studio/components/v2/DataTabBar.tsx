@@ -55,7 +55,7 @@ export function DataTabBar() {
   }
 
   return (
-    <div className="flex items-center border-b border-border bg-background shrink-0 min-h-[36px] overflow-x-auto">
+    <div className="flex items-center border-b border-border bg-background shrink-0 min-h-[36px] h-[var(--header-height)] overflow-x-auto">
       {detailTabs.map((tab) => {
         const isActive = activeTab?.id === tab.id
         return (
@@ -65,7 +65,7 @@ export function DataTabBar() {
             tabIndex={0}
             aria-selected={isActive}
             className={cn(
-              'group relative flex items-center gap-1.5 pl-2.5 pr-1 py-1.5 border-r border-border shrink-0 max-w-[200px] cursor-pointer select-none',
+              'group relative flex items-center gap-1.5 pl-2.5 pr-1 py-1.5 border-r border-border shrink-0 h-full max-w-[200px] cursor-pointer select-none',
               isActive
                 ? 'bg-background text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-foreground'
                 : 'text-foreground-lighter hover:text-foreground hover:bg-sidebar-accent/50'

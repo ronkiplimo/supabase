@@ -1,5 +1,5 @@
-import { V2PlaceholderView } from '@/components/v2/views/V2PlaceholderView'
+import { V2IndexesList } from '@/components/v2/views/V2IndexesList'
 
 export default function DataIndexesPage() {
-  return <V2PlaceholderView title="Indexes" />
+  return <V2IndexesList />
 }

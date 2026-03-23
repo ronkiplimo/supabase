@@ -1,3 +1,8 @@
+'use client'
+
+import { motion } from 'framer-motion'
+import { Lock } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { cn } from 'ui'
 
 function SkeletonBar({ className }: { className?: string }) {
@@ -27,55 +32,400 @@ const FEATURES = [
 
 function PostgresSkeleton() {
   return (
-    <div className="flex flex-col gap-2 p-4 w-full">
-      <SkeletonBar className="h-2.5 w-20 bg-brand/20" />
-      <div className="flex flex-col gap-1.5 mt-2">
-        <SkeletonBar className="h-2 w-full" />
-        <SkeletonBar className="h-2 w-3/4" />
-        <SkeletonBar className="h-2 w-5/6" />
-      </div>
-      <div className="grid grid-cols-3 gap-1.5 mt-3">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <SkeletonBar key={i} className="h-6 rounded-sm" />
-        ))}
-      </div>
+    <div className="flex items-center justify-center w-full h-full">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 390 430"
+        className="w-72 h-72 opacity-80"
+      >
+        {/* Elephant logo */}
+        <path
+          stroke="hsl(var(--foreground-muted))"
+          strokeWidth="1.5"
+          d="M192.144 125.816h-53.465c-8.506 0-16.159 5.17-19.334 13.061L99.0045 189.43c-3.0613 7.608-1.3448 16.306 4.3775 22.181l10.232 10.506c4.792 4.919 7.474 11.516 7.474 18.384l-.001 14.473c0 20.197 16.373 36.569 36.569 36.569 6.16 0 11.154-4.993 11.154-11.153l.001-86.241c0-18.629 7.441-36.486 20.668-49.602 2.746-2.723 7.178-2.704 9.9.041 2.722 2.745 2.703 7.178-.042 9.9-10.577 10.488-16.526 24.766-16.526 39.661l-.001 86.241c0 13.892-11.262 25.153-25.154 25.153-27.928 0-50.569-22.64-50.569-50.569l.001-14.474c0-3.218-1.257-6.309-3.503-8.615L93.353 221.38c-9.5904-9.847-12.4673-24.424-7.3366-37.176l20.3406-50.553c5.308-13.192 18.101-21.835 32.322-21.835h55.729v.084h10.339c49.104 0 88.91 39.806 88.91 88.91v50.842c0 3.866-3.134 7-7 7s-7-3.134-7-7V200.81c0-41.372-33.538-74.91-74.91-74.91H193.23c-.37 0-.732-.029-1.086-.084Z"
+        />
+        <path
+          stroke="hsl(var(--foreground-muted))"
+          strokeWidth="1.5"
+          d="M210.03 283.94c0-3.866-3.134-7-7-7s-7 3.134-7 7v3.113c0 26.959 21.854 48.814 48.813 48.814 26.351 0 47.825-20.879 48.781-46.996h24.614c3.866 0 7-3.134 7-7s-3.134-7-7-7h-26.841c-30.744 0-60.256-12.083-82.173-33.643-2.756-2.711-7.188-2.675-9.899.081-2.711 2.756-2.675 7.188.081 9.9 21.725 21.371 50.116 34.423 80.228 37.134-.679 18.629-15.995 33.524-34.791 33.524-19.227 0-34.813-15.587-34.813-34.814v-3.113Z"
+        />
+        <path
+          stroke="hsl(var(--foreground-muted))"
+          strokeWidth="1.5"
+          d="M238.03 202.145c0 4.792 3.885 8.677 8.677 8.677s8.676-3.885 8.676-8.677-3.884-8.676-8.676-8.676-8.677 3.884-8.677 8.676Z"
+        />
+      </svg>
     </div>
   )
 }
+
+const rlsColumns = ['id', 'name', 'email', 'role']
+const rlsRows = [
+  { id: '1', name: 'Alice Johnson', email: 'alice@example.com', role: 'admin' },
+  { id: '2', name: 'Bob Smith', email: 'bob@example.com', role: 'editor' },
+  { id: '3', name: 'Carol Williams', email: 'carol@example.com', role: 'viewer' },
+]
+
+// SQL tokens for typewriter effect — each token is { text, className }
+const sqlTokens = [
+  { text: 'CREATE POLICY', cls: 'text-brand' },
+  { text: ' ' },
+  { text: '"read_only"', cls: 'text-foreground-light' },
+  { text: '\n' },
+  { text: 'ON', cls: 'text-brand' },
+  { text: ' public.users' },
+  { text: '\n' },
+  { text: 'FOR SELECT', cls: 'text-brand' },
+  { text: '\n' },
+  { text: 'USING', cls: 'text-brand' },
+  { text: ' (auth.role() = ' },
+  { text: "'authenticated'", cls: 'text-foreground-light' },
+  { text: ');' },
+]
 
 function RLSSkeleton() {
+  const [visibleChars, setVisibleChars] = useState(0)
+  const [phase, setPhase] = useState<'typing' | 'table' | 'lock'>('typing')
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [isInView, setIsInView] = useState(false)
+  const hasAnimated = useRef(false)
+
+  const totalChars = sqlTokens.reduce((sum, t) => sum + t.text.length, 0)
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsInView(entry.isIntersecting),
+      { threshold: 0.3 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!isInView || hasAnimated.current) return
+    hasAnimated.current = true
+
+    // Phase 1: typewriter
+    let char = 0
+    const typeInterval = setInterval(() => {
+      char++
+      setVisibleChars(char)
+      if (char >= totalChars) {
+        clearInterval(typeInterval)
+        // Phase 2: show table after a short pause
+        setTimeout(() => setPhase('table'), 300)
+      }
+    }, 15)
+
+    return () => clearInterval(typeInterval)
+  }, [isInView, totalChars])
+
+  useEffect(() => {
+    if (phase !== 'table') return
+    // Phase 3: show lock after table animates in
+    const timer = setTimeout(() => setPhase('lock'), 600)
+    return () => clearTimeout(timer)
+  }, [phase])
+
+  // Render visible portion of SQL tokens
+  function renderTypedSQL() {
+    let remaining = visibleChars
+    return sqlTokens.map((token, i) => {
+      if (remaining <= 0) return null
+      const show = token.text.slice(0, remaining)
+      remaining -= token.text.length
+      return (
+        <span key={i} className={token.cls}>
+          {show}
+        </span>
+      )
+    })
+  }
+
   return (
-    <div className="flex flex-col gap-2 p-4 w-full">
-      <div className="flex items-center gap-2">
-        <SkeletonBar className="h-3 w-3 rounded-sm bg-brand/20" />
-        <SkeletonBar className="h-2 w-24" />
+    <div
+      ref={containerRef}
+      className="flex flex-col gap-8 w-full h-full overflow-hidden"
+      style={{
+        maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
+        WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
+      }}
+    >
+      {/* SQL snippet with typewriter */}
+      <div className="px-4 pt-4 pb-3">
+        <pre className="text-sm leading-relaxed font-mono text-foreground-muted">
+          {renderTypedSQL()}
+          {phase === 'typing' && (
+            <span className="inline-block w-[2px] h-[1em] bg-brand align-middle animate-pulse ml-px" />
+          )}
+        </pre>
       </div>
-      <div className="flex flex-col gap-1 mt-2 border border-foreground-muted/10 rounded p-2">
-        <SkeletonBar className="h-2 w-full bg-muted/70" />
-        <SkeletonBar className="h-2 w-2/3" />
-      </div>
-      <div className="flex flex-col gap-1 border border-foreground-muted/10 rounded p-2">
-        <SkeletonBar className="h-2 w-5/6 bg-muted/70" />
-        <SkeletonBar className="h-2 w-1/2" />
+
+      {/* Table with lock overlay */}
+      <div className="px-4 flex-1">
+        <motion.div
+          className="relative border border-border rounded overflow-hidden"
+          initial={{ opacity: 0, y: 8 }}
+          animate={
+            phase === 'table' || phase === 'lock'
+              ? { opacity: 1, y: 0 }
+              : { opacity: 0, y: 8 }
+          }
+          transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
+        >
+          <table className="w-full border-collapse text-[10px] !mt-0">
+            <thead>
+              <tr className="bg-surface-200">
+                {rlsColumns.map((col) => (
+                  <th
+                    key={col}
+                    className="border-b border-r last:border-r-0 border-default px-2 py-1 text-left font-medium text-foreground text-[10px]"
+                  >
+                    {col}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rlsRows.map((row) => (
+                <tr key={row.id} className="bg-surface-75">
+                  {rlsColumns.map((col) => (
+                    <td
+                      key={col}
+                      className="border-b border-r last:border-r-0 border-secondary px-2 py-1 text-foreground truncate"
+                    >
+                      {row[col as keyof typeof row]}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Lock overlay */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            {/* Radial backdrop — simple fade */}
+            <motion.div
+              className="absolute rounded-full"
+              initial={{ opacity: 0 }}
+              animate={phase === 'lock' ? { opacity: 1 } : { opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              style={{
+                width: 160,
+                height: 160,
+                background:
+                  'radial-gradient(circle, hsl(var(--background-default) / 0.95) 0%, hsl(var(--background-default) / 0.85) 40%, transparent 70%)',
+              }}
+            />
+            {/* Lock icon — bouncy spring */}
+            <motion.div
+              className="relative flex items-center justify-center w-8 h-8 rounded-full bg-brand backdrop-blur-sm"
+              initial={{ opacity: 0, scale: 0.3 }}
+              animate={
+                phase === 'lock'
+                  ? { opacity: 1, scale: 1 }
+                  : { opacity: 0, scale: 0.3 }
+              }
+              transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+            >
+              <Lock size={16} strokeWidth={2.5} className="text-background" />
+            </motion.div>
+          </div>
+        </motion.div>
       </div>
     </div>
   )
 }
 
+type ChatMsg = { id: number; user: string; text: string }
+
+const initialMessages: ChatMsg[] = [
+  { id: 1, user: 'Alice', text: 'Hey, is the deploy ready?' },
+  { id: 2, user: 'Bob', text: 'Almost — running final tests now.' },
+  { id: 3, user: 'Alice', text: 'Nice, let me know when it\u2019s live.' },
+]
+
+const incomingMessages: ChatMsg[] = [
+  { id: 4, user: 'Bob', text: 'All green. Deploying now 🚀' },
+  { id: 5, user: 'Alice', text: 'Awesome, checking it out.' },
+  { id: 6, user: 'Bob', text: 'Latency dropped to 42ms!' },
+  { id: 7, user: 'Alice', text: 'That\u2019s a big improvement.' },
+  { id: 8, user: 'Bob', text: 'Yeah, the new index helped.' },
+  { id: 9, user: 'Alice', text: 'Should we update the docs?' },
+  { id: 10, user: 'Bob', text: 'Already on it.' },
+]
+
+const chatCols = ['id', 'user', 'text'] as const
+
 function RealtimeSkeleton() {
+  const [messages, setMessages] = useState<ChatMsg[]>(initialMessages)
+  const [tableFlashId, setTableFlashId] = useState<number | null>(null)
+  const [chatFlashId, setChatFlashId] = useState<number | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const tableScrollRef = useRef<HTMLDivElement>(null)
+  const chatScrollRef = useRef<HTMLDivElement>(null)
+  const [isInView, setIsInView] = useState(false)
+  const nextMsgIdx = useRef(0)
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsInView(entry.isIntersecting),
+      { threshold: 0.3 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!isInView) return
+
+    const timer = setInterval(() => {
+      const msg = incomingMessages[nextMsgIdx.current % incomingMessages.length]
+      // Give each added message a unique id
+      const newMsg = { ...msg, id: Date.now() + nextMsgIdx.current }
+      nextMsgIdx.current++
+
+      // Add to table + flash
+      setMessages((prev) => [...prev, newMsg])
+      setTableFlashId(newMsg.id)
+
+      // Autoscroll table
+      requestAnimationFrame(() => {
+        tableScrollRef.current?.scrollTo({
+          top: tableScrollRef.current.scrollHeight,
+          behavior: 'smooth',
+        })
+      })
+
+      // Chat updates after short delay (realtime propagation)
+      setTimeout(() => {
+        setChatFlashId(newMsg.id)
+        requestAnimationFrame(() => {
+          chatScrollRef.current?.scrollTo({
+            top: chatScrollRef.current.scrollHeight,
+            behavior: 'smooth',
+          })
+        })
+        setTimeout(() => {
+          setTableFlashId(null)
+          setChatFlashId(null)
+        }, 600)
+      }, 200)
+    }, 3000)
+
+    return () => clearInterval(timer)
+  }, [isInView])
+
   return (
-    <div className="flex flex-col gap-2 p-4 w-full">
-      <div className="flex items-center gap-2">
-        <span className="h-2 w-2 rounded-full bg-brand/40 animate-pulse" />
-        <SkeletonBar className="h-2 w-16 bg-brand/15" />
+    <div
+      ref={containerRef}
+      className="flex flex-col w-full h-full overflow-hidden p-4"
+    >
+      {/* Table with scrollable body */}
+      <div className="w-full border border-border rounded overflow-hidden">
+        <table className="w-full border-collapse text-[10px] !mt-0">
+          <thead>
+            <tr className="bg-surface-200">
+              {chatCols.map((col) => (
+                <th
+                  key={col}
+                  className="border-b border-r last:border-r-0 border-default px-2 py-1 text-left font-medium text-foreground text-[10px]"
+                >
+                  {col}
+                </th>
+              ))}
+            </tr>
+          </thead>
+        </table>
+        <div
+          ref={tableScrollRef}
+          className="max-h-[72px] overflow-y-auto"
+          style={{
+            maskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 100%)',
+          }}
+        >
+          <table className="w-full border-collapse text-[10px] !mt-0">
+            <tbody>
+              {messages.map((msg) => (
+                <tr
+                  key={msg.id}
+                  className="bg-surface-75 transition-colors duration-500"
+                  style={
+                    tableFlashId === msg.id
+                      ? { backgroundColor: 'hsl(var(--brand-200) / 0.8)' }
+                      : undefined
+                  }
+                >
+                  <td className="border-b border-r border-secondary px-2 py-1 text-foreground-muted w-[30px]">
+                    {msg.id}
+                  </td>
+                  <td className="border-b border-r border-secondary px-2 py-1 text-foreground w-[50px]">
+                    {msg.user}
+                  </td>
+                  <td className="border-b border-secondary px-2 py-1 text-foreground truncate">
+                    {msg.text}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div className="flex flex-col gap-1.5 mt-2">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-2">
-            <SkeletonBar className="h-1.5 w-1.5 rounded-full shrink-0" />
-            <SkeletonBar className={cn('h-2', i % 2 === 0 ? 'w-full' : 'w-3/4')} />
+
+      {/* Connecting line */}
+      <div className="flex justify-center">
+        <div className="w-px h-4 bg-border" />
+      </div>
+
+      {/* Chat UI */}
+      <div className="border border-border rounded-lg bg-surface-75 flex flex-col overflow-hidden flex-1">
+        <div className="px-2.5 py-1.5 border-b border-border bg-surface-200">
+          <div className="flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-brand animate-pulse" />
+            <span className="text-[9px] font-medium text-foreground-muted">Live Chat</span>
           </div>
-        ))}
+        </div>
+        <div
+          ref={chatScrollRef}
+          className="flex-1 overflow-y-auto px-2.5 py-2 flex flex-col gap-1.5"
+          style={{
+            maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 100%)',
+          }}
+        >
+          {messages.map((msg) => {
+            const isAlice = msg.user === 'Alice'
+            const isFlashed = chatFlashId === msg.id
+            return (
+              <div
+                key={msg.id}
+                className={cn('flex', isAlice ? 'justify-end' : 'justify-start')}
+              >
+                <div
+                  className={cn(
+                    'max-w-[80%] px-2 py-1 rounded-lg text-[9px] leading-relaxed transition-colors duration-500',
+                    isAlice
+                      ? 'bg-brand/15 text-foreground rounded-br-sm'
+                      : 'bg-surface-200 text-foreground rounded-bl-sm'
+                  )}
+                  style={
+                    isFlashed
+                      ? { outline: '1px solid hsl(var(--brand-default) / 0.5)' }
+                      : undefined
+                  }
+                >
+                  {msg.text}
+                </div>
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>
   )

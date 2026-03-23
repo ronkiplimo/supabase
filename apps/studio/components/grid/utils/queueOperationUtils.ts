@@ -1,13 +1,16 @@
+import type { QueryClient } from '@tanstack/react-query'
 import { isTableLike, type Entity } from 'data/table-editor/table-editor-types'
+import { tableRowKeys } from 'data/table-rows/keys'
+import type { TableRowsData } from 'data/table-rows/table-rows-query'
 import type { Dictionary } from 'types'
 
-import { isPendingAddRow, PendingAddRow, SupaRow } from '../types'
-import {
+import { isPendingAddRow, type PendingAddRow, type PendingDeleteRow, type SupaRow } from '../types'
+import type {
   EditCellContentOperation,
   NewQueuedOperation,
   QueuedOperation,
-  QueuedOperationType,
 } from '@/state/table-editor-operation-queue.types'
+import { QueuedOperationType } from '@/state/table-editor-operation-queue.types'
 
 interface EditCellKeyOperation extends Omit<
   EditCellContentOperation,
@@ -58,6 +61,58 @@ export function rowMatchesIdentifiers(
   const identifierEntries = Object.entries(rowIdentifiers)
   if (identifierEntries.length === 0) return false
   return identifierEntries.every(([key, value]) => row[key] === value)
+}
+
+export function applyCellEdit(
+  rows: SupaRow[],
+  columnName: string,
+  rowIdentifiers: Dictionary<unknown>,
+  newValue: unknown
+): SupaRow[] {
+  return rows.map((row) => {
+    const rowMatches = rowMatchesIdentifiers(row, rowIdentifiers)
+    if (rowMatches) {
+      return { ...row, [columnName]: newValue }
+    }
+    return row
+  })
+}
+
+export function applyRowAdd(
+  rows: SupaRow[],
+  tempId: string,
+  idx: number,
+  rowData: Dictionary<unknown>
+): (PendingAddRow | SupaRow)[] {
+  const existingIndex = rows.findIndex((row) => isPendingAddRow(row) && row.__tempId === tempId)
+  if (existingIndex >= 0) {
+    return rows.map((row, index) => {
+      if (index === existingIndex) {
+        return { ...row, ...rowData, __tempId: tempId }
+      }
+      return row
+    })
+  }
+
+  const newRow: PendingAddRow = {
+    idx,
+    ...rowData,
+    __tempId: tempId,
+  }
+  return [newRow, ...rows]
+}
+
+export function markRowAsDeleted(
+  rows: SupaRow[],
+  rowIdentifiers: Dictionary<unknown>
+): (PendingDeleteRow | SupaRow)[] {
+  return rows.map((row): PendingDeleteRow | SupaRow => {
+    const rowMatches = rowMatchesIdentifiers(row, rowIdentifiers)
+    if (rowMatches) {
+      return { ...row, __isDeleted: true }
+    }
+    return row
+  })
 }
 
 export function removeRow(rows: SupaRow[], rowIdentifiers: Dictionary<unknown>): SupaRow[] {
@@ -137,16 +192,6 @@ export function queueRowAddWithOptimisticUpdate({
       table,
       enumArrayColumns,
     },
-  })
-
-  // Apply optimistic update to the UI
-  const queryKey = tableRowKeys.tableRows(projectRef, { table: { id: tableId } })
-  queryClient.setQueriesData<TableRowsData>({ queryKey }, (old) => {
-    if (!old) return old
-    return {
-      ...old,
-      rows: applyRowAdd(old.rows, tempId, idx, rowData),
-    }
   })
 }
 

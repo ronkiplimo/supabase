@@ -1,6 +1,6 @@
-import type { OrganizationsData } from 'data/organizations/organizations-query'
 import { ChevronsUpDown, GitBranch } from 'lucide-react'
 import * as React from 'react'
+import type { Organization } from 'types'
 import {
   cn,
   SidebarMenuButton as SidebarMenuButtonComponent,
@@ -11,7 +11,7 @@ import {
 
 export interface ProjectBranchSelectorTriggerProps {
   displayProjectName: string
-  selectedOrg: OrganizationsData
+  selectedOrg: Organization
   isBranch: boolean
   isProductionBranch: boolean
   branchDisplayName: string

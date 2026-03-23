@@ -1,10 +1,7 @@
-import type { QueryClient } from '@tanstack/react-query'
 import { isTableLike, type Entity } from 'data/table-editor/table-editor-types'
-import { tableRowKeys } from 'data/table-rows/keys'
-import type { TableRowsData } from 'data/table-rows/table-rows-query'
 import type { Dictionary } from 'types'
 
-import { isPendingAddRow, PendingAddRow, PendingDeleteRow, SupaRow } from '../types'
+import { isPendingAddRow, PendingAddRow, SupaRow } from '../types'
 import {
   EditCellContentOperation,
   NewQueuedOperation,
@@ -63,68 +60,12 @@ export function rowMatchesIdentifiers(
   return identifierEntries.every(([key, value]) => row[key] === value)
 }
 
-export function applyCellEdit(
-  rows: SupaRow[],
-  columnName: string,
-  rowIdentifiers: Dictionary<unknown>,
-  newValue: unknown
-): SupaRow[] {
-  return rows.map((row) => {
-    const rowMatches = rowMatchesIdentifiers(row, rowIdentifiers)
-    if (rowMatches) {
-      return { ...row, [columnName]: newValue }
-    }
-    return row
-  })
-}
-
-export function applyRowAdd(
-  rows: SupaRow[],
-  tempId: string,
-  idx: number,
-  rowData: Dictionary<unknown>
-): (PendingAddRow | SupaRow)[] {
-  // Check if row with this tempId already exists
-  const existingIndex = rows.findIndex((row) => isPendingAddRow(row) && row.__tempId === tempId)
-  if (existingIndex >= 0) {
-    // Update existing row in place
-    return rows.map((row, index) => {
-      if (index === existingIndex) {
-        return { ...row, ...rowData, __tempId: tempId }
-      }
-      return row
-    })
-  }
-
-  const newRow: PendingAddRow = {
-    idx,
-    ...rowData,
-    __tempId: tempId,
-  }
-  return [newRow, ...rows]
-}
-
-export function markRowAsDeleted(
-  rows: SupaRow[],
-  rowIdentifiers: Dictionary<unknown>
-): (PendingDeleteRow | SupaRow)[] {
-  return rows.map((row): PendingDeleteRow | SupaRow => {
-    const rowMatches = rowMatchesIdentifiers(row, rowIdentifiers)
-    if (rowMatches) {
-      return { ...row, __isDeleted: true }
-    }
-    return row
-  })
-}
-
 export function removeRow(rows: SupaRow[], rowIdentifiers: Dictionary<unknown>): SupaRow[] {
   return rows.filter((row) => !rowMatchesIdentifiers(row, rowIdentifiers))
 }
 
 interface QueueCellEditParams {
-  queryClient: QueryClient
   queueOperation: (operation: NewQueuedOperation) => void
-  projectRef: string
   tableId: number
   table: Entity
   row: SupaRow
@@ -136,9 +77,7 @@ interface QueueCellEditParams {
 }
 
 export function queueCellEditWithOptimisticUpdate({
-  queryClient,
   queueOperation,
-  projectRef,
   tableId,
   table,
   row,
@@ -167,22 +106,10 @@ export function queueCellEditWithOptimisticUpdate({
       enumArrayColumns,
     },
   })
-
-  // Apply optimistic update to the UI
-  const queryKey = tableRowKeys.tableRows(projectRef, { table: { id: tableId } })
-  queryClient.setQueriesData<TableRowsData>({ queryKey }, (old) => {
-    if (!old) return old
-    return {
-      ...old,
-      rows: applyCellEdit(old.rows, columnName, rowIdentifiers, newValue),
-    }
-  })
 }
 
 interface QueueRowAddParams {
-  queryClient: QueryClient
   queueOperation: (operation: NewQueuedOperation) => void
-  projectRef: string
   tableId: number
   table: Entity
   rowData: PendingAddRow
@@ -190,9 +117,7 @@ interface QueueRowAddParams {
 }
 
 export function queueRowAddWithOptimisticUpdate({
-  queryClient,
   queueOperation,
-  projectRef,
   tableId,
   table,
   rowData,
@@ -225,10 +150,56 @@ export function queueRowAddWithOptimisticUpdate({
   })
 }
 
+export const formatGridDataWithOperationValues = ({
+  operations,
+  rows,
+}: {
+  operations: QueuedOperation[]
+  rows: SupaRow[]
+}) => {
+  const formattedRows = rows.slice()
+
+  operations.forEach((op) => {
+    if (op.type === QueuedOperationType.EDIT_CELL_CONTENT) {
+      const { rowIdentifiers, columnName, newValue } = op.payload
+      const rowMatches = rows.find((row) => rowMatchesIdentifiers(row, rowIdentifiers))
+      if (rowMatches) {
+        formattedRows[rowMatches.idx] = { ...rowMatches, [columnName]: newValue }
+      }
+    } else if (op.type === QueuedOperationType.ADD_ROW) {
+      const { tempId, rowData } = op.payload
+      const idx = Number(tempId)
+
+      // Check if row with this tempId already exists
+      const existingIndex = formattedRows.findIndex(
+        (row) => isPendingAddRow(row) && row.__tempId === tempId
+      )
+      if (existingIndex >= 0) {
+        // Update existing row in place
+        formattedRows[existingIndex] = {
+          ...formattedRows[existingIndex],
+          ...rowData,
+          __tempId: tempId,
+        }
+      } else {
+        const newRow: PendingAddRow = { ...rowData, idx, __tempId: tempId }
+        formattedRows.unshift(newRow)
+      }
+    } else if (op.type === QueuedOperationType.DELETE_ROW) {
+      const { rowIdentifiers } = op.payload
+      const rowMatches = rows.find((row) => rowMatchesIdentifiers(row, rowIdentifiers))
+      if (rowMatches) {
+        formattedRows[rowMatches.idx] = { ...rowMatches, __isDeleted: true }
+      }
+    }
+  })
+
+  return formattedRows
+}
+
 interface QueueRowDeletesParams {
   rows: SupaRow[]
   table: Entity
-  queryClient: QueryClient
   queueOperation: (operation: NewQueuedOperation) => void
   projectRef: string | undefined
 }
@@ -240,7 +211,6 @@ interface QueueRowDeletesParams {
 export function queueRowDeletesWithOptimisticUpdate({
   rows,
   table,
-  queryClient,
   queueOperation,
   projectRef,
 }: QueueRowDeletesParams): void {
@@ -275,25 +245,6 @@ export function queueRowDeletesWithOptimisticUpdate({
         originalRow: row,
         table,
       },
-    })
-
-    const queryKey = tableRowKeys.tableRows(projectRef, { table: { id: table.id } })
-    queryClient.setQueriesData<TableRowsData>({ queryKey }, (old) => {
-      if (!old) return old
-
-      // For pending add rows, remove completely
-      if (isPendingAddRow(row)) {
-        return {
-          ...old,
-          rows: removeRow(old.rows, rowIdentifiers),
-        }
-      }
-
-      // For existing rows, mark as deleted
-      return {
-        ...old,
-        rows: markRowAsDeleted(old.rows, rowIdentifiers),
-      }
     })
   }
 }

@@ -2,7 +2,6 @@ import { LOCAL_STORAGE_KEYS } from 'common'
 import { SIDEBAR_KEYS } from 'components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
 import { ButtonTooltip } from 'components/ui/ButtonTooltip'
 import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
-import { useAiAssistantStateSnapshot } from 'state/ai-assistant-state'
 import { useSidebarManagerSnapshot } from 'state/sidebar-manager-state'
 import { AiIconAnimation, cn, KeyboardShortcut } from 'ui'
 

@@ -31,9 +31,7 @@ export function DataTabBar() {
   if (detailTabs.length === 0) return null
   const chooserPath = projectRef ? `/v2/project/${projectRef}/data` : '#'
 
-  const handleClose = (tab: DataTab, e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+  const closeTabAndRoute = (tab: DataTab) => {
     closeDataTab(tab.id)
     if (activeTab?.id === tab.id) {
       const remaining = detailTabs.filter((t) => t.id !== tab.id)
@@ -47,14 +45,25 @@ export function DataTabBar() {
     }
   }
 
+  const handleClose = (
+    tab: DataTab,
+    e: Pick<React.MouseEvent, 'preventDefault' | 'stopPropagation'>
+  ) => {
+    e.preventDefault()
+    e.stopPropagation()
+    closeTabAndRoute(tab)
+  }
+
   return (
     <div className="flex items-center border-b border-border bg-background shrink-0 min-h-[36px] overflow-x-auto">
       {detailTabs.map((tab) => {
         const isActive = activeTab?.id === tab.id
         return (
-          <button
+          <div
             key={tab.id}
-            type="button"
+            role="tab"
+            tabIndex={0}
+            aria-selected={isActive}
             className={cn(
               'group relative flex items-center gap-1.5 pl-2.5 pr-1 py-1.5 border-r border-border shrink-0 max-w-[200px] cursor-pointer select-none',
               isActive
@@ -62,6 +71,12 @@ export function DataTabBar() {
                 : 'text-foreground-lighter hover:text-foreground hover:bg-sidebar-accent/50'
             )}
             onClick={() => router.push(tab.path)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                router.push(tab.path)
+              }
+            }}
           >
             <TypeBadge domain={tab.domain} type={tab.type} />
             <span className="flex-1 min-w-0 truncate text-xs">{tab.label}</span>
@@ -73,7 +88,7 @@ export function DataTabBar() {
             >
               <X className="h-3 w-3" />
             </button>
-          </button>
+          </div>
         )
       })}
     </div>

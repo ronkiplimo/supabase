@@ -11,7 +11,7 @@ import {
 
 export interface ProjectBranchSelectorTriggerProps {
   displayProjectName: string
-  selectedOrg: Organization
+  selectedOrg?: Organization
   isBranch: boolean
   isProductionBranch: boolean
   branchDisplayName: string

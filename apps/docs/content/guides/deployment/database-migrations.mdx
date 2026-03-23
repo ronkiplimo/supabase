@@ -468,7 +468,7 @@ This shows which migrations are applied locally, which are applied on the remote
 If someone used the Dashboard's SQL editor or Table Editor on the remote database, the schema has changed but there's no migration file for it. Pull the current remote state into a migration file to get back in sync:
 
 ```bash name=Terminal
-supabase db remote commit
+supabase db pull
 ```
 
 This creates a new migration file capturing the current remote schema. Commit it to git, then follow the standard workflow going forward.

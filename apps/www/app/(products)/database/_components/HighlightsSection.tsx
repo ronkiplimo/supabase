@@ -49,16 +49,11 @@ export function HighlightsSection() {
       </div>
 
       <div className="mx-auto max-w-[var(--container-max-w,75rem)] px-6 w-full">
-        <div className="border border-border rounded-md overflow-clip">
-          <div className="grid grid-cols-1 lg:grid-cols-2">
-            {HIGHLIGHTS.map((highlight, i) => (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            {HIGHLIGHTS.map((highlight) => (
               <div
                 key={highlight.title}
-                className={`relative flex flex-col overflow-hidden min-h-[400px] ${
-                  i < HIGHLIGHTS.length - 1
-                    ? 'border-b lg:border-b-0 lg:border-r border-border'
-                    : ''
-                }`}
+                className="relative flex flex-col overflow-hidden min-h-[400px] bg-surface-75 border border-border rounded-lg"
               >
                 <div className="relative z-10 flex flex-col justify-between h-full p-6 md:p-8 pr-0 md:pr-0">
                   <div className="flex flex-col gap-4">
@@ -100,7 +95,6 @@ export function HighlightsSection() {
                 </div>
               </div>
             ))}
-          </div>
         </div>
       </div>
     </div>

@@ -283,10 +283,9 @@ export function VisualDemo() {
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsInView(entry.isIntersecting),
-      { threshold: 0.1 }
-    )
+    const observer = new IntersectionObserver(([entry]) => setIsInView(entry.isIntersecting), {
+      threshold: 0.1,
+    })
     observer.observe(el)
     return () => observer.disconnect()
   }, [])
@@ -433,7 +432,7 @@ export function VisualDemo() {
         <div className="-translate-y-16 relative w-full aspect-[16/9]">
           {/* Gradient blob behind card */}
           <div
-            className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[105%] w-[102%] rounded-[300px] blur-[50px]"
+            className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[105%] w-[102%] rounded-[300px] blur-[50px] dark:blur-[24px] dark:saturate-[0.4] dark:brightness-50"
             style={{
               backgroundImage:
                 'linear-gradient(90deg, rgba(62, 207, 142, 0.2) 0%, rgba(151, 62, 198, 0.2) 50%, rgba(62, 207, 142, 0.2) 100%)',
@@ -528,9 +527,9 @@ export function VisualDemo() {
                             const isDeletedRow = flash?.type === 'delete' && flash.uid === row._uid
 
                             const cellBg = isDeletedRow
-                              ? 'hsl(var(--destructive-500) / 0.8)'
+                              ? 'hsl(var(--destructive-default) / 0.15)'
                               : isModifiedCell || isAddedRow
-                                ? 'hsl(var(--brand-200) / 0.8)'
+                                ? 'hsl(var(--brand-default) / 0.15)'
                                 : undefined
 
                             const ver = getCellVer(row._uid, col.name)

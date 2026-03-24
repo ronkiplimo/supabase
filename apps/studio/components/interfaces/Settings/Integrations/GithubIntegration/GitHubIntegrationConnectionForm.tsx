@@ -585,7 +585,7 @@ const GitHubIntegrationConnectionForm = ({
                     <FormItemLayout
                       layout="flex-row-reverse"
                       label="Deploy to production"
-                      description="Apply changes to your production database when you merge to your production branch"
+                      description="Apply changes to your production database when you merge into your configured production GitHub branch"
                     >
                       <FormControl_Shadcn_>
                         <Switch

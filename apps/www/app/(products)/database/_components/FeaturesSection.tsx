@@ -1,7 +1,6 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Lock } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { cn } from 'ui'
 
@@ -60,13 +59,6 @@ function PostgresSkeleton() {
   )
 }
 
-const rlsColumns = ['id', 'name', 'email', 'role']
-const rlsRows = [
-  { id: '1', name: 'Alice Johnson', email: 'alice@example.com', role: 'admin' },
-  { id: '2', name: 'Bob Smith', email: 'bob@example.com', role: 'editor' },
-  { id: '3', name: 'Carol Williams', email: 'carol@example.com', role: 'viewer' },
-]
-
 // SQL tokens for typewriter effect — each token is { text, className }
 const sqlTokens = [
   { text: 'CREATE POLICY', cls: 'text-brand' },
@@ -86,7 +78,7 @@ const sqlTokens = [
 
 function RLSSkeleton() {
   const [visibleChars, setVisibleChars] = useState(0)
-  const [phase, setPhase] = useState<'typing' | 'table' | 'lock'>('typing')
+  const [typing, setTyping] = useState(true)
   const containerRef = useRef<HTMLDivElement>(null)
   const [isInView, setIsInView] = useState(false)
   const hasAnimated = useRef(false)
@@ -96,10 +88,9 @@ function RLSSkeleton() {
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsInView(entry.isIntersecting),
-      { threshold: 0.3 }
-    )
+    const observer = new IntersectionObserver(([entry]) => setIsInView(entry.isIntersecting), {
+      threshold: 0.3,
+    })
     observer.observe(el)
     return () => observer.disconnect()
   }, [])
@@ -108,27 +99,18 @@ function RLSSkeleton() {
     if (!isInView || hasAnimated.current) return
     hasAnimated.current = true
 
-    // Phase 1: typewriter
     let char = 0
     const typeInterval = setInterval(() => {
       char++
       setVisibleChars(char)
       if (char >= totalChars) {
         clearInterval(typeInterval)
-        // Phase 2: show table after a short pause
-        setTimeout(() => setPhase('table'), 300)
+        setTyping(false)
       }
     }, 15)
 
     return () => clearInterval(typeInterval)
   }, [isInView, totalChars])
-
-  useEffect(() => {
-    if (phase !== 'table') return
-    // Phase 3: show lock after table animates in
-    const timer = setTimeout(() => setPhase('lock'), 600)
-    return () => clearTimeout(timer)
-  }, [phase])
 
   // Render visible portion of SQL tokens
   function renderTypedSQL() {
@@ -154,87 +136,14 @@ function RLSSkeleton() {
         WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
       }}
     >
-      {/* SQL snippet with typewriter */}
-      <div className="px-4 pt-4 pb-3">
+      {/* SQL snippet with typewriter — centered */}
+      <div className="flex items-center flex-1 w-full px-4">
         <pre className="text-sm leading-relaxed font-mono text-foreground-muted">
           {renderTypedSQL()}
-          {phase === 'typing' && (
+          {typing && (
             <span className="inline-block w-[2px] h-[1em] bg-brand align-middle animate-pulse ml-px" />
           )}
         </pre>
-      </div>
-
-      {/* Table with lock overlay */}
-      <div className="px-4 flex-1">
-        <motion.div
-          className="relative border border-border rounded overflow-hidden"
-          initial={{ opacity: 0, y: 8 }}
-          animate={
-            phase === 'table' || phase === 'lock'
-              ? { opacity: 1, y: 0 }
-              : { opacity: 0, y: 8 }
-          }
-          transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
-        >
-          <table className="w-full border-collapse text-[10px] !mt-0">
-            <thead>
-              <tr className="bg-surface-200">
-                {rlsColumns.map((col) => (
-                  <th
-                    key={col}
-                    className="border-b border-r last:border-r-0 border-default px-2 py-1 text-left font-medium text-foreground text-[10px]"
-                  >
-                    {col}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rlsRows.map((row) => (
-                <tr key={row.id} className="bg-surface-75">
-                  {rlsColumns.map((col) => (
-                    <td
-                      key={col}
-                      className="border-b border-r last:border-r-0 border-secondary px-2 py-1 text-foreground truncate"
-                    >
-                      {row[col as keyof typeof row]}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Lock overlay */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            {/* Radial backdrop — simple fade */}
-            <motion.div
-              className="absolute rounded-full"
-              initial={{ opacity: 0 }}
-              animate={phase === 'lock' ? { opacity: 1 } : { opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              style={{
-                width: 160,
-                height: 160,
-                background:
-                  'radial-gradient(circle, hsl(var(--background-default) / 0.95) 0%, hsl(var(--background-default) / 0.85) 40%, transparent 70%)',
-              }}
-            />
-            {/* Lock icon — bouncy spring */}
-            <motion.div
-              className="relative flex items-center justify-center w-8 h-8 rounded-full bg-brand backdrop-blur-sm"
-              initial={{ opacity: 0, scale: 0.3 }}
-              animate={
-                phase === 'lock'
-                  ? { opacity: 1, scale: 1 }
-                  : { opacity: 0, scale: 0.3 }
-              }
-              transition={{ type: 'spring', stiffness: 500, damping: 20 }}
-            >
-              <Lock size={16} strokeWidth={2.5} className="text-background" />
-            </motion.div>
-          </div>
-        </motion.div>
       </div>
     </div>
   )
@@ -273,10 +182,9 @@ function RealtimeSkeleton() {
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsInView(entry.isIntersecting),
-      { threshold: 0.3 }
-    )
+    const observer = new IntersectionObserver(([entry]) => setIsInView(entry.isIntersecting), {
+      threshold: 0.3,
+    })
     observer.observe(el)
     return () => observer.disconnect()
   }, [])
@@ -322,36 +230,44 @@ function RealtimeSkeleton() {
   }, [isInView])
 
   return (
-    <div
-      ref={containerRef}
-      className="flex flex-col w-full h-full overflow-hidden p-4"
-    >
+    <div ref={containerRef} className="flex flex-col w-full h-full overflow-hidden p-4">
       {/* Table with scrollable body */}
       <div className="w-full border border-border rounded overflow-hidden">
-        <table className="w-full border-collapse text-[10px] !mt-0">
+        <table className="w-full border-collapse text-[10px] !mt-0 table-fixed">
+          <colgroup>
+            <col className="w-[100px]" />
+            <col className="w-[50px]" />
+            <col />
+          </colgroup>
           <thead>
             <tr className="bg-surface-200">
-              {chatCols.map((col) => (
-                <th
-                  key={col}
-                  className="border-b border-r last:border-r-0 border-default px-2 py-1 text-left font-medium text-foreground text-[10px]"
-                >
-                  {col}
-                </th>
-              ))}
+              <th className="border-b border-r border-default px-2 py-1 text-left font-medium text-foreground text-[10px]">
+                id
+              </th>
+              <th className="border-b border-r border-default px-2 py-1 text-left font-medium text-foreground text-[10px]">
+                user
+              </th>
+              <th className="border-b border-default px-2 py-1 text-left font-medium text-foreground text-[10px]">
+                text
+              </th>
             </tr>
           </thead>
         </table>
         <div
           ref={tableScrollRef}
-          className="max-h-[72px] overflow-y-auto"
+          className="max-h-[48px] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           style={{
             maskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 100%)',
             WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 100%)',
           }}
         >
-          <table className="w-full border-collapse text-[10px] !mt-0">
-            <tbody>
+          <table className="w-full border-collapse text-[10px] !mt-0 table-fixed">
+            <colgroup>
+              <col className="w-[100px]" />
+              <col className="w-[50px]" />
+              <col />
+            </colgroup>
+            <tbody className="[&>tr:last-child>td]:border-b-0">
               {messages.map((msg) => (
                 <tr
                   key={msg.id}
@@ -362,10 +278,10 @@ function RealtimeSkeleton() {
                       : undefined
                   }
                 >
-                  <td className="border-b border-r border-secondary px-2 py-1 text-foreground-muted w-[30px]">
+                  <td className="border-b border-r border-secondary px-2 py-1 text-foreground-muted">
                     {msg.id}
                   </td>
-                  <td className="border-b border-r border-secondary px-2 py-1 text-foreground w-[50px]">
+                  <td className="border-b border-r border-secondary px-2 py-1 text-foreground">
                     {msg.user}
                   </td>
                   <td className="border-b border-secondary px-2 py-1 text-foreground truncate">
@@ -380,20 +296,14 @@ function RealtimeSkeleton() {
 
       {/* Connecting line */}
       <div className="flex justify-center">
-        <div className="w-px h-4 bg-border" />
+        <div className="w-px h-8 bg-border" />
       </div>
 
       {/* Chat UI */}
-      <div className="border border-border rounded-lg bg-surface-75 flex flex-col overflow-hidden flex-1">
-        <div className="px-2.5 py-1.5 border-b border-border bg-surface-200">
-          <div className="flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand animate-pulse" />
-            <span className="text-[9px] font-medium text-foreground-muted">Live Chat</span>
-          </div>
-        </div>
+      <div className="w-full max-w-[90%] mx-auto border border-border rounded-lg bg-surface-75 flex flex-col overflow-hidden max-h-[96px]">
         <div
           ref={chatScrollRef}
-          className="flex-1 overflow-y-auto px-2.5 py-2 flex flex-col gap-1.5"
+          className="flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-2.5 py-2 flex flex-col gap-1.5"
           style={{
             maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 100%)',
             WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 100%)',
@@ -403,10 +313,7 @@ function RealtimeSkeleton() {
             const isAlice = msg.user === 'Alice'
             const isFlashed = chatFlashId === msg.id
             return (
-              <div
-                key={msg.id}
-                className={cn('flex', isAlice ? 'justify-end' : 'justify-start')}
-              >
+              <div key={msg.id} className={cn('flex', isAlice ? 'justify-end' : 'justify-start')}>
                 <div
                   className={cn(
                     'max-w-[80%] px-2 py-1 rounded-lg text-[9px] leading-relaxed transition-colors duration-500',
@@ -415,9 +322,7 @@ function RealtimeSkeleton() {
                       : 'bg-surface-200 text-foreground rounded-bl-sm'
                   )}
                   style={
-                    isFlashed
-                      ? { outline: '1px solid hsl(var(--brand-default) / 0.5)' }
-                      : undefined
+                    isFlashed ? { outline: '1px solid hsl(var(--brand-default) / 0.5)' } : undefined
                   }
                 >
                   {msg.text}

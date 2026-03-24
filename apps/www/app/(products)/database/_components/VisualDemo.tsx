@@ -1,8 +1,9 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
-import { Key } from 'lucide-react'
+import { ChevronDown, Filter, Key, List } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { Button } from 'ui'
 
 const columns = [
   { name: 'id', format: 'int8', isPrimaryKey: true },
@@ -446,6 +447,25 @@ export function VisualDemo() {
                 '0 0 0 0.5px var(--shadow-border-color), 0 149px 199px 0 rgba(0,0,0,0.07), 0 62.249px 83.137px 0 rgba(0,0,0,0.05), 0 33.281px 44.449px 0 rgba(0,0,0,0.04), 0 18.657px 24.918px 0 rgba(0,0,0,0.04), 0 9.909px 13.234px 0 rgba(0,0,0,0.03), 0 4.123px 5.507px 0 rgba(0,0,0,0.02)',
             }}
           >
+            {/* Toolbar */}
+            <div className="flex items-center gap-2 px-1.5 h-10 border-b border-default bg-surface-200 shrink-0">
+              <button className="flex items-center gap-1.5 px-2 py-1 rounded text-xs text-foreground-light hover:text-foreground transition-colors">
+                <Filter size={14} strokeWidth={1.5} />
+                <span>Filter</span>
+              </button>
+              <button className="flex items-center gap-1.5 px-2 py-1 rounded text-xs text-foreground-light hover:text-foreground transition-colors">
+                <List size={14} strokeWidth={1.5} />
+                <span>Sort</span>
+              </button>
+              <Button
+                size="tiny"
+                className="ml-auto"
+                iconRight={<ChevronDown size={12} strokeWidth={2} />}
+              >
+                Insert
+              </Button>
+            </div>
+
             {/* Grid */}
             <div
               className="overflow-hidden"

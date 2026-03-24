@@ -601,6 +601,23 @@ const nextConfig = {
     },
   },
   webpack: (config, { dev }) => {
+    // Mirror Turbopack loader behavior when falling back to webpack builds.
+    config.module.rules.push(
+      {
+        test: /\.md$/i,
+        use: ['raw-loader'],
+      },
+      // Special case for Deno libs passed as raw text to Monaco editor.
+      {
+        test: /edge-runtime\.d\.ts$/i,
+        use: ['raw-loader'],
+      },
+      {
+        test: /lib\.deno\.d\.ts$/i,
+        use: ['raw-loader'],
+      }
+    )
+
     // Lower webpack graph parallelism in production to reduce peak heap usage on CI builders.
     if (!dev) {
       config.parallelism = 20

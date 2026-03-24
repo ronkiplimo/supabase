@@ -2,6 +2,7 @@
 
 import { useDatabaseFunctionsQuery } from 'data/database-functions/database-functions-query'
 import type { DatabaseFunction } from 'data/database-functions/database-functions-query'
+import { useSchemasQuery } from 'data/database/schemas-query'
 import { isValidConnString } from 'data/fetchers'
 import { useProjectDetailQuery } from 'data/projects/project-detail-query'
 import { useState } from 'react'
@@ -12,7 +13,6 @@ import {
   SelectTrigger_Shadcn_,
   SelectValue_Shadcn_,
 } from 'ui'
-import { useSchemasQuery } from 'data/database/schemas-query'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
 import { DataTableRenderer } from '@/components/v2/DataTableRenderer'
@@ -41,7 +41,7 @@ const FUNCTIONS_COLUMNS: DataTableColumn<DatabaseFunction>[] = [
     badgeMap: {
       plpgsql: { label: 'plpgsql', variant: 'default' },
       sql: { label: 'sql', variant: 'default' },
-      c: { label: 'C', variant: 'info' },
+      c: { label: 'C', variant: 'secondary' },
       internal: { label: 'internal', variant: 'default' },
     },
   },

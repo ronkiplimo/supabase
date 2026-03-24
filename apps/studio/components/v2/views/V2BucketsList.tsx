@@ -38,7 +38,7 @@ const BUCKETS_COLUMNS: DataTableColumn<Bucket>[] = [
     type: 'badge',
     badgeMap: {
       DEFAULT: { label: 'Default', variant: 'default' },
-      OBJECT_TABLE: { label: 'Object table', variant: 'info' },
+      OBJECT_TABLE: { label: 'Object table', variant: 'secondary' },
     },
   },
   {

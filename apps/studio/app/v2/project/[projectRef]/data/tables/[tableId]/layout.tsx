@@ -5,6 +5,7 @@ import { useParams, usePathname } from 'next/navigation'
 import { cn } from 'ui'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
+import { InsightBar } from '@/components/v2/InsightBar'
 import { StudioDataWorkspace } from '@/components/v2/data/StudioDataWorkspace'
 
 const SUB_TABS = [
@@ -26,6 +27,7 @@ export default function TableDetailLayout({ children }: { children: React.ReactN
   return (
     <StudioDataWorkspace projectRef={projectRef} id={tableId}>
       <div className="flex flex-col h-full">
+        <InsightBar objectType="table" objectId={tableId} objectName={tableId} />
         <div className="flex items-center border-b border-border shrink-0 min-h-[36px]">
           {SUB_TABS.map((tab) => {
             const href = `${base}/${tab.slug}`

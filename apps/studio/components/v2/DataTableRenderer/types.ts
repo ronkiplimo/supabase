@@ -18,7 +18,7 @@ export interface DataTableColumn<T = any> {
   // For 'badge' type: map values to badge variants
   badgeMap?: Record<
     string,
-    { label: string; variant: 'success' | 'warning' | 'danger' | 'info' | 'default' }
+    { label: string; variant: 'success' | 'warning' | 'destructive' | 'secondary' | 'default' }
   >
 
   // Copy-on-click (e.g., for IDs, UUIDs, keys)

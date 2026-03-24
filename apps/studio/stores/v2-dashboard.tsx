@@ -67,6 +67,7 @@ export const CATEGORY_LABELS: Record<string, string> = {
 
 const RECENT_ITEMS_STORAGE_KEY = 'v2-recent-items'
 const DATA_TABS_STORAGE_KEY = 'v2-data-tabs'
+const INSIGHT_EXPANDED_STORAGE_KEY = 'v2-insight-expanded'
 
 const defaultExpandedGroups: Record<string, boolean> = {
   'obs-logs': true,
@@ -84,6 +85,7 @@ interface V2DashboardState {
   expandedGroups: Record<string, boolean>
   rightPanel: RightPanelType
   recentItems: RecentItem[]
+  insightExpanded: Record<string, boolean>
 
   openDataTab: (tab: DataTab) => void
   closeDataTab: (id: string) => void
@@ -92,6 +94,8 @@ interface V2DashboardState {
   setExpandedGroup: (groupId: string, expanded: boolean) => void
   toggleRightPanel: (panel: 'chat' | 'sql' | 'adv') => void
   closeRightPanel: () => void
+  toggleInsight: (tabId: string) => void
+  setInsightExpanded: (tabId: string, expanded: boolean) => void
 }
 
 const V2DashboardContext = createContext<V2DashboardState | null>(null)
@@ -102,6 +106,7 @@ export function V2DashboardProvider({ children }: { children: ReactNode }) {
     useState<Record<string, boolean>>(defaultExpandedGroups)
   const [rightPanel, setRightPanel] = useState<RightPanelType>(null)
   const [recentItems, setRecentItems] = useState<RecentItem[]>([])
+  const [insightExpanded, setInsightExpandedState] = useState<Record<string, boolean>>({})
 
   // Load persisted recents from localStorage once
   useEffect(() => {
@@ -127,6 +132,20 @@ export function V2DashboardProvider({ children }: { children: ReactNode }) {
           timestamp: typeof x.timestamp === 'number' ? x.timestamp : 0,
         }))
       setRecentItems(normalized.sort((a, b) => b.timestamp - a.timestamp).slice(0, 20))
+    } catch {
+      // Ignore corrupted localStorage
+    }
+  }, [])
+
+  // Load persisted insight expand state from localStorage once
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const raw = localStorage.getItem(INSIGHT_EXPANDED_STORAGE_KEY)
+      if (!raw) return
+      const parsed = JSON.parse(raw) as unknown
+      if (!parsed || typeof parsed !== 'object') return
+      setInsightExpandedState(parsed as Record<string, boolean>)
     } catch {
       // Ignore corrupted localStorage
     }
@@ -187,6 +206,16 @@ export function V2DashboardProvider({ children }: { children: ReactNode }) {
     }
   }, [dataTabs])
 
+  // Persist insight expand state to localStorage on change
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      localStorage.setItem(INSIGHT_EXPANDED_STORAGE_KEY, JSON.stringify(insightExpanded))
+    } catch {
+      // Ignore write failures
+    }
+  }, [insightExpanded])
+
   const addRecentItem = useCallback((item: Omit<RecentItem, 'timestamp'>) => {
     setRecentItems((prev) => {
       const without = prev.filter((x) => x.id !== item.id)
@@ -232,12 +261,21 @@ export function V2DashboardProvider({ children }: { children: ReactNode }) {
 
   const closeRightPanel = useCallback(() => setRightPanel(null), [])
 
+  const toggleInsight = useCallback((tabId: string) => {
+    setInsightExpandedState((state) => ({ ...state, [tabId]: !state[tabId] }))
+  }, [])
+
+  const setInsightExpanded = useCallback((tabId: string, expanded: boolean) => {
+    setInsightExpandedState((state) => ({ ...state, [tabId]: expanded }))
+  }, [])
+
   const value = useMemo<V2DashboardState>(
     () => ({
       dataTabs,
       expandedGroups,
       rightPanel,
       recentItems,
+      insightExpanded,
       openDataTab,
       closeDataTab,
       addRecentItem,
@@ -245,12 +283,15 @@ export function V2DashboardProvider({ children }: { children: ReactNode }) {
       setExpandedGroup,
       toggleRightPanel,
       closeRightPanel,
+      toggleInsight,
+      setInsightExpanded,
     }),
     [
       dataTabs,
       expandedGroups,
       rightPanel,
       recentItems,
+      insightExpanded,
       openDataTab,
       closeDataTab,
       addRecentItem,
@@ -258,6 +299,8 @@ export function V2DashboardProvider({ children }: { children: ReactNode }) {
       setExpandedGroup,
       toggleRightPanel,
       closeRightPanel,
+      toggleInsight,
+      setInsightExpanded,
     ]
   )
 

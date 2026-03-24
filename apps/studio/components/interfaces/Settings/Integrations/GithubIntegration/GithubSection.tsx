@@ -1,7 +1,4 @@
 import { PermissionAction } from '@supabase/shared-types/out/constants'
-import { useMemo } from 'react'
-
-import { useGitHubAuthorizationQuery } from '@/data/integrations/github-authorization-query'
 import { useParams } from 'common'
 import {
   ScaffoldContainer,
@@ -15,8 +12,11 @@ import { useGitHubConnectionsQuery } from 'data/integrations/github-connections-
 import { useAsyncCheckPermissions } from 'hooks/misc/useCheckPermissions'
 import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
 import { BASE_PATH, IS_PLATFORM } from 'lib/constants'
+import { useMemo } from 'react'
 import { GenericSkeletonLoader } from 'ui-patterns'
+
 import GitHubIntegrationConnectionForm from './GitHubIntegrationConnectionForm'
+import { useGitHubAuthorizationQuery } from '@/data/integrations/github-authorization-query'
 
 const IntegrationImageHandler = ({ title }: { title: 'vercel' | 'github' }) => {
   return (
@@ -69,9 +69,8 @@ export const GitHubSection = () => {
               <div>
                 <h5 className="text-foreground mb-2">How does the GitHub integration work?</h5>
                 <p className="text-foreground-light text-sm mb-6">
-                  Connecting to GitHub allows you to sync preview branches with a chosen GitHub
-                  branch, keep your production branch in sync, and automatically create preview
-                  branches for every pull request.
+                  Connect GitHub to apply changes to your database when you merge to your main
+                  branch. If branching is enabled, each pull request gets its own preview database.
                 </p>
 
                 {promptProPlanUpgrade && (

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { PanelLeftOpen } from 'lucide-react'
 import { MobileSheetProvider } from 'components/layouts/Navigation/NavigationBar/MobileSheetContext'
 import { LayoutSidebar } from 'components/layouts/ProjectLayout/LayoutSidebar'
@@ -24,10 +24,27 @@ import { V2LayoutSidebarProvider } from './V2LayoutSidebarProvider'
 import { useV2Params } from '@/app/v2/V2ParamsContext'
 import { V2DashboardProvider } from '@/stores/v2-dashboard'
 
+const BROWSER_COLLAPSED_STORAGE_KEY = 'v2-browser-panel-collapsed'
+
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { projectRef } = useV2Params()
-  const [isBrowserCollapsed, setIsBrowserCollapsed] = useState(false)
+  const [isBrowserCollapsed, setIsBrowserCollapsed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false
+    try {
+      return localStorage.getItem(BROWSER_COLLAPSED_STORAGE_KEY) === 'true'
+    } catch {
+      return false
+    }
+  })
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(BROWSER_COLLAPSED_STORAGE_KEY, String(isBrowserCollapsed))
+    } catch {
+      // Ignore localStorage write failures
+    }
+  }, [isBrowserCollapsed])
 
   const isHomeActive =
     Boolean(projectRef) &&

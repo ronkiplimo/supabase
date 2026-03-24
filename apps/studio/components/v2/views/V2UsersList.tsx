@@ -1,8 +1,8 @@
 'use client'
 
+import { useUsersCountQuery } from 'data/auth/users-count-query'
 import { useUsersInfiniteQuery } from 'data/auth/users-infinite-query'
 import type { User } from 'data/auth/users-infinite-query'
-import { useUsersCountQuery } from 'data/auth/users-count-query'
 import { isValidConnString } from 'data/fetchers'
 import { useProjectDetailQuery } from 'data/projects/project-detail-query'
 import { useState } from 'react'
@@ -56,7 +56,7 @@ const USERS_COLUMNS: DataTableColumn<User>[] = [
           {providers.slice(0, 2).map((p: string) => (
             <span
               key={p}
-              className="inline-flex items-center rounded border border-border bg-surface-300 px-1.5 py-0.5 text-[11px]"
+              className="inline-flex items-center rounded border border-border bg-surface-300 px-1.5 py-0.5 leading-none text-[11px]"
             >
               {p}
             </span>

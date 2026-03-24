@@ -26,7 +26,7 @@ const BUCKETS_COLUMNS: DataTableColumn<Bucket>[] = [
           Public
         </span>
       ) : (
-        <span className="inline-flex items-center rounded border border-border bg-surface-300 px-1.5 py-0.5 text-[11px] text-foreground-light">
+        <span className="inline-flex items-center rounded border border-border bg-surface-300 px-1.5 py-0.5 text-[11px] leading-none text-foreground-light">
           Private
         </span>
       ),

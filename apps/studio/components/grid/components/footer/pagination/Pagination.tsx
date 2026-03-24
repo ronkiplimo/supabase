@@ -103,6 +103,7 @@ export const Pagination = ({ enableForeignRowsQuery = true }: PaginationProps) =
   )
   const count = data?.count ?? 0
   const hasCountData = count >= 0
+  const isEstimateCount = data?.is_estimate ?? false
   const countString = data?.is_estimate ? formatEstimatedCount(count) : count.toLocaleString()
   const maxPages = Math.ceil(count / tableEditorSnap.rowsPerPage)
   const totalPages = count > 0 ? maxPages : 1
@@ -308,11 +309,11 @@ export const Pagination = ({ enableForeignRowsQuery = true }: PaginationProps) =
           {hasCountData && (
             <p className="text-xs text-foreground-light">
               {`${countString} ${count === 0 || count > 1 ? `records` : 'record'}`}{' '}
-              {data.is_estimate ? '(estimated)' : ''}
+              {isEstimateCount ? '(estimated)' : ''}
             </p>
           )}
 
-          {data.is_estimate && (
+          {isEstimateCount && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button

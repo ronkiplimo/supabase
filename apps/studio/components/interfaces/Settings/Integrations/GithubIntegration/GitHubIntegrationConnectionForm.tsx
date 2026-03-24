@@ -585,7 +585,7 @@ const GitHubIntegrationConnectionForm = ({
                     <FormItemLayout
                       layout="flex-row-reverse"
                       label="Deploy to production"
-                      description="Deploy changes to production on push including PR merges"
+                      description="Apply changes to your production database when you merge to your production branch"
                     >
                       <FormControl_Shadcn_>
                         <Switch
@@ -611,7 +611,7 @@ const GitHubIntegrationConnectionForm = ({
                       <FormItemLayout
                         layout="flex-row-reverse"
                         label="Production branch name"
-                        description="The GitHub branch to sync with your production database (e.g., main, master)"
+                        description="Select the GitHub branch that updates your production database (e.g. main, master)"
                       >
                         <div className="relative w-full">
                           <FormControl_Shadcn_>

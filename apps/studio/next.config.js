@@ -35,6 +35,7 @@ const nextConfig = {
   output: 'standalone',
   experimental: {
     clientRouterFilter: false,
+    esmExternals: 'loose',
   },
   async rewrites() {
     return [

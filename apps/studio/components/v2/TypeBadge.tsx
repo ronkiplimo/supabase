@@ -15,32 +15,26 @@ const BADGE_CONFIG: Record<
   list: {
     label: 'List',
     icon: <List className="h-3 w-3" strokeWidth={1.5} />,
-    className: 'bg-muted text-foreground-lighter',
   },
   db: {
     label: 'Database',
     icon: <Database className="h-3 w-3" strokeWidth={1.5} />,
-    className: 'text-foreground-lighter',
   },
   auth: {
     label: 'Auth',
     icon: <Auth className="h-3 w-3" strokeWidth={1.5} />,
-    className: 'text-foreground-lighter',
   },
   st: {
     label: 'Storage',
     icon: <Storage className="h-3 w-3" strokeWidth={1.5} />,
-    className: 'text-foreground-lighter',
   },
   fn: {
     label: 'Edge Functions',
     icon: <EdgeFunctions className="h-3 w-3" strokeWidth={1.5} />,
-    className: 'text-foreground-lighter',
   },
   rt: {
     label: 'Realtime',
     icon: <Realtime className="h-3 w-3" strokeWidth={1.5} />,
-    className: 'text-foreground-lighter',
   },
 }
 
@@ -59,7 +53,7 @@ export function TypeBadge({ domain, type, className }: TypeBadgeProps) {
       <TooltipTrigger asChild>
         <span
           className={cn(
-            'inline-flex items-center justify-center rounded p-[3px] shrink-0',
+            'inline-flex items-center justify-center rounded shrink-0',
             badgeClass,
             className
           )}

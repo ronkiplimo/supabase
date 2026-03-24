@@ -66,6 +66,7 @@ export const CATEGORY_LABELS: Record<string, string> = {
 }
 
 const RECENT_ITEMS_STORAGE_KEY = 'v2-recent-items'
+const DATA_TABS_STORAGE_KEY = 'v2-data-tabs'
 
 const defaultExpandedGroups: Record<string, boolean> = {
   'obs-logs': true,
@@ -131,6 +132,41 @@ export function V2DashboardProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  // Load persisted data tabs from localStorage once
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const raw = localStorage.getItem(DATA_TABS_STORAGE_KEY)
+      if (!raw) return
+      const parsed = JSON.parse(raw) as unknown
+      if (!Array.isArray(parsed)) return
+      const normalized = parsed
+        .filter((x) => x && typeof x === 'object')
+        .map((x) => x as Partial<DataTab>)
+        .filter(
+          (x) =>
+            typeof x.id === 'string' &&
+            typeof x.label === 'string' &&
+            typeof x.type === 'string' &&
+            typeof x.category === 'string' &&
+            typeof x.domain === 'string' &&
+            typeof x.path === 'string'
+        )
+        .map((x) => ({
+          id: x.id as string,
+          label: x.label as string,
+          type: x.type as DataTabType,
+          category: x.category as string,
+          domain: x.domain as DataTabDomain,
+          path: x.path as string,
+        }))
+
+      setDataTabs(normalized)
+    } catch {
+      // Ignore corrupted localStorage
+    }
+  }, [])
+
   // Persist recents to localStorage on change
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -140,6 +176,16 @@ export function V2DashboardProvider({ children }: { children: ReactNode }) {
       // Ignore write failures
     }
   }, [recentItems])
+
+  // Persist open data tabs to localStorage on change
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      localStorage.setItem(DATA_TABS_STORAGE_KEY, JSON.stringify(dataTabs))
+    } catch {
+      // Ignore write failures
+    }
+  }, [dataTabs])
 
   const addRecentItem = useCallback((item: Omit<RecentItem, 'timestamp'>) => {
     setRecentItems((prev) => {

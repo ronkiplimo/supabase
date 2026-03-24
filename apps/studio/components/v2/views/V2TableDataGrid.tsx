@@ -30,7 +30,10 @@ export function V2TableDataGrid({
 }) {
   const isQueueOperationsEnabled = useIsQueueOperationsEnabled()
   const queryClient = useQueryClient()
-  useProjectDetailQuery({ ref: projectRef }, { enabled: Boolean(projectRef) })
+  const { data: project } = useProjectDetailQuery(
+    { ref: projectRef },
+    { enabled: Boolean(projectRef) }
+  )
   const tableEditorSnap = useTableEditorStateSnapshot()
   const snap = useTableEditorTableStateSnapshot()
   const preflightCheck = !tableEditorSnap.tablesToIgnorePreflightCheck.includes(tableId ?? -1)
@@ -46,7 +49,12 @@ export function V2TableDataGrid({
   const tableQueriesEnabled = msSqlWarning.warning === null
 
   const rowsQueryEnabled =
-    Boolean(projectRef && tableId !== undefined && !Number.isNaN(tableId)) && tableQueriesEnabled
+    Boolean(
+      projectRef &&
+        project?.connectionString &&
+        tableId !== undefined &&
+        !Number.isNaN(tableId)
+    ) && tableQueriesEnabled
 
   const {
     data,
@@ -58,6 +66,7 @@ export function V2TableDataGrid({
   } = useTableRowsQuery(
     {
       projectRef,
+      connectionString: project?.connectionString,
       tableId,
       sorts,
       filters,

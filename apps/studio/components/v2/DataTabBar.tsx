@@ -80,7 +80,7 @@ export function DataTabBar() {
   }
 
   return (
-    <div className="flex items-center border-b border-border bg-background shrink-0 min-h-[36px] h-[var(--header-height)]">
+    <div className="flex items-center border-b border-border bg-background shrink-0 min-h-[36px]">
       <div className="min-w-0 flex-1 overflow-x-auto h-full">
         <div className="flex items-center w-max min-w-full h-full">
           {visibleTabs.map((tab) => {
@@ -123,7 +123,7 @@ export function DataTabBar() {
       <button
         type="button"
         onClick={() => router.push(chooserPath)}
-        className="shrink-0 h-full px-3 border-l border-border text-foreground-lighter hover:text-foreground hover:bg-sidebar-accent/50 transition-colors"
+        className="shrink-0 h-full aspect-square flex items-center justify-center border-l border-border text-foreground-lighter hover:text-foreground hover:bg-sidebar-accent/50 transition-colors"
         aria-label="Open data chooser"
       >
         <Plus className="h-4 w-4" />

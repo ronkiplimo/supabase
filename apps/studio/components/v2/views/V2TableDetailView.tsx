@@ -1,6 +1,5 @@
 'use client'
 
-import { TableGridEditor } from 'components/interfaces/TableGridEditor/TableGridEditor'
 import { useProjectDetailQuery } from 'data/projects/project-detail-query'
 import { useTableEditorQuery } from 'data/table-editor/table-editor-query'
 import { useParams } from 'next/navigation'
@@ -9,6 +8,7 @@ import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
 import { useV2DashboardStore } from '@/stores/v2-dashboard'
+import { TableGridEditor } from 'components/interfaces/TableGridEditor/TableGridEditor'
 
 export function V2TableDetailView({ subTab }: { subTab: string }) {
   const params = useParams()

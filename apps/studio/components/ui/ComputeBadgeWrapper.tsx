@@ -25,8 +25,16 @@ const ChevronsUpAnimated = () => (
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    <polyline points="17 18 12 13 7 18" className="animate-chevron-up" style={{ animationDelay: '0s' }} />
-    <polyline points="17 11 12 6 7 11" className="animate-chevron-up" style={{ animationDelay: '0.3s' }} />
+    <polyline
+      points="17 18 12 13 7 18"
+      className="animate-chevron-up"
+      style={{ animationDelay: '0s' }}
+    />
+    <polyline
+      points="17 11 12 6 7 11"
+      className="animate-chevron-up"
+      style={{ animationDelay: '0.3s' }}
+    />
   </svg>
 )
 

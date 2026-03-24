@@ -291,10 +291,10 @@ export interface ProjectCreationRlsOptionExperimentExposedEvent {
  */
 export interface ProjectCreationSimpleVersionSubmittedEvent {
   action: 'project_creation_simple_version_submitted'
-  /**
-   * the instance size selected in the project creation form
-   */
   properties: {
+    /**
+     * The instance size selected in the project creation form.
+     */
     instanceSize?: string
     /**
      * Whether the automatic RLS event trigger option was enabled
@@ -322,6 +322,14 @@ export interface ProjectCreationSimpleVersionSubmittedEvent {
      * false = "Postgres" (default)
      */
     useOrioleDb?: boolean
+    /**
+     * Whether the tableEditorApiAccessToggle PostHog flag was enabled for this user,
+     * meaning the project was created with default public schema grants revoked.
+     * true = user is in the staged rollout cohort (revoke SQL ran at creation)
+     * false = user is outside the rollout (default grants left intact)
+     * omitted = PostHog flags had not loaded at the time of project creation
+     */
+    tableEditorApiAccessToggleEnabled?: boolean
   }
   groups: TelemetryGroups
 }
@@ -342,6 +350,29 @@ export interface ProjectCreationSimpleVersionConfirmModalOpenedEvent {
     instanceSize?: string
   }
   groups: Omit<TelemetryGroups, 'project'>
+}
+
+/**
+ * User toggled Data API access on a table via the switch in the table editor side panel.
+ * Only fires for new tables — editing existing tables links out to the settings page instead.
+ *
+ * @group Events
+ * @source studio
+ * @page /dashboard/project/{ref}/editor
+ */
+export interface TableApiAccessToggleClickedEvent {
+  action: 'table_api_access_toggle_clicked'
+  properties: {
+    /**
+     * The resulting state of the toggle after the click.
+     */
+    newState: 'enabled' | 'disabled'
+    /**
+     * The schema containing the table being created.
+     */
+    schemaName: string
+  }
+  groups: TelemetryGroups
 }
 
 /**
@@ -636,6 +667,10 @@ export interface SqlEditorResultCopyJsonClickedEvent {
  */
 export interface AssistantPromptSubmittedEvent {
   action: 'assistant_prompt_submitted'
+  properties: {
+    /** UUID of the chat session in which the prompt was submitted */
+    chatId?: string
+  }
   groups: TelemetryGroups
 }
 
@@ -647,6 +682,10 @@ export interface AssistantPromptSubmittedEvent {
  */
 export interface AssistantDebugSubmittedEvent {
   action: 'assistant_debug_submitted'
+  properties: {
+    /** UUID of the chat session in which the debug request was submitted */
+    chatId?: string
+  }
   groups: TelemetryGroups
 }
 
@@ -744,6 +783,29 @@ export interface DocsFeedbackClickedEvent {
      * 'yes' means clicking on the tick button, 'no' means clicking on the cross button.
      */
     response: 'yes' | 'no'
+  }
+}
+
+/**
+ * User clicked 'Copy as Markdown' option on a page.
+ *
+ * @group Events
+ * @source docs
+ */
+export interface CopyAsMarkdownEvent {
+  action: 'copy_as_markdown_clicked'
+}
+
+/**
+ * User clicked "Ask..." to open a new window to consult an agent about the current page.
+ *
+ * @group Events
+ * @source docs
+ */
+export interface AskAIEvent {
+  action: 'ask_ai_clicked'
+  properties: {
+    agent: 'chatgpt' | 'claude'
   }
 }
 
@@ -1425,6 +1487,10 @@ export interface AssistantMessageRatingSubmittedEvent {
       | 'debugging'
       | 'general_help'
       | 'other'
+    /** Optional reason provided by the user when rating negatively */
+    reason?: string
+    /** UUID of the chat session in which the message was rated */
+    chatId?: string
   }
   groups: TelemetryGroups
 }
@@ -2738,7 +2804,7 @@ export interface RequestUpgradeModalOpenedEvent {
     /** Target plan being requested */
     requestedPlan: 'Pro' | 'Team' | 'Enterprise'
     /** Addon being requested, if applicable */
-    addon?: 'pitr' | 'customDomain' | 'spendCap' | 'computeSize'
+    addon?: 'pitr' | 'customDomain' | 'ipv4' | 'spendCap' | 'computeSize'
     /** Current organization plan */
     currentPlan?: string
     /** Feature context driving the upgrade request */
@@ -2759,7 +2825,7 @@ export interface RequestUpgradeSubmittedEvent {
     /** Target plan being requested */
     requestedPlan: 'Pro' | 'Team' | 'Enterprise'
     /** Addon being requested, if applicable */
-    addon?: 'pitr' | 'customDomain' | 'spendCap' | 'computeSize'
+    addon?: 'pitr' | 'customDomain' | 'ipv4' | 'spendCap' | 'computeSize'
     /** Current organization plan */
     currentPlan?: string
   }
@@ -2768,7 +2834,7 @@ export interface RequestUpgradeSubmittedEvent {
 
 /**
  * Triggered when a Studio error UI element is displayed (mounted).
- * This includes error Admonitions and Toast notifications.
+ * This includes error Admonitions, Toast notifications, and ErrorDisplay components.
  *
  * @group Events
  * @source studio
@@ -2779,7 +2845,69 @@ export interface DashboardErrorCreatedEvent {
     /**
      * Source of the error
      */
-    source?: 'admonition' | 'toast'
+    source?: 'admonition' | 'toast' | 'error_display'
+    /**
+     * Type of error matched (for error_display source)
+     */
+    errorType?: string
+    /**
+     * Whether troubleshooting steps are available (for error_display source)
+     */
+    hasTroubleshooting?: boolean
+  }
+  groups: TelemetryGroups
+}
+
+/**
+ * Triggered when the inline error troubleshooter is shown to the user.
+ *
+ * @group Events
+ * @source studio
+ */
+export interface InlineErrorTroubleshooterExposedEvent {
+  action: 'inline_error_troubleshooter_exposed'
+  properties: {
+    /** ID of the matched error mapping */
+    errorType: string
+  }
+  groups: TelemetryGroups
+}
+
+/**
+ * Triggered when a user opens or closes a troubleshooting accordion step.
+ *
+ * @group Events
+ * @source studio
+ */
+export interface InlineErrorTroubleshooterStepClickedEvent {
+  action: 'inline_error_troubleshooter_step_clicked'
+  properties: {
+    /** ID of the matched error mapping */
+    errorType: string
+    /** Step number that was clicked (1, 2, 3, ...) — null when a step is collapsed */
+    step: number | null
+    /** Title of the step that was clicked */
+    stepTitle?: string
+    /** Whether the step was opened (true) or closed (false) */
+    expanded: boolean
+  }
+  groups: TelemetryGroups
+}
+
+/**
+ * Triggered when a user clicks an action within the inline error troubleshooter.
+ * Covers all CTAs including the contact support link.
+ *
+ * @group Events
+ * @source studio
+ */
+export interface InlineErrorTroubleshooterActionClickedEvent {
+  action: 'inline_error_troubleshooter_action_clicked'
+  properties: {
+    /** ID of the matched error mapping */
+    errorType: string
+    /** Which CTA was clicked */
+    ctaType: 'restart_db' | 'troubleshooting_guide' | 'ask_ai' | 'contact_support'
   }
   groups: TelemetryGroups
 }
@@ -2949,6 +3077,7 @@ export type TelemetryEvent =
   | ProjectCreationRlsOptionExperimentExposedEvent
   | ProjectCreationSimpleVersionSubmittedEvent
   | ProjectCreationSimpleVersionConfirmModalOpenedEvent
+  | TableApiAccessToggleClickedEvent
   | ProjectCreationInitialStepPromptIntendedEvent
   | ProjectCreationInitialStepSubmittedEvent
   | ProjectCreationSecondStepPromptIntendedEvent
@@ -2974,6 +3103,8 @@ export type TelemetryEvent =
   | AssistantEditInSqlEditorClickedEvent
   | AssistantMessageRatingSubmittedEvent
   | DocsFeedbackClickedEvent
+  | CopyAsMarkdownEvent
+  | AskAIEvent
   | HomepageFrameworkQuickstartClickedEvent
   | HomepageProductCardClickedEvent
   | WwwPricingPlanCtaClickedEvent
@@ -3079,6 +3210,9 @@ export type TelemetryEvent =
   | RequestUpgradeModalOpenedEvent
   | RequestUpgradeSubmittedEvent
   | DashboardErrorCreatedEvent
+  | InlineErrorTroubleshooterExposedEvent
+  | InlineErrorTroubleshooterStepClickedEvent
+  | InlineErrorTroubleshooterActionClickedEvent
   | IntegrationInstallCompletedEvent
   | IntegrationInstallSubmittedEvent
   | IntegrationUninstallSubmittedEvent

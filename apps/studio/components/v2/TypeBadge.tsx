@@ -10,7 +10,7 @@ type BadgeVariant = DataTabDomain | 'list'
 
 const BADGE_CONFIG: Record<
   BadgeVariant,
-  { label: string; icon: React.ReactNode; className: string }
+  { label: string; icon: React.ReactNode; className?: string }
 > = {
   list: {
     label: 'List',

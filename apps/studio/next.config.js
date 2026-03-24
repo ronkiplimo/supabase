@@ -609,7 +609,7 @@ const nextConfig = {
 // Make sure adding Sentry options is the last code to run before exporting, to
 // ensure that your source maps include changes from all other Webpack plugins
 module.exports =
-  process.env.NEXT_PUBLIC_IS_PLATFORM === 'true'
+  process.env.NEXT_PUBLIC_IS_PLATFORM === 'true' && process.env.DISABLE_SENTRY_BUILD !== 'true'
     ? withSentryConfig(withBundleAnalyzer(nextConfig), {
         silent: true,
 

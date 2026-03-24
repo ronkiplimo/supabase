@@ -1,0 +1,26 @@
+'use client'
+
+import { cn } from 'ui'
+import { CommandMenuTriggerInput } from 'ui-patterns'
+
+import { V2ProjectBranchSelector } from './V2ProjectBranchSelector'
+
+export function TopBar() {
+  return (
+    <header
+      className={cn(
+        'h-11 md:h-12 flex items-center justify-between pl-1 pr-1.5 border-b border-border bg-dash-sidebar shrink-0'
+      )}
+    >
+      <div className="flex items-center gap-2 min-w-0 flex-1">
+        <V2ProjectBranchSelector />
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <CommandMenuTriggerInput
+          placeholder="Search ⌘K"
+          className="text-foreground-lighter border border-border rounded px-2 py-1 text-xs"
+        />
+      </div>
+    </header>
+  )
+}

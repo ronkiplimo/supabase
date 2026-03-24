@@ -604,11 +604,6 @@ const nextConfig = {
     maxInactiveAge: 24 * 60 * 60 * 1000,
     pagesBufferLength: 100,
   },
-  typescript: {
-    // Typechecking is run via GitHub Action only for efficiency
-    // For production, we run typechecks separate from the build command (pnpm typecheck && pnpm build)
-    ignoreBuildErrors: true,
-  },
 }
 
 // Make sure adding Sentry options is the last code to run before exporting, to
@@ -622,7 +617,7 @@ module.exports =
         // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 
         // Upload a larger set of source maps for prettier stack traces (increases build time)
-        widenClientFileUpload: true,
+        widenClientFileUpload: false,
 
         // Automatically annotate React components to show their full name in breadcrumbs and session replay
         reactComponentAnnotation: {

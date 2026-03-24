@@ -13,9 +13,7 @@ const EDGE_FUNCTIONS_COLUMNS: DataTableColumn<EdgeFunctionsResponse>[] = [
     name: 'Name',
     width: 220,
     minWidth: 140,
-    renderCell: (_v, row) => (
-      <span className="font-mono text-xs text-foreground">{row.name}</span>
-    ),
+    renderCell: (_v, row) => <span className="font-mono text-xs text-foreground">{row.name}</span>,
   },
   {
     id: 'slug',
@@ -63,10 +61,7 @@ export function V2EdgeFunctionsList() {
     isLoading,
     isError,
     error,
-  } = useEdgeFunctionsQuery(
-    { projectRef },
-    { enabled: Boolean(projectRef) }
-  )
+  } = useEdgeFunctionsQuery({ projectRef }, { enabled: Boolean(projectRef) })
 
   return (
     <DataTableRenderer<EdgeFunctionsResponse>
@@ -75,7 +70,9 @@ export function V2EdgeFunctionsList() {
       rowKey="id"
       isLoading={isLoading}
       error={isError ? (error as Error) : null}
-      filters={[{ id: 'search', label: 'Search', type: 'search', placeholder: 'Filter edge functions…' }]}
+      filters={[
+        { id: 'search', label: 'Search', type: 'search', placeholder: 'Filter edge functions…' },
+      ]}
       emptyState={{
         title: 'No edge functions yet',
         description: 'Deploy your first edge function to get started.',

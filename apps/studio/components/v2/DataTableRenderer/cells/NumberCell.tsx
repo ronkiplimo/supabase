@@ -10,9 +10,5 @@ export function NumberCell({ value }: NumberCellProps) {
   if (Number.isNaN(num)) {
     return <span className="truncate">{String(value)}</span>
   }
-  return (
-    <span className="truncate tabular-nums text-right w-full">
-      {num.toLocaleString()}
-    </span>
-  )
+  return <span className="truncate tabular-nums text-right w-full">{num.toLocaleString()}</span>
 }

@@ -24,18 +24,14 @@ const FUNCTIONS_COLUMNS: DataTableColumn<DatabaseFunction>[] = [
     name: 'Name',
     width: 220,
     minWidth: 140,
-    renderCell: (_v, row) => (
-      <span className="font-mono text-xs text-foreground">{row.name}</span>
-    ),
+    renderCell: (_v, row) => <span className="font-mono text-xs text-foreground">{row.name}</span>,
   },
   {
     id: 'schema',
     name: 'Schema',
     width: 140,
     type: 'text',
-    renderCell: (_v, row) => (
-      <span className="text-foreground-lighter">{row.schema}</span>
-    ),
+    renderCell: (_v, row) => <span className="text-foreground-lighter">{row.schema}</span>,
   },
   {
     id: 'language',

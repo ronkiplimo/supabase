@@ -70,7 +70,8 @@ export function V2TableDataGrid({
       placeholderData: keepPreviousData,
       enabled: rowsQueryEnabled,
       retry: (_failureCount, err: unknown) => {
-        const message = err && typeof err === 'object' && 'message' in err ? String(err.message) : ''
+        const message =
+          err && typeof err === 'object' && 'message' in err ? String(err.message) : ''
         const doesNotExistError = message.includes('does not exist')
         if (doesNotExistError) onApplySorts([])
         return false
@@ -111,10 +112,7 @@ export function V2TableDataGrid({
 
   const rows = data?.rows ?? EMPTY_ARR
 
-  const columns = useMemo(
-    () => buildDataTableColumnsFromSupaTable(snap.table),
-    [snap.table]
-  )
+  const columns = useMemo(() => buildDataTableColumnsFromSupaTable(snap.table), [snap.table])
 
   // Stable unique keys per page: positional `idx` from table-rows-query (must not be overwritten by a column named idx)
   const rowKeyFn = useMemo(

@@ -41,10 +41,7 @@ export function V2TableDetailView({ subTab }: { subTab: string }) {
   )
 
   const shouldFetchTable =
-    Boolean(projectRef) &&
-    Boolean(connectionString) &&
-    typeof id === 'number' &&
-    !Number.isNaN(id)
+    Boolean(projectRef) && Boolean(connectionString) && typeof id === 'number' && !Number.isNaN(id)
   const isPending = isProjectLoading || (shouldFetchTable && isTableLoading)
 
   // Register this detail tab once we know the table name

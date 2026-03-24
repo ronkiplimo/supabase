@@ -26,15 +26,11 @@ import { useV2DashboardStore } from '@/stores/v2-dashboard'
 import type { InfraMonitoringAttribute } from 'data/analytics/infra-monitoring-query'
 
 const HomeViewInfrastructureDiagram = dynamic(
-  () =>
-    import('./HomeViewInfrastructureDiagram').then((m) => m.HomeViewInfrastructureDiagram),
+  () => import('./HomeViewInfrastructureDiagram').then((m) => m.HomeViewInfrastructureDiagram),
   {
     ssr: false,
     loading: () => (
-      <div
-        className="h-full min-h-[200px] animate-pulse rounded-md bg-surface-200"
-        aria-hidden
-      />
+      <div className="h-full min-h-[200px] animate-pulse rounded-md bg-surface-200" aria-hidden />
     ),
   }
 )

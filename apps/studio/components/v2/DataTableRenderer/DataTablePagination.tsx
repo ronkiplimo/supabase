@@ -41,9 +41,7 @@ export function DataTablePagination({
   return (
     <div className="flex h-9 shrink-0 items-center justify-between border-t border-border px-2 text-xs text-foreground-light">
       {/* Total count */}
-      <span>
-        {total > 0 ? `${from}–${to} of ${total.toLocaleString()} records` : '0 records'}
-      </span>
+      <span>{total > 0 ? `${from}–${to} of ${total.toLocaleString()} records` : '0 records'}</span>
 
       <div className="flex items-center gap-2">
         {/* Page size selector */}

@@ -10,4 +10,3 @@ export default async function DataLayout({
   const { projectRef } = await params
   return <StudioDataWorkspace projectRef={projectRef}>{children}</StudioDataWorkspace>
 }
-

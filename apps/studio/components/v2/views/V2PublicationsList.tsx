@@ -24,9 +24,7 @@ const PUBLICATIONS_COLUMNS: DataTableColumn<Publication>[] = [
     name: 'Name',
     width: 200,
     minWidth: 120,
-    renderCell: (_v, row) => (
-      <span className="font-mono text-xs text-foreground">{row.name}</span>
-    ),
+    renderCell: (_v, row) => <span className="font-mono text-xs text-foreground">{row.name}</span>,
   },
   {
     id: 'publish_insert',

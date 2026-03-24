@@ -77,12 +77,7 @@ export function DataTableHeader<T = unknown>({
 
   return (
     <thead className="sticky top-0 z-10">
-      <tr
-        className={cn(
-          'border-b border-default bg-surface-200 text-left',
-          rowHeight
-        )}
-      >
+      <tr className={cn('border-b border-default bg-surface-200 text-left', rowHeight)}>
         {selectable && (
           <th className="w-10 min-w-10 max-w-10 shrink-0 px-2 align-middle text-center">
             <input

@@ -15,17 +15,13 @@ const TYPES_COLUMNS: DataTableColumn<EnumeratedType>[] = [
     name: 'Name',
     width: 200,
     minWidth: 120,
-    renderCell: (_v, row) => (
-      <span className="font-mono text-xs text-foreground">{row.name}</span>
-    ),
+    renderCell: (_v, row) => <span className="font-mono text-xs text-foreground">{row.name}</span>,
   },
   {
     id: 'schema',
     name: 'Schema',
     width: 140,
-    renderCell: (_v, row) => (
-      <span className="text-foreground-lighter">{row.schema}</span>
-    ),
+    renderCell: (_v, row) => <span className="text-foreground-lighter">{row.schema}</span>,
   },
   {
     id: 'enums',
@@ -34,7 +30,10 @@ const TYPES_COLUMNS: DataTableColumn<EnumeratedType>[] = [
     renderCell: (_v, row) => (
       <div className="flex flex-wrap gap-1 truncate">
         {(row.enums ?? []).slice(0, 5).map((e: string) => (
-          <span key={e} className="rounded border border-border bg-surface-300 px-1 text-[11px] font-mono">
+          <span
+            key={e}
+            className="rounded border border-border bg-surface-300 px-1 text-[11px] font-mono"
+          >
             {e}
           </span>
         ))}

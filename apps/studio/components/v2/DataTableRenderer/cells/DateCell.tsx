@@ -21,7 +21,10 @@ function formatRelative(date: Date): string {
 
 function formatFull(date: Date, showTime: boolean): string {
   if (showTime) {
-    return date.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC')
+    return date
+      .toISOString()
+      .replace('T', ' ')
+      .replace(/\.\d{3}Z$/, ' UTC')
   }
   return date.toDateString()
 }

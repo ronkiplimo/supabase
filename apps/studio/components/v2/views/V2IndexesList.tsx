@@ -15,25 +15,19 @@ const INDEXES_COLUMNS: DataTableColumn<DatabaseIndex>[] = [
     name: 'Name',
     width: 240,
     minWidth: 140,
-    renderCell: (_v, row) => (
-      <span className="font-mono text-xs text-foreground">{row.name}</span>
-    ),
+    renderCell: (_v, row) => <span className="font-mono text-xs text-foreground">{row.name}</span>,
   },
   {
     id: 'schema',
     name: 'Schema',
     width: 120,
-    renderCell: (_v, row) => (
-      <span className="text-foreground-lighter">{row.schema}</span>
-    ),
+    renderCell: (_v, row) => <span className="text-foreground-lighter">{row.schema}</span>,
   },
   {
     id: 'table',
     name: 'Table',
     width: 180,
-    renderCell: (_v, row) => (
-      <span className="font-mono text-xs">{row.table}</span>
-    ),
+    renderCell: (_v, row) => <span className="font-mono text-xs">{row.table}</span>,
   },
   {
     id: 'columns',

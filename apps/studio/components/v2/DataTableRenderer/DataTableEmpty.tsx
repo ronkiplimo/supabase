@@ -13,9 +13,7 @@ export function DataTableEmpty({ emptyState }: DataTableEmptyProps) {
     <div className="flex h-full min-h-[200px] flex-col items-center justify-center gap-3 p-8 text-center">
       <div className="text-foreground-lighter">{Icon}</div>
       <div>
-        <p className="text-sm font-medium text-foreground">
-          {emptyState?.title ?? 'No data'}
-        </p>
+        <p className="text-sm font-medium text-foreground">{emptyState?.title ?? 'No data'}</p>
         {emptyState?.description && (
           <p className="mt-1 text-xs text-foreground-lighter">{emptyState.description}</p>
         )}

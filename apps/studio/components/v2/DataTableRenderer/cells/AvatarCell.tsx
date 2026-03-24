@@ -3,7 +3,10 @@ interface AvatarCellProps {
 }
 
 function getInitials(str: string): string {
-  const parts = str.trim().split(/[\s@._-]+/).filter(Boolean)
+  const parts = str
+    .trim()
+    .split(/[\s@._-]+/)
+    .filter(Boolean)
   if (parts.length >= 2) {
     return (parts[0][0] + parts[1][0]).toUpperCase()
   }

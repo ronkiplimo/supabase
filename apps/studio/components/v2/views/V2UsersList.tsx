@@ -25,7 +25,9 @@ const USERS_COLUMNS: DataTableColumn<User>[] = [
         <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand/20 text-[10px] font-semibold text-brand">
           {row.email ? row.email[0].toUpperCase() : '?'}
         </span>
-        <span className="truncate text-[13px]">{row.email ?? <span className="italic text-foreground-lighter">no email</span>}</span>
+        <span className="truncate text-[13px]">
+          {row.email ?? <span className="italic text-foreground-lighter">no email</span>}
+        </span>
       </div>
     ),
   },
@@ -52,7 +54,10 @@ const USERS_COLUMNS: DataTableColumn<User>[] = [
       return (
         <div className="flex gap-1 truncate">
           {providers.slice(0, 2).map((p: string) => (
-            <span key={p} className="inline-flex items-center rounded border border-border bg-surface-300 px-1.5 py-0.5 text-[11px]">
+            <span
+              key={p}
+              className="inline-flex items-center rounded border border-border bg-surface-300 px-1.5 py-0.5 text-[11px]"
+            >
               {p}
             </span>
           ))}
@@ -90,10 +95,7 @@ export function V2UsersList() {
 
   const shouldFetch = Boolean(projectRef) && isValidConnString(project?.connectionString)
 
-  const { data: countData } = useUsersCountQuery(
-    { projectRef },
-    { enabled: shouldFetch }
-  )
+  const { data: countData } = useUsersCountQuery({ projectRef }, { enabled: shouldFetch })
   const total = countData?.count ?? 0
 
   const {
@@ -108,7 +110,9 @@ export function V2UsersList() {
       projectRef,
       connectionString: project?.connectionString,
       keywords: search || undefined,
-      sort: (sort?.columnId as 'created_at' | 'email' | 'id' | 'phone' | 'last_sign_in_at') ?? 'created_at',
+      sort:
+        (sort?.columnId as 'created_at' | 'email' | 'id' | 'phone' | 'last_sign_in_at') ??
+        'created_at',
       order: sort?.direction ?? 'asc',
     },
     { enabled: shouldFetch }
@@ -169,7 +173,9 @@ export function V2UsersList() {
       selectable
       emptyState={{
         title: 'No users found',
-        description: search ? 'No users match your search.' : 'There are no users in this project yet.',
+        description: search
+          ? 'No users match your search.'
+          : 'There are no users in this project yet.',
       }}
     />
   )

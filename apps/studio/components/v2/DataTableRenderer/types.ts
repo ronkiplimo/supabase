@@ -16,7 +16,10 @@ export interface DataTableColumn<T = any> {
   type?: 'text' | 'number' | 'boolean' | 'date' | 'datetime' | 'badge' | 'code' | 'json' | 'avatar'
 
   // For 'badge' type: map values to badge variants
-  badgeMap?: Record<string, { label: string; variant: 'success' | 'warning' | 'danger' | 'info' | 'default' }>
+  badgeMap?: Record<
+    string,
+    { label: string; variant: 'success' | 'warning' | 'danger' | 'info' | 'default' }
+  >
 
   // Copy-on-click (e.g., for IDs, UUIDs, keys)
   copyable?: boolean

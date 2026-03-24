@@ -1,7 +1,14 @@
 'use client'
 
 import { MoreHorizontal } from 'lucide-react'
-import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, cn } from 'ui'
+import {
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  cn,
+} from 'ui'
 import { DataTableCell } from './DataTableCell'
 import type { DataTableColumn, EditingCell, RowAction } from './types'
 
@@ -116,7 +123,7 @@ export function DataTableRow<T extends Record<string, unknown>>({
                 const isDisabled =
                   typeof action.disabled === 'function'
                     ? action.disabled(row)
-                    : action.disabled ?? false
+                    : (action.disabled ?? false)
                 const isDanger = action.variant === 'danger'
                 return (
                   <DropdownMenuItem

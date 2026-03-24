@@ -131,9 +131,7 @@ export function DataTableRenderer<T extends Record<string, unknown>>({
 
   const handleSelectAll = useCallback(
     (checked: boolean) => {
-      const next = checked
-        ? new Set(displayRows.map((r) => getRowKey(r)))
-        : new Set<string>()
+      const next = checked ? new Set(displayRows.map((r) => getRowKey(r))) : new Set<string>()
       if (isControlledSelection) onSelectionChange?.(next)
       else setInternalSelectedRows(next)
     },
@@ -161,8 +159,7 @@ export function DataTableRenderer<T extends Record<string, unknown>>({
   // ── Derived selection state ───────────────────────────────────────────────
   const allSelected =
     displayRows.length > 0 && displayRows.every((r) => activeSelectedRows.has(getRowKey(r)))
-  const someSelected =
-    !allSelected && displayRows.some((r) => activeSelectedRows.has(getRowKey(r)))
+  const someSelected = !allSelected && displayRows.some((r) => activeSelectedRows.has(getRowKey(r)))
 
   const selectedRowObjects = useMemo(
     () => displayRows.filter((r) => activeSelectedRows.has(getRowKey(r))),

@@ -116,11 +116,9 @@ export function DataTableCell<T extends Record<string, any>>({
         />
       ) : (
         <div className="min-w-0 truncate">
-          {column.renderCell ? (
-            column.renderCell(value, row, rowIndex)
-          ) : (
-            renderDefaultCell(column, value)
-          )}
+          {column.renderCell
+            ? column.renderCell(value, row, rowIndex)
+            : renderDefaultCell(column, value)}
         </div>
       )}
     </td>

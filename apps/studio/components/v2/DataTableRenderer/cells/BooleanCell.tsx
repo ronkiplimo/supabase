@@ -8,9 +8,7 @@ export function BooleanCell({ value }: BooleanCellProps) {
   }
   const bool = value === true || value === 'true' || value === 1
   return (
-    <span
-      className={bool ? 'text-brand font-medium' : 'text-foreground-lighter'}
-    >
+    <span className={bool ? 'text-brand font-medium' : 'text-foreground-lighter'}>
       {bool ? '✓' : '—'}
     </span>
   )

@@ -100,9 +100,7 @@ export function DataTableToolbar({
       </div>
 
       {/* Right: custom slot */}
-      {toolbarRight && (
-        <div className="flex shrink-0 items-center gap-2">{toolbarRight}</div>
-      )}
+      {toolbarRight && <div className="flex shrink-0 items-center gap-2">{toolbarRight}</div>}
     </div>
   )
 }

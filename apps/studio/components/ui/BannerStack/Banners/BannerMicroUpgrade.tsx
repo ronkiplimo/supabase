@@ -7,6 +7,22 @@ import { ComputeBadge } from 'ui-patterns/ComputeBadge'
 import { BannerCard } from '../BannerCard'
 import { useBannerStack } from '../BannerStackProvider'
 
+const ChevronsUpAnimated = () => (
+  <svg
+    width={10}
+    height={10}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="17 18 12 13 7 18" className="animate-chevron-up" style={{ animationDelay: '0s' }} />
+    <polyline points="17 11 12 6 7 11" className="animate-chevron-up" style={{ animationDelay: '0.3s' }} />
+  </svg>
+)
+
 const BANNER_ID = 'micro-upgrade-banner'
 
 interface BannerMicroUpgradeProps {
@@ -33,7 +49,8 @@ export const BannerMicroUpgrade = ({ slug, isFreePlan }: BannerMicroUpgradeProps
           <div className="relative inline-flex overflow-hidden rounded">
             <ComputeBadge
               infraComputeSize="nano"
-              className="text-brand-600 border-brand-500 bg-brand/10"
+              icon={<ChevronsUpAnimated />}
+              className="text-brand-600 border-brand-500 bg-brand/10 gap-1"
             />
             <span className="animate-badge-shimmer pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-brand/20 to-transparent" />
           </div>
@@ -48,8 +65,8 @@ export const BannerMicroUpgrade = ({ slug, isFreePlan }: BannerMicroUpgradeProps
               : 'If you spot the glowing Nano badge on your projects, your Pro plan includes a free upgrade from Nano to Micro compute.'}
           </p>
         </div>
-        {isFreePlan && (
-          <div className="flex gap-2">
+        <div className="flex gap-2">
+          {isFreePlan ? (
             <Button type="primary" size="tiny" asChild>
               <Link
                 href={`/org/${slug}/billing?panel=subscriptionPlan&source=micro_upgrade_banner`}
@@ -57,8 +74,12 @@ export const BannerMicroUpgrade = ({ slug, isFreePlan }: BannerMicroUpgradeProps
                 Upgrade to Pro
               </Link>
             </Button>
-          </div>
-        )}
+          ) : (
+            <Button type="default" size="tiny" onClick={onDismiss}>
+              Got it
+            </Button>
+          )}
+        </div>
       </div>
     </BannerCard>
   )

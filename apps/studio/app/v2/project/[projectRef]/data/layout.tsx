@@ -1,12 +1,13 @@
 import { StudioDataWorkspace } from '@/components/v2/data/StudioDataWorkspace'
 
-export default function DataLayout({
+export default async function DataLayout({
   children,
   params,
 }: {
   children: React.ReactNode
-  params: { projectRef: string }
+  params: Promise<{ projectRef: string }>
 }) {
-  return <StudioDataWorkspace projectRef={params.projectRef}>{children}</StudioDataWorkspace>
+  const { projectRef } = await params
+  return <StudioDataWorkspace projectRef={projectRef}>{children}</StudioDataWorkspace>
 }
 

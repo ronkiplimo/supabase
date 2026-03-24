@@ -41,10 +41,10 @@ export async function handlePost(req: NextApiRequest, res: NextApiResponse) {
       return res.status(500).json({ error: modelError.message })
     }
 
-    const { output } = await generateText({
+    const { experimental_output } = await generateText({
       model,
       providerOptions,
-      output: Output.object({
+      experimental_output: Output.object({
         schema: z.object({
           feedback_category: z.enum(['support', 'feedback', 'unknown']),
         }),
@@ -99,7 +99,7 @@ export async function handlePost(req: NextApiRequest, res: NextApiResponse) {
   `,
     })
 
-    return res.json({ feedback_category: output.feedback_category })
+    return res.json({ feedback_category: experimental_output?.feedback_category ?? 'unknown' })
   } catch (error) {
     if (error instanceof Error) {
       console.error(`Classifying this feedback failed`)

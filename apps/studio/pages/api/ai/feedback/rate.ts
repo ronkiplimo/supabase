@@ -110,10 +110,10 @@ export async function handlePost(req: NextApiRequest, res: NextApiResponse) {
       return res.status(500).json({ error: modelError.message })
     }
 
-    const { output } = await generateText({
+    const { experimental_output } = await generateText({
       model,
       providerOptions,
-      output: Output.object({ schema: rateMessageResponseSchema }),
+      experimental_output: Output.object({ schema: rateMessageResponseSchema }),
       prompt: `
 Your job is to look at a Supabase Assistant conversation, which the user has given feedback on, and classify it.
 
@@ -148,7 +148,7 @@ Instructions:
         })
         logger?.updateSpan({
           id: spanId,
-          metadata: { feedbackCategory: output.category },
+          metadata: { feedbackCategory: experimental_output?.category },
         })
       } catch (error) {
         console.error('Failed to log feedback to Braintrust:', error)
@@ -156,7 +156,7 @@ Instructions:
     }
 
     return res.json({
-      category: output.category,
+      category: experimental_output?.category,
     })
   } catch (error) {
     if (error instanceof Error) {

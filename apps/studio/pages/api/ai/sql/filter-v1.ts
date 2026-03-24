@@ -65,7 +65,7 @@ export async function handlePost(req: NextApiRequest, res: NextApiResponse) {
     const result = await generateText({
       model,
       providerOptions,
-      output: Output.object({ schema: filterGroupSchema }),
+      experimental_output: Output.object({ schema: filterGroupSchema }),
       prompt: source`
         You are an expert Postgres filter builder. Convert the user's request into structured filters.
 
@@ -84,7 +84,12 @@ export async function handlePost(req: NextApiRequest, res: NextApiResponse) {
       `,
     })
 
-    const generatedFilters = result.output
+    const generatedFilters = result.experimental_output
+    if (!generatedFilters) {
+      return res.status(500).json({
+        error: 'Failed to generate structured filters.',
+      })
+    }
 
     if (!validateFilterGroup(generatedFilters, normalizedFilterProperties)) {
       return res.status(400).json({

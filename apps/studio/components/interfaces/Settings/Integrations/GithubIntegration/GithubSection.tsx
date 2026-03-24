@@ -69,7 +69,7 @@ export const GitHubSection = () => {
               <div>
                 <h5 className="text-foreground mb-2">How does the GitHub integration work?</h5>
                 <p className="text-foreground-light text-sm mb-6">
-                  Connect GitHub to apply changes to your database when you merge to your main
+                  Connect GitHub to apply changes to your database when you merge to your production
                   branch. If branching is enabled, each pull request gets its own preview database.
                 </p>
 

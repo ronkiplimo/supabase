@@ -273,7 +273,7 @@ The `cli_login_role` must be created by the `supabase_admin` role. If the migrat
 ERROR:  0LP01: role "postgres" is a member of role "cli_login_postgres"
 ```
 
-To resolve the issue, drop the custom `cli_login_postgres` role, so the CLI can recreate it with the right priveleges:
+To resolve the issue, drop the custom `cli_login_postgres` role. Then the CLI can recreate it with the right privileges:
 
 ```sql
 DROP ROLE IF EXISTS cli_login_postgres;
@@ -301,13 +301,13 @@ DROP ROLE IF EXISTS cli_login_postgres;
   </StepHikeCompact.Step>
   <StepHikeCompact.Step step={3}>
     <StepHikeCompact.Details title="Download your functions" fullWidth>
-      You can download an individual function with the below command:
+      You can download an individual function with the following command:
       ```bash
       supabase functions download YOUR_FUNCTION_NAME --project-ref your_project_ref
       ```
       <Admonition type="note">
 
-        The command will not download [import maps](/docs/guides/functions/dependencies#using-import-maps-legacy) nor [deno.json](/docs/guides/functions/dependencies#using-denojson-recommended) files. If your edge functions rely on them for dedependency management, you will have to add them back manually.
+        The command will not download [import maps](/docs/guides/functions/dependencies#using-import-maps-legacy) nor [deno.json](/docs/guides/functions/dependencies#using-denojson-recommended) files. If your edge functions rely on them for dependency management, you will have to add them back manually.
 
       </Admonition>
 

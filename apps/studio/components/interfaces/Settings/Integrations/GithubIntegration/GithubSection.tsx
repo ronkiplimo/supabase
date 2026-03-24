@@ -61,9 +61,7 @@ export const GitHubSection = () => {
             <div className="space-y-6">
               <h5 className="text-foreground">How does the GitHub integration work?</h5>
               <p className="text-foreground-light text-sm !mt-2">
-                Connecting to GitHub allows you to sync preview branches with a chosen GitHub
-                branch, keep your production branch in sync, and automatically create preview
-                branches for every pull request.
+                Connect GitHub to apply changes to your database when you merge to your production branch. If branching is enabled, each pull request gets its own preview database.
               </p>
               <GitHubIntegrationConnectionForm connection={existingConnection} />
             </div>

@@ -122,7 +122,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         ...(promptProviderOptions && { providerOptions: promptProviderOptions }),
       },
       {
-        role: 'assistant',
+        role: 'user',
         // Add any dynamic context here
         content: `
         You are helping me edit some code.

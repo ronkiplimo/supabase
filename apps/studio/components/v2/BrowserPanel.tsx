@@ -153,7 +153,7 @@ export function BrowserPanel({ onCollapse }: { onCollapse?: () => void }) {
   const counts = useV2DataCounts(projectRef)
 
   const base = projectRef ? `/v2/project/${projectRef}` : ''
-  const isData = pathname?.includes('/data/')
+  const isData = Boolean(pathname?.includes('/data/') || pathname?.endsWith('/data'))
   const isObs = pathname?.includes('/obs/')
   const isSettings = pathname?.includes('/settings/')
 
@@ -163,7 +163,7 @@ export function BrowserPanel({ onCollapse }: { onCollapse?: () => void }) {
 
   return (
     <div className="w-full h-full flex flex-col border-r border-border bg-dash-sidebar">
-      <div className="flex items-center justify-between pl-3 pr-2 py-1.5 border-b border-border shrink-0">
+      <div className="flex items-center justify-between h-[var(--header-height)] pl-3 pr-2 py-1.5 border-b border-border shrink-0">
         <span className="text-sm font-medium text-foreground">{title}</span>
         {onCollapse && (
           <Tooltip delayDuration={0}>

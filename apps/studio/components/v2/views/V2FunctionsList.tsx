@@ -5,8 +5,10 @@ import type { DatabaseFunction } from 'data/database-functions/database-function
 import { useSchemasQuery } from 'data/database/schemas-query'
 import { isValidConnString } from 'data/fetchers'
 import { useProjectDetailQuery } from 'data/projects/project-detail-query'
+import { CopyPlus, Pencil, Plus } from 'lucide-react'
 import { useState } from 'react'
 import {
+  Button,
   Select_Shadcn_,
   SelectContent_Shadcn_,
   SelectItem_Shadcn_,
@@ -15,8 +17,10 @@ import {
 } from 'ui'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
+import { CreateFunction } from '@/components/interfaces/Database/Functions/CreateFunction'
 import { DataTableRenderer } from '@/components/v2/DataTableRenderer'
 import type { DataTableColumn } from '@/components/v2/DataTableRenderer'
+import { useEntityPanelParams } from '@/components/v2/hooks/useEntityPanelParams'
 
 const FUNCTIONS_COLUMNS: DataTableColumn<DatabaseFunction>[] = [
   {
@@ -77,6 +81,15 @@ const FUNCTIONS_COLUMNS: DataTableColumn<DatabaseFunction>[] = [
 export function V2FunctionsList() {
   const { projectRef } = useV2Params()
   const [schema, setSchema] = useState('public')
+  const {
+    isCreating,
+    setIsCreating,
+    editingId,
+    setEditingId,
+    duplicatingId,
+    setDuplicatingId,
+    closePanels,
+  } = useEntityPanelParams()
 
   const { data: project, isPending: isProjectPending } = useProjectDetailQuery(
     { ref: projectRef },
@@ -103,6 +116,8 @@ export function V2FunctionsList() {
   const schemaFunctions = (functions ?? []).filter(
     (f) => schema === '__all__' || f.schema === schema
   )
+  const functionToEdit = schemaFunctions.find((f) => f.id.toString() === editingId)
+  const functionToDuplicate = schemaFunctions.find((f) => f.id.toString() === duplicatingId)
 
   const schemaSelector = (
     <Select_Shadcn_ value={schema} onValueChange={setSchema}>
@@ -121,25 +136,64 @@ export function V2FunctionsList() {
   )
 
   return (
-    <DataTableRenderer<DatabaseFunction>
-      columns={FUNCTIONS_COLUMNS}
-      rows={schemaFunctions}
-      rowKey="id"
-      isLoading={isProjectPending || (shouldFetch && isFunctionsPending)}
-      error={isError ? (error as Error) : null}
-      filters={[
-        {
-          id: 'search',
-          label: 'Search',
-          type: 'search',
-          placeholder: 'Filter functions…',
-        },
-      ]}
-      toolbarLeft={schemaSelector}
-      emptyState={{
-        title: 'No functions found',
-        description: 'Create a database function to get started.',
-      }}
-    />
+    <>
+      <DataTableRenderer<DatabaseFunction>
+        columns={FUNCTIONS_COLUMNS}
+        rows={schemaFunctions}
+        rowKey="id"
+        isLoading={isProjectPending || (shouldFetch && isFunctionsPending)}
+        error={isError ? (error as Error) : null}
+        filters={[
+          {
+            id: 'search',
+            label: 'Search',
+            type: 'search',
+            placeholder: 'Filter functions…',
+          },
+        ]}
+        toolbarLeft={schemaSelector}
+        toolbarRight={
+          <Button
+            type="primary"
+            size="tiny"
+            icon={<Plus size={12} />}
+            onClick={() => setIsCreating(true)}
+          >
+            Create function
+          </Button>
+        }
+        rowActions={[
+          {
+            id: 'edit',
+            label: 'Edit function',
+            icon: <Pencil size={12} />,
+            onClick: (row) => {
+              setDuplicatingId(null)
+              setEditingId(row.id.toString())
+            },
+          },
+          {
+            id: 'duplicate',
+            label: 'Duplicate function',
+            icon: <CopyPlus size={12} />,
+            onClick: (row) => {
+              setEditingId(null)
+              setDuplicatingId(row.id.toString())
+            },
+          },
+        ]}
+        emptyState={{
+          title: 'No functions found',
+          description: 'Create a database function to get started.',
+        }}
+      />
+
+      <CreateFunction
+        func={functionToEdit || functionToDuplicate}
+        visible={isCreating || !!functionToEdit || !!functionToDuplicate}
+        isDuplicating={!!functionToDuplicate}
+        onClose={closePanels}
+      />
+    </>
   )
 }

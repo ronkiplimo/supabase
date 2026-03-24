@@ -42,9 +42,21 @@ export function DataTabBar() {
     if (!pathname.startsWith(base)) return
 
     const rest = pathname.slice(base.length)
-    const [category] = rest.split('/')
+    const [category, detailKey] = rest.split('/')
     if (!category || category === 'tables') return
     if (!(category in CATEGORY_LABELS)) return
+
+    if (category === 'edge-functions' && detailKey) {
+      openDataTab({
+        id: `edge-function:${detailKey}`,
+        label: detailKey,
+        type: 'detail',
+        category,
+        domain: CATEGORY_DOMAIN[category] ?? 'fn',
+        path: `${base}${category}/${detailKey}`,
+      })
+      return
+    }
 
     openDataTab({
       id: category,

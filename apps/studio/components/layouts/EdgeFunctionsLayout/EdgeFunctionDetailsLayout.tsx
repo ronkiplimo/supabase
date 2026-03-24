@@ -18,7 +18,7 @@ import { withAuth } from 'hooks/misc/withAuth'
 import { DOCS_URL } from 'lib/constants'
 import { Clock, Download, FileArchive, Send } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/compat/router'
 import React, { useEffect, useState, type PropsWithChildren } from 'react'
 import { toast } from 'sonner'
 import {
@@ -64,8 +64,11 @@ const EdgeFunctionDetailsLayout = ({
   children,
 }: PropsWithChildren<EdgeFunctionDetailsLayoutProps>) => {
   const router = useRouter()
+  const pathWithoutQuery = router?.asPath?.split('?')[0] ?? ''
   const { data: org } = useSelectedOrganizationQuery()
   const { functionSlug, ref } = useParams()
+  const v2OverviewPath =
+    ref && functionSlug ? `/v2/project/${ref}/data/edge-functions/${functionSlug}` : ''
   const { mutate: sendEvent } = useSendEventMutation()
 
   const isNewAPIDocsEnabled = useIsAPIDocsSidePanelEnabled()
@@ -229,7 +232,7 @@ const EdgeFunctionDetailsLayout = ({
 
     if (!!functionSlug && isError && error.code === 404 && !cancel) {
       toast('Edge function cannot be found in your project')
-      router.push(`/project/${ref}/functions`)
+      router?.push(`/project/${ref}/functions`)
     }
 
     return () => {
@@ -393,7 +396,11 @@ const EdgeFunctionDetailsLayout = ({
             <PageHeaderNavigationTabs>
               <NavMenu>
                 {navigationItems.map((item) => {
-                  const isActive = router.asPath.split('?')[0] === item.href
+                  const isActive =
+                    pathWithoutQuery === item.href ||
+                    (Boolean(v2OverviewPath) &&
+                      item.href === `/project/${ref}/functions/${functionSlug}` &&
+                      pathWithoutQuery === v2OverviewPath)
                   return (
                     <NavMenuItem key={item.label} active={isActive}>
                       <Link href={item.href}>{item.label}</Link>

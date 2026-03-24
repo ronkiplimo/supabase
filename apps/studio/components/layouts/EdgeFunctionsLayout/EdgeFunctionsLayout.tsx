@@ -1,7 +1,7 @@
 import { useParams } from 'common'
 import { ProductMenu } from 'components/ui/ProductMenu'
 import { withAuth } from 'hooks/misc/withAuth'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/compat/router'
 import type { ComponentProps, PropsWithChildren } from 'react'
 
 import { ProjectLayout } from '../ProjectLayout'
@@ -9,7 +9,7 @@ import { ProjectLayout } from '../ProjectLayout'
 export const EdgeFunctionsProductMenu = () => {
   const { ref: projectRef = 'default' } = useParams()
   const router = useRouter()
-  const page = router.pathname.split('/')[4]
+  const page = router?.pathname?.split('/')[4]
 
   const menuItems = [
     {

@@ -1,15 +1,19 @@
 'use client'
 
+import { SortDropdown } from 'components/interfaces/Auth/Users/SortDropdown'
 import { useUsersCountQuery } from 'data/auth/users-count-query'
 import { useUsersInfiniteQuery } from 'data/auth/users-infinite-query'
-import type { User } from 'data/auth/users-infinite-query'
+import type { User, Filter as UserTypeFilter } from 'data/auth/users-infinite-query'
 import { isValidConnString } from 'data/fetchers'
 import { useProjectDetailQuery } from 'data/projects/project-detail-query'
+import { useIsFeatureEnabled } from 'hooks/misc/useIsFeatureEnabled'
 import { useState } from 'react'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
+import { AddUserDropdown } from '@/components/interfaces/Auth/Users/AddUserDropdown'
+import { PROVIDER_FILTER_OPTIONS } from '@/components/interfaces/Auth/Users/Users.constants'
 import { DataTableRenderer } from '@/components/v2/DataTableRenderer'
-import type { DataTableColumn, SortState } from '@/components/v2/DataTableRenderer'
+import type { DataTableColumn, FilterState, SortState } from '@/components/v2/DataTableRenderer'
 
 const PAGE_SIZE = 50
 
@@ -85,7 +89,22 @@ const USERS_COLUMNS: DataTableColumn<User>[] = [
 export function V2UsersList() {
   const { projectRef } = useV2Params()
   const [search, setSearch] = useState('')
+  const [filterUserType, setFilterUserType] = useState<'all' | UserTypeFilter>('all')
+  const [selectedProviders, setSelectedProviders] = useState<string[]>([])
   const [sort, setSort] = useState<SortState | null>(null)
+  const {
+    authenticationShowSortByEmail: showSortByEmail,
+    authenticationShowSortByPhone: showSortByPhone,
+  } = useIsFeatureEnabled([
+    'authentication:show_sort_by_email',
+    'authentication:show_sort_by_phone',
+  ])
+
+  const sortColumn =
+    (sort?.columnId as 'created_at' | 'email' | 'id' | 'phone' | 'last_sign_in_at') ?? 'created_at'
+  const sortOrder = sort?.direction ?? 'asc'
+  const sortByValue = `${sortColumn}:${sortOrder}`
+
   const [page, setPage] = useState(1)
 
   const { data: project, isLoading: isProjectLoading } = useProjectDetailQuery(
@@ -95,7 +114,16 @@ export function V2UsersList() {
 
   const shouldFetch = Boolean(projectRef) && isValidConnString(project?.connectionString)
 
-  const { data: countData } = useUsersCountQuery({ projectRef }, { enabled: shouldFetch })
+  const { data: countData } = useUsersCountQuery(
+    {
+      projectRef,
+      connectionString: project?.connectionString,
+      keywords: search || undefined,
+      filter: filterUserType === 'all' ? undefined : filterUserType,
+      providers: selectedProviders,
+    },
+    { enabled: shouldFetch }
+  )
   const total = countData?.count ?? 0
 
   const {
@@ -110,10 +138,10 @@ export function V2UsersList() {
       projectRef,
       connectionString: project?.connectionString,
       keywords: search || undefined,
-      sort:
-        (sort?.columnId as 'created_at' | 'email' | 'id' | 'phone' | 'last_sign_in_at') ??
-        'created_at',
-      order: sort?.direction ?? 'asc',
+      filter: filterUserType === 'all' ? undefined : filterUserType,
+      providers: selectedProviders,
+      sort: sortColumn,
+      order: sortOrder,
     },
     { enabled: shouldFetch }
   )
@@ -133,14 +161,36 @@ export function V2UsersList() {
   }
 
   const handleSortChange = (s: SortState | null) => {
-    setSort(s)
+    setSort(s ?? { columnId: 'created_at', direction: 'asc' })
     setPage(1)
   }
 
-  const handleFilterChange = (state: Record<string, string | string[] | boolean>) => {
+  const handleSortByValue = (value: string) => {
+    const [columnId, direction] = value.split(':') as [
+      SortState['columnId'],
+      SortState['direction'],
+    ]
+    setSort({ columnId, direction })
+    setPage(1)
+  }
+
+  const handleFilterChange = (state: FilterState) => {
     const newSearch = (state['search'] as string) ?? ''
+    const newUserType = (state['userType'] as 'all' | UserTypeFilter) ?? 'all'
+    const newProviders = Array.isArray(state['providers'])
+      ? (state['providers'] as string[])
+      : ([] as string[])
+
     if (newSearch !== search) {
       setSearch(newSearch)
+      setPage(1)
+    }
+    if (newUserType !== filterUserType) {
+      setFilterUserType(newUserType)
+      setPage(1)
+    }
+    if (newProviders.join(',') !== selectedProviders.join(',')) {
+      setSelectedProviders(newProviders)
       setPage(1)
     }
   }
@@ -154,6 +204,18 @@ export function V2UsersList() {
       error={isError ? (error as Error) : null}
       sort={sort}
       onSortChange={handleSortChange}
+      renderSortControl={() => (
+        <SortDropdown
+          specificFilterColumn="freeform"
+          sortColumn={sortColumn}
+          sortOrder={sortOrder}
+          sortByValue={sortByValue}
+          showSortByEmail={showSortByEmail}
+          showSortByPhone={showSortByPhone}
+          setSortByValue={handleSortByValue}
+          improvedSearchEnabled
+        />
+      )}
       filters={[
         {
           id: 'search',
@@ -161,9 +223,30 @@ export function V2UsersList() {
           type: 'search',
           placeholder: 'Search by email or phone…',
         },
+        {
+          id: 'userType',
+          label: 'User type',
+          type: 'select',
+          options: [
+            { value: 'all', label: 'All users' },
+            { value: 'verified', label: 'Verified users' },
+            { value: 'unverified', label: 'Unverified users' },
+            { value: 'anonymous', label: 'Anonymous users' },
+          ],
+        },
+        {
+          id: 'providers',
+          label: 'Provider',
+          type: 'multi-select',
+          options: PROVIDER_FILTER_OPTIONS.map((provider) => ({
+            value: provider.value,
+            label: provider.name,
+          })),
+        },
       ]}
-      filterState={{ search }}
+      filterState={{ search, userType: filterUserType, providers: selectedProviders }}
       onFilterChange={handleFilterChange}
+      toolbarRight={<AddUserDropdown />}
       pagination={{
         page,
         pageSize: PAGE_SIZE,

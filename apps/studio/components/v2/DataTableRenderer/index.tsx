@@ -24,6 +24,7 @@ export function DataTableRenderer<T extends Record<string, unknown>>({
   onRetry,
   sort: controlledSort,
   onSortChange: controlledOnSortChange,
+  renderSortControl,
   filters,
   filterState: controlledFilterState,
   onFilterChange: controlledOnFilterChange,
@@ -172,7 +173,8 @@ export function DataTableRenderer<T extends Record<string, unknown>>({
   const hasPagination = !!pagination && !!onPageChange
   const hasRowActions = !!rowActions && rowActions.length > 0
   const showChromeToolbar =
-    !hideToolbar && (hasBulkBar || Boolean(filters?.length) || toolbarLeft || toolbarRight)
+    !hideToolbar &&
+    (hasBulkBar || Boolean(filters?.length) || toolbarLeft || toolbarRight || renderSortControl)
 
   return (
     <div className={cn('sb-grid flex h-full min-h-0 flex-col', className)}>
@@ -190,7 +192,15 @@ export function DataTableRenderer<T extends Record<string, unknown>>({
           filterState={activeFilterState}
           onFilterChange={handleFilterChange}
           toolbarLeft={toolbarLeft}
-          toolbarRight={toolbarRight}
+          toolbarRight={
+            <>
+              {renderSortControl?.({
+                sort: activeSort,
+                onSortChange: handleSortChange,
+              })}
+              {toolbarRight}
+            </>
+          }
         />
       ) : null}
 

@@ -2,7 +2,8 @@
 
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 import { useCallback, useRef } from 'react'
-import { cn } from 'ui'
+import { cn, Input_Shadcn_ } from 'ui'
+
 import type { DataTableColumn, SortState } from './types'
 
 interface DataTableHeaderProps<T = unknown> {
@@ -80,8 +81,9 @@ export function DataTableHeader<T = unknown>({
       <tr className={cn('border-b border-default bg-surface-200 text-left', rowHeight)}>
         {selectable && (
           <th className="w-10 min-w-10 max-w-10 shrink-0 px-2 align-middle text-center">
-            <input
+            <Input_Shadcn_
               type="checkbox"
+              size="small"
               className="h-3.5 w-3.5 cursor-pointer rounded border-control accent-brand"
               checked={allSelected}
               ref={(el) => {

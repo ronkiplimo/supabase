@@ -1,3 +1,6 @@
+import { getColumnType } from 'components/interfaces/TableGridEditor/SidePanelEditor/RowEditor/DateTimeInput/DateTimeInput.utils'
+import dayjs from 'dayjs'
+import { DATETIME_FORMAT } from 'lib/constants'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui'
 
 interface DateCellProps {
@@ -5,28 +8,11 @@ interface DateCellProps {
   showTime?: boolean
 }
 
-function formatRelative(date: Date): string {
-  const diff = Date.now() - date.getTime()
-  const seconds = Math.floor(diff / 1000)
-  const minutes = Math.floor(seconds / 60)
-  const hours = Math.floor(minutes / 60)
-  const days = Math.floor(hours / 24)
-
-  if (seconds < 60) return 'just now'
-  if (minutes < 60) return `${minutes}m ago`
-  if (hours < 24) return `${hours}h ago`
-  if (days < 30) return `${days}d ago`
-  return date.toLocaleDateString()
-}
-
 function formatFull(date: Date, showTime: boolean): string {
-  if (showTime) {
-    return date
-      .toISOString()
-      .replace('T', ' ')
-      .replace(/\.\d{3}Z$/, ' UTC')
-  }
-  return date.toDateString()
+  const valueType = getColumnType(showTime ? 'timestamp' : 'date')
+  if (valueType === 'date') return dayjs(date).format('YYYY-MM-DD')
+  if (valueType === 'time') return dayjs(date).format('HH:mm:ss')
+  return dayjs(date).format('YYYY-MM-DD HH:mm:ss')
 }
 
 export function DateCell({ value, showTime = false }: DateCellProps) {
@@ -42,7 +28,7 @@ export function DateCell({ value, showTime = false }: DateCellProps) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="truncate cursor-default">{formatRelative(date)}</span>
+        <span className="truncate cursor-default">{dayjs(date).format(DATETIME_FORMAT)}</span>
       </TooltipTrigger>
       <TooltipContent side="top">
         <span className="font-mono text-xs">{formatFull(date, showTime)}</span>

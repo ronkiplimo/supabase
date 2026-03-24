@@ -49,6 +49,11 @@ export interface FilterDefinition {
   type: 'search' | 'select' | 'multi-select' | 'toggle'
   options?: Array<{ value: string; label: string }>
   placeholder?: string
+  render?: (args: {
+    value: string | string[] | boolean | undefined
+    onChange: (value: string | string[] | boolean) => void
+    filterState: FilterState
+  }) => ReactNode
 }
 
 export type FilterState = Record<string, string | string[] | boolean>
@@ -106,6 +111,10 @@ export interface DataTableRendererProps<T extends Record<string, any> = any> {
   // If omitted, sorting is handled client-side internally
   sort?: SortState | null
   onSortChange?: (sort: SortState | null) => void
+  renderSortControl?: (args: {
+    sort: SortState | null
+    onSortChange: (sort: SortState | null) => void
+  }) => ReactNode
 
   // ── Filtering (controlled) ──
   // If omitted, filtering is handled client-side when filters is defined

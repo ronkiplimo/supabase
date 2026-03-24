@@ -2,10 +2,12 @@
 
 import { useEdgeFunctionsQuery } from 'data/edge-functions/edge-functions-query'
 import type { EdgeFunctionsResponse } from 'data/edge-functions/edge-functions-query'
+import { useRouter } from 'next/navigation'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
 import { DataTableRenderer } from '@/components/v2/DataTableRenderer'
 import type { DataTableColumn } from '@/components/v2/DataTableRenderer'
+import { useV2DashboardStore } from '@/stores/v2-dashboard'
 
 const EDGE_FUNCTIONS_COLUMNS: DataTableColumn<EdgeFunctionsResponse>[] = [
   {
@@ -54,7 +56,9 @@ const EDGE_FUNCTIONS_COLUMNS: DataTableColumn<EdgeFunctionsResponse>[] = [
 ]
 
 export function V2EdgeFunctionsList() {
+  const router = useRouter()
   const { projectRef } = useV2Params()
+  const openDataTab = useV2DashboardStore((s) => s.openDataTab)
 
   const {
     data: functions,
@@ -73,6 +77,19 @@ export function V2EdgeFunctionsList() {
       filters={[
         { id: 'search', label: 'Search', type: 'search', placeholder: 'Filter edge functions…' },
       ]}
+      onRowClick={(row) => {
+        if (!projectRef) return
+        const path = `/v2/project/${projectRef}/data/edge-functions/${row.slug}`
+        openDataTab({
+          id: `edge-function:${row.slug}`,
+          label: row.name || row.slug,
+          type: 'detail',
+          category: 'edge-functions',
+          domain: 'fn',
+          path,
+        })
+        router.push(path)
+      }}
       emptyState={{
         title: 'No edge functions yet',
         description: 'Deploy your first edge function to get started.',

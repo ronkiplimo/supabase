@@ -4,10 +4,14 @@ import { useDatabaseRolesQuery } from 'data/database-roles/database-roles-query'
 import type { PgRole } from 'data/database-roles/database-roles-query'
 import { isValidConnString } from 'data/fetchers'
 import { useProjectDetailQuery } from 'data/projects/project-detail-query'
+import { Plus } from 'lucide-react'
+import { Button } from 'ui'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
+import { CreateRolePanel } from '@/components/interfaces/Database/Roles/CreateRolePanel'
 import { DataTableRenderer } from '@/components/v2/DataTableRenderer'
 import type { DataTableColumn } from '@/components/v2/DataTableRenderer'
+import { useEntityPanelParams } from '@/components/v2/hooks/useEntityPanelParams'
 
 const ROLES_COLUMNS: DataTableColumn<PgRole>[] = [
   {
@@ -93,6 +97,7 @@ const ROLES_COLUMNS: DataTableColumn<PgRole>[] = [
 
 export function V2RolesList() {
   const { projectRef } = useV2Params()
+  const { isCreating, setIsCreating } = useEntityPanelParams()
 
   const { data: project, isPending: isProjectPending } = useProjectDetailQuery(
     { ref: projectRef },
@@ -112,25 +117,39 @@ export function V2RolesList() {
   )
 
   return (
-    <DataTableRenderer<PgRole>
-      columns={ROLES_COLUMNS}
-      rows={(roles as PgRole[]) ?? []}
-      rowKey="name"
-      isLoading={isProjectPending || (shouldFetch && isRolesPending)}
-      error={isError ? (error as Error) : null}
-      compact
-      filters={[
-        {
-          id: 'search',
-          label: 'Search',
-          type: 'search',
-          placeholder: 'Filter roles…',
-        },
-      ]}
-      emptyState={{
-        title: 'No roles found',
-        description: 'Database roles will appear here.',
-      }}
-    />
+    <>
+      <DataTableRenderer<PgRole>
+        columns={ROLES_COLUMNS}
+        rows={(roles as PgRole[]) ?? []}
+        rowKey="name"
+        isLoading={isProjectPending || (shouldFetch && isRolesPending)}
+        error={isError ? (error as Error) : null}
+        compact
+        filters={[
+          {
+            id: 'search',
+            label: 'Search',
+            type: 'search',
+            placeholder: 'Filter roles…',
+          },
+        ]}
+        toolbarRight={
+          <Button
+            type="primary"
+            size="tiny"
+            icon={<Plus size={12} />}
+            onClick={() => setIsCreating(true)}
+          >
+            Add role
+          </Button>
+        }
+        emptyState={{
+          title: 'No roles found',
+          description: 'Database roles will appear here.',
+        }}
+      />
+
+      <CreateRolePanel visible={isCreating} onClose={() => setIsCreating(false)} />
+    </>
   )
 }

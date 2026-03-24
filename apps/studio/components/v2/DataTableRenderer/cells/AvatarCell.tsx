@@ -33,11 +33,11 @@ export function AvatarCell({ value }: AvatarCellProps) {
   return (
     <div className="flex items-center gap-2">
       <span
-        className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${colorClass}`}
+        className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${colorClass}`}
       >
         {initials}
       </span>
-      <span className="truncate text-[13px]">{str}</span>
+      <span className="truncate text-xs">{str}</span>
     </div>
   )
 }

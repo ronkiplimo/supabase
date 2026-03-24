@@ -1,7 +1,20 @@
 'use client'
 
 import { Search } from 'lucide-react'
-import { cn } from 'ui'
+import {
+  cn,
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  Input_Shadcn_,
+  Select_Shadcn_,
+  SelectContent_Shadcn_,
+  SelectItem_Shadcn_,
+  SelectTrigger_Shadcn_,
+  SelectValue_Shadcn_,
+} from 'ui'
+
 import type { FilterDefinition, FilterState } from './types'
 
 interface DataTableToolbarProps {
@@ -34,45 +47,95 @@ export function DataTableToolbar({
       <div className="flex flex-1 min-w-0 items-center gap-2">
         {toolbarLeft}
         {filters?.map((filter) => {
+          const currentValue = filterState[filter.id]
+          if (filter.render) {
+            return (
+              <div key={filter.id}>
+                {filter.render({
+                  value: currentValue,
+                  onChange: (value) => updateFilter(filter.id, value),
+                  filterState,
+                })}
+              </div>
+            )
+          }
+
           if (filter.type === 'search') {
             return (
               <div key={filter.id} className="relative flex items-center">
                 <Search className="absolute left-2 h-3.5 w-3.5 text-foreground-lighter pointer-events-none" />
-                <input
-                  type="text"
+                <Input_Shadcn_
                   placeholder={filter.placeholder ?? `Filter ${filter.label.toLowerCase()}...`}
                   value={(filterState[filter.id] as string) ?? ''}
                   onChange={(e) => updateFilter(filter.id, e.target.value)}
-                  className={cn(
-                    'h-8 rounded-md border border-control bg-surface-100',
-                    'pl-7 pr-3 text-xs text-foreground placeholder:text-foreground-lighter',
-                    'focus:outline-none focus:ring-1 focus:ring-brand',
-                    'min-w-[180px]'
-                  )}
+                  size="small"
+                  className={cn('h-8 bg-surface-100', 'pl-7 pr-3 text-xs', 'min-w-[180px]')}
                 />
               </div>
             )
           }
 
-          if (filter.type === 'select' || filter.type === 'multi-select') {
+          if (filter.type === 'select') {
+            const value = (filterState[filter.id] as string) ?? '__all__'
             return (
-              <select
+              <Select_Shadcn_
                 key={filter.id}
-                value={(filterState[filter.id] as string) ?? ''}
-                onChange={(e) => updateFilter(filter.id, e.target.value)}
-                className={cn(
-                  'h-8 rounded-md border border-control bg-surface-100',
-                  'px-2 text-xs text-foreground',
-                  'focus:outline-none focus:ring-1 focus:ring-brand'
-                )}
+                value={value}
+                onValueChange={(nextValue) =>
+                  updateFilter(filter.id, nextValue === '__all__' ? '' : nextValue)
+                }
               >
-                <option value="">{filter.placeholder ?? `All ${filter.label}`}</option>
-                {filter.options?.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger_Shadcn_
+                  className="h-8 min-w-[150px] bg-surface-100 text-xs"
+                  size="small"
+                >
+                  <SelectValue_Shadcn_ placeholder={filter.placeholder ?? `All ${filter.label}`} />
+                </SelectTrigger_Shadcn_>
+                <SelectContent_Shadcn_>
+                  <SelectItem_Shadcn_ value="__all__">
+                    {filter.placeholder ?? `All ${filter.label}`}
+                  </SelectItem_Shadcn_>
+                  {filter.options?.map((opt) => (
+                    <SelectItem_Shadcn_ key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem_Shadcn_>
+                  ))}
+                </SelectContent_Shadcn_>
+              </Select_Shadcn_>
+            )
+          }
+
+          if (filter.type === 'multi-select') {
+            const selected = Array.isArray(filterState[filter.id])
+              ? (filterState[filter.id] as string[])
+              : []
+            return (
+              <DropdownMenu key={filter.id}>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex h-8 items-center rounded-md border border-control bg-surface-100 px-2 text-xs text-foreground-light hover:text-foreground"
+                  >
+                    {selected.length > 0 ? `${filter.label} (${selected.length})` : filter.label}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  {filter.options?.map((opt) => (
+                    <DropdownMenuCheckboxItem
+                      key={opt.value}
+                      checked={selected.includes(opt.value)}
+                      onCheckedChange={(checked) => {
+                        const next = checked
+                          ? [...selected, opt.value]
+                          : selected.filter((v) => v !== opt.value)
+                        updateFilter(filter.id, next)
+                      }}
+                    >
+                      {opt.label}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             )
           }
 

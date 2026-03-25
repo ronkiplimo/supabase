@@ -101,7 +101,7 @@ values
 
 ## Enabling RBAC in RLS policies
 
-To utilize Role-Based Access Control (RBAC) in Row Level Security (RLS) policies, create an `authorize` function that checks if the user has the required permission based on their role. This will query the `user_roles` and `role_permissions` tables to determine if the user has the necessary permissions.
+To utilize Role-Based Access Control (RBAC) in Row Level Security (RLS) policies, create an `authorize` function that checks if the user has the required permission based on their role. This queries the `user_roles` and `role_permissions` tables to determine if the user has the necessary permissions.
 
 ```sql supabase/migrations/init.sql
 create or replace function public.authorize(
@@ -133,7 +133,7 @@ You can read more about using functions in RLS policies in the [RLS guide](/docs
 
 </Admonition>
 
-You can then use the `authorize` method within your RLS policies. For example, to enable the desired delete access, you would add the following policies:
+You can then use the `authorize` method within your RLS policies. For example, to enable the desired delete access, add the following policies:
 
 ```sql
 create policy "Allow authorized delete access"
@@ -215,9 +215,9 @@ revoke execute
 
 ### Enable the hook
 
-In the dashboard, navigate to [`Authentication > Auth Hooks (Beta)`](/dashboard/project/_/auth/hooks), click "Add Hook" and select "Customize Access Token (JWT) Claims hook" from the dropdown menu.
+In the dashboard, navigate to [**Authentication > Auth Hooks (Beta)**](/dashboard/project/_/auth/hooks), click **Add Hook** and select **Customize Access Token (JWT) Claims hook** from the dropdown menu.
 
-This will open a modal where you can select the `custom_access_token_hook` function you created and enable the hook.
+This opens a modal where you can select the `custom_access_token_hook` function you created and enable the hook.
 
 When developing locally, follow the [local development](/docs/guides/auth/auth-hooks#local-development) instructions.
 
@@ -238,7 +238,7 @@ const userRole = data?.claims?.user_role;
 
 <Admonition type="note">
 
-To learn more about the `getClaims()` method, see the [Auth docs](/docs/reference/javascript/auth-getclaims).
+To learn more about the `getClaims()` method, see the [`getClaims` JavaScript reference docs](/docs/reference/javascript/auth-getclaims).
 
 </Admonition>
 

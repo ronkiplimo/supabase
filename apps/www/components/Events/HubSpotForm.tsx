@@ -1,5 +1,5 @@
-import { useState } from 'react'
 import Link from 'next/link'
+import { useState } from 'react'
 import { Button, Input_Shadcn_, TextArea_Shadcn_ } from 'ui'
 
 type SubmitState = 'idle' | 'loading' | 'success' | 'error'
@@ -17,11 +17,36 @@ type FormField = {
 }
 
 const DEFAULT_FIELDS: FormField[] = [
-  { type: 'text', name: 'first_name', label: 'First Name', placeholder: 'First Name', required: true, half: true },
-  { type: 'text', name: 'last_name', label: 'Last Name', placeholder: 'Last Name', required: true, half: true },
-  { type: 'email', name: 'email_address', label: 'Email', placeholder: 'Work email', required: true },
+  {
+    type: 'text',
+    name: 'first_name',
+    label: 'First Name',
+    placeholder: 'First Name',
+    required: true,
+    half: true,
+  },
+  {
+    type: 'text',
+    name: 'last_name',
+    label: 'Last Name',
+    placeholder: 'Last Name',
+    required: true,
+    half: true,
+  },
+  {
+    type: 'email',
+    name: 'email_address',
+    label: 'Email',
+    placeholder: 'Work email',
+    required: true,
+  },
   { type: 'text', name: 'company_name', label: 'Company', placeholder: 'Company name' },
-  { type: 'textarea', name: 'message', label: 'Tell us about your project', placeholder: 'I want to build...' },
+  {
+    type: 'textarea',
+    name: 'message',
+    label: 'Tell us about your project',
+    placeholder: 'I want to build...',
+  },
 ]
 
 const DEFAULT_FIELD_MAP: Record<string, string> = {
@@ -191,7 +216,13 @@ export default function HubSpotForm({
 
       <hr className="border-muted" />
 
-      <Button htmlType="submit" type="primary" size="large" block loading={submitState === 'loading'}>
+      <Button
+        htmlType="submit"
+        type="primary"
+        size="large"
+        block
+        loading={submitState === 'loading'}
+      >
         {submitLabel}
       </Button>
 

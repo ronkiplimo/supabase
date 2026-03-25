@@ -1,5 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
 import { CRMClient } from 'marketing/crm'
+import type { NextApiRequest, NextApiResponse } from 'next'
 
 type FormPayload = {
   formGuid: string
@@ -13,10 +13,7 @@ type FormResponse = {
   errors: string[]
 }
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<FormResponse>
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<FormResponse>) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
     return res.status(405).json({ success: false, errors: ['Method not allowed'] })
@@ -29,11 +26,7 @@ export default async function handler(
   }
 
   const email =
-    fields['email'] ??
-    fields['email_address'] ??
-    fields['workEmail'] ??
-    fields['work_email'] ??
-    ''
+    fields['email'] ?? fields['email_address'] ?? fields['workEmail'] ?? fields['work_email'] ?? ''
 
   if (!email) {
     return res.status(400).json({ success: false, errors: ['An email field is required.'] })
@@ -64,7 +57,10 @@ export default async function handler(
   })
 
   if (errors.length > 0) {
-    console.error('[hubspot-form] CRM errors:', errors.map((e) => e.message))
+    console.error(
+      '[hubspot-form] CRM errors:',
+      errors.map((e) => e.message)
+    )
     return res.status(502).json({ success: false, errors: errors.map((e) => e.message) })
   }
 

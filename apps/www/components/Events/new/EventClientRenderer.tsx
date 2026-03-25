@@ -5,11 +5,7 @@ import { EventBanner } from '~/components/Events/new/EventBanner'
 import { EventsProvider } from '~/app/events/context'
 import { EventGallery } from './EventGallery'
 
-export function EventClientRenderer({
-  notionEvents,
-}: {
-  notionEvents: SupabaseEvent[]
-}) {
+export function EventClientRenderer({ notionEvents }: { notionEvents: SupabaseEvent[] }) {
   return (
     <EventsProvider notionEvents={notionEvents}>
       <DefaultLayout className="flex flex-col">

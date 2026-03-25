@@ -19,13 +19,30 @@ export async function POST(request: NextRequest) {
   const timezone = body.timezone || 'America/New_York'
   const url = `${HUBSPOT_BASE}?timezone=${encodeURIComponent(timezone)}`
 
+  // Transform into HubSpot's expected format
+  // startTime must be ISO 8601, formFields is required (can be empty)
+  const hubspotBody = {
+    slug: body.slug,
+    email: body.email,
+    firstName: body.firstName,
+    lastName: body.lastName,
+    startTime: new Date(body.startTime).toISOString(),
+    duration: body.duration,
+    timezone,
+    locale: body.locale || 'en-us',
+    formFields: body.formFields ?? [],
+    likelyAvailableUserIds: body.likelyAvailableUserIds ?? [],
+    legalConsentResponses: body.legalConsentResponses ?? [],
+    ...(body.guestEmails?.length ? { guestEmails: body.guestEmails } : {}),
+  }
+
   const res = await fetch(url, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(hubspotBody),
   })
 
   if (!res.ok) {

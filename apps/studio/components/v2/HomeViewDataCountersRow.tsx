@@ -343,7 +343,7 @@ export function HomeViewDataCountersRow({
               title="Choose and reorder data counters"
               aria-label="Edit data counters"
               className={cn(
-                'hover:bg-transparent text-foreground-lighter hover:text-foreground opacity-0 transition-opacity group-hover/home-counters group-hover/home-counters:opacity-100',
+                'hover:bg-transparent text-foreground-lighter hover:text-foreground opacity-0 transition-opacity group-hover/home-counters:opacity-100',
                 open && 'opacity-100'
               )}
               onClick={(e) => e.stopPropagation()}

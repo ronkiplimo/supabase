@@ -64,14 +64,14 @@ const OBS_GROUPS = [
     id: 'obs-metrics',
     label: 'Observability',
     items: [
-      { href: 'metrics/connections', label: 'Query Performance' },
+      { href: 'metrics/query-performance', label: 'Query Performance' },
       { href: 'metrics/connections', label: 'API gateway' },
-      { href: 'metrics/connections', label: 'Database' },
-      { href: 'metrics/cpu', label: 'Data API' },
-      { href: 'metrics/memory', label: 'Auth' },
-      { href: 'metrics/disk', label: 'Edge Functions' },
-      { href: 'metrics/disk', label: 'Storage' },
-      { href: 'metrics/disk', label: 'Realtime' },
+      { href: 'metrics/database', label: 'Database' },
+      { href: 'metrics/postgrest', label: 'Data API' },
+      { href: 'metrics/auth', label: 'Auth' },
+      { href: 'metrics/edge-functions', label: 'Edge Functions' },
+      { href: 'metrics/storage', label: 'Storage' },
+      { href: 'metrics/realtime', label: 'Realtime' },
     ],
   },
   {
@@ -219,7 +219,7 @@ export function BrowserPanel({ onCollapse }: { onCollapse?: () => void }) {
                   const isActive = pathname === itemHref || pathname?.startsWith(itemHref + '/')
                   return (
                     <Link
-                      key={item.href}
+                      key={`${group.id}-${item.label}-${item.href}`}
                       href={itemHref}
                       className={cn(
                         'flex items-center justify-between pl-8 pr-4 py-1 text-xs',

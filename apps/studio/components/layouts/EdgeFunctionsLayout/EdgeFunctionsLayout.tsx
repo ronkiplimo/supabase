@@ -38,18 +38,21 @@ export const EdgeFunctionsProductMenu = () => {
 interface EdgeFunctionsLayoutProps {
   title: string
   browserTitle?: ComponentProps<typeof ProjectLayout>['browserTitle']
+  /** When true, omit the Edge Functions product sidebar (e.g. v2 single-function tab). */
+  hideProductMenu?: boolean
 }
 
 const EdgeFunctionsLayout = ({
   children,
   title,
   browserTitle,
+  hideProductMenu,
 }: PropsWithChildren<EdgeFunctionsLayoutProps>) => {
   return (
     <ProjectLayout
       product="Edge Functions"
       browserTitle={{ ...browserTitle, section: title }}
-      productMenu={<EdgeFunctionsProductMenu />}
+      productMenu={hideProductMenu ? undefined : <EdgeFunctionsProductMenu />}
       isBlocking={false}
     >
       {children}

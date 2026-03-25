@@ -1,5 +1,7 @@
-import { V2PlaceholderView } from '@/components/v2/views/V2PlaceholderView'
+'use client'
+
+import { ApiGatewayReportPageContent } from '@/components/interfaces/Reports/ApiGatewayReportPageContent'
 
 export default function ObsMetricsConnectionsPage() {
-  return <V2PlaceholderView title="Connections metric" />
+  return <ApiGatewayReportPageContent />
 }

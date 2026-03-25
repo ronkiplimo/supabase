@@ -1,5 +1,6 @@
 'use client'
 
+import { RouteParamsOverrideProvider } from 'common'
 import { useParams } from 'next/navigation'
 import { useMemo } from 'react'
 
@@ -26,10 +27,12 @@ export function ProjectShell({ children }: { children: React.ReactNode }) {
   }, [project?.organization_id, organizations])
 
   return (
-    <V2ParamsProvider projectRef={projectRef} orgSlug={orgSlug}>
-      <ProjectContextProvider projectRef={projectRef}>
-        <Shell>{children}</Shell>
-      </ProjectContextProvider>
-    </V2ParamsProvider>
+    <RouteParamsOverrideProvider value={{ ref: projectRef }}>
+      <V2ParamsProvider projectRef={projectRef} orgSlug={orgSlug}>
+        <ProjectContextProvider projectRef={projectRef}>
+          <Shell>{children}</Shell>
+        </ProjectContextProvider>
+      </V2ParamsProvider>
+    </RouteParamsOverrideProvider>
   )
 }

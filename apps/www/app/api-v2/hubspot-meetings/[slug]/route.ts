@@ -37,5 +37,27 @@ export async function GET(
   }
 
   const data = await res.json()
+
+  // HubSpot returns `durations` but our types expect `availableDurations`
+  if (data.customParams?.durations && !data.customParams.availableDurations) {
+    data.customParams.availableDurations = data.customParams.durations
+  }
+
+  // Transform linkAvailability from HubSpot's nested structure to a flat Record<string, TimeSlot[]>
+  // HubSpot returns: { linkAvailabilityByDuration: { "1800000": { availabilities: [...] } } }
+  // We need:         { "1800000": [...] }
+  if (data.linkAvailability?.linkAvailabilityByDuration) {
+    const flat: Record<string, Array<{ startMillisUtc: number; endMillisUtc: number }>> = {}
+    for (const [duration, value] of Object.entries(
+      data.linkAvailability.linkAvailabilityByDuration as Record<
+        string,
+        { availabilities?: Array<{ startMillisUtc: number; endMillisUtc: number }> }
+      >
+    )) {
+      flat[duration] = value.availabilities ?? []
+    }
+    data.linkAvailability = flat
+  }
+
   return NextResponse.json(data)
 }

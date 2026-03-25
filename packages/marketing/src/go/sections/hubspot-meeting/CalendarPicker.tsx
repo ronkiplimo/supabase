@@ -3,7 +3,7 @@ import { cn } from 'ui'
 
 interface CalendarPickerProps {
   monthOffset: number
-  maxMonthOffset: number
+  availableMonthOffsets: number[]
   timezone: string
   availableDates: Set<string>
   selectedDate: string | null
@@ -15,7 +15,7 @@ const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 export default function CalendarPicker({
   monthOffset,
-  maxMonthOffset,
+  availableMonthOffsets,
   timezone,
   availableDates,
   selectedDate,
@@ -55,16 +55,19 @@ export default function CalendarPicker({
 
   const today = new Date().toLocaleDateString('en-CA', { timeZone: timezone })
 
+  const hasPrev = availableMonthOffsets.some((o) => o < monthOffset)
+  const hasNext = availableMonthOffsets.some((o) => o > monthOffset)
+
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-4">
         <button
           type="button"
           onClick={() => onChangeMonth(monthOffset - 1)}
-          disabled={monthOffset <= 0}
+          disabled={!hasPrev}
           className={cn(
             'p-2 rounded-md text-foreground-lighter transition-colors',
-            monthOffset > 0 ? 'hover:bg-surface-300/50 hover:text-foreground' : 'opacity-30 cursor-not-allowed'
+            hasPrev ? 'hover:bg-surface-300/50 hover:text-foreground' : 'opacity-30 cursor-not-allowed'
           )}
           aria-label="Previous month"
         >
@@ -74,10 +77,10 @@ export default function CalendarPicker({
         <button
           type="button"
           onClick={() => onChangeMonth(monthOffset + 1)}
-          disabled={monthOffset >= maxMonthOffset}
+          disabled={!hasNext}
           className={cn(
             'p-2 rounded-md text-foreground-lighter transition-colors',
-            monthOffset < maxMonthOffset ? 'hover:bg-surface-300/50 hover:text-foreground' : 'opacity-30 cursor-not-allowed'
+            hasNext ? 'hover:bg-surface-300/50 hover:text-foreground' : 'opacity-30 cursor-not-allowed'
           )}
           aria-label="Next month"
         >

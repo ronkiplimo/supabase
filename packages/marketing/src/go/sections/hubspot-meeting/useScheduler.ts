@@ -121,11 +121,6 @@ export function useScheduler(slug: string, enabled = true) {
     setState((s) => ({ ...s, selectedSlot: null, step: 'time-select' }))
   }, [])
 
-  const changeMonth = useCallback((offset: number) => {
-    const clamped = Math.max(0, Math.min(offset, MONTHS_TO_FETCH - 1))
-    setState((s) => ({ ...s, monthOffset: clamped }))
-  }, [])
-
   const retry = useCallback(() => {
     loadAllMonths()
   }, [loadAllMonths])
@@ -203,8 +198,46 @@ export function useScheduler(slug: string, enabled = true) {
     return dates
   }, [allSlots, timezone])
 
-  /** Max month offset the user can navigate to */
-  const maxMonthOffset = MONTHS_TO_FETCH - 1
+  /** Month offsets that have at least one available slot */
+  const availableMonthOffsets = useMemo(() => {
+    const now = new Date()
+    const offsets = new Set<number>()
+    for (const slot of allSlots) {
+      const date = new Date(slot.startMillisUtc)
+      const localDateStr = date.toLocaleDateString('en-CA', { timeZone: timezone })
+      const [y, m] = localDateStr.split('-').map(Number)
+      const offset = (y - now.getFullYear()) * 12 + (m - 1 - now.getMonth())
+      if (offset >= 0 && offset < MONTHS_TO_FETCH) {
+        offsets.add(offset)
+      }
+    }
+    return Array.from(offsets).sort((a, b) => a - b)
+  }, [allSlots, timezone])
+
+  /** Auto-navigate to first month with availability */
+  const hasSetInitialMonth = useRef(false)
+  useEffect(() => {
+    if (hasSetInitialMonth.current) return
+    if (availableMonthOffsets.length > 0 && state.step === 'date-select') {
+      hasSetInitialMonth.current = true
+      setState((s) => ({ ...s, monthOffset: availableMonthOffsets[0] }))
+    }
+  }, [availableMonthOffsets, state.step])
+
+  const changeMonth = useCallback(
+    (offset: number) => {
+      if (availableMonthOffsets.length === 0) return
+      const current = state.monthOffset
+      if (offset > current) {
+        const next = availableMonthOffsets.find((o) => o > current)
+        if (next !== undefined) setState((s) => ({ ...s, monthOffset: next }))
+      } else if (offset < current) {
+        const prev = [...availableMonthOffsets].reverse().find((o) => o < current)
+        if (prev !== undefined) setState((s) => ({ ...s, monthOffset: prev }))
+      }
+    },
+    [availableMonthOffsets, state.monthOffset]
+  )
 
   return {
     state,
@@ -212,7 +245,7 @@ export function useScheduler(slug: string, enabled = true) {
     locale,
     availableDates,
     slotsForSelectedDate,
-    maxMonthOffset,
+    availableMonthOffsets,
     selectDate,
     selectSlot,
     goBackToDate,

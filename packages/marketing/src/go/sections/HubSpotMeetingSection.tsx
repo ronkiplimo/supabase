@@ -38,7 +38,7 @@ export default function HubSpotMeetingSection({ section }: { section: GoHubSpotM
     timezone,
     availableDates,
     slotsForSelectedDate,
-    maxMonthOffset,
+    availableMonthOffsets,
     selectDate,
     selectSlot,
     goBackToDate,
@@ -120,7 +120,7 @@ export default function HubSpotMeetingSection({ section }: { section: GoHubSpotM
         {state.step === 'date-select' && (
           <CalendarPicker
             monthOffset={state.monthOffset}
-            maxMonthOffset={maxMonthOffset}
+            availableMonthOffsets={availableMonthOffsets}
             timezone={timezone}
             availableDates={availableDates}
             selectedDate={state.selectedDate}

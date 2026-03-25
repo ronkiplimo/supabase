@@ -27,7 +27,7 @@ export default function GoogleSignInButton() {
 
   async function onSignInButtonPress() {
     console.debug('onSignInButtonPress - start')
-    const res = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: `${expo.scheme}://google-auth`,
@@ -36,7 +36,12 @@ export default function GoogleSignInButton() {
       },
     })
 
-    const googleOAuthUrl = res.data.url
+    if (error) {
+      console.error('onSignInButtonPress - signInWithOAuth - error', { error })
+      return
+    }
+
+    const googleOAuthUrl = data.url
 
     if (!googleOAuthUrl) {
       console.error('no oauth url found!')

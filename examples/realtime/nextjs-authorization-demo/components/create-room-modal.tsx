@@ -9,17 +9,17 @@ export default function CreateRoomModal({ channel }: { channel: RealtimeChannel 
   const supabase = createClient()
   const createRoom = async (formData: FormData) => {
     const topic = formData.get('topic') as string
-    const user = await supabase.auth.getUser()
-    const token = (await supabase.auth.getSession()).data.session!.access_token
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession()
 
-    supabase.realtime.setAuth(token)
+    supabase.realtime.setAuth(session!.access_token)
 
-    const rooms_response = await supabase.from('rooms').insert({ topic }).select('topic')
+    const { data: rooms } = await supabase.from('rooms').insert({ topic }).select('topic')
 
-    if (rooms_response.data) {
+    if (rooms) {
       await supabase
         .from('rooms_users')
-        .insert({ user_id: user.data.user!.id, room_topic: rooms_response.data![0].topic })
+        .insert({ user_id: user!.id, room_topic: rooms[0].topic })
 
       await channel?.send({
         type: 'broadcast',

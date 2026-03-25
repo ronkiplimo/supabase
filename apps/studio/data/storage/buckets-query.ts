@@ -11,6 +11,7 @@ import { components } from 'api-types'
 import { get, handleError } from 'data/fetchers'
 import { MAX_RETRY_FAILURE_COUNT } from 'data/query-client'
 import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
+import { useProjectDetailQuery } from 'data/projects/project-detail-query'
 import { PROJECT_STATUS } from 'lib/constants'
 import {
   ResponseError,
@@ -117,11 +118,21 @@ export type BucketsData = Awaited<ReturnType<typeof getBuckets>>
 export type BucketsWithPaginationData = Awaited<ReturnType<typeof getBucketsPaginated>>
 export type BucketsError = ResponseError
 
+type UseBucketQueryOptions<TData> = UseCustomQueryOptions<BucketData, BucketsError, TData> & {
+  /** When set, project health/active checks use this ref (e.g. embedded pickers) instead of the route project. */
+  healthCheckProjectRef?: string
+}
+
 export const useBucketQuery = <TData = BucketData>(
   { projectRef, bucketId }: GetBucketParams,
-  { enabled = true, ...options }: UseCustomQueryOptions<BucketData, BucketsError, TData>
+  { enabled = true, healthCheckProjectRef, ...options }: UseBucketQueryOptions<TData> = {}
 ) => {
-  const { data: project } = useSelectedProjectQuery()
+  const { data: routeProject } = useSelectedProjectQuery({ enabled: !healthCheckProjectRef })
+  const { data: explicitProject } = useProjectDetailQuery(
+    { ref: healthCheckProjectRef },
+    { enabled: !!healthCheckProjectRef }
+  )
+  const project = healthCheckProjectRef ? explicitProject : routeProject
   const isActive = project?.status === PROJECT_STATUS.ACTIVE_HEALTHY
 
   return useQuery<BucketData, BucketsError, TData>({

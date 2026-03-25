@@ -2,11 +2,11 @@ import { useDebounce } from '@uidotdev/usehooks'
 import { useParams } from 'common'
 import { useProjectStorageConfigQuery } from 'data/config/project-storage-config-query'
 import type { Bucket } from 'data/storage/buckets-query'
-import { useLatest } from 'hooks/misc/useLatest'
 import { IS_PLATFORM } from 'lib/constants'
 import { compact, get, isEmpty, uniqBy } from 'lodash'
 import { useEffect, useRef, useState } from 'react'
 import { useStorageExplorerStateSnapshot } from 'state/storage-explorer'
+import { cn } from 'ui'
 
 import { useSelectedBucket } from '../FilesBuckets/useSelectedBucket'
 import { STORAGE_ROW_TYPES, STORAGE_VIEWS } from '../Storage.constants'
@@ -17,9 +17,31 @@ import { FileExplorerHeader } from './FileExplorerHeader'
 import { FileExplorerHeaderSelection } from './FileExplorerHeaderSelection'
 import { MoveItemsModal } from './MoveItemsModal'
 import { PreviewPane } from './PreviewPane'
+import {
+  StorageExplorerPickerProvider,
+  type StoragePickerReturnValue,
+} from './StorageExplorerPickerContext'
 import { useStaticEffectEvent } from '@/hooks/useStaticEffectEvent'
 
-export const StorageExplorer = () => {
+export type StorageExplorerProps = {
+  variant?: 'default' | 'picker'
+  pickerReturnValue?: StoragePickerReturnValue
+  onPickerPick?: (value: string) => void
+  /** Mobile sheet: list layout only; hides column/list switch (sort remains available). */
+  forceListView?: boolean
+  /** When set (embedded picker), loading gate uses bucket id from store instead of the route. */
+  expectedBucketId?: string
+  className?: string
+}
+
+export const StorageExplorer = ({
+  variant = 'default',
+  pickerReturnValue = 'objectPath',
+  onPickerPick,
+  forceListView = false,
+  expectedBucketId,
+  className,
+}: StorageExplorerProps = {}) => {
   const { ref, bucketId } = useParams()
   const storageExplorerRef = useRef(null)
   const {
@@ -43,15 +65,18 @@ export const StorageExplorer = () => {
     setSelectedItemsToMove,
   } = useStorageExplorerStateSnapshot()
 
-  useProjectStorageConfigQuery({ projectRef: ref }, { enabled: IS_PLATFORM })
-  const { data: bucket, isLoading: isBucketQueryLoading } = useSelectedBucket()
+  const isPicker = variant === 'picker'
 
-  // Detect when transitioning between buckets to avoid showing stale content from the previous bucket.
-  // This happens because the bucket query and effects that update the store run after the first render.
-  const isLoading = isBucketQueryLoading || (!!bucketId && bucketId !== selectedBucket.id)
+  useProjectStorageConfigQuery({ projectRef }, { enabled: IS_PLATFORM && !!projectRef })
+  const { data: routeBucket, isLoading: isRouteBucketLoading } = useSelectedBucket()
 
-  // This state exists outside of the header because FileExplorerColumn needs to listen to these as well
-  // Things like showing results from a search filter is "temporary", hence we use react state to manage
+  const isLoading = isPicker
+    ? !selectedBucket?.id ||
+      (expectedBucketId !== undefined && expectedBucketId !== selectedBucket.id)
+    : isRouteBucketLoading || (!!bucketId && bucketId !== selectedBucket.id)
+
+  const bucketForFetch = isPicker ? (selectedBucket as Bucket | undefined) : routeBucket
+
   const [itemSearchString, setItemSearchString] = useState('')
   const debouncedSearchString = useDebounce(itemSearchString, 500)
 
@@ -92,11 +117,10 @@ export const StorageExplorer = () => {
   })
 
   useEffect(() => {
-    if (bucket && projectRef) fetchContents(bucket)
-  }, [bucket, projectRef, debouncedSearchString, selectedBucket.id, fetchContents])
-
-  /** Checkbox selection methods */
-  /** [Joshen] We'll only support checkbox selection for files ONLY */
+    const b = bucketForFetch as Bucket | undefined
+    if (!projectRef || !b?.id) return
+    void fetchContents(b)
+  }, [bucketForFetch, projectRef, debouncedSearchString, selectedBucket.id, view, fetchContents])
 
   const onSelectAllItemsInColumn = (columnIndex: number) => {
     const columnFiles = columns[columnIndex].items
@@ -110,19 +134,15 @@ export const StorageExplorer = () => {
     )
 
     if (selectedItemsFromColumn.length === columnFiles.length) {
-      // Deselect all items from column
       const updatedSelectedItems = selectedItems.filter(
         (item) => item.id && !columnFilesId.includes(item.id)
       )
       setSelectedItems(updatedSelectedItems)
     } else {
-      // Select all items from column
       const updatedSelectedItems = uniqBy(selectedItems.concat(columnFiles), 'id')
       setSelectedItems(updatedSelectedItems)
     }
   }
-
-  /** File manipulation methods */
 
   const onFilesUpload = async (event: any, columnIndex: number = -1) => {
     event.persist()
@@ -136,7 +156,6 @@ export const StorageExplorer = () => {
     await moveFiles(newPath)
   }
 
-  /** Misc UI methods */
   const onSelectColumnEmptySpace = (columnIndex: number) => {
     popColumnAtIndex(columnIndex)
     popOpenedFoldersAtIndex(columnIndex - 1)
@@ -144,21 +163,26 @@ export const StorageExplorer = () => {
     clearSelectedItems()
   }
 
-  return (
+  const explorerTree = (
     <div
       ref={storageExplorerRef}
-      className="bg-studio border rounded-md border-overlay flex h-full w-full flex-col"
+      className={cn(
+        'bg-studio border border-overlay flex h-full min-h-0 w-full min-w-0 flex-1 flex-col rounded-md',
+        className
+      )}
     >
       {selectedItems.length === 0 ? (
         <FileExplorerHeader
           itemSearchString={itemSearchString}
           setItemSearchString={setItemSearchString}
           onFilesUpload={onFilesUpload}
+          variant={variant}
+          forceListView={forceListView}
         />
       ) : (
         <FileExplorerHeaderSelection />
       )}
-      <div className="flex flex-1 min-h-0">
+      <div className="file-explorer flex min-h-0 min-w-0 flex-1">
         <FileExplorer
           columns={columns}
           selectedItems={selectedItems}
@@ -171,22 +195,40 @@ export const StorageExplorer = () => {
             fetchMoreFolderContents({ index, column, searchString: itemSearchString })
           }
         />
-        <PreviewPane />
+        {!isPicker && <PreviewPane />}
       </div>
 
-      <ConfirmDeleteModal />
+      {!isPicker && (
+        <>
+          <ConfirmDeleteModal />
 
-      <MoveItemsModal
-        bucketName={selectedBucket.name}
-        visible={selectedItemsToMove.length > 0}
-        selectedItemsToMove={selectedItemsToMove}
-        onSelectCancel={() => setSelectedItemsToMove([])}
-        onSelectMove={onMoveSelectedFiles}
-      />
+          <MoveItemsModal
+            bucketName={selectedBucket.name}
+            visible={selectedItemsToMove.length > 0}
+            selectedItemsToMove={selectedItemsToMove}
+            onSelectCancel={() => setSelectedItemsToMove([])}
+            onSelectMove={onMoveSelectedFiles}
+          />
 
-      <CustomExpiryModal />
+          <CustomExpiryModal />
+        </>
+      )}
     </div>
   )
+
+  if (isPicker && onPickerPick) {
+    return (
+      <StorageExplorerPickerProvider
+        returnValue={pickerReturnValue}
+        onPick={onPickerPick}
+        forceListView={forceListView}
+      >
+        {explorerTree}
+      </StorageExplorerPickerProvider>
+    )
+  }
+
+  return explorerTree
 }
 
 StorageExplorer.displayName = 'StorageExplorer'

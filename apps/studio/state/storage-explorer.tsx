@@ -45,7 +45,8 @@ import { deleteBucketObject } from '@/data/storage/bucket-object-delete-mutation
 import { signBucketObjects } from '@/data/storage/bucket-object-sign-mutation'
 import { listBucketObjects, StorageObject } from '@/data/storage/bucket-objects-list-mutation'
 import { deleteBucketPrefix } from '@/data/storage/bucket-prefix-delete-mutation'
-import type { Bucket } from '@/data/storage/buckets-query'
+import { useBucketQuery, type Bucket } from '@/data/storage/buckets-query'
+import { useProjectDetailQuery } from '@/data/projects/project-detail-query'
 import { moveStorageObject } from '@/data/storage/object-move-mutation'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
 import { PROJECT_STATUS } from '@/lib/constants'
@@ -80,23 +81,37 @@ if (typeof window !== 'undefined') {
   abortController = new AbortController()
 }
 
-function createStorageExplorerState({
-  projectRef,
-  connectionString,
-  bucket,
-  resumableUploadUrl,
-  clientEndpoint,
-}: {
-  projectRef: string
-  connectionString: string
-  bucket?: Bucket
-  resumableUploadUrl: string
-  clientEndpoint: string
-}) {
+export type CreateStorageExplorerStateOptions = {
+  /** When false, view/sort preferences are not read from or written to localStorage (e.g. embedded file picker). */
+  persistExplorerPreferences?: boolean
+  initialView?: STORAGE_VIEWS
+}
+
+function createStorageExplorerState(
+  {
+    projectRef,
+    connectionString,
+    bucket,
+    resumableUploadUrl,
+    clientEndpoint,
+  }: {
+    projectRef: string
+    connectionString: string
+    bucket?: Bucket
+    resumableUploadUrl: string
+    clientEndpoint: string
+  },
+  explorerOptions?: CreateStorageExplorerStateOptions
+) {
+  const persistExplorerPreferences = explorerOptions?.persistExplorerPreferences ?? true
   const localStorageKey = LOCAL_STORAGE_KEYS.STORAGE_PREFERENCE(projectRef)
-  const { view, sortBy, sortByOrder, sortBucket } =
-    (typeof window !== 'undefined' && tryParseJson(localStorage?.getItem(localStorageKey))) ||
-    DEFAULT_PREFERENCES
+  const storedPrefs =
+    persistExplorerPreferences && typeof window !== 'undefined'
+      ? tryParseJson(localStorage?.getItem(localStorageKey))
+      : null
+  const mergedPrefs = storedPrefs || DEFAULT_PREFERENCES
+  const view = explorerOptions?.initialView ?? mergedPrefs.view
+  const { sortBy, sortByOrder, sortBucket } = mergedPrefs
 
   const state = proxy({
     projectRef,
@@ -210,12 +225,10 @@ function createStorageExplorerState({
     setSelectedFileCustomExpiry: (item?: StorageItem) => (state.selectedFileCustomExpiry = item),
 
     updateExplorerPreference: () => {
-      const localStorageKey = LOCAL_STORAGE_KEYS.STORAGE_PREFERENCE(projectRef)
+      if (!persistExplorerPreferences) return
+      const lsKey = LOCAL_STORAGE_KEYS.STORAGE_PREFERENCE(projectRef)
       const { view, sortBy, sortByOrder, sortBucket } = state
-      localStorage.setItem(
-        localStorageKey,
-        JSON.stringify({ view, sortBy, sortByOrder, sortBucket })
-      )
+      localStorage.setItem(lsKey, JSON.stringify({ view, sortBy, sortByOrder, sortBucket }))
     },
 
     // Functions that manage the UI of the Storage Explorer
@@ -1908,13 +1921,16 @@ export const StorageExplorerStateContextProvider = ({ children }: PropsWithChild
       const resumableUploadUrl = `${clientEndpoint}/storage/v1/upload/resumable`
 
       setState(
-        createStorageExplorerState({
-          projectRef: project.ref,
-          connectionString: project.connectionString ?? '',
-          bucket,
-          resumableUploadUrl,
-          clientEndpoint,
-        })
+        createStorageExplorerState(
+          {
+            projectRef: project.ref,
+            connectionString: project.connectionString ?? '',
+            bucket,
+            resumableUploadUrl,
+            clientEndpoint,
+          },
+          { persistExplorerPreferences: true }
+        )
       )
     }
   }, [
@@ -1926,6 +1942,84 @@ export const StorageExplorerStateContextProvider = ({ children }: PropsWithChild
     storageEndpoint,
     isSuccessSettings,
     bucket,
+  ])
+
+  return (
+    <StorageExplorerStateContext.Provider value={state}>
+      {children}
+    </StorageExplorerStateContext.Provider>
+  )
+}
+
+export type StorageExplorerEmbeddedStateProviderProps = PropsWithChildren<{
+  projectRef: string
+  bucketId: string
+  persistExplorerPreferences?: boolean
+  initialView?: STORAGE_VIEWS
+}>
+
+/**
+ * Isolated storage explorer state for embedded UIs (e.g. file picker) that resolves the bucket by id
+ * without requiring `bucketId` in the route.
+ */
+export const StorageExplorerEmbeddedStateProvider = ({
+  children,
+  projectRef,
+  bucketId,
+  persistExplorerPreferences = false,
+  initialView,
+}: StorageExplorerEmbeddedStateProviderProps) => {
+  const { data: project } = useProjectDetailQuery(
+    { ref: projectRef },
+    { enabled: !!projectRef }
+  )
+  const isPaused = project?.status === PROJECT_STATUS.INACTIVE
+
+  const { data: bucket } = useBucketQuery(
+    { projectRef, bucketId },
+    {
+      enabled: !!projectRef && !!bucketId,
+      healthCheckProjectRef: projectRef,
+    }
+  )
+
+  const [state, setState] = useState(() => createStorageExplorerState(DEFAULT_STATE_CONFIG))
+
+  const {
+    storageEndpoint,
+    hostEndpoint,
+    isSuccess: isSuccessSettings,
+  } = useProjectApiUrl({ projectRef: project?.ref })
+
+  useEffect(() => {
+    const hasDataReady = !!project && !!bucket
+    if (!isPaused && hasDataReady && isSuccessSettings) {
+      const clientEndpoint = storageEndpoint ?? hostEndpoint ?? ''
+      const resumableUploadUrl = `${clientEndpoint}/storage/v1/upload/resumable`
+
+      setState(
+        createStorageExplorerState(
+          {
+            projectRef: project.ref,
+            connectionString: project.connectionString ?? '',
+            bucket,
+            resumableUploadUrl,
+            clientEndpoint,
+          },
+          { persistExplorerPreferences, initialView }
+        )
+      )
+    }
+  }, [
+    isPaused,
+    project,
+    bucket,
+    bucketId,
+    isSuccessSettings,
+    hostEndpoint,
+    storageEndpoint,
+    persistExplorerPreferences,
+    initialView,
   ])
 
   return (

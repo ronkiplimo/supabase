@@ -167,9 +167,10 @@ export const FileExplorerColumn = ({
     <div
       ref={fileExplorerColumnRef}
       className={cn(
+        'hide-scrollbar relative flex flex-col',
         fullWidth ? 'w-full' : 'w-64 border-r border-overlay',
-        snap.view === STORAGE_VIEWS.LIST && 'h-full',
-        'hide-scrollbar relative flex flex-shrink-0 flex-col overflow-auto'
+        snap.view === STORAGE_VIEWS.LIST && 'min-h-0 flex-1 overflow-hidden',
+        snap.view === STORAGE_VIEWS.COLUMNS && 'h-full flex-shrink-0 overflow-auto'
       )}
       onContextMenu={displayMenu}
       onDragOver={onDragOver}
@@ -232,7 +233,7 @@ export const FileExplorerColumn = ({
       {/* Column Interface */}
       {columnItems.length > 0 && (
         <InfiniteListDefault
-          className="h-full"
+          className={snap.view === STORAGE_VIEWS.LIST ? 'min-h-0 flex-1' : 'h-full'}
           items={columnItems}
           itemProps={itemProps}
           getItemKey={getItemKey}

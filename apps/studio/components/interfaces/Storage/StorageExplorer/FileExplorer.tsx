@@ -47,8 +47,9 @@ export const FileExplorer = ({
     <div
       ref={fileExplorerRef}
       className={cn(
-        'file-explorer flex flex-grow overflow-x-auto justify-between h-full w-full relative',
-        snap.view === STORAGE_VIEWS.LIST && 'flex-col'
+        'file-explorer relative flex min-h-0 min-w-0 w-full flex-1 justify-between overflow-x-auto',
+        snap.view === STORAGE_VIEWS.LIST && 'h-full min-h-0 flex-col',
+        snap.view === STORAGE_VIEWS.COLUMNS && 'h-full'
       )}
     >
       <ColumnContextMenu id={CONTEXT_MENU_KEYS.STORAGE_COLUMN} />
@@ -60,7 +61,7 @@ export const FileExplorer = ({
           column={{ id: '', name: '', items: [], status: STORAGE_ROW_STATUS.LOADING }}
         />
       ) : snap.view === STORAGE_VIEWS.COLUMNS ? (
-        <div className="flex">
+        <div className="flex h-full min-h-0 min-w-0">
           {columns.map((column, index) => (
             <FileExplorerColumn
               key={`column-${index}`}

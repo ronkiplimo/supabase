@@ -12,7 +12,7 @@ import { useOAuthServerAppCreateMutation } from 'data/oauth-server-apps/oauth-se
 import { useOAuthServerAppRegenerateSecretMutation } from 'data/oauth-server-apps/oauth-server-app-regenerate-secret-mutation'
 import { useOAuthServerAppUpdateMutation } from 'data/oauth-server-apps/oauth-server-app-update-mutation'
 import { DOCS_URL } from 'lib/constants'
-import { Plus, Trash2, Upload, X } from 'lucide-react'
+import { FolderOpen, Plus, Trash2, Upload, X } from 'lucide-react'
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -41,6 +41,8 @@ import { Input } from 'ui-patterns/DataInputs/Input'
 import ConfirmationModal from 'ui-patterns/Dialogs/ConfirmationModal'
 import { FormItemLayout } from 'ui-patterns/form/FormItemLayout/FormItemLayout'
 import * as z from 'zod'
+
+import { StorageFilePicker } from '@/components/interfaces/Storage/StorageExplorer/StorageFilePicker'
 
 interface CreateOrUpdateOAuthAppSheetProps {
   visible: boolean
@@ -89,6 +91,7 @@ export const CreateOrUpdateOAuthAppSheet = ({
   const uploadButtonRef = useRef<HTMLInputElement>(null)
 
   const [showRegenerateDialog, setShowRegenerateDialog] = useState(false)
+  const [storagePickerOpen, setStoragePickerOpen] = useState(false)
   const [logoFile, setLogoFile] = useState<File>()
   const [logoUrl, setLogoUrl] = useState<string>()
   const [logoRemoved, setLogoRemoved] = useState(false)
@@ -135,6 +138,12 @@ export const CreateOrUpdateOAuthAppSheet = ({
         }
       },
     })
+
+  useEffect(() => {
+    if (!visible) {
+      setStoragePickerOpen(false)
+    }
+  }, [visible])
 
   useEffect(() => {
     if (visible) {
@@ -240,14 +249,33 @@ export const CreateOrUpdateOAuthAppSheet = ({
   }
 
   const handleUploadLogo = () => uploadButtonRef.current?.click()
+
+  const handlePickLogoFromStorage = (uri: string) => {
+    setLogoFile(undefined)
+    setLogoUrl(uri)
+    setLogoRemoved(false)
+    form.setValue('logo_uri', uri)
+  }
+
   const handleRemoveLogo = () => {
     setLogoFile(undefined)
     setLogoUrl(undefined)
     setLogoRemoved(true)
+    form.setValue('logo_uri', '')
   }
 
   return (
     <>
+      {projectRef ? (
+        <StorageFilePicker
+          open={storagePickerOpen}
+          onOpenChange={setStoragePickerOpen}
+          projectRef={projectRef}
+          returnValue="publicUrl"
+          title="Choose logo from Storage"
+          onSelect={handlePickLogoFromStorage}
+        />
+      ) : null}
       <Sheet open={visible} onOpenChange={() => onCancel()}>
         <SheetContent
           size="lg"
@@ -293,46 +321,61 @@ export const CreateOrUpdateOAuthAppSheet = ({
                       control={form.control}
                       name="logo_uri"
                       render={() => (
-                        <FormItemLayout label="Logo" description="Upload a logo for your OAuth app">
+                        <FormItemLayout
+                          label="Logo"
+                          description="Upload an image, or pick a file from Storage (choose a bucket, then a file). A public URL is used as logo_uri when possible—use a public bucket for a stable logo URL."
+                        >
                           <FormControl_Shadcn_>
-                            <div className="flex gap-4 items-center">
-                              <button
-                                type="button"
-                                onClick={handleUploadLogo}
-                                className={cn(
-                                  'flex items-center justify-center h-10 w-10 shrink-0 text-foreground-lighter hover:text-foreground-light overflow-hidden rounded-full bg-cover border hover:border-strong'
-                                )}
-                                style={{
-                                  backgroundImage: logoUrl ? `url("${logoUrl}")` : 'none',
-                                }}
-                              >
-                                {!hasLogo && <Upload size={14} />}
-                              </button>
-                              <div className="flex gap-2 items-center">
-                                <Button
-                                  type="default"
-                                  size="tiny"
-                                  icon={<Upload size={14} />}
+                            <div className="flex w-full max-w-md flex-col gap-3">
+                              <div className="flex flex-wrap items-center gap-4">
+                                <button
+                                  type="button"
                                   onClick={handleUploadLogo}
+                                  className={cn(
+                                    'flex items-center justify-center h-10 w-10 shrink-0 text-foreground-lighter hover:text-foreground-light overflow-hidden rounded-full bg-cover border hover:border-strong'
+                                  )}
+                                  style={{
+                                    backgroundImage: logoUrl ? `url("${logoUrl}")` : 'none',
+                                  }}
                                 >
-                                  Upload
-                                </Button>
-                                {hasLogo && (
+                                  {!hasLogo && <Upload size={14} />}
+                                </button>
+                                <div className="flex flex-wrap items-center gap-2">
                                   <Button
                                     type="default"
                                     size="tiny"
-                                    icon={<Trash2 size={12} />}
-                                    onClick={handleRemoveLogo}
-                                  />
-                                )}
+                                    icon={<Upload size={14} />}
+                                    onClick={handleUploadLogo}
+                                  >
+                                    Upload
+                                  </Button>
+                                  {projectRef ? (
+                                    <Button
+                                      type="default"
+                                      size="tiny"
+                                      icon={<FolderOpen size={14} />}
+                                      onClick={() => setStoragePickerOpen(true)}
+                                    >
+                                      Storage
+                                    </Button>
+                                  ) : null}
+                                  {hasLogo && (
+                                    <Button
+                                      type="default"
+                                      size="tiny"
+                                      icon={<Trash2 size={12} />}
+                                      onClick={handleRemoveLogo}
+                                    />
+                                  )}
+                                </div>
+                                <input
+                                  type="file"
+                                  ref={uploadButtonRef}
+                                  className="hidden"
+                                  accept="image/png, image/jpeg"
+                                  onChange={onFileUpload}
+                                />
                               </div>
-                              <input
-                                type="file"
-                                ref={uploadButtonRef}
-                                className="hidden"
-                                accept="image/png, image/jpeg"
-                                onChange={onFileUpload}
-                              />
                             </div>
                           </FormControl_Shadcn_>
                         </FormItemLayout>

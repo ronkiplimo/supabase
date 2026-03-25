@@ -1,3 +1,5 @@
+import type { KeyboardEventHandler, MouseEventHandler } from 'react'
+
 import { useBucketPolicyCount } from 'components/interfaces/Storage/useBucketPolicyCount'
 import {
   VirtualizedTableCell,
@@ -73,6 +75,8 @@ type BucketTableRowProps = {
   bucket: Bucket
   projectRef: string
   formattedGlobalUploadLimit: string
+  /** When set, the row selects the bucket instead of navigating to the bucket page. */
+  onSelectBucket?: (bucket: Bucket) => void
 }
 
 export const BucketTableRow = ({
@@ -80,6 +84,7 @@ export const BucketTableRow = ({
   bucket,
   projectRef,
   formattedGlobalUploadLimit,
+  onSelectBucket,
 }: BucketTableRowProps) => {
   const router = useRouter()
   const { getPolicyCount } = useBucketPolicyCount()
@@ -92,14 +97,39 @@ export const BucketTableRow = ({
     router
   )
 
+  const handleRowActivate: MouseEventHandler<HTMLTableRowElement> = (e) => {
+    if (onSelectBucket) {
+      e.preventDefault()
+      onSelectBucket(bucket)
+      return
+    }
+    handleBucketNavigation(e)
+  }
+
+  const handleRowAuxClick: MouseEventHandler<HTMLTableRowElement> = (e) => {
+    if (onSelectBucket) return
+    handleBucketNavigation(e)
+  }
+
+  const handleRowKeyDown: KeyboardEventHandler<HTMLTableRowElement> = (e) => {
+    if (onSelectBucket) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        onSelectBucket(bucket)
+      }
+      return
+    }
+    handleBucketNavigation(e)
+  }
+
   return (
     <BucketTableRow
       key={bucket.id}
       data-bucket-id={bucket.id}
       className="relative cursor-pointer h-16 group inset-focus"
-      onClick={handleBucketNavigation}
-      onAuxClick={handleBucketNavigation}
-      onKeyDown={handleBucketNavigation}
+      onClick={handleRowActivate}
+      onAuxClick={handleRowAuxClick}
+      onKeyDown={handleRowKeyDown}
       tabIndex={0}
     >
       <BucketTableCell className="w-2 pr-1">

@@ -3,11 +3,11 @@ title: 'Choosing the Right SSO Login Flow'
 description: 'Quick reference guide to help you choose between IdP-initiated, SP-initiated, or both login flows based on your use case.'
 ---
 
-Not sure which SSO login flow to enable? This guide maps common enterprise scenarios to the recommended configuration.
+Not sure which single sign-on (SSO) login flow to enable? This guide maps common enterprise scenarios to the recommended configuration.
 
 <Admonition type="tip">
 
-Start with IdP-initiated, the default behavior. It requires no domain configuration, and works for most of enterprise use cases. You can enable SP-initiated later if needed.
+Start with identity provider (IdP)-initiated, the default behavior. It requires no domain configuration, and works for most enterprise use cases. You can enable SP-initiated later if needed.
 
 </Admonition>
 
@@ -240,9 +240,9 @@ Do users need to start login at supabase.com?
 4. Use **non-SSO invitations** for contractors
 5. Consider disabling auto-join to control membership
 
-<Admonition type="caution">
+<Admonition type="caution" label="Account linking caution">
 
-**Account linking caution:** SSO and non-SSO accounts with the same email are treated as separate accounts. An employee with `alice@company.com` will have two accounts if they:
+SSO and non-SSO accounts with the same email are treated as separate accounts. An employee with `alice@company.com` will have two accounts if they:
 
 1. Join via SSO (SSO account)
 2. Previously joined via password (non-SSO account)
@@ -274,20 +274,20 @@ After choosing your login flow, thoroughly test:
 3. **Auto-join:** Test with new user accounts
 4. **Domain restrictions:** Try non-matching domain (should fail for SP-initiated)
 
-See our comprehensive [SSO Testing and Best Practices](/docs/guides/platform/sso/testing-best-practices) guide for detailed testing procedures.
+See our comprehensive [SSO Testing and Best Practices guide](/docs/guides/platform/sso/testing-best-practices) for detailed testing procedures.
 
 ## When to change configuration
 
 You can safely change login flow configuration at any time:
 
-**Adding SP-initiated to IdP-only:**
+### Adding SP-initiated to IdP-only
 
 - Toggle "Enable SP-initiated login" ON
 - Add required domains
 - Test with existing users
 - No disruption to IdP-initiated flow
 
-**Removing SP-initiated:**
+### Removing SP-initiated
 
 - Toggle "Enable SP-initiated login" OFF
 - Domains are preserved (can re-enable later)
@@ -306,9 +306,9 @@ If you're uncertain which configuration to use:
 4. Enable SP-initiated if users request it
 5. Monitor usage to see which flow is preferred
 
-<Admonition type="tip">
+<Admonition type="tip" label="Support available">
 
-**Support available:** If you need help choosing the right configuration for your organization, contact Supabase support with details about your use case. We're happy to provide personalized recommendations.
+If you need help choosing the right configuration for your organization, contact Supabase support with details about your use case. We're happy to provide personalized recommendations.
 
 </Admonition>
 

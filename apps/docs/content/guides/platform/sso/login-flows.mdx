@@ -3,13 +3,13 @@ title: 'Understanding SSO Login Flows'
 description: 'Learn about IdP-initiated and SP-initiated SSO login flows and when to use each approach.'
 ---
 
-When configuring SSO for your organization, you can choose between two different login flows: **IdP-initiated** and **SP-initiated**. Understanding the difference helps you provide the best experience for your users.
+When configuring SSO for your organization, you can choose between two different login flows: **identity provider (IdP)-initiated** and **service provider (SP)-initiated**. Understanding the difference helps you provide the best experience for your users.
 
-<Admonition type="tip">
+<Admonition type="tip" label="Quick decision guide">
 
-**Quick decision guide:** Most enterprises use IdP-initiated flow for its simplicity and better user experience. Enable SP-initiated only if you need users to start their login journey at supabase.com.
+Most enterprises use IdP-initiated flow for its simplicity and better user experience. Enable SP-initiated only if you need users to start their login journey at supabase.com.
 
-See our [Choosing the Right Login Flow](/docs/guides/platform/sso/choosing-login-flow) guide for use case examples.
+See our [Choosing the Right Login Flow guide](/docs/guides/platform/sso/choosing-login-flow) for use case examples.
 
 </Admonition>
 
@@ -100,16 +100,16 @@ You can enable both flows simultaneously to support different user preferences.
 
 IdP-initiated flow is automatically enabled when you configure SSO. No additional steps required.
 
-1. Navigate to [SSO settings](/dashboard/org/_/sso)
+1. Navigate to [the **SSO** settings](/dashboard/org/_/sso) section of the dashboard
 2. Enable "Single Sign-On"
 3. Configure your identity provider metadata and attribute mapping
 4. Save your configuration
 
 Users can now access Supabase through your IdP's app catalog.
 
-<Admonition type="note">
+<Admonition type="note" label="Domain configuration optional">
 
-**Domain configuration optional:** With IdP-initiated flow, you don't need to configure email domains. Your identity provider handles all authentication routing.
+With IdP-initiated flow, you don't need to configure email domains. Your identity provider handles all authentication routing.
 
 </Admonition>
 
@@ -117,23 +117,23 @@ Users can now access Supabase through your IdP's app catalog.
 
 To enable SP-initiated flow, you need to configure email domains:
 
-1. Navigate to [SSO settings](/dashboard/org/_/sso)
+1. Navigate to [the **SSO** settings](/dashboard/org/_/sso) section of the dashboard
 2. Enable "Single Sign-On"
-3. Toggle **"Enable SP-initiated login"** to ON
+3. Toggle **Enable SP-initiated login** to "ON"
 4. Add one or more email domains (e.g., `yourcompany.com`)
 5. Configure your identity provider metadata and attribute mapping
 6. Save your configuration
 
-**Email domain requirements:**
+#### Email domain requirements
 
 - At least one domain required when SP-initiated is enabled
 - Domains must be verified through your identity provider
 - Multiple domains supported (e.g., `company.com`, `subsidiary.com`)
 - Users with matching email domains will be routed to your IdP
 
-<Admonition type="caution">
+<Admonition type="caution" label="Domain restrictions apply">
 
-**Domain restrictions apply:** Only users with email addresses matching your configured domains can use SP-initiated login. Users with other domains cannot sign in via SSO at supabase.com (but can still use IdP-initiated flow if you configure it in your IdP).
+Only users with email addresses matching your configured domains can use SP-initiated login. Users with other domains cannot sign in via SSO at supabase.com (but can still use IdP-initiated flow if you configure it in your IdP).
 
 </Admonition>
 
@@ -141,18 +141,18 @@ To enable SP-initiated flow, you need to configure email domains:
 
 You can change login flow configuration at any time:
 
-**To switch from SP-initiated to IdP-only:**
+#### To switch from SP-initiated to IdP-only
 
-1. Navigate to [SSO settings](/dashboard/org/_/sso)
-2. Toggle **"Enable SP-initiated login"** to OFF
+1. Navigate to [the **SSO** settings](/dashboard/org/_/sso) section of the dashboard
+2. Toggle **Enable SP-initiated login** to "OFF"
 3. Save changes
 
 Existing users can continue signing in via IdP-initiated flow.
 
-**To switch from IdP-only to SP-initiated:**
+#### To switch from IdP-only to SP-initiated
 
-1. Navigate to [SSO settings](/dashboard/org/_/sso)
-2. Toggle **"Enable SP-initiated login"** to ON
+1. Navigate to [the **SSO** settings](/dashboard/org/_/sso) section of the dashboard
+2. Toggle **Enable SP-initiated login** to "ON"
 3. Add required email domains
 4. Save changes
 
@@ -206,7 +206,7 @@ This is often impractical since all employees use `company.com` email addresses.
 - No domain-based routing is needed
 - Each SAML app has its own unique ACS URL and metadata
 
-**Configuration in your IdP:**
+#### Configuration in your IdP
 
 - Create "Supabase Dev" SAML app → Points to dev org's ACS URL
 - Create "Supabase Staging" SAML app → Points to staging org's ACS URL
@@ -226,11 +226,11 @@ This is the recommended approach for enterprises with multiple environments. Con
 
 Yes! Enable SP-initiated login and configure domains. IdP-initiated flow continues to work automatically.
 
-### What if I don't configure domains?
+### What happens when you don't configure domains?
 
 Without domains, only IdP-initiated flow is available. Users cannot start their login at supabase.com.
 
-### Do I need to configure anything in my IdP?
+### Does the IdP require configuration?
 
 For **IdP-initiated flow:** Configure the Supabase ACS URL and entity ID in your IdP. See our provider-specific guides:
 
@@ -242,7 +242,7 @@ For **SP-initiated flow:** Same configuration, but also ensure your IdP accepts 
 
 ### What happens if a user tries SP-initiated with no matching domain?
 
-They'll receive an error message indicating no SSO provider found for their email domain. They can still sign in using password or social auth (if they have a non-SSO account).
+They receive an error message indicating no SSO provider found for their email domain. They can still sign in using password or social auth (if they have a non-SSO account).
 
 ### Can you disable SP-initiated flow after enabling it?
 

@@ -292,48 +292,13 @@ export const CreateOrUpdateOAuthAppSheet = ({
                     <FormField_Shadcn_
                       control={form.control}
                       name="logo_uri"
-                      render={() => (
-                        <FormItemLayout label="Logo" description="Upload a logo for your OAuth app">
+                      render={({ field }) => (
+                        <FormItemLayout
+                          label="Logo"
+                          description="Paste a public URL for your OAuth app logo"
+                        >
                           <FormControl_Shadcn_>
-                            <div className="flex gap-4 items-center">
-                              <button
-                                type="button"
-                                onClick={handleUploadLogo}
-                                className={cn(
-                                  'flex items-center justify-center h-10 w-10 shrink-0 text-foreground-lighter hover:text-foreground-light overflow-hidden rounded-full bg-cover border hover:border-strong'
-                                )}
-                                style={{
-                                  backgroundImage: logoUrl ? `url("${logoUrl}")` : 'none',
-                                }}
-                              >
-                                {!hasLogo && <Upload size={14} />}
-                              </button>
-                              <div className="flex gap-2 items-center">
-                                <Button
-                                  type="default"
-                                  size="tiny"
-                                  icon={<Upload size={14} />}
-                                  onClick={handleUploadLogo}
-                                >
-                                  Upload
-                                </Button>
-                                {hasLogo && (
-                                  <Button
-                                    type="default"
-                                    size="tiny"
-                                    icon={<Trash2 size={12} />}
-                                    onClick={handleRemoveLogo}
-                                  />
-                                )}
-                              </div>
-                              <input
-                                type="file"
-                                ref={uploadButtonRef}
-                                className="hidden"
-                                accept="image/png, image/jpeg"
-                                onChange={onFileUpload}
-                              />
-                            </div>
+                            <Input {...field} placeholder="https://example.com/logo.png" />
                           </FormControl_Shadcn_>
                         </FormItemLayout>
                       )}

@@ -1,27 +1,34 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { useRouter } from 'next/router'
-import { PropsWithChildren, useCallback } from 'react'
+import { useRouter as useAppRouter } from 'next/navigation'
+import { useRouter as useCompatRouter } from 'next/compat/router'
+import { useCallback, type PropsWithChildren } from 'react'
 
 import { prefetchProjectDetail } from 'data/projects/project-detail-query'
-import PrefetchableLink, { PrefetchableLinkProps } from './PrefetchableLink'
+import PrefetchableLink, { type PrefetchableLinkProps } from './PrefetchableLink'
 
 export function usePrefetchProjectIndexPage() {
-  const router = useRouter()
+  const compatRouter = useCompatRouter()
+  const appRouter = useAppRouter()
   const queryClient = useQueryClient()
 
   return useCallback(
-    ({ projectRef }: { projectRef?: string }) => {
-      // Prefetch code
-      router.prefetch(`/project/${projectRef}`)
+    ({ projectRef, path }: { projectRef?: string; path: string }) => {
+      // App Router routes (e.g. `/v2/project/...`) must use `next/navigation` prefetch.
+      if (path.startsWith('/v2/')) {
+        void appRouter.prefetch(path)
+      } else if (compatRouter) {
+        void compatRouter.prefetch(path)
+      } else {
+        void appRouter.prefetch(path)
+      }
 
-      // Prefetch data
-      prefetchProjectDetail(queryClient, {
-        ref: projectRef,
-      }).catch(() => {
-        // eat prefetching errors as they are not critical
-      })
+      if (projectRef) {
+        prefetchProjectDetail(queryClient, { ref: projectRef }).catch(() => {
+          // eat prefetching errors as they are not critical
+        })
+      }
     },
-    [queryClient, router]
+    [queryClient, compatRouter, appRouter]
   )
 }
 
@@ -37,11 +44,12 @@ export function ProjectIndexPageLink({
   ...props
 }: PropsWithChildren<ProjectIndexPageLinkProps>) {
   const prefetch = usePrefetchProjectIndexPage()
+  const resolvedHref = href ?? `/project/${projectRef}`
 
   return (
     <PrefetchableLink
-      href={href || `/project/${projectRef}`}
-      prefetcher={() => prefetch({ projectRef })}
+      href={resolvedHref}
+      prefetcher={() => prefetch({ projectRef, path: resolvedHref })}
       {...props}
     >
       {children}

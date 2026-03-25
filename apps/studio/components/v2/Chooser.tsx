@@ -1,9 +1,9 @@
 'use client'
 
+import { EdgeFunctions, Realtime } from 'icons'
 import {
   Box,
   Database,
-  File,
   Fingerprint,
   FunctionSquare,
   Globe,
@@ -13,7 +13,6 @@ import {
   ShieldCheck,
   Table2,
   Users,
-  Zap,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -26,24 +25,23 @@ import {
   CATEGORY_DOMAIN,
   CATEGORY_LABELS,
   useV2DashboardStore,
-  type DataTabDomain,
   type RecentItem,
 } from '@/stores/v2-dashboard'
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
-  tables: <Table2 className="h-5 w-5" strokeWidth={1.5} />,
-  functions: <FunctionSquare className="h-5 w-5" strokeWidth={1.5} />,
-  types: <Layers className="h-5 w-5" strokeWidth={1.5} />,
-  roles: <ShieldCheck className="h-5 w-5" strokeWidth={1.5} />,
-  extensions: <Box className="h-5 w-5" strokeWidth={1.5} />,
-  indexes: <Database className="h-5 w-5" strokeWidth={1.5} />,
-  publications: <Globe className="h-5 w-5" strokeWidth={1.5} />,
-  users: <Users className="h-5 w-5" strokeWidth={1.5} />,
-  providers: <Fingerprint className="h-5 w-5" strokeWidth={1.5} />,
-  'oauth-apps': <KeyRound className="h-5 w-5" strokeWidth={1.5} />,
-  buckets: <HardDrive className="h-5 w-5" strokeWidth={1.5} />,
-  'edge-functions': <Zap className="h-5 w-5" strokeWidth={1.5} />,
-  channels: <File className="h-5 w-5" strokeWidth={1.5} />,
+  tables: <Table2 className="size-3" strokeWidth={1.5} />,
+  functions: <FunctionSquare className="size-3" strokeWidth={1.5} />,
+  types: <Layers className="size-3" strokeWidth={1.5} />,
+  roles: <ShieldCheck className="size-3" strokeWidth={1.5} />,
+  extensions: <Box className="size-3" strokeWidth={1.5} />,
+  indexes: <Database className="size-3" strokeWidth={1.5} />,
+  publications: <Globe className="size-3" strokeWidth={1.5} />,
+  users: <Users className="size-3" strokeWidth={1.5} />,
+  providers: <Fingerprint className="size-3" strokeWidth={1.5} />,
+  'oauth-apps': <KeyRound className="size-3" strokeWidth={1.5} />,
+  buckets: <HardDrive className="size-3" strokeWidth={1.5} />,
+  'edge-functions': <EdgeFunctions className="size-3" strokeWidth={1.5} />,
+  channels: <Realtime className="size-3" strokeWidth={1.5} />,
 }
 
 const CATEGORY_GROUPS: Array<{ label: string; categories: string[] }> = [
@@ -75,10 +73,6 @@ const COUNT_KEY_MAP: Record<string, keyof ReturnType<typeof useV2DataCounts>> = 
   users: 'users',
   buckets: 'buckets',
   'edge-functions': 'edgeFunctions',
-}
-
-function formatCount(n: number, label: string) {
-  return `${n} ${label.toLowerCase()}`
 }
 
 function timeAgo(timestamp: number): string {
@@ -168,7 +162,6 @@ export function Chooser() {
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
             {group.categories.map((cat) => {
-              const domain = CATEGORY_DOMAIN[cat] ?? 'db'
               const label = CATEGORY_LABELS[cat] ?? cat
               const countKey = COUNT_KEY_MAP[cat]
               const count = countKey != null ? counts[countKey] : undefined
@@ -177,19 +170,18 @@ export function Chooser() {
                   key={cat}
                   type="button"
                   onClick={() => openCategory(cat)}
-                  className="flex flex-col items-start gap-2 rounded-md border border-border p-3 text-left bg-surface-100 hover:bg-sidebar-accent/50 hover:border-foreground/20 transition-colors"
+                  className="flex flex-col items-start gap-1 rounded-md border border-border p-3 text-left bg-surface-100 hover:bg-sidebar-accent/50 hover:border-foreground/20 transition-colors"
                 >
-                  <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2 w-full">
                     <span className="text-foreground-lighter">{CATEGORY_ICONS[cat]}</span>
-                    <TypeBadge domain={domain as DataTabDomain} type="list" />
+                    <span className="text-sm text-foreground-light leading-none truncate">
+                      {label}
+                    </span>
                   </div>
                   <div>
-                    <div className="text-sm text-foreground-light">{label}</div>
-                    {count != null && (
-                      <div className="text-xs text-foreground-lighter mt-0.5">
-                        {formatCount(count, label)}
-                      </div>
-                    )}
+                    <span className="text-foreground-lighter font-mono text-base leading-none">
+                      {count}
+                    </span>
                   </div>
                 </button>
               )

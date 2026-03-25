@@ -1,12 +1,11 @@
 'use client'
 
 import { InstanceConfiguration } from 'components/interfaces/Settings/Infrastructure/InfrastructureConfiguration/InstanceConfiguration'
-import { ReactFlowProvider } from '@xyflow/react'
+
+import { useV2Params } from '@/app/v2/V2ParamsContext'
 
 export function HomeViewInfrastructureDiagram() {
-  return (
-    <ReactFlowProvider>
-      <InstanceConfiguration diagramOnly />
-    </ReactFlowProvider>
-  )
+  const { projectRef } = useV2Params()
+
+  return <InstanceConfiguration diagramOnly projectRef={projectRef} />
 }

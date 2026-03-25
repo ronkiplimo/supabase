@@ -59,7 +59,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const showExpanded = !hideBrowser && !isBrowserCollapsed
 
   return (
-    <V2DashboardProvider>
+    <V2DashboardProvider projectRef={projectRef ?? null}>
       <SidebarProvider defaultOpen={false}>
         <MobileSheetProvider>
           <V2LayoutSidebarProvider>

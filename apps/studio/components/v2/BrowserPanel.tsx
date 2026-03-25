@@ -128,15 +128,17 @@ function getCount(counts: ReturnType<typeof useV2DataCounts>, key: string): numb
     case 'extensions':
       return counts.extensions
     case 'indexes':
-      return '—'
+      return counts.indexes
     case 'publications':
       return counts.publications
     case 'users':
       return counts.users
     case 'providers':
+      return counts.providers
     case 'oauthApps':
+      return counts.oauthApps
     case 'channels':
-      return '—'
+      return counts.channels
     case 'buckets':
       return counts.buckets
     case 'edgeFunctions':

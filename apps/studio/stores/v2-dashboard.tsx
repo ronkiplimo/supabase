@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useLayoutEffect,
   useMemo,
   useState,
   useEffect,
@@ -65,9 +66,75 @@ export const CATEGORY_LABELS: Record<string, string> = {
   channels: 'Channels',
 }
 
-const RECENT_ITEMS_STORAGE_KEY = 'v2-recent-items'
-const DATA_TABS_STORAGE_KEY = 'v2-data-tabs'
+/** Legacy global keys (pre–per-project persistence); read once for migration. */
+const LEGACY_RECENT_ITEMS_STORAGE_KEY = 'v2-recent-items'
+const LEGACY_DATA_TABS_STORAGE_KEY = 'v2-data-tabs'
+
 const INSIGHT_EXPANDED_STORAGE_KEY = 'v2-insight-expanded'
+
+function projectStorageKey(projectRef: string, suffix: string) {
+  return `v2-${projectRef}-${suffix}`
+}
+
+function parseRecentItems(raw: string): RecentItem[] | null {
+  try {
+    const parsed = JSON.parse(raw) as unknown
+    if (!Array.isArray(parsed)) return null
+    const normalized = parsed
+      .filter((x) => x && typeof x === 'object')
+      .map((x) => x as Partial<RecentItem>)
+      .filter(
+        (x) =>
+          typeof x.id === 'string' && typeof x.label === 'string' && typeof x.path === 'string'
+      )
+      .map((x) => ({
+        id: x.id as string,
+        label: x.label as string,
+        path: x.path as string,
+        category: typeof x.category === 'string' ? x.category : 'tables',
+        domain: (typeof x.domain === 'string' ? x.domain : 'db') as DataTabDomain,
+        timestamp: typeof x.timestamp === 'number' ? x.timestamp : 0,
+      }))
+    return normalized.sort((a, b) => b.timestamp - a.timestamp).slice(0, 20)
+  } catch {
+    return null
+  }
+}
+
+function parseDataTabs(raw: string): DataTab[] | null {
+  try {
+    const parsed = JSON.parse(raw) as unknown
+    if (!Array.isArray(parsed)) return null
+    const normalized = parsed
+      .filter((x) => x && typeof x === 'object')
+      .map((x) => x as Partial<DataTab>)
+      .filter(
+        (x) =>
+          typeof x.id === 'string' &&
+          typeof x.label === 'string' &&
+          typeof x.type === 'string' &&
+          typeof x.category === 'string' &&
+          typeof x.domain === 'string' &&
+          typeof x.path === 'string'
+      )
+      .map((x) => ({
+        id: x.id as string,
+        label: x.label as string,
+        type: x.type as DataTabType,
+        category: x.category as string,
+        domain: x.domain as DataTabDomain,
+        path: x.path as string,
+      }))
+    return normalized
+  } catch {
+    return null
+  }
+}
+
+function filterByProjectPath<T extends { path: string }>(items: T[], projectRef: string): T[] {
+  const prefix = `/v2/project/${projectRef}/`
+  return items.filter((x) => x.path.startsWith(prefix))
+}
 
 const defaultExpandedGroups: Record<string, boolean> = {
   'obs-logs': true,
@@ -100,7 +167,14 @@ interface V2DashboardState {
 
 const V2DashboardContext = createContext<V2DashboardState | null>(null)
 
-export function V2DashboardProvider({ children }: { children: ReactNode }) {
+export function V2DashboardProvider({
+  children,
+  projectRef,
+}: {
+  children: ReactNode
+  /** When absent, open tabs and recents stay in memory only (not persisted). */
+  projectRef: string | null
+}) {
   const [dataTabs, setDataTabs] = useState<DataTab[]>([])
   const [expandedGroups, setExpandedGroups] =
     useState<Record<string, boolean>>(defaultExpandedGroups)
@@ -108,36 +182,72 @@ export function V2DashboardProvider({ children }: { children: ReactNode }) {
   const [recentItems, setRecentItems] = useState<RecentItem[]>([])
   const [insightExpanded, setInsightExpandedState] = useState<Record<string, boolean>>({})
 
-  // Load persisted recents from localStorage once
-  useEffect(() => {
+  // Load project-scoped recents + data tabs before paint so project switches never write the wrong key.
+  useLayoutEffect(() => {
     if (typeof window === 'undefined') return
-    try {
-      const raw = localStorage.getItem(RECENT_ITEMS_STORAGE_KEY)
-      if (!raw) return
-      const parsed = JSON.parse(raw) as unknown
-      if (!Array.isArray(parsed)) return
-      const normalized = parsed
-        .filter((x) => x && typeof x === 'object')
-        .map((x) => x as Partial<RecentItem>)
-        .filter(
-          (x) =>
-            typeof x.id === 'string' && typeof x.label === 'string' && typeof x.path === 'string'
-        )
-        .map((x) => ({
-          id: x.id as string,
-          label: x.label as string,
-          path: x.path as string,
-          category: typeof x.category === 'string' ? x.category : 'tables',
-          domain: (typeof x.domain === 'string' ? x.domain : 'db') as DataTabDomain,
-          timestamp: typeof x.timestamp === 'number' ? x.timestamp : 0,
-        }))
-      setRecentItems(normalized.sort((a, b) => b.timestamp - a.timestamp).slice(0, 20))
-    } catch {
-      // Ignore corrupted localStorage
+    if (!projectRef) {
+      setDataTabs([])
+      setRecentItems([])
+      return
     }
-  }, [])
 
-  // Load persisted insight expand state from localStorage once
+    const recentsKey = projectStorageKey(projectRef, 'recent-items')
+    const tabsKey = projectStorageKey(projectRef, 'data-tabs')
+
+    try {
+      let recentsRaw = localStorage.getItem(recentsKey)
+      if (!recentsRaw) {
+        const legacy = localStorage.getItem(LEGACY_RECENT_ITEMS_STORAGE_KEY)
+        if (legacy) {
+          const all = parseRecentItems(legacy)
+          if (all && all.length > 0) {
+            const scoped = filterByProjectPath(all, projectRef)
+            if (scoped.length > 0) {
+              recentsRaw = JSON.stringify(scoped)
+              localStorage.setItem(recentsKey, recentsRaw)
+            }
+          }
+        }
+      }
+      if (recentsRaw) {
+        const parsed = parseRecentItems(recentsRaw)
+        if (parsed) setRecentItems(parsed)
+        else setRecentItems([])
+      } else {
+        setRecentItems([])
+      }
+    } catch {
+      setRecentItems([])
+    }
+
+    try {
+      let tabsRaw = localStorage.getItem(tabsKey)
+      if (!tabsRaw) {
+        const legacy = localStorage.getItem(LEGACY_DATA_TABS_STORAGE_KEY)
+        if (legacy) {
+          const all = parseDataTabs(legacy)
+          if (all && all.length > 0) {
+            const scoped = filterByProjectPath(all, projectRef)
+            if (scoped.length > 0) {
+              tabsRaw = JSON.stringify(scoped)
+              localStorage.setItem(tabsKey, tabsRaw)
+            }
+          }
+        }
+      }
+      if (tabsRaw) {
+        const parsed = parseDataTabs(tabsRaw)
+        if (parsed) setDataTabs(parsed)
+        else setDataTabs([])
+      } else {
+        setDataTabs([])
+      }
+    } catch {
+      setDataTabs([])
+    }
+  }, [projectRef])
+
+  // Load persisted insight expand state from localStorage once (user-global)
   useEffect(() => {
     if (typeof window === 'undefined') return
     try {
@@ -151,60 +261,28 @@ export function V2DashboardProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // Load persisted data tabs from localStorage once
+  // Persist recents to localStorage on change (per project)
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined' || !projectRef) return
     try {
-      const raw = localStorage.getItem(DATA_TABS_STORAGE_KEY)
-      if (!raw) return
-      const parsed = JSON.parse(raw) as unknown
-      if (!Array.isArray(parsed)) return
-      const normalized = parsed
-        .filter((x) => x && typeof x === 'object')
-        .map((x) => x as Partial<DataTab>)
-        .filter(
-          (x) =>
-            typeof x.id === 'string' &&
-            typeof x.label === 'string' &&
-            typeof x.type === 'string' &&
-            typeof x.category === 'string' &&
-            typeof x.domain === 'string' &&
-            typeof x.path === 'string'
-        )
-        .map((x) => ({
-          id: x.id as string,
-          label: x.label as string,
-          type: x.type as DataTabType,
-          category: x.category as string,
-          domain: x.domain as DataTabDomain,
-          path: x.path as string,
-        }))
-
-      setDataTabs(normalized)
-    } catch {
-      // Ignore corrupted localStorage
-    }
-  }, [])
-
-  // Persist recents to localStorage on change
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    try {
-      localStorage.setItem(RECENT_ITEMS_STORAGE_KEY, JSON.stringify(recentItems))
+      localStorage.setItem(
+        projectStorageKey(projectRef, 'recent-items'),
+        JSON.stringify(recentItems)
+      )
     } catch {
       // Ignore write failures
     }
-  }, [recentItems])
+  }, [projectRef, recentItems])
 
-  // Persist open data tabs to localStorage on change
+  // Persist open data tabs to localStorage on change (per project)
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined' || !projectRef) return
     try {
-      localStorage.setItem(DATA_TABS_STORAGE_KEY, JSON.stringify(dataTabs))
+      localStorage.setItem(projectStorageKey(projectRef, 'data-tabs'), JSON.stringify(dataTabs))
     } catch {
       // Ignore write failures
     }
-  }, [dataTabs])
+  }, [projectRef, dataTabs])
 
   // Persist insight expand state to localStorage on change
   useEffect(() => {

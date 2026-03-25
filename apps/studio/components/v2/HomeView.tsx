@@ -1,11 +1,13 @@
 'use client'
 
+import { LINTER_LEVELS } from 'components/interfaces/Linter/Linter.constants'
 import {
   parseConnectionsData,
   parseInfrastructureMetrics,
 } from 'components/interfaces/Observability/DatabaseInfrastructureSection.utils'
 import { SIDEBAR_KEYS } from 'components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
 import { useInfraMonitoringAttributesQuery } from 'data/analytics/infra-monitoring-query'
+import type { InfraMonitoringAttribute } from 'data/analytics/infra-monitoring-query'
 import { getKeys, useAPIKeysQuery } from 'data/api-keys/api-keys-query'
 import { useBranchesQuery } from 'data/branches/branches-query'
 import { useMaxConnectionsQuery } from 'data/database/max-connections-query'
@@ -14,6 +16,7 @@ import { useOrganizationsQuery } from 'data/organizations/organizations-query'
 import { useProjectDetailQuery } from 'data/projects/project-detail-query'
 import dayjs from 'dayjs'
 import { API_URL, IS_PLATFORM } from 'lib/constants'
+import { AlertTriangle, CircleAlert, Info } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { useMemo } from 'react'
@@ -21,9 +24,10 @@ import { useAdvisorStateSnapshot } from 'state/advisor-state'
 import { useSidebarManagerSnapshot } from 'state/sidebar-manager-state'
 import { Badge, Button, cn, copyToClipboard } from 'ui'
 
+import { HomeViewDataCountersRow } from './HomeViewDataCountersRow'
+import { useV2DataCounts } from './useV2DataCounts'
 import { useV2Params } from '@/app/v2/V2ParamsContext'
 import { useV2DashboardStore } from '@/stores/v2-dashboard'
-import type { InfraMonitoringAttribute } from 'data/analytics/infra-monitoring-query'
 
 const HomeViewInfrastructureDiagram = dynamic(
   () => import('./HomeViewInfrastructureDiagram').then((m) => m.HomeViewInfrastructureDiagram),
@@ -34,6 +38,37 @@ const HomeViewInfrastructureDiagram = dynamic(
     ),
   }
 )
+
+function LintSeverityIcon({ level }: { level: string }) {
+  const iconClass = 'size-4 shrink-0'
+  const aria =
+    level === LINTER_LEVELS.ERROR
+      ? 'Error'
+      : level === LINTER_LEVELS.WARN
+        ? 'Warning'
+        : 'Information'
+
+  return (
+    <span
+      role="img"
+      className="shrink-0 flex items-center justify-center"
+      title={level}
+      aria-label={`${aria} severity`}
+    >
+      {level === LINTER_LEVELS.ERROR ? (
+        <CircleAlert className={cn(iconClass, 'text-destructive')} strokeWidth={1.5} aria-hidden />
+      ) : level === LINTER_LEVELS.WARN ? (
+        <AlertTriangle
+          className={cn(iconClass, 'text-warning-600 dark:text-warning')}
+          strokeWidth={1.5}
+          aria-hidden
+        />
+      ) : (
+        <Info className={cn(iconClass, 'text-foreground-lighter')} strokeWidth={1.5} aria-hidden />
+      )}
+    </span>
+  )
+}
 
 function maskConnectionString(conn: string | null | undefined) {
   if (!conn) return ''
@@ -108,6 +143,7 @@ export function HomeView() {
     projectRef,
     connectionString: project?.connectionString,
   })
+  const counts = useV2DataCounts(projectRef)
 
   const metrics = parseInfrastructureMetrics(infraData)
   const connections = parseConnectionsData(infraData, maxConnectionsData)
@@ -167,88 +203,135 @@ export function HomeView() {
         </div>
       </div>
 
-      {/* b) Infrastructure diagram */}
-      <div className="h-[280px]">
-        <div className="h-full border border-muted rounded-md overflow-hidden flex flex-col">
-          <HomeViewInfrastructureDiagram />
+      <div className="grid lg:grid-cols-3 gap-3">
+        {/* Infrastructure diagram */}
+        <div className="h-[280px] lg:col-span-2">
+          <div className="h-full border border-muted rounded-md overflow-hidden flex flex-col">
+            <HomeViewInfrastructureDiagram />
+          </div>
+        </div>
+
+        {/* Project health metrics */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="border border-border bg-surface-100 rounded-md p-3">
+            <div className="text-xs text-foreground-lighter">Connections</div>
+            <div className="text-sm  mt-1">
+              {connections.max > 0 ? `${connections.current}/${connections.max}` : '—'}
+            </div>
+          </div>
+          <div className="border border-border bg-surface-100 rounded-md p-3">
+            <div className="text-xs text-foreground-lighter">Memory</div>
+            <div className="text-sm  mt-1">
+              {metrics?.ram ? `${metrics.ram.current.toFixed(0)}%` : '—'}
+            </div>
+          </div>
+          <div className="border border-border bg-surface-100 rounded-md p-3">
+            <div className="text-xs text-foreground-lighter">Disk</div>
+            <div className="text-sm  mt-1">
+              {metrics?.disk ? `${metrics.disk.current.toFixed(0)}%` : '—'}
+            </div>
+          </div>
+          <div className="border border-border bg-surface-100 rounded-md p-3">
+            <div className="text-xs text-foreground-lighter">CPU</div>
+            <div className="text-sm  mt-1">
+              {metrics?.cpu ? `${metrics.cpu.current.toFixed(0)}%` : '—'}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* c) Active issues */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-base ">Active issues</h2>
-          <span className="text-xs text-foreground-lighter">{issues.length} shown</span>
-        </div>
-        {lintsQuery.isPending ? (
-          <div className="text-sm text-foreground-lighter">Loading issues…</div>
-        ) : issues.length === 0 ? (
-          <div className="text-sm text-foreground-lighter rounded border border-border p-3">
-            No issues detected
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {issues.map((lint) => {
-              const isError = lint.level === 'ERROR'
-              const pillClass = isError
-                ? 'bg-destructive-300 text-destructive border-destructive-500'
-                : 'bg-transparent text-foreground-lighter border-border'
+      <HomeViewDataCountersRow projectRef={projectRef} counts={counts} />
 
-              return (
-                <button
-                  key={lint.cache_key}
-                  type="button"
-                  onClick={() => handleOpenLint(lint)}
-                  className="w-full text-left flex items-start gap-3 rounded border border-border hover:bg-sidebar-accent/50 p-3"
+      <div className="w-full grid lg:grid-cols-2 gap-3">
+        {/* g) Connect */}
+        <div className="border border-border bg-surface-100 rounded-md p-2">
+          <h2 className="text-base mb-2">Connect</h2>
+          <div className="flex flex-col gap-2">
+            <div className="border border-border bg-alternative rounded-md p-3">
+              <div className="text-xs text-foreground-lighter mb-1">Connection string</div>
+              <div className="font-mono text-xs break-all">
+                {maskConnectionString(project?.connectionString)}
+              </div>
+              <div className="mt-2">
+                <Button
+                  type="default"
+                  size="tiny"
+                  onClick={() => copyToClipboard(project?.connectionString ?? '')}
+                  disabled={!project?.connectionString}
                 >
-                  <span
-                    className={cn('shrink-0 text-[10px] px-2 py-0.5 rounded border', pillClass)}
-                  >
-                    {lint.level}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-xs  text-foreground truncate">
-                      {lint.categories?.[0] ?? 'General'}
-                    </div>
-                    <div className="text-xs text-foreground-lighter truncate">
-                      {lint.description ?? lint.detail}
-                    </div>
-                  </div>
-                  <span className="text-xs text-foreground underline underline-offset-2 shrink-0">
-                    View
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* d) Project health metrics */}
-      <div className="grid grid-cols-4 gap-3">
-        <div className="border border-border rounded-md p-3">
-          <div className="text-xs text-foreground-lighter">Connections</div>
-          <div className="text-sm  mt-1">
-            {connections.max > 0 ? `${connections.current}/${connections.max}` : '—'}
+                  Copy
+                </Button>
+              </div>
+            </div>
+            <div className="border border-border bg-alternative rounded-md p-3">
+              <div className="text-xs text-foreground-lighter mb-1">API</div>
+              <div className="font-mono text-xs break-all">{API_URL}</div>
+              <div className="font-mono text-xs break-all mt-2">
+                {anonKey?.api_key ? `anon: ${anonKey.api_key}` : 'anon: —'}
+              </div>
+              <div className="mt-2 flex gap-2">
+                <Button type="default" size="tiny" onClick={() => copyToClipboard(API_URL)}>
+                  Copy URL
+                </Button>
+                <Button
+                  type="default"
+                  size="tiny"
+                  onClick={() => copyToClipboard(anonKey?.api_key ?? '')}
+                  disabled={!anonKey?.api_key}
+                >
+                  Copy anon
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
-        <div className="border border-border rounded-md p-3">
-          <div className="text-xs text-foreground-lighter">Memory</div>
-          <div className="text-sm  mt-1">
-            {metrics?.ram ? `${metrics.ram.current.toFixed(0)}%` : '—'}
+        {/* Active issues */}
+        <div className="max-w-full max-h-[300px]">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-base ">Active issues</h2>
+            <span className="text-xs text-foreground-lighter">{issues.length} shown</span>
           </div>
-        </div>
-        <div className="border border-border rounded-md p-3">
-          <div className="text-xs text-foreground-lighter">Disk</div>
-          <div className="text-sm  mt-1">
-            {metrics?.disk ? `${metrics.disk.current.toFixed(0)}%` : '—'}
-          </div>
-        </div>
-        <div className="border border-border rounded-md p-3">
-          <div className="text-xs text-foreground-lighter">CPU</div>
-          <div className="text-sm  mt-1">
-            {metrics?.cpu ? `${metrics.cpu.current.toFixed(0)}%` : '—'}
-          </div>
+          {lintsQuery.isPending ? (
+            <div className="text-sm text-foreground-lighter">Loading issues…</div>
+          ) : issues.length === 0 ? (
+            <div className="text-sm text-foreground-lighter rounded border border-border p-3">
+              No issues detected
+            </div>
+          ) : (
+            <div className="border border-border rounded-md p-3 overflow-y-auto max-h-full">
+              <div className="space-y-1">
+                {issues.map((lint) => {
+                  const pillStyle =
+                    lint.level === LINTER_LEVELS.ERROR &&
+                    'bg-destructive-200 border-destructive-500 text-destructive'
+                  return (
+                    <button
+                      key={lint.cache_key}
+                      type="button"
+                      onClick={() => handleOpenLint(lint)}
+                      className={cn(
+                        'w-full text-left flex items-start gap-3 rounded border border-border bg-surface-100 hover:bg-sidebar-accent/50 p-2',
+                        pillStyle
+                      )}
+                    >
+                      <LintSeverityIcon level={lint.level} />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs  text-foreground truncate">
+                          {lint.categories?.[0] ?? 'General'}
+                        </div>
+                        <div className="text-xs text-foreground-lighter truncate">
+                          {lint.description ?? lint.detail}
+                        </div>
+                      </div>
+                      <span className="text-xs text-foreground underline underline-offset-2 shrink-0">
+                        View
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -279,7 +362,7 @@ export function HomeView() {
         )}
       </div>
 
-      {/* f) Quick actions */}
+      {/* Quick actions */}
       <div className="grid grid-cols-4 gap-3">
         {[
           {
@@ -308,49 +391,6 @@ export function HomeView() {
             <div className="text-sm ">{a.title}</div>
           </button>
         ))}
-      </div>
-
-      {/* g) Connect */}
-      <div className="border border-border rounded-md p-4">
-        <h2 className="text-base  mb-3">Connect</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="border border-border rounded-md p-3">
-            <div className="text-xs text-foreground-lighter mb-1">Connection string</div>
-            <div className="font-mono text-xs break-all">
-              {maskConnectionString(project?.connectionString)}
-            </div>
-            <div className="mt-2">
-              <Button
-                type="default"
-                size="tiny"
-                onClick={() => copyToClipboard(project?.connectionString ?? '')}
-                disabled={!project?.connectionString}
-              >
-                Copy
-              </Button>
-            </div>
-          </div>
-          <div className="border border-border rounded-md p-3">
-            <div className="text-xs text-foreground-lighter mb-1">API</div>
-            <div className="font-mono text-xs break-all">{API_URL}</div>
-            <div className="font-mono text-xs break-all mt-2">
-              {anonKey?.api_key ? `anon: ${anonKey.api_key}` : 'anon: —'}
-            </div>
-            <div className="mt-2 flex gap-2">
-              <Button type="default" size="tiny" onClick={() => copyToClipboard(API_URL)}>
-                Copy URL
-              </Button>
-              <Button
-                type="default"
-                size="tiny"
-                onClick={() => copyToClipboard(anonKey?.api_key ?? '')}
-                disabled={!anonKey?.api_key}
-              >
-                Copy anon
-              </Button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   )

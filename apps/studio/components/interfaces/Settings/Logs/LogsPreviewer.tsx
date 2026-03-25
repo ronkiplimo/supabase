@@ -120,11 +120,11 @@ export const LogsPreviewer = ({
   const [selectedDatePickerValue, setSelectedDatePickerValue] = useState<DatePickerValue>(() => {
     const iso_timestamp_start =
       (compatRouter?.query?.iso_timestamp_start as string | undefined) ??
-      searchParams.get('iso_timestamp_start') ??
+      searchParams?.get('iso_timestamp_start') ??
       undefined
     const iso_timestamp_end =
       (compatRouter?.query?.iso_timestamp_end as string | undefined) ??
-      searchParams.get('iso_timestamp_end') ??
+      searchParams?.get('iso_timestamp_end') ??
       undefined
 
     if (iso_timestamp_start && iso_timestamp_end) {

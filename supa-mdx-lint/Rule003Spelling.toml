@@ -238,7 +238,6 @@ allow_list = [
     "Infisical",
     "IntelliJ",
     "IntelliSense",
-    # Really necessary?
     "[Ii]nviter's",
     "IOWait",
     "IVFFlat",

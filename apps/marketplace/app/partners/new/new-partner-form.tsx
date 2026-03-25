@@ -7,9 +7,9 @@ import {
   Card,
   CardContent,
   CardFooter,
+  Form_Shadcn_ as Form,
   FormControl_Shadcn_ as FormControl,
   FormField_Shadcn_ as FormField,
-  Form_Shadcn_ as Form,
   Input_Shadcn_ as Input,
   TextArea_Shadcn_ as TextArea,
 } from 'ui'
@@ -117,7 +117,12 @@ export function NewPartnerForm() {
                   description="Leave empty to auto-generate from your title."
                 >
                   <FormControl className="col-span-8">
-                    <Input id="partner-slug" placeholder="acme-inc" disabled={fieldsDisabled} {...field} />
+                    <Input
+                      id="partner-slug"
+                      placeholder="acme-inc"
+                      disabled={fieldsDisabled}
+                      {...field}
+                    />
                   </FormControl>
                 </FormItemLayout>
               )}
@@ -156,11 +161,16 @@ export function NewPartnerForm() {
 
           <CardFooter className="justify-end gap-3">
             {isDirty && (
-              <Button type="button" variant="outline" disabled={fieldsDisabled} onClick={handleCancel}>
+              <Button
+                htmlType="button"
+                type="outline"
+                disabled={fieldsDisabled}
+                onClick={handleCancel}
+              >
                 Cancel
               </Button>
             )}
-            <Button type="submit" disabled={!isDirty || isPending}>
+            <Button htmlType="submit" disabled={!isDirty || isPending}>
               {isPending ? 'Creating...' : 'Create partner'}
             </Button>
           </CardFooter>

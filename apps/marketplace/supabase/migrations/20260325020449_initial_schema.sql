@@ -337,7 +337,6 @@ create policy "partners_select"
   for select
   using (
     public.is_admin_member()
-    or created_by = auth.uid()
     or public.is_partner_member(id)
     or public.is_reviewer_member()
     or exists (

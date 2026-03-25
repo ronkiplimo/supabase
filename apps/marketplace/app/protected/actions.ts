@@ -15,9 +15,9 @@ import {
   slugify,
 } from '@/lib/marketplace/item-draft'
 import {
-  getStorageObjectPathFromPublicUrl,
   getItemTemplateRegistryFilePath,
   getItemTemplateStoragePath,
+  getStorageObjectPathFromPublicUrl,
   MARKETPLACE_STORAGE_BUCKET,
 } from '@/lib/marketplace/item-storage'
 import { isReviewStatus, shouldRequestReview } from '@/lib/marketplace/review-state'
@@ -152,6 +152,8 @@ export async function createPartnerAction(formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  console.log('user', user)
+
   if (!user) {
     redirect('/auth/login')
   }
@@ -178,6 +180,7 @@ export async function createPartnerAction(formData: FormData) {
     .single()
 
   if (error || !partner) {
+    console.error(error)
     throw new Error(error?.message ?? 'Unable to create partner')
   }
 

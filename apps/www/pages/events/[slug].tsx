@@ -25,6 +25,7 @@ import utc from 'dayjs/plugin/utc'
 
 import { Button, Image } from 'ui'
 import ShareArticleActions from '~/components/Blog/ShareArticleActions'
+import WebinarContactForm from '~/components/Events/WebinarContactForm'
 import DefaultLayout from '~/components/Layouts/Default'
 import SectionContainer from '~/components/Layouts/SectionContainer'
 
@@ -59,11 +60,13 @@ interface EventData {
   title: string
   subtitle?: string
   main_cta?: CTA
+  secondary_cta?: CTA
   description: string
   type: EventType
   company?: CompanyType
   onDemand?: boolean
   disable_page_build?: boolean
+  hide_bottom_cta?: boolean
   duration?: string
   timezone?: string
   tags?: string[]
@@ -276,34 +279,45 @@ const EventPage = ({ event }: InferGetStaticPropsType<typeof getStaticProps>) =>
 
                   <h1 className="text-foreground text-3xl md:text-4xl xl:pr-9">{event.title}</h1>
                   <p>{event.subtitle}</p>
-                  <Button
-                    type="primary"
-                    size="medium"
-                    className="mt-2"
-                    disabled={
-                      !IS_REGISTRATION_OPEN || event.main_cta?.disabled || event.main_cta?.disabled
-                    }
-                    asChild
-                  >
-                    <Link
-                      href={event.main_cta?.url ?? '#'}
-                      target={event.main_cta?.target ? event.main_cta?.target : undefined}
-                      onClick={() =>
-                        sendTelemetryEvent({
-                          action: 'www_pricing_plan_cta_clicked',
-                          properties: { eventTitle: event.title },
-                        })
+                  <div className="flex flex-row gap-3 mt-2">
+                    <Button
+                      type="primary"
+                      size="medium"
+                      disabled={
+                        !IS_REGISTRATION_OPEN || event.main_cta?.disabled || event.main_cta?.disabled
                       }
+                      asChild
                     >
-                      {IS_REGISTRATION_OPEN
-                        ? event.main_cta?.label
+                      <Link
+                        href={event.main_cta?.url ?? '#'}
+                        target={event.main_cta?.target ? event.main_cta?.target : undefined}
+                        onClick={() =>
+                          sendTelemetryEvent({
+                            action: 'www_pricing_plan_cta_clicked',
+                            properties: { eventTitle: event.title },
+                          })
+                        }
+                      >
+                        {IS_REGISTRATION_OPEN
                           ? event.main_cta?.label
-                          : 'Register to this event'
-                        : event.main_cta?.disabled_label
-                          ? event.main_cta?.disabled_label
-                          : 'Registrations are closed'}
-                    </Link>
-                  </Button>
+                            ? event.main_cta?.label
+                            : 'Register to this event'
+                          : event.main_cta?.disabled_label
+                            ? event.main_cta?.disabled_label
+                            : 'Registrations are closed'}
+                      </Link>
+                    </Button>
+                    {event.secondary_cta && (
+                      <Button type="secondary" size="medium" asChild>
+                        <Link
+                          href={event.secondary_cta.url}
+                          target={event.secondary_cta.target ?? undefined}
+                        >
+                          {event.secondary_cta.label ?? 'Contact us'}
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <div className="flex flex-col text-sm">
                   <span>Share on</span>
@@ -372,31 +386,39 @@ const EventPage = ({ event }: InferGetStaticPropsType<typeof getStaticProps>) =>
                 <h2 className="text-foreground-light text-sm font-mono uppercase">
                   About this event
                 </h2>
-                <MDXRemote {...content} components={mdxComponents()} />
+                <MDXRemote
+                  {...content}
+                  components={{
+                    ...mdxComponents(),
+                    WebinarContactForm,
+                  }}
+                />
               </div>
-              <aside className="mt-8">
-                <Button
-                  type="primary"
-                  size="medium"
-                  className="mt-2"
-                  disabled={!IS_REGISTRATION_OPEN || event.main_cta?.disabled}
-                  asChild
-                >
-                  <Link
-                    href={event.main_cta?.url ?? '#'}
-                    aria-disabled={!IS_REGISTRATION_OPEN}
-                    target={event.main_cta?.target ? event.main_cta?.target : undefined}
+              {!event.hide_bottom_cta && (
+                <aside className="mt-8">
+                  <Button
+                    type="primary"
+                    size="medium"
+                    className="mt-2"
+                    disabled={!IS_REGISTRATION_OPEN || event.main_cta?.disabled}
+                    asChild
                   >
-                    {IS_REGISTRATION_OPEN
-                      ? event.main_cta?.label
+                    <Link
+                      href={event.main_cta?.url ?? '#'}
+                      aria-disabled={!IS_REGISTRATION_OPEN}
+                      target={event.main_cta?.target ? event.main_cta?.target : undefined}
+                    >
+                      {IS_REGISTRATION_OPEN
                         ? event.main_cta?.label
-                        : 'Register now'
-                      : event.main_cta?.disabled_label
-                        ? event.main_cta?.disabled_label
-                        : 'Registrations are closed'}
-                  </Link>
-                </Button>
-              </aside>
+                          ? event.main_cta?.label
+                          : 'Register now'
+                        : event.main_cta?.disabled_label
+                          ? event.main_cta?.disabled_label
+                          : 'Registrations are closed'}
+                    </Link>
+                  </Button>
+                </aside>
+              )}
             </main>
             <aside className="order-first lg:order-last">
               {partnersArray && partnersArray.length > 0 && (

@@ -12,8 +12,11 @@ interface ReportHeaderProps {
 }
 
 /** App Router: reconstruct a single-value query map from the current URL (no duplicate keys). */
-function queryFromSearchParams(searchParams: ReturnType<typeof useSearchParams>) {
+function queryFromSearchParams(
+  searchParams: ReturnType<typeof useSearchParams> | null
+) {
   const q: Record<string, string | string[] | undefined> = {}
+  if (!searchParams) return q
   searchParams.forEach((value, key) => {
     q[key] = value
   })

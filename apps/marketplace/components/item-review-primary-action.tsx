@@ -8,11 +8,11 @@ import {
   PopoverTrigger_Shadcn_ as PopoverTrigger,
 } from 'ui'
 
-import { requestItemReviewAction } from '@/app/protected/actions'
+import { requestListingReviewAction } from '@/app/protected/actions'
 
-type ItemReviewPrimaryActionProps = {
-  itemId: number
-  itemSlug: string
+type ListingReviewPrimaryActionProps = {
+  listingId: number
+  listingSlug: string
   partnerSlug: string
   isApproved: boolean
   hasOpenReview: boolean
@@ -21,16 +21,16 @@ type ItemReviewPrimaryActionProps = {
   openReviewStatusLabel?: string | null
 }
 
-export function ItemReviewPrimaryAction({
-  itemId,
-  itemSlug,
+export function ListingReviewPrimaryAction({
+  listingId,
+  listingSlug,
   partnerSlug,
   isApproved,
   hasOpenReview,
   latestReviewStatus,
   latestReviewNotes,
   openReviewStatusLabel,
-}: ItemReviewPrimaryActionProps) {
+}: ListingReviewPrimaryActionProps) {
   if (isApproved) {
     return <Badge variant="success">Approved</Badge>
   }
@@ -55,9 +55,9 @@ export function ItemReviewPrimaryAction({
                 : 'No rejection reason was provided for this review.'}
             </p>
           </div>
-          <form action={requestItemReviewAction}>
-            <input type="hidden" name="itemId" value={itemId} />
-            <input type="hidden" name="itemSlug" value={itemSlug} />
+          <form action={requestListingReviewAction}>
+            <input type="hidden" name="listingId" value={listingId} />
+            <input type="hidden" name="listingSlug" value={listingSlug} />
             <input type="hidden" name="partnerSlug" value={partnerSlug} />
             <Button htmlType="submit" type="secondary" className="w-full">
               Re-request review
@@ -77,9 +77,9 @@ export function ItemReviewPrimaryAction({
   }
 
   return (
-    <form action={requestItemReviewAction}>
-      <input type="hidden" name="itemId" value={itemId} />
-      <input type="hidden" name="itemSlug" value={itemSlug} />
+    <form action={requestListingReviewAction}>
+      <input type="hidden" name="listingId" value={listingId} />
+      <input type="hidden" name="listingSlug" value={listingSlug} />
       <input type="hidden" name="partnerSlug" value={partnerSlug} />
       <Button htmlType="submit" type="secondary">
         Request review

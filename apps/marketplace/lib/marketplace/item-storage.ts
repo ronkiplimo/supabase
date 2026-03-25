@@ -1,15 +1,15 @@
-export const MARKETPLACE_STORAGE_BUCKET = 'item_files'
+export const MARKETPLACE_STORAGE_BUCKET = 'listing_files'
 
-export function getItemFilesStoragePath(partnerId: number | string, itemId: number | string) {
-  return `${partnerId}/items/${itemId}/files`
+export function getListingFilesStoragePath(partnerId: number | string, listingId: number | string) {
+  return `${partnerId}/listings/${listingId}/files`
 }
 
-export function getItemTemplateStoragePath(partnerId: number | string, itemId: number | string) {
-  return `${partnerId}/items/${itemId}/template`
+export function getListingTemplateStoragePath(partnerId: number | string, listingId: number | string) {
+  return `${partnerId}/listings/${listingId}/template`
 }
 
-export function getItemTemplateRegistryFilePath(partnerId: number | string, itemId: number | string) {
-  return `${getItemTemplateStoragePath(partnerId, itemId)}/template.json`
+export function getListingTemplateRegistryFilePath(partnerId: number | string, listingId: number | string) {
+  return `${getListingTemplateStoragePath(partnerId, listingId)}/template.json`
 }
 
 export function getStorageObjectPathFromPublicUrl(publicUrl: string, bucketName: string) {

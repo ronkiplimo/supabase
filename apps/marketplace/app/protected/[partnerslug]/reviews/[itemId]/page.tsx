@@ -30,9 +30,9 @@ type ReviewDetailPageProps = {
 export default async function ReviewDetailPage({ params }: ReviewDetailPageProps) {
   const { partnerslug, itemId } = params
   const supabase = await createClient()
-  const parsedItemId = Number(itemId)
+  const parsedListingId = Number(itemId)
 
-  if (!Number.isFinite(parsedItemId)) {
+  if (!Number.isFinite(parsedListingId)) {
     notFound()
   }
 
@@ -50,19 +50,19 @@ export default async function ReviewDetailPage({ params }: ReviewDetailPageProps
     notFound()
   }
 
-  const { data: item, error: itemError } = await supabase
-    .from('items')
+  const { data: listing, error: listingError } = await supabase
+    .from('listings')
     .select(
-      'id, slug, title, summary, url, registry_item_url, documentation_url, content, type, files, updated_at, partner:partners(id, slug, title), review:item_reviews(status, featured, review_notes, reviewed_at)'
+      'id, slug, title, summary, url, registry_listing_url, documentation_url, content, type, files, updated_at, partner:partners(id, slug, title), review:listing_reviews(status, featured, review_notes, reviewed_at)'
     )
-    .eq('id', parsedItemId)
+    .eq('id', parsedListingId)
     .maybeSingle()
 
-  if (itemError || !item) {
+  if (listingError || !listing) {
     notFound()
   }
 
-  const latestReview = Array.isArray(item.review) ? item.review[0] : item.review
+  const latestReview = Array.isArray(listing.review) ? listing.review[0] : listing.review
   const reviewDefaults = deriveReviewDecisionDefaults(latestReview)
 
   const { data: categories, error: categoriesError } = await supabase
@@ -75,9 +75,9 @@ export default async function ReviewDetailPage({ params }: ReviewDetailPageProps
   }
 
   const { data: assignedCategoryRows, error: assignedCategoryRowsError } = await supabase
-    .from('category_items')
+    .from('category_listings')
     .select('category:categories(title)')
-    .eq('item_id', item.id)
+    .eq('listing_id', listing.id)
 
   if (assignedCategoryRowsError) {
     throw new Error(assignedCategoryRowsError.message)
@@ -95,7 +95,7 @@ export default async function ReviewDetailPage({ params }: ReviewDetailPageProps
     categories: assignedCategoryTitles,
   }
 
-  const marketplaceFiles: MarketplaceItemFile[] = ((item.files ?? []) as string[]).map((fileUrl) => {
+  const marketplaceFiles: MarketplaceItemFile[] = ((listing.files ?? []) as string[]).map((fileUrl) => {
     const fileName = fileUrl.split('/').pop() ?? fileUrl
     return {
       id: fileUrl,
@@ -117,13 +117,13 @@ export default async function ReviewDetailPage({ params }: ReviewDetailPageProps
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>{item.title}</BreadcrumbPage>
+              <BreadcrumbPage>{listing.title}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </PageHeaderBreadcrumb>
         <PageHeaderMeta>
           <PageHeaderSummary>
-            <PageHeaderTitle>{item.title}</PageHeaderTitle>
+            <PageHeaderTitle>{listing.title}</PageHeaderTitle>
           </PageHeaderSummary>
         </PageHeaderMeta>
       </PageHeader>
@@ -132,7 +132,7 @@ export default async function ReviewDetailPage({ params }: ReviewDetailPageProps
         <section className="max-w-xl w-full min-w-lg overflow-y-auto border-r">
           <ReviewDecisionForm
             partnerSlug={partnerslug}
-            itemId={item.id}
+            listingId={listing.id}
             defaultValues={reviewFormDefaults}
             categoryOptions={categories ?? []}
           />
@@ -148,8 +148,8 @@ export default async function ReviewDetailPage({ params }: ReviewDetailPageProps
               </div>
               <div className="flex-1 flex justify-center">
                 <span className="text-xs text-muted-foreground bg-muted w-3xl truncate px-3 py-0.5 rounded border font-mono">
-                  {item.slug
-                    ? `https://supabase.com/marketplace/${item.slug}`
+                  {listing.slug
+                    ? `https://supabase.com/marketplace/${listing.slug}`
                     : 'https://example.com/listing'}
                 </span>
               </div>
@@ -157,27 +157,27 @@ export default async function ReviewDetailPage({ params }: ReviewDetailPageProps
             </div>
             <div className="flex-1 overflow-y-auto">
               <MarketplaceItem
-                title={item.title || 'Untitled item'}
-                summary={item.summary}
-                content={item.content}
-                primaryActionUrl={item.type === 'template' ? item.registry_item_url : item.url}
+                title={listing.title || 'Untitled listing'}
+                summary={listing.summary}
+                content={listing.content}
+                primaryActionUrl={listing.type === 'template' ? listing.registry_listing_url : listing.url}
                 files={marketplaceFiles}
-                partnerName={(item.partner as { title?: string } | null)?.title}
-                lastUpdatedAt={item.updated_at}
-                type={item.type}
+                partnerName={(listing.partner as { title?: string } | null)?.title}
+                lastUpdatedAt={listing.updated_at}
+                type={listing.type}
                 metaFields={[
-                  ...(item.type === 'oauth'
+                  ...(listing.type === 'oauth'
                     ? [
                         {
                           label: 'Listing URL',
-                          value: item.url ? (
+                          value: listing.url ? (
                             <a
-                              href={item.url}
+                              href={listing.url}
                               target="_blank"
                               rel="noreferrer"
                               className="underline underline-offset-2"
                             >
-                              {item.url}
+                              {listing.url}
                             </a>
                           ) : (
                             'No URL provided'
@@ -187,14 +187,14 @@ export default async function ReviewDetailPage({ params }: ReviewDetailPageProps
                     : []),
                   {
                     label: 'Documentation URL',
-                    value: item.documentation_url ? (
+                    value: listing.documentation_url ? (
                       <a
-                        href={item.documentation_url}
+                        href={listing.documentation_url}
                         target="_blank"
                         rel="noreferrer"
                         className="underline underline-offset-2"
                       >
-                        {item.documentation_url}
+                        {listing.documentation_url}
                       </a>
                     ) : (
                       'No URL provided'

@@ -17,19 +17,19 @@ import {
 } from 'ui-patterns/PageHeader'
 import type { MarketplaceItemFile } from 'ui-patterns/MarketplaceItem'
 
-import { ItemEditorSplitView } from '@/components/item-editor-split-view'
-import { ItemReviewPrimaryAction } from '@/components/item-review-primary-action'
+import { ListingEditorSplitView } from '@/components/item-editor-split-view'
+import { ListingReviewPrimaryAction } from '@/components/item-review-primary-action'
 import { deriveOpenReviewState } from '@/lib/marketplace/review-state'
 import { createClient } from '@/lib/supabase/server'
 
-type EditItemPageProps = {
+type EditListingPageProps = {
   params: {
     partnerslug: string
     slug: string
   }
 }
 
-export default async function EditItemPage({ params }: EditItemPageProps) {
+export default async function EditListingPage({ params }: EditListingPageProps) {
   const { partnerslug, slug } = params
   const supabase = await createClient()
 
@@ -43,23 +43,23 @@ export default async function EditItemPage({ params }: EditItemPageProps) {
     notFound()
   }
 
-  const { data: item, error: itemError } = await supabase
-    .from('items')
+  const { data: listing, error: listingError } = await supabase
+    .from('listings')
     .select(
-      'id, slug, title, summary, content, published, type, url, registry_item_url, documentation_url, files, updated_at'
+      'id, slug, title, summary, content, published, type, url, registry_listing_url, documentation_url, initiation_action_url, initiation_action_method, files, updated_at'
     )
     .eq('partner_id', partner.id)
     .eq('slug', slug)
     .maybeSingle()
 
-  if (itemError || !item) {
+  if (listingError || !listing) {
     notFound()
   }
 
   const { data: latestReview, error: latestReviewError } = await supabase
-    .from('item_reviews')
+    .from('listing_reviews')
     .select('status, review_notes')
-    .eq('item_id', item.id)
+    .eq('listing_id', listing.id)
     .maybeSingle()
 
   if (latestReviewError) {
@@ -70,7 +70,7 @@ export default async function EditItemPage({ params }: EditItemPageProps) {
     latestReview?.status
   )
 
-  const previewFiles: MarketplaceItemFile[] = ((item.files ?? []) as string[]).map((fileUrl) => {
+  const previewFiles: MarketplaceItemFile[] = ((listing.files ?? []) as string[]).map((fileUrl) => {
     const fileName = fileUrl.split('/').pop() ?? fileUrl
     return {
       id: fileUrl,
@@ -87,23 +87,23 @@ export default async function EditItemPage({ params }: EditItemPageProps) {
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link href={`/protected/${partner.slug}/items`}>Items</Link>
+                <Link href={`/protected/${partner.slug}/items`}>Listings</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>{item.title}</BreadcrumbPage>
+              <BreadcrumbPage>{listing.title}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </PageHeaderBreadcrumb>
         <PageHeaderMeta>
           <PageHeaderSummary>
-            <PageHeaderTitle>{item.title}</PageHeaderTitle>
+            <PageHeaderTitle>{listing.title}</PageHeaderTitle>
           </PageHeaderSummary>
           <PageHeaderAside>
-            <ItemReviewPrimaryAction
-              itemId={item.id}
-              itemSlug={item.slug}
+            <ListingReviewPrimaryAction
+              listingId={listing.id}
+              listingSlug={listing.slug}
               partnerSlug={partner.slug}
               isApproved={isApproved}
               hasOpenReview={hasOpenReview}
@@ -116,11 +116,11 @@ export default async function EditItemPage({ params }: EditItemPageProps) {
       </PageHeader>
 
       <div className="min-h-0 flex-1">
-        <ItemEditorSplitView
+        <ListingEditorSplitView
           mode="edit"
           partner={{ id: partner.id, slug: partner.slug, title: partner.title }}
-          item={item}
-          initialFiles={item.files ?? []}
+          listing={listing}
+          initialFiles={listing.files ?? []}
           initialPreviewFiles={previewFiles}
         />
       </div>

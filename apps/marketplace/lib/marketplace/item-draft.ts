@@ -72,16 +72,21 @@ export function parseTemplateZip(formData: FormData) {
   return raw
 }
 
-export function parseItemType(rawType: string) {
+export function parseListingType(rawType: string) {
   return rawType === 'oauth' ? 'oauth' : rawType === 'template' ? 'template' : null
 }
 
-export function ensureItemDraftConstraints(options: {
+export function parseInitiationMethod(rawMethod: string | null) {
+  if (rawMethod === 'POST' || rawMethod === 'GET') return rawMethod
+  return null
+}
+
+export function ensureListingDraftConstraints(options: {
   type: 'oauth' | 'template' | null
   slug: string
   url: string | null
   templateZip: File | null
-  existingRegistryItemUrl?: string | null
+  existingRegistryListingUrl?: string | null
   published?: boolean
   intent?: 'save' | 'request_review'
 }): asserts options is {
@@ -89,7 +94,7 @@ export function ensureItemDraftConstraints(options: {
   slug: string
   url: string | null
   templateZip: File | null
-  existingRegistryItemUrl?: string | null
+  existingRegistryListingUrl?: string | null
   published?: boolean
   intent?: 'save' | 'request_review'
 } {
@@ -98,22 +103,22 @@ export function ensureItemDraftConstraints(options: {
     slug,
     url,
     templateZip,
-    existingRegistryItemUrl,
+    existingRegistryListingUrl,
     published = false,
     intent = 'save',
   } = options
 
   if (!slug) {
-    throw new Error('Item slug cannot be empty')
+    throw new Error('Listing slug cannot be empty')
   }
   if (!type) {
-    throw new Error('Invalid item type')
+    throw new Error('Invalid listing type')
   }
   if (type === 'oauth' && !url) {
-    throw new Error('OAuth items require a listing URL')
+    throw new Error('OAuth listings require a listing URL')
   }
   const requiresTemplatePackage = type === 'template' && (published || intent === 'request_review')
-  if (requiresTemplatePackage && !templateZip && !existingRegistryItemUrl) {
-    throw new Error('Template items require a template ZIP package before publishing or requesting review')
+  if (requiresTemplatePackage && !templateZip && !existingRegistryListingUrl) {
+    throw new Error('Template listings require a template ZIP package before publishing or requesting review')
   }
 }

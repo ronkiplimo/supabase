@@ -1,32 +1,32 @@
 import { REVIEW_STATUSES } from '@/lib/marketplace/review-state'
 
-export function parseReviewsFilters(searchParams?: { status?: string; itemId?: string }) {
+export function parseReviewsFilters(searchParams?: { status?: string; listingId?: string }) {
   const requestedStatus = searchParams?.status ?? 'pending_review'
   const statusFilter =
     requestedStatus === 'all' || REVIEW_STATUSES.some((status) => status === requestedStatus)
       ? requestedStatus
       : 'pending_review'
-  const itemIdFilter = searchParams?.itemId?.trim() ?? ''
-  const parsedItemIdFilter = Number(itemIdFilter)
-  const hasValidItemIdFilter =
-    itemIdFilter.length > 0 &&
-    Number.isInteger(parsedItemIdFilter) &&
-    Number.isFinite(parsedItemIdFilter) &&
-    parsedItemIdFilter > 0
+  const listingIdFilter = searchParams?.listingId?.trim() ?? ''
+  const parsedListingIdFilter = Number(listingIdFilter)
+  const hasValidListingIdFilter =
+    listingIdFilter.length > 0 &&
+    Number.isInteger(parsedListingIdFilter) &&
+    Number.isFinite(parsedListingIdFilter) &&
+    parsedListingIdFilter > 0
 
   return {
     statusFilter,
-    itemIdFilter,
-    parsedItemIdFilter,
-    hasValidItemIdFilter,
+    listingIdFilter,
+    parsedListingIdFilter,
+    hasValidListingIdFilter,
   }
 }
 
 export function mapReviewRows(
   reviews: Array<{
-    item_id: number
+    listing_id: number
     status: string | null
-    item:
+    listing:
       | {
           id?: number | null
           slug?: string | null
@@ -45,18 +45,18 @@ export function mapReviewRows(
 ) {
   return reviews
     .map((review) => {
-      const item = Array.isArray(review.item) ? review.item[0] : review.item
+      const listing = Array.isArray(review.listing) ? review.listing[0] : review.listing
 
-      if (!item?.id || !item.slug || !item.title) {
+      if (!listing?.id || !listing.slug || !listing.title) {
         return null
       }
 
       return {
-        reviewId: review.item_id,
-        itemId: item.id,
-        itemSlug: item.slug,
-        itemTitle: item.title,
-        partnerTitle: partnerTitleById.get(item.partner_id ?? -1) ?? 'Unknown partner',
+        reviewId: review.listing_id,
+        listingId: listing.id,
+        listingSlug: listing.slug,
+        listingTitle: listing.title,
+        partnerTitle: partnerTitleById.get(listing.partner_id ?? -1) ?? 'Unknown partner',
         status: review.status ?? 'pending_review',
       }
     })

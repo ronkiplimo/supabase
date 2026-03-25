@@ -3,10 +3,10 @@ import { describe, expect, it } from 'vitest'
 import { buildReviewDecisionFormData } from './review-form'
 
 describe('review-form utils', () => {
-  it('builds form data payload expected by saveItemReviewAction', () => {
+  it('builds form data payload expected by saveListingReviewAction', () => {
     const formData = buildReviewDecisionFormData({
       partnerSlug: 'acme',
-      itemId: 12,
+      listingId: 12,
       status: 'approved',
       reviewNotes: 'Looks good',
       featured: true,
@@ -14,7 +14,7 @@ describe('review-form utils', () => {
     })
 
     expect(formData.get('partnerSlug')).toBe('acme')
-    expect(formData.get('itemId')).toBe('12')
+    expect(formData.get('listingId')).toBe('12')
     expect(formData.get('status')).toBe('approved')
     expect(formData.get('reviewNotes')).toBe('Looks good')
     expect(formData.get('featured')).toBe('on')

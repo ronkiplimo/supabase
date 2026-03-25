@@ -26,7 +26,7 @@ describe('getMarketplaceSidebarData', () => {
     expect(result.isReviewerMember).toBe(false)
   })
 
-  it('aggregates partners, items, and reviewer membership', async () => {
+  it('aggregates partners, listings, and reviewer membership', async () => {
     createClientMock.mockResolvedValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u1' } } }),
@@ -52,7 +52,7 @@ describe('getMarketplaceSidebarData', () => {
           }
         }
 
-        if (table === 'items') {
+        if (table === 'listings') {
           return {
             select: () => ({
               in: () => ({
@@ -61,11 +61,11 @@ describe('getMarketplaceSidebarData', () => {
                     {
                       id: 11,
                       partner_id: 1,
-                      slug: 'a-item',
-                      title: 'A Item',
-                      item_reviews: { status: 'approved' },
+                      slug: 'a-listing',
+                      title: 'A Listing',
+                      listing_reviews: { status: 'approved' },
                     },
-                    { id: 10, partner_id: 1, slug: 'b-item', title: 'B Item', item_reviews: null },
+                    { id: 10, partner_id: 1, slug: 'b-listing', title: 'B Listing', listing_reviews: null },
                   ],
                   error: null,
                 }),
@@ -80,8 +80,8 @@ describe('getMarketplaceSidebarData', () => {
 
     const result = await getMarketplaceSidebarData()
     expect(result.partners.map((partner) => partner.slug)).toEqual(['acme', 'reviewers'])
-    expect(result.partners[0]?.items.map((item) => item.slug)).toEqual(['a-item', 'b-item'])
-    expect(result.partners[0]?.items.map((item) => item.latestReviewStatus)).toEqual([
+    expect(result.partners[0]?.listings.map((listing) => listing.slug)).toEqual(['a-listing', 'b-listing'])
+    expect(result.partners[0]?.listings.map((listing) => listing.latestReviewStatus)).toEqual([
       'approved',
       null,
     ])

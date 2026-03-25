@@ -36,7 +36,7 @@ export function AppSidebar({ partners, ...props }: AppSidebarProps) {
   }
 
   const settingsHref = `/protected/${currentPartner.slug}/settings`
-  const itemsHref = `/protected/${currentPartner.slug}/items`
+  const itemsHref = `/protected/${currentPartner.slug}/items` // route kept as /items for now
   const reviewsHref = `/protected/${currentPartner.slug}/reviews`
   const categoriesHref = `/protected/${currentPartner.slug}/categories`
   const isItemsActive = pathname === itemsHref || pathname.startsWith(`${itemsHref}/`)
@@ -57,10 +57,10 @@ export function AppSidebar({ partners, ...props }: AppSidebarProps) {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem className="flex w-full justify-center">
-            <SidebarMenuButton asChild tooltip="Items" isActive={isItemsActive}>
+            <SidebarMenuButton asChild tooltip="Listings" isActive={isItemsActive}>
               <Link href={itemsHref}>
                 <Package2 size={16} strokeWidth={1.5} className="text-foreground-lighter" />
-                <span className="sr-only">Items</span>
+                <span className="sr-only">Listings</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

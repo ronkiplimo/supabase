@@ -26,7 +26,7 @@ import { PageSection, PageSectionContent } from 'ui-patterns/PageSection'
 import { deriveLatestReviewStatusDisplay } from '@/lib/marketplace/review-state'
 import { getMarketplaceSidebarData } from '@/lib/marketplace/server'
 
-type PartnerItemsPageProps = {
+type PartnerListingsPageProps = {
   params: {
     partnerslug: string
   }
@@ -39,7 +39,7 @@ type PartnerItemsPageProps = {
       }>
 }
 
-export default async function PartnerItemsPage({ params, searchParams }: PartnerItemsPageProps) {
+export default async function PartnerListingsPage({ params, searchParams }: PartnerListingsPageProps) {
   const { partnerslug } = params
   const resolvedSearchParams = searchParams ? await searchParams : undefined
   const searchQuery = (resolvedSearchParams?.q ?? '').trim()
@@ -53,15 +53,15 @@ export default async function PartnerItemsPage({ params, searchParams }: Partner
   if (!partner) {
     notFound()
   }
-  const items = partner.items
+  const listings = partner.listings
   const normalizedSearchQuery = searchQuery.toLowerCase()
-  const filteredItems =
+  const filteredListings =
     normalizedSearchQuery.length === 0
-      ? items
-      : items.filter(
-          (item) =>
-            item.title.toLowerCase().includes(normalizedSearchQuery) ||
-            item.slug.toLowerCase().includes(normalizedSearchQuery)
+      ? listings
+      : listings.filter(
+          (listing) =>
+            listing.title.toLowerCase().includes(normalizedSearchQuery) ||
+            listing.slug.toLowerCase().includes(normalizedSearchQuery)
         )
 
   return (
@@ -69,8 +69,8 @@ export default async function PartnerItemsPage({ params, searchParams }: Partner
       <PageHeader size="large">
         <PageHeaderMeta>
           <PageHeaderSummary>
-            <PageHeaderTitle>Items</PageHeaderTitle>
-            <PageHeaderDescription>Manage items for {partner.title}</PageHeaderDescription>
+            <PageHeaderTitle>Listings</PageHeaderTitle>
+            <PageHeaderDescription>Manage listings for {partner.title}</PageHeaderDescription>
           </PageHeaderSummary>
         </PageHeaderMeta>
       </PageHeader>
@@ -83,7 +83,7 @@ export default async function PartnerItemsPage({ params, searchParams }: Partner
                   <form method="get">
                     <Input
                       name="q"
-                      placeholder="Search items"
+                      placeholder="Search listings"
                       size="tiny"
                       icon={<Search />}
                       className="w-full lg:w-52"
@@ -93,46 +93,46 @@ export default async function PartnerItemsPage({ params, searchParams }: Partner
                 </div>
                 <Button asChild type="primary" icon={<Plus size={16} strokeWidth={1.5} />}>
                   <Link href={`/protected/${partner.slug}/items/new`}>
-                    <span>Create item</span>
+                    <span>Create listing</span>
                   </Link>
                 </Button>
               </div>
-              {filteredItems.length === 0 ? (
+              {filteredListings.length === 0 ? (
                 <Card className="p-6 text-sm text-muted-foreground">
                   {searchQuery.length > 0
-                    ? 'No items match this search.'
-                    : 'No items yet. Create your first item to get started.'}
+                    ? 'No listings match this search.'
+                    : 'No listings yet. Create your first listing to get started.'}
                 </Card>
               ) : (
                 <Card>
                   <Table className="table-fixed overflow-x-auto">
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Item</TableHead>
+                        <TableHead>Listing</TableHead>
                         <TableHead>Slug</TableHead>
                         <TableHead>Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredItems.map((item) => {
-                        const statusDisplay = deriveLatestReviewStatusDisplay(item.latestReviewStatus)
+                      {filteredListings.map((listing) => {
+                        const statusDisplay = deriveLatestReviewStatusDisplay(listing.latestReviewStatus)
 
                         return (
-                          <TableRow key={item.id} className="group">
+                          <TableRow key={listing.id} className="group">
                             <TableCell className="p-0 font-medium">
                               <Link
-                                href={`/protected/${partner.slug}/items/${item.slug}`}
+                                href={`/protected/${partner.slug}/items/${listing.slug}`}
                                 className="block px-4 py-4 group-hover:underline"
                               >
-                                {item.title}
+                                {listing.title}
                               </Link>
                             </TableCell>
                             <TableCell className="p-0 text-muted-foreground">
                               <Link
-                                href={`/protected/${partner.slug}/items/${item.slug}`}
+                                href={`/protected/${partner.slug}/items/${listing.slug}`}
                                 className="block px-4 py-4 group-hover:underline"
                               >
-                                /{item.slug}
+                                /{listing.slug}
                               </Link>
                             </TableCell>
                             <TableCell className="px-4 py-4">

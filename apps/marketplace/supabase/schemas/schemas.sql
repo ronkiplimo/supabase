@@ -1,8 +1,8 @@
 -- Marketplace schema (declarative)
--- Goal: community-submitted marketplace items with Supabase approval workflow.
+-- Goal: community-submitted marketplace listings with Supabase approval workflow.
 
 -- Enums
-create type public.marketplace_item_type as enum ('oauth', 'template');
+create type public.marketplace_listing_type as enum ('oauth', 'template');
 create type public.marketplace_review_status as enum (
   'draft',
   'pending_review',
@@ -14,8 +14,9 @@ create type public.marketplace_partner_role as enum (
   'reviewer',
   'admin'
 );
+create type public.marketplace_initiation_method as enum ('POST', 'GET');
 
--- Partners represent companies/projects that publish marketplace items.
+-- Partners represent companies/projects that publish marketplace listings.
 create table public.partners (
   id bigint generated always as identity primary key,
   slug text not null unique,
@@ -39,8 +40,8 @@ create table public.partner_members (
   constraint partner_members_role_check check (role in ('member', 'admin'))
 );
 
--- Items represent marketplace entries shown after approval.
-create table public.items (
+-- Listings represent marketplace entries shown after approval.
+create table public.listings (
   id bigint generated always as identity primary key,
   partner_id bigint not null references public.partners (id) on delete cascade,
   slug text not null unique,
@@ -48,26 +49,32 @@ create table public.items (
   summary text,
   content text, -- markdown body
   published boolean not null default false,
-  type public.marketplace_item_type not null,
+  type public.marketplace_listing_type not null,
   url text,
-  registry_item_url text,
+  registry_listing_url text,
   files text[] not null default '{}'::text[],
   documentation_url text,
+  initiation_action_url text,
+  initiation_action_method public.marketplace_initiation_method,
   submitted_by uuid references auth.users (id) on delete set null default auth.uid(),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint items_slug_format check (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'),
-  constraint items_type_destination_check check (
+  constraint listings_slug_format check (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'),
+  constraint listings_type_destination_check check (
     (
       type = 'oauth'
-      and registry_item_url is null
+      and registry_listing_url is null
       and (published = false or url is not null)
     )
     or (
       type = 'template'
       and url is null
-      and (published = false or registry_item_url is not null)
+      and (published = false or registry_listing_url is not null)
     )
+  ),
+  constraint listings_initiation_action_check check (
+    (initiation_action_url is null and initiation_action_method is null)
+    or (initiation_action_url is not null and initiation_action_method is not null)
   )
 );
 
@@ -82,17 +89,17 @@ create table public.categories (
   constraint categories_slug_format check (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$')
 );
 
--- Many-to-many between categories and items.
-create table public.category_items (
+-- Many-to-many between categories and listings.
+create table public.category_listings (
   category_id bigint not null references public.categories (id) on delete cascade,
-  item_id bigint not null references public.items (id) on delete cascade,
+  listing_id bigint not null references public.listings (id) on delete cascade,
   created_at timestamptz not null default now(),
-  primary key (category_id, item_id)
+  primary key (category_id, listing_id)
 );
 
 -- Moderation fields are isolated here so partners cannot alter them.
-create table public.item_reviews (
-  item_id bigint primary key references public.items (id) on delete cascade,
+create table public.listing_reviews (
+  listing_id bigint primary key references public.listings (id) on delete cascade,
   status public.marketplace_review_status not null default 'pending_review',
   featured boolean not null default false,
   reviewed_by uuid references auth.users (id) on delete set null,
@@ -191,7 +198,7 @@ as $$
   );
 $$;
 
-create function public.item_latest_review_is_approved(target_item_id bigint)
+create function public.listing_latest_review_is_approved(target_listing_id bigint)
 returns boolean
 language sql
 stable
@@ -200,10 +207,10 @@ set search_path = public
 as $$
   select coalesce(
     (
-      select ir.status = 'approved'
-      from public.item_reviews ir
-      where ir.item_id = target_item_id
-      order by coalesce(ir.reviewed_at, ir.updated_at, ir.created_at) desc
+      select lr.status = 'approved'
+      from public.listing_reviews lr
+      where lr.listing_id = target_listing_id
+      order by coalesce(lr.reviewed_at, lr.updated_at, lr.created_at) desc
       limit 1
     ),
     false
@@ -221,7 +228,7 @@ as $$
   end;
 $$;
 
-create function public.storage_object_item_id(object_name text)
+create function public.storage_object_listing_id(object_name text)
 returns bigint
 language sql
 stable
@@ -316,20 +323,20 @@ $$;
 
 
 -- Helpful indexes for common read paths.
-create index items_type_idx on public.items (type);
-create index items_partner_id_idx on public.items (partner_id);
+create index listings_type_idx on public.listings (type);
+create index listings_partner_id_idx on public.listings (partner_id);
 create index partner_members_user_id_idx on public.partner_members (user_id);
-create index category_items_item_id_idx on public.category_items (item_id);
-create index item_reviews_status_idx on public.item_reviews (status);
-create index item_reviews_featured_idx on public.item_reviews (featured) where featured = true;
+create index category_listings_listing_id_idx on public.category_listings (listing_id);
+create index listing_reviews_status_idx on public.listing_reviews (status);
+create index listing_reviews_featured_idx on public.listing_reviews (featured) where featured = true;
 
 -- Row Level Security
 alter table public.partners enable row level security;
 alter table public.partner_members enable row level security;
-alter table public.items enable row level security;
+alter table public.listings enable row level security;
 alter table public.categories enable row level security;
-alter table public.category_items enable row level security;
-alter table public.item_reviews enable row level security;
+alter table public.category_listings enable row level security;
+alter table public.listing_reviews enable row level security;
 
 -- Partners
 create policy "partners_select"
@@ -342,10 +349,10 @@ create policy "partners_select"
     or public.is_reviewer_member()
     or exists (
       select 1
-      from public.items i
-      where i.partner_id = partners.id
-        and i.published = true
-        and public.item_latest_review_is_approved(i.id)
+      from public.listings l
+      where l.partner_id = partners.id
+        and l.published = true
+        and public.listing_latest_review_is_approved(l.id)
     )
   );
 
@@ -415,9 +422,9 @@ create policy "partner_members_insert_admin"
     and role in ('member', 'admin')
   );
 
--- Items
-create policy "items_select"
-  on public.items
+-- Listings
+create policy "listings_select"
+  on public.listings
   for select
   using (
     public.is_admin_member()
@@ -425,8 +432,8 @@ create policy "items_select"
     or public.is_reviewer_member()
   );
 
-create policy "items_insert"
-  on public.items
+create policy "listings_insert"
+  on public.listings
   for insert
   with check (
     public.is_admin_member()
@@ -436,8 +443,8 @@ create policy "items_insert"
     )
   );
 
-create policy "items_update"
-  on public.items
+create policy "listings_update"
+  on public.listings
   for update
   using (
     public.is_admin_member()
@@ -448,20 +455,20 @@ create policy "items_update"
     or public.is_partner_member(partner_id)
   );
 
-create policy "items_delete"
-  on public.items
+create policy "listings_delete"
+  on public.listings
   for delete
   using (
     public.is_admin_member()
     or public.is_partner_member(partner_id)
   );
 
-create policy "items_select_published_with_latest_approved_review"
-  on public.items
+create policy "listings_select_published_with_latest_approved_review"
+  on public.listings
   for select
   using (
     published = true
-    and public.item_latest_review_is_approved(id)
+    and public.listing_latest_review_is_approved(id)
   );
 
 -- Categories: readable by anyone, writable by admin members.
@@ -476,53 +483,53 @@ create policy "categories_modify_admin_only"
   using (public.is_admin_member())
   with check (public.is_admin_member());
 
--- Category item mappings: partner members can manage mappings for their own items.
-create policy "category_items_select"
-  on public.category_items
+-- Category listing mappings: partner members can manage mappings for their own listings.
+create policy "category_listings_select"
+  on public.category_listings
   for select
   using (
     public.is_admin_member()
     or public.is_reviewer_member()
     or exists (
       select 1
-      from public.items i
-      where i.id = category_items.item_id
-        and i.published = true
-        and public.item_latest_review_is_approved(i.id)
+      from public.listings l
+      where l.id = category_listings.listing_id
+        and l.published = true
+        and public.listing_latest_review_is_approved(l.id)
     )
     or exists (
       select 1
-      from public.items i
-      where i.id = category_items.item_id
-        and public.is_partner_member(i.partner_id)
+      from public.listings l
+      where l.id = category_listings.listing_id
+        and public.is_partner_member(l.partner_id)
     )
   );
 
-create policy "category_items_insert"
-  on public.category_items
+create policy "category_listings_insert"
+  on public.category_listings
   for insert
   with check (
     public.is_admin_member()
     or public.is_reviewer_member()
     or exists (
       select 1
-      from public.items i
-      where i.id = category_items.item_id
-        and public.is_partner_member(i.partner_id)
+      from public.listings l
+      where l.id = category_listings.listing_id
+        and public.is_partner_member(l.partner_id)
     )
   );
 
-create policy "category_items_update"
-  on public.category_items
+create policy "category_listings_update"
+  on public.category_listings
   for update
   using (
     public.is_admin_member()
     or public.is_reviewer_member()
     or exists (
       select 1
-      from public.items i
-      where i.id = category_items.item_id
-        and public.is_partner_member(i.partner_id)
+      from public.listings l
+      where l.id = category_listings.listing_id
+        and public.is_partner_member(l.partner_id)
     )
   )
   with check (
@@ -530,55 +537,55 @@ create policy "category_items_update"
     or public.is_reviewer_member()
     or exists (
       select 1
-      from public.items i
-      where i.id = category_items.item_id
-        and public.is_partner_member(i.partner_id)
+      from public.listings l
+      where l.id = category_listings.listing_id
+        and public.is_partner_member(l.partner_id)
     )
   );
 
-create policy "category_items_delete"
-  on public.category_items
+create policy "category_listings_delete"
+  on public.category_listings
   for delete
   using (
     public.is_admin_member()
     or public.is_reviewer_member()
     or exists (
       select 1
-      from public.items i
-      where i.id = category_items.item_id
-        and public.is_partner_member(i.partner_id)
+      from public.listings l
+      where l.id = category_listings.listing_id
+        and public.is_partner_member(l.partner_id)
     )
   );
 
--- Item reviews: partners can view their own status, reviewer/admin partners can modify.
-create policy "item_reviews_select"
-  on public.item_reviews
+-- Listing reviews: partners can view their own status, reviewer/admin partners can modify.
+create policy "listing_reviews_select"
+  on public.listing_reviews
   for select
   using (
     public.is_admin_member()
     or public.is_reviewer_member()
     or exists (
       select 1
-      from public.items i
-      where i.id = item_reviews.item_id
-        and public.is_partner_member(i.partner_id)
+      from public.listings l
+      where l.id = listing_reviews.listing_id
+        and public.is_partner_member(l.partner_id)
     )
   );
 
-create policy "item_reviews_insert_reviewer"
-  on public.item_reviews
+create policy "listing_reviews_insert_reviewer"
+  on public.listing_reviews
   for insert
   with check (public.is_review_manager_member());
 
-create policy "item_reviews_insert_partner_request"
-  on public.item_reviews
+create policy "listing_reviews_insert_partner_request"
+  on public.listing_reviews
   for insert
   with check (
     exists (
       select 1
-      from public.items i
-      where i.id = item_reviews.item_id
-        and public.is_partner_member(i.partner_id)
+      from public.listings l
+      where l.id = listing_reviews.listing_id
+        and public.is_partner_member(l.partner_id)
     )
     and status = 'pending_review'
     and featured = false
@@ -588,14 +595,14 @@ create policy "item_reviews_insert_partner_request"
     and published_at is null
   );
 
-create policy "item_reviews_update_reviewer"
-  on public.item_reviews
+create policy "listing_reviews_update_reviewer"
+  on public.listing_reviews
   for update
   using (public.is_review_manager_member())
   with check (public.is_review_manager_member());
 
-create policy "item_reviews_delete_reviewer"
-  on public.item_reviews
+create policy "listing_reviews_delete_reviewer"
+  on public.listing_reviews
   for delete
   using (public.is_review_manager_member());
 
@@ -608,120 +615,120 @@ grant update (role) on table public.partners to service_role;
 revoke all on function public.add_partner_member(bigint, text, text) from public;
 grant execute on function public.add_partner_member(bigint, text, text) to authenticated;
 revoke all on function public.storage_object_partner_id(text) from public;
-revoke all on function public.storage_object_item_id(text) from public;
+revoke all on function public.storage_object_listing_id(text) from public;
 grant execute on function public.storage_object_partner_id(text) to authenticated;
-grant execute on function public.storage_object_item_id(text) to authenticated;
+grant execute on function public.storage_object_listing_id(text) to authenticated;
 grant usage on schema public to supabase_auth_admin;
 grant execute on function public.before_user_created_hook(jsonb) to supabase_auth_admin;
 revoke execute on function public.before_user_created_hook(jsonb) from authenticated, anon, public;
 
 insert into storage.buckets (id, name, public)
 values
-  ('item_files', 'item_files', true)
+  ('listing_files', 'listing_files', true)
 on conflict (id) do update
 set
   name = excluded.name,
   public = excluded.public;
 
--- Storage policies for marketplace item files.
-create policy "item_files_storage_select"
+-- Storage policies for marketplace listing files.
+create policy "listing_files_storage_select"
   on storage.objects
   for select
   to authenticated
   using (
-    bucket_id = 'item_files'
-    and split_part(name, '/', 2) = 'items'
+    bucket_id = 'listing_files'
+    and split_part(name, '/', 2) = 'listings'
     and public.storage_object_partner_id(name) is not null
-    and public.storage_object_item_id(name) is not null
+    and public.storage_object_listing_id(name) is not null
     and exists (
       select 1
-      from public.items i
-      where i.id = public.storage_object_item_id(name)
-        and i.partner_id = public.storage_object_partner_id(name)
+      from public.listings l
+      where l.id = public.storage_object_listing_id(name)
+        and l.partner_id = public.storage_object_partner_id(name)
         and (
           public.is_admin_member()
           or
           public.is_review_manager_member()
-          or public.is_partner_member(i.partner_id)
+          or public.is_partner_member(l.partner_id)
         )
     )
   );
 
-create policy "item_files_storage_insert"
+create policy "listing_files_storage_insert"
   on storage.objects
   for insert
   to authenticated
   with check (
-    bucket_id = 'item_files'
-    and split_part(name, '/', 2) = 'items'
+    bucket_id = 'listing_files'
+    and split_part(name, '/', 2) = 'listings'
     and public.storage_object_partner_id(name) is not null
-    and public.storage_object_item_id(name) is not null
+    and public.storage_object_listing_id(name) is not null
     and exists (
       select 1
-      from public.items i
-      where i.id = public.storage_object_item_id(name)
-        and i.partner_id = public.storage_object_partner_id(name)
+      from public.listings l
+      where l.id = public.storage_object_listing_id(name)
+        and l.partner_id = public.storage_object_partner_id(name)
         and (
           public.is_admin_member()
-          or public.is_partner_member(i.partner_id)
+          or public.is_partner_member(l.partner_id)
         )
     )
   );
 
-create policy "item_files_storage_update"
+create policy "listing_files_storage_update"
   on storage.objects
   for update
   to authenticated
   using (
-    bucket_id = 'item_files'
-    and split_part(name, '/', 2) = 'items'
+    bucket_id = 'listing_files'
+    and split_part(name, '/', 2) = 'listings'
     and public.storage_object_partner_id(name) is not null
-    and public.storage_object_item_id(name) is not null
+    and public.storage_object_listing_id(name) is not null
     and exists (
       select 1
-      from public.items i
-      where i.id = public.storage_object_item_id(name)
-        and i.partner_id = public.storage_object_partner_id(name)
+      from public.listings l
+      where l.id = public.storage_object_listing_id(name)
+        and l.partner_id = public.storage_object_partner_id(name)
         and (
           public.is_admin_member()
-          or public.is_partner_member(i.partner_id)
+          or public.is_partner_member(l.partner_id)
         )
     )
   )
   with check (
-    bucket_id = 'item_files'
-    and split_part(name, '/', 2) = 'items'
+    bucket_id = 'listing_files'
+    and split_part(name, '/', 2) = 'listings'
     and public.storage_object_partner_id(name) is not null
-    and public.storage_object_item_id(name) is not null
+    and public.storage_object_listing_id(name) is not null
     and exists (
       select 1
-      from public.items i
-      where i.id = public.storage_object_item_id(name)
-        and i.partner_id = public.storage_object_partner_id(name)
+      from public.listings l
+      where l.id = public.storage_object_listing_id(name)
+        and l.partner_id = public.storage_object_partner_id(name)
         and (
           public.is_admin_member()
-          or public.is_partner_member(i.partner_id)
+          or public.is_partner_member(l.partner_id)
         )
     )
   );
 
-create policy "item_files_storage_delete"
+create policy "listing_files_storage_delete"
   on storage.objects
   for delete
   to authenticated
   using (
-    bucket_id = 'item_files'
-    and split_part(name, '/', 2) = 'items'
+    bucket_id = 'listing_files'
+    and split_part(name, '/', 2) = 'listings'
     and public.storage_object_partner_id(name) is not null
-    and public.storage_object_item_id(name) is not null
+    and public.storage_object_listing_id(name) is not null
     and exists (
       select 1
-      from public.items i
-      where i.id = public.storage_object_item_id(name)
-        and i.partner_id = public.storage_object_partner_id(name)
+      from public.listings l
+      where l.id = public.storage_object_listing_id(name)
+        and l.partner_id = public.storage_object_partner_id(name)
         and (
           public.is_admin_member()
-          or public.is_partner_member(i.partner_id)
+          or public.is_partner_member(l.partner_id)
         )
     )
   );

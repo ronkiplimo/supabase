@@ -15,16 +15,16 @@ import {
   PageHeaderTitle,
 } from 'ui-patterns/PageHeader'
 
-import { ItemEditorSplitView } from '@/components/item-editor-split-view'
+import { ListingEditorSplitView } from '@/components/item-editor-split-view'
 import { createClient } from '@/lib/supabase/server'
 
-type NewItemPageProps = {
+type NewListingPageProps = {
   params: {
     partnerslug: string
   }
 }
 
-export default async function NewItemPage({ params }: NewItemPageProps) {
+export default async function NewListingPage({ params }: NewListingPageProps) {
   const { partnerslug } = params
   const supabase = await createClient()
 
@@ -45,24 +45,24 @@ export default async function NewItemPage({ params }: NewItemPageProps) {
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link href={`/protected/${partner.slug}/items`}>Items</Link>
+                <Link href={`/protected/${partner.slug}/items`}>Listings</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Create item</BreadcrumbPage>
+              <BreadcrumbPage>Create listing</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </PageHeaderBreadcrumb>
         <PageHeaderMeta>
           <PageHeaderSummary>
-            <PageHeaderTitle>Create item</PageHeaderTitle>
+            <PageHeaderTitle>Create listing</PageHeaderTitle>
           </PageHeaderSummary>
         </PageHeaderMeta>
       </PageHeader>
 
       <div className="min-h-0 flex-1">
-        <ItemEditorSplitView
+        <ListingEditorSplitView
           mode="create"
           partner={{ id: partner.id, slug: partner.slug, title: partner.title }}
         />

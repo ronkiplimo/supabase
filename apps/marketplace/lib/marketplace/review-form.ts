@@ -2,14 +2,14 @@ import type { ReviewStatus } from '@/lib/marketplace/review-state'
 
 export function buildReviewDecisionFormData({
   partnerSlug,
-  itemId,
+  listingId,
   status,
   reviewNotes,
   featured,
   categoryIds,
 }: {
   partnerSlug: string
-  itemId: number
+  listingId: number
   status: ReviewStatus
   reviewNotes?: string
   featured: boolean
@@ -17,7 +17,7 @@ export function buildReviewDecisionFormData({
 }) {
   const formData = new FormData()
   formData.set('partnerSlug', partnerSlug)
-  formData.set('itemId', String(itemId))
+  formData.set('listingId', String(listingId))
   formData.set('status', status)
   formData.set('reviewNotes', reviewNotes ?? '')
   for (const categoryId of categoryIds) {

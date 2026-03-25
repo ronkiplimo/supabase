@@ -1,11 +1,6 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: '14.4'
-  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -60,44 +55,44 @@ export type Database = {
         }
         Relationships: []
       }
-      category_items: {
+      category_listings: {
         Row: {
           category_id: number
           created_at: string
-          item_id: number
+          listing_id: number
         }
         Insert: {
           category_id: number
           created_at?: string
-          item_id: number
+          listing_id: number
         }
         Update: {
           category_id?: number
           created_at?: string
-          item_id?: number
+          listing_id?: number
         }
         Relationships: [
           {
-            foreignKeyName: 'category_items_category_id_fkey'
+            foreignKeyName: 'category_listings_category_id_fkey'
             columns: ['category_id']
             isOneToOne: false
             referencedRelation: 'categories'
             referencedColumns: ['id']
           },
           {
-            foreignKeyName: 'category_items_item_id_fkey'
-            columns: ['item_id']
+            foreignKeyName: 'category_listings_listing_id_fkey'
+            columns: ['listing_id']
             isOneToOne: false
-            referencedRelation: 'items'
+            referencedRelation: 'listings'
             referencedColumns: ['id']
           },
         ]
       }
-      item_reviews: {
+      listing_reviews: {
         Row: {
           created_at: string
           featured: boolean
-          item_id: number
+          listing_id: number
           published_at: string | null
           review_notes: string | null
           reviewed_at: string | null
@@ -108,7 +103,7 @@ export type Database = {
         Insert: {
           created_at?: string
           featured?: boolean
-          item_id: number
+          listing_id: number
           published_at?: string | null
           review_notes?: string | null
           reviewed_at?: string | null
@@ -119,7 +114,7 @@ export type Database = {
         Update: {
           created_at?: string
           featured?: boolean
-          item_id?: number
+          listing_id?: number
           published_at?: string | null
           review_notes?: string | null
           reviewed_at?: string | null
@@ -129,29 +124,33 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'item_reviews_item_id_fkey'
-            columns: ['item_id']
+            foreignKeyName: 'listing_reviews_listing_id_fkey'
+            columns: ['listing_id']
             isOneToOne: true
-            referencedRelation: 'items'
+            referencedRelation: 'listings'
             referencedColumns: ['id']
           },
         ]
       }
-      items: {
+      listings: {
         Row: {
           content: string | null
           created_at: string
           documentation_url: string | null
           files: string[]
           id: number
+          initiation_action_method:
+            | Database['public']['Enums']['marketplace_initiation_method']
+            | null
+          initiation_action_url: string | null
           partner_id: number
           published: boolean
-          registry_item_url: string | null
+          registry_listing_url: string | null
           slug: string
           submitted_by: string | null
           summary: string | null
           title: string
-          type: Database['public']['Enums']['marketplace_item_type']
+          type: Database['public']['Enums']['marketplace_listing_type']
           updated_at: string
           url: string | null
         }
@@ -161,14 +160,18 @@ export type Database = {
           documentation_url?: string | null
           files?: string[]
           id?: never
+          initiation_action_method?:
+            | Database['public']['Enums']['marketplace_initiation_method']
+            | null
+          initiation_action_url?: string | null
           partner_id: number
           published?: boolean
-          registry_item_url?: string | null
+          registry_listing_url?: string | null
           slug: string
           submitted_by?: string | null
           summary?: string | null
           title: string
-          type: Database['public']['Enums']['marketplace_item_type']
+          type: Database['public']['Enums']['marketplace_listing_type']
           updated_at?: string
           url?: string | null
         }
@@ -178,20 +181,24 @@ export type Database = {
           documentation_url?: string | null
           files?: string[]
           id?: never
+          initiation_action_method?:
+            | Database['public']['Enums']['marketplace_initiation_method']
+            | null
+          initiation_action_url?: string | null
           partner_id?: number
           published?: boolean
-          registry_item_url?: string | null
+          registry_listing_url?: string | null
           slug?: string
           submitted_by?: string | null
           summary?: string | null
           title?: string
-          type?: Database['public']['Enums']['marketplace_item_type']
+          type?: Database['public']['Enums']['marketplace_listing_type']
           updated_at?: string
           url?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: 'items_partner_id_fkey'
+            foreignKeyName: 'listings_partner_id_fkey'
             columns: ['partner_id']
             isOneToOne: false
             referencedRelation: 'partners'
@@ -303,18 +310,22 @@ export type Database = {
       }
       is_review_manager_member: { Args: never; Returns: boolean }
       is_reviewer_member: { Args: never; Returns: boolean }
-      item_latest_review_is_approved: {
-        Args: { target_item_id: number }
+      listing_latest_review_is_approved: {
+        Args: { target_listing_id: number }
         Returns: boolean
       }
-      storage_object_item_id: { Args: { object_name: string }; Returns: number }
+      storage_object_listing_id: {
+        Args: { object_name: string }
+        Returns: number
+      }
       storage_object_partner_id: {
         Args: { object_name: string }
         Returns: number
       }
     }
     Enums: {
-      marketplace_item_type: 'oauth' | 'template'
+      marketplace_initiation_method: 'POST' | 'GET'
+      marketplace_listing_type: 'oauth' | 'template'
       marketplace_partner_role: 'partner' | 'reviewer' | 'admin'
       marketplace_review_status: 'draft' | 'pending_review' | 'approved' | 'rejected'
     }
@@ -445,7 +456,8 @@ export const Constants = {
   },
   public: {
     Enums: {
-      marketplace_item_type: ['oauth', 'template'],
+      marketplace_initiation_method: ['POST', 'GET'],
+      marketplace_listing_type: ['oauth', 'template'],
       marketplace_partner_role: ['partner', 'reviewer', 'admin'],
       marketplace_review_status: ['draft', 'pending_review', 'approved', 'rejected'],
     },

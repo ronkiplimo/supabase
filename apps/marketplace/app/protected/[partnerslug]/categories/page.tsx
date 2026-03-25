@@ -43,18 +43,18 @@ export default async function CategoriesPage({ params }: CategoriesPageProps) {
     throw new Error(categoriesError.message)
   }
 
-  const { data: categoryItems, error: categoryItemsError } = await supabase
-    .from('category_items')
+  const { data: categoryListings, error: categoryListingsError } = await supabase
+    .from('category_listings')
     .select('category_id')
 
-  if (categoryItemsError) {
-    throw new Error(categoryItemsError.message)
+  if (categoryListingsError) {
+    throw new Error(categoryListingsError.message)
   }
 
-  const itemCountByCategoryId = new Map<number, number>()
-  for (const categoryItem of categoryItems ?? []) {
-    const nextCount = (itemCountByCategoryId.get(categoryItem.category_id) ?? 0) + 1
-    itemCountByCategoryId.set(categoryItem.category_id, nextCount)
+  const listingCountByCategoryId = new Map<number, number>()
+  for (const categoryListing of categoryListings ?? []) {
+    const nextCount = (listingCountByCategoryId.get(categoryListing.category_id) ?? 0) + 1
+    listingCountByCategoryId.set(categoryListing.category_id, nextCount)
   }
 
   return (
@@ -64,7 +64,7 @@ export default async function CategoriesPage({ params }: CategoriesPageProps) {
           <PageHeaderSummary>
             <PageHeaderTitle>Categories</PageHeaderTitle>
             <PageHeaderDescription>
-              Create and manage marketplace categories for reviewed items.
+              Create and manage marketplace categories for reviewed listings.
             </PageHeaderDescription>
           </PageHeaderSummary>
         </PageHeaderMeta>
@@ -86,7 +86,7 @@ export default async function CategoriesPage({ params }: CategoriesPageProps) {
                     <TableRow>
                       <TableHead>Title</TableHead>
                       <TableHead>Description</TableHead>
-                      <TableHead>Items</TableHead>
+                      <TableHead>Listings</TableHead>
                       <TableHead className="text-right">Action</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -96,7 +96,7 @@ export default async function CategoriesPage({ params }: CategoriesPageProps) {
                         key={category.id}
                         partnerSlug={partnerslug}
                         category={category}
-                        itemCount={itemCountByCategoryId.get(category.id) ?? 0}
+                        itemCount={listingCountByCategoryId.get(category.id) ?? 0}
                       />
                     ))}
                   </TableBody>
@@ -104,7 +104,7 @@ export default async function CategoriesPage({ params }: CategoriesPageProps) {
               </div>
             ) : (
               <div className="rounded-lg border bg-card p-6 text-sm text-muted-foreground">
-                No categories yet. Add your first category to start classifying items.
+                No categories yet. Add your first category to start classifying listings.
               </div>
             )}
           </PageSectionContent>

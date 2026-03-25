@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  ensureItemDraftConstraints,
-  parseItemType,
+  ensureListingDraftConstraints,
+  parseListingType,
   parseNumberList,
   parseOptionalString,
   parseRequiredString,
@@ -11,7 +11,7 @@ import {
   slugify,
 } from './item-draft'
 
-describe('item-draft utils', () => {
+describe('listing-draft utils', () => {
   it('slugifies user-facing titles', () => {
     expect(slugify('  Auth Starter: OAuth  ')).toBe('auth-starter-oauth')
   })
@@ -46,38 +46,38 @@ describe('item-draft utils', () => {
     expect(parseStringList(formData, 'files[]')).toEqual(['https://example.com/a.png'])
   })
 
-  it('parses item type enum safely', () => {
-    expect(parseItemType('oauth')).toBe('oauth')
-    expect(parseItemType('template')).toBe('template')
-    expect(parseItemType('unknown')).toBeNull()
+  it('parses listing type enum safely', () => {
+    expect(parseListingType('oauth')).toBe('oauth')
+    expect(parseListingType('template')).toBe('template')
+    expect(parseListingType('unknown')).toBeNull()
   })
 
-  it('requires valid constraints by item type', () => {
+  it('requires valid constraints by listing type', () => {
     const templateFile = new File(['x'], 'template.zip', { type: 'application/zip' })
 
     expect(() =>
-      ensureItemDraftConstraints({
+      ensureListingDraftConstraints({
         type: 'oauth',
-        slug: 'oauth-item',
+        slug: 'oauth-listing',
         url: null,
         templateZip: null,
       })
-    ).toThrow('OAuth items require a listing URL')
+    ).toThrow('OAuth listings require a listing URL')
 
     expect(() =>
-      ensureItemDraftConstraints({
+      ensureListingDraftConstraints({
         type: 'template',
-        slug: 'template-item',
+        slug: 'template-listing',
         url: null,
         templateZip: null,
         published: true,
       })
-    ).toThrow('Template items require a template ZIP package before publishing or requesting review')
+    ).toThrow('Template listings require a template ZIP package before publishing or requesting review')
 
     expect(() =>
-      ensureItemDraftConstraints({
+      ensureListingDraftConstraints({
         type: 'template',
-        slug: 'template-item',
+        slug: 'template-listing',
         url: null,
         templateZip: templateFile,
         published: true,
@@ -87,9 +87,9 @@ describe('item-draft utils', () => {
 
   it('allows template drafts without a template package', () => {
     expect(() =>
-      ensureItemDraftConstraints({
+      ensureListingDraftConstraints({
         type: 'template',
-        slug: 'template-item',
+        slug: 'template-listing',
         url: null,
         templateZip: null,
       })
@@ -98,14 +98,14 @@ describe('item-draft utils', () => {
 
   it('requires a template package when requesting review', () => {
     expect(() =>
-      ensureItemDraftConstraints({
+      ensureListingDraftConstraints({
         type: 'template',
-        slug: 'template-item',
+        slug: 'template-listing',
         url: null,
         templateZip: null,
         intent: 'request_review',
       })
-    ).toThrow('Template items require a template ZIP package before publishing or requesting review')
+    ).toThrow('Template listings require a template ZIP package before publishing or requesting review')
   })
 
   it('parses template zip file only when provided', () => {

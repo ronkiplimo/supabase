@@ -5,8 +5,9 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 import {
-  ensureItemDraftConstraints,
-  parseItemType,
+  ensureListingDraftConstraints,
+  parseInitiationMethod,
+  parseListingType,
   parseNumberList,
   parseOptionalString,
   parseRequiredString,
@@ -15,8 +16,8 @@ import {
   slugify,
 } from '@/lib/marketplace/item-draft'
 import {
-  getItemTemplateRegistryFilePath,
-  getItemTemplateStoragePath,
+  getListingTemplateRegistryFilePath,
+  getListingTemplateStoragePath,
   getStorageObjectPathFromPublicUrl,
   MARKETPLACE_STORAGE_BUCKET,
 } from '@/lib/marketplace/item-storage'
@@ -76,13 +77,13 @@ async function removeStoragePrefix(supabase: MarketplaceSupabaseClient, basePath
 function getTemplateRegistryPublicUrl(
   supabase: MarketplaceSupabaseClient,
   partnerId: number,
-  itemId: number
+  listingId: number
 ) {
   const {
     data: { publicUrl },
   } = supabase.storage
     .from(MARKETPLACE_STORAGE_BUCKET)
-    .getPublicUrl(getItemTemplateRegistryFilePath(partnerId, itemId))
+    .getPublicUrl(getListingTemplateRegistryFilePath(partnerId, listingId))
 
   return publicUrl
 }
@@ -91,12 +92,12 @@ async function uploadTemplatePackage({
   zipFile,
   supabase,
   partnerId,
-  itemId,
+  listingId,
 }: {
   zipFile: File
   supabase: MarketplaceSupabaseClient
   partnerId: number
-  itemId: number
+  listingId: number
 }) {
   const arrayBuffer = await zipFile.arrayBuffer()
   const zip = await JSZip.loadAsync(arrayBuffer)
@@ -124,7 +125,7 @@ async function uploadTemplatePackage({
     )
   }
 
-  const basePath = getItemTemplateStoragePath(partnerId, itemId)
+  const basePath = getListingTemplateStoragePath(partnerId, listingId)
 
   await removeStoragePrefix(supabase, basePath)
 
@@ -143,7 +144,7 @@ async function uploadTemplatePackage({
     }
   }
 
-  return getTemplateRegistryPublicUrl(supabase, partnerId, itemId)
+  return getTemplateRegistryPublicUrl(supabase, partnerId, listingId)
 }
 
 export async function createPartnerAction(formData: FormData) {
@@ -358,12 +359,12 @@ export async function updateCategoryAction(formData: FormData) {
   revalidatePath(`/protected/${partnerSlug}/reviews`)
 }
 
-export async function createItemAction(formData: FormData) {
-  const created = await createItemDraftAction(formData)
-  redirect(`/protected/${created.partnerSlug}/items/${created.itemSlug}`)
+export async function createListingAction(formData: FormData) {
+  const created = await createListingDraftAction(formData)
+  redirect(`/protected/${created.partnerSlug}/items/${created.listingSlug}`)
 }
 
-export async function createItemDraftAction(formData: FormData) {
+export async function createListingDraftAction(formData: FormData) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -380,7 +381,7 @@ export async function createItemDraftAction(formData: FormData) {
   const summary = formData.get('summary')
   const content = formData.get('content')
   const rawType = parseRequiredString(formData, 'type')
-  const type = parseItemType(rawType)
+  const type = parseListingType(rawType)
   const publishedRaw = formData.get('published')
   const published = publishedRaw === 'true' || publishedRaw === 'on' || publishedRaw === '1'
   const url = parseOptionalString(formData, 'url')
@@ -388,16 +389,20 @@ export async function createItemDraftAction(formData: FormData) {
   const documentationUrl = formData.get('documentationUrl')
   const normalizedDocumentationUrl =
     typeof documentationUrl === 'string' && documentationUrl.trim() ? documentationUrl.trim() : null
+  const initiationActionUrl = parseOptionalString(formData, 'initiationActionUrl')
+  const initiationActionMethod = parseInitiationMethod(
+    formData.get('initiationActionMethod') as string | null
+  )
   const intentRaw = formData.get('intent')
   const intent = intentRaw === 'request_review' ? 'request_review' : 'save'
   const files = parseStringList(formData, 'files[]')
   const slugSource = typeof slugInput === 'string' && slugInput.trim() ? slugInput : title
   const slug = slugify(slugSource)
 
-  ensureItemDraftConstraints({ type, slug, url, templateZip, published, intent })
+  ensureListingDraftConstraints({ type, slug, url, templateZip, published, intent })
 
-  const { data: item, error } = await supabase
-    .from('items')
+  const { data: listing, error } = await supabase
+    .from('listings')
     .insert({
       partner_id: partnerId,
       title,
@@ -408,28 +413,30 @@ export async function createItemDraftAction(formData: FormData) {
       type,
       url: type === 'oauth' ? url : null,
       files,
-      registry_item_url: null,
+      registry_listing_url: null,
       documentation_url: normalizedDocumentationUrl,
+      initiation_action_url: initiationActionUrl,
+      initiation_action_method: initiationActionMethod,
       submitted_by: user.id,
     })
     .select('id, slug')
     .single()
 
-  if (error || !item) {
-    throw new Error(error?.message ?? 'Unable to create item')
+  if (error || !listing) {
+    throw new Error(error?.message ?? 'Unable to create listing')
   }
 
   if (type === 'template' && templateZip) {
-    const registryItemUrl = await uploadTemplatePackage({
+    const registryListingUrl = await uploadTemplatePackage({
       zipFile: templateZip,
       supabase,
       partnerId,
-      itemId: item.id,
+      listingId: listing.id,
     })
     const { error: templateUrlError } = await supabase
-      .from('items')
-      .update({ registry_item_url: registryItemUrl })
-      .eq('id', item.id)
+      .from('listings')
+      .update({ registry_listing_url: registryListingUrl })
+      .eq('id', listing.id)
 
     if (templateUrlError) {
       throw new Error(templateUrlError.message)
@@ -437,9 +444,9 @@ export async function createItemDraftAction(formData: FormData) {
   }
 
   if (intent === 'request_review') {
-    const { error: reviewError } = await supabase.from('item_reviews').upsert(
+    const { error: reviewError } = await supabase.from('listing_reviews').upsert(
       {
-        item_id: item.id,
+        listing_id: listing.id,
         status: 'pending_review',
         featured: false,
         reviewed_by: null,
@@ -447,7 +454,7 @@ export async function createItemDraftAction(formData: FormData) {
         review_notes: null,
         published_at: null,
       },
-      { onConflict: 'item_id' }
+      { onConflict: 'listing_id' }
     )
 
     if (reviewError) {
@@ -457,18 +464,18 @@ export async function createItemDraftAction(formData: FormData) {
 
   revalidatePath(`/protected/${partnerSlug}`)
   return {
-    itemId: item.id,
-    itemSlug: item.slug,
+    listingId: listing.id,
+    listingSlug: listing.slug,
     partnerSlug,
   }
 }
 
-export async function updateItemAction(formData: FormData) {
-  const updated = await updateItemDraftAction(formData)
-  redirect(`/protected/${updated.partnerSlug}/items/${updated.itemSlug}`)
+export async function updateListingAction(formData: FormData) {
+  const updated = await updateListingDraftAction(formData)
+  redirect(`/protected/${updated.partnerSlug}/items/${updated.listingSlug}`)
 }
 
-export async function saveItemFilesAction(formData: FormData) {
+export async function saveListingFilesAction(formData: FormData) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -478,21 +485,21 @@ export async function saveItemFilesAction(formData: FormData) {
     redirect('/auth/login')
   }
 
-  const itemId = Number(parseRequiredString(formData, 'itemId'))
+  const listingId = Number(parseRequiredString(formData, 'listingId'))
   const partnerSlug = parseRequiredString(formData, 'partnerSlug')
   const nextFiles = parseStringList(formData, 'files[]')
 
-  const { data: item, error: itemError } = await supabase
-    .from('items')
+  const { data: listing, error: listingError } = await supabase
+    .from('listings')
     .select('slug, files')
-    .eq('id', itemId)
+    .eq('id', listingId)
     .single<{ slug: string; files: string[] | null }>()
 
-  if (itemError || !item) {
-    throw new Error(itemError?.message ?? 'Unable to load item')
+  if (listingError || !listing) {
+    throw new Error(listingError?.message ?? 'Unable to load listing')
   }
 
-  const currentFiles = item.files ?? []
+  const currentFiles = listing.files ?? []
   const removedPaths = currentFiles
     .filter((fileUrl) => !nextFiles.includes(fileUrl))
     .flatMap((fileUrl) => {
@@ -503,20 +510,20 @@ export async function saveItemFilesAction(formData: FormData) {
   await removeStorageObjects(supabase, removedPaths)
 
   const { error: updateError } = await supabase
-    .from('items')
+    .from('listings')
     .update({ files: nextFiles })
-    .eq('id', itemId)
+    .eq('id', listingId)
 
   if (updateError) {
     throw new Error(updateError.message)
   }
 
   revalidatePath(`/protected/${partnerSlug}`)
-  revalidatePath(`/protected/${partnerSlug}/items/${item.slug}`)
-  return { itemId, itemSlug: item.slug, files: nextFiles }
+  revalidatePath(`/protected/${partnerSlug}/items/${listing.slug}`)
+  return { listingId, listingSlug: listing.slug, files: nextFiles }
 }
 
-export async function updateItemDraftAction(formData: FormData) {
+export async function updateListingDraftAction(formData: FormData) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -526,7 +533,7 @@ export async function updateItemDraftAction(formData: FormData) {
     redirect('/auth/login')
   }
 
-  const itemId = Number(parseRequiredString(formData, 'itemId'))
+  const listingId = Number(parseRequiredString(formData, 'listingId'))
   const partnerId = Number(parseRequiredString(formData, 'partnerId'))
   const partnerSlug = parseRequiredString(formData, 'partnerSlug')
   const name = parseRequiredString(formData, 'name')
@@ -535,24 +542,28 @@ export async function updateItemDraftAction(formData: FormData) {
   const content = formData.get('content')
   const url = parseOptionalString(formData, 'url')
   const templateZip = parseTemplateZip(formData)
-  const existingRegistryItemUrl = parseOptionalString(formData, 'existingRegistryItemUrl')
+  const existingRegistryListingUrl = parseOptionalString(formData, 'existingRegistryListingUrl')
   const documentationUrl = formData.get('documentationUrl')
   const normalizedDocumentationUrl =
     typeof documentationUrl === 'string' && documentationUrl.trim() ? documentationUrl.trim() : null
+  const initiationActionUrl = parseOptionalString(formData, 'initiationActionUrl')
+  const initiationActionMethod = parseInitiationMethod(
+    formData.get('initiationActionMethod') as string | null
+  )
   const rawType = parseRequiredString(formData, 'type')
-  const type = parseItemType(rawType)
+  const type = parseListingType(rawType)
   const publishedRaw = formData.get('published')
   const published = publishedRaw === 'true' || publishedRaw === 'on' || publishedRaw === '1'
 
   const slugSource = typeof slugInput === 'string' && slugInput.trim() ? slugInput : name
   const slug = slugify(slugSource)
 
-  ensureItemDraftConstraints({
+  ensureListingDraftConstraints({
     type,
     slug,
     url,
     templateZip,
-    existingRegistryItemUrl,
+    existingRegistryListingUrl,
     published,
   })
 
@@ -563,15 +574,15 @@ export async function updateItemDraftAction(formData: FormData) {
             zipFile: templateZip,
             supabase,
             partnerId,
-            itemId,
+            listingId,
           })
-        : existingRegistryItemUrl
-          ? getTemplateRegistryPublicUrl(supabase, partnerId, itemId)
+        : existingRegistryListingUrl
+          ? getTemplateRegistryPublicUrl(supabase, partnerId, listingId)
           : null
       : null
 
-  const { data: item, error } = await supabase
-    .from('items')
+  const { data: listing, error } = await supabase
+    .from('listings')
     .update({
       title: name,
       slug,
@@ -580,26 +591,28 @@ export async function updateItemDraftAction(formData: FormData) {
       published,
       url: type === 'oauth' ? url : null,
       documentation_url: normalizedDocumentationUrl,
+      initiation_action_url: initiationActionUrl,
+      initiation_action_method: initiationActionMethod,
       type,
-      registry_item_url: type === 'template' ? templateRegistryUrl : null,
+      registry_listing_url: type === 'template' ? templateRegistryUrl : null,
     })
-    .eq('id', itemId)
+    .eq('id', listingId)
     .select('slug')
     .single()
 
-  if (error || !item) {
-    throw new Error(error?.message ?? 'Unable to update item')
+  if (error || !listing) {
+    throw new Error(error?.message ?? 'Unable to update listing')
   }
 
   revalidatePath(`/protected/${partnerSlug}`)
   return {
-    itemId,
-    itemSlug: item.slug,
+    listingId,
+    listingSlug: listing.slug,
     partnerSlug,
   }
 }
 
-export async function requestItemReviewAction(formData: FormData) {
+export async function requestListingReviewAction(formData: FormData) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -609,32 +622,32 @@ export async function requestItemReviewAction(formData: FormData) {
     redirect('/auth/login')
   }
 
-  const itemId = Number(parseRequiredString(formData, 'itemId'))
-  const itemSlug = parseRequiredString(formData, 'itemSlug')
+  const listingId = Number(parseRequiredString(formData, 'listingId'))
+  const listingSlug = parseRequiredString(formData, 'listingSlug')
   const partnerSlug = parseRequiredString(formData, 'partnerSlug')
-  const { data: item, error: itemError } = await supabase
-    .from('items')
-    .select('type, registry_item_url, url')
-    .eq('id', itemId)
+  const { data: listing, error: listingError } = await supabase
+    .from('listings')
+    .select('type, registry_listing_url, url')
+    .eq('id', listingId)
     .single()
 
-  if (itemError || !item) {
-    throw new Error(itemError?.message ?? 'Unable to load item')
+  if (listingError || !listing) {
+    throw new Error(listingError?.message ?? 'Unable to load listing')
   }
 
-  ensureItemDraftConstraints({
-    type: parseItemType(item.type),
-    slug: itemSlug,
-    url: item.url,
+  ensureListingDraftConstraints({
+    type: parseListingType(listing.type),
+    slug: listingSlug,
+    url: listing.url,
     templateZip: null,
-    existingRegistryItemUrl: item.registry_item_url,
+    existingRegistryListingUrl: listing.registry_listing_url,
     intent: 'request_review',
   })
 
   const { data: existingReview, error: existingReviewError } = await supabase
-    .from('item_reviews')
+    .from('listing_reviews')
     .select('status')
-    .eq('item_id', itemId)
+    .eq('listing_id', listingId)
     .maybeSingle()
 
   if (existingReviewError) {
@@ -642,9 +655,9 @@ export async function requestItemReviewAction(formData: FormData) {
   }
 
   if (shouldRequestReview(existingReview?.status)) {
-    const { error: upsertError } = await supabase.from('item_reviews').upsert(
+    const { error: upsertError } = await supabase.from('listing_reviews').upsert(
       {
-        item_id: itemId,
+        listing_id: listingId,
         status: 'pending_review',
         featured: false,
         reviewed_by: null,
@@ -652,7 +665,7 @@ export async function requestItemReviewAction(formData: FormData) {
         review_notes: null,
         published_at: null,
       },
-      { onConflict: 'item_id' }
+      { onConflict: 'listing_id' }
     )
 
     if (upsertError) {
@@ -661,16 +674,16 @@ export async function requestItemReviewAction(formData: FormData) {
   }
 
   revalidatePath(`/protected/${partnerSlug}`)
-  revalidatePath(`/protected/${partnerSlug}/items/${itemSlug}`)
-  redirect(`/protected/${partnerSlug}/items/${itemSlug}`)
+  revalidatePath(`/protected/${partnerSlug}/items/${listingSlug}`)
+  redirect(`/protected/${partnerSlug}/items/${listingSlug}`)
 }
 
-export async function updateItemReviewAction(formData: FormData) {
-  const { itemId, partnerSlug } = await saveItemReviewAction(formData)
-  redirect(`/protected/${partnerSlug}/reviews/${itemId}`)
+export async function updateListingReviewAction(formData: FormData) {
+  const { listingId, partnerSlug } = await saveListingReviewAction(formData)
+  redirect(`/protected/${partnerSlug}/reviews/${listingId}`)
 }
 
-export async function saveItemReviewAction(formData: FormData) {
+export async function saveListingReviewAction(formData: FormData) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -680,7 +693,7 @@ export async function saveItemReviewAction(formData: FormData) {
     redirect('/auth/login')
   }
 
-  const itemId = Number(parseRequiredString(formData, 'itemId'))
+  const listingId = Number(parseRequiredString(formData, 'listingId'))
   const partnerSlug = parseRequiredString(formData, 'partnerSlug')
   const status = parseRequiredString(formData, 'status')
   const reviewNotes = formData.get('reviewNotes')
@@ -690,33 +703,33 @@ export async function saveItemReviewAction(formData: FormData) {
     throw new Error('Invalid review status')
   }
 
-  const { error } = await supabase.from('item_reviews').upsert(
+  const { error } = await supabase.from('listing_reviews').upsert(
     {
-      item_id: itemId,
+      listing_id: listingId,
       status,
       featured,
       review_notes: typeof reviewNotes === 'string' ? reviewNotes : null,
       reviewed_by: user.id,
       reviewed_at: new Date().toISOString(),
     },
-    { onConflict: 'item_id' }
+    { onConflict: 'listing_id' }
   )
 
   if (error) {
     throw new Error(error.message)
   }
 
-  const { data: existingCategoryItems, error: existingCategoryItemsError } = await supabase
-    .from('category_items')
+  const { data: existingCategoryListings, error: existingCategoryListingsError } = await supabase
+    .from('category_listings')
     .select('category_id')
-    .eq('item_id', itemId)
+    .eq('listing_id', listingId)
 
-  if (existingCategoryItemsError) {
-    throw new Error(existingCategoryItemsError.message)
+  if (existingCategoryListingsError) {
+    throw new Error(existingCategoryListingsError.message)
   }
 
   const existingCategoryIds = new Set(
-    (existingCategoryItems ?? []).map((entry) => entry.category_id)
+    (existingCategoryListings ?? []).map((entry) => entry.category_id)
   )
   const nextCategoryIds = new Set(categoryIds)
   const categoryIdsToInsert = categoryIds.filter(
@@ -727,31 +740,31 @@ export async function saveItemReviewAction(formData: FormData) {
   )
 
   if (categoryIdsToDelete.length > 0) {
-    const { error: deleteCategoryItemsError } = await supabase
-      .from('category_items')
+    const { error: deleteCategoryListingsError } = await supabase
+      .from('category_listings')
       .delete()
-      .eq('item_id', itemId)
+      .eq('listing_id', listingId)
       .in('category_id', categoryIdsToDelete)
 
-    if (deleteCategoryItemsError) {
-      throw new Error(deleteCategoryItemsError.message)
+    if (deleteCategoryListingsError) {
+      throw new Error(deleteCategoryListingsError.message)
     }
   }
 
   if (categoryIdsToInsert.length > 0) {
-    const { error: insertCategoryItemsError } = await supabase.from('category_items').insert(
+    const { error: insertCategoryListingsError } = await supabase.from('category_listings').insert(
       categoryIdsToInsert.map((categoryId) => ({
-        item_id: itemId,
+        listing_id: listingId,
         category_id: categoryId,
       }))
     )
 
-    if (insertCategoryItemsError) {
-      throw new Error(insertCategoryItemsError.message)
+    if (insertCategoryListingsError) {
+      throw new Error(insertCategoryListingsError.message)
     }
   }
 
   revalidatePath(`/protected/${partnerSlug}/reviews`)
-  revalidatePath(`/protected/${partnerSlug}/reviews/${itemId}`)
-  return { itemId, partnerSlug }
+  revalidatePath(`/protected/${partnerSlug}/reviews/${listingId}`)
+  return { listingId, partnerSlug }
 }

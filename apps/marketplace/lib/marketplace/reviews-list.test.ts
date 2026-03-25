@@ -4,16 +4,16 @@ import { mapReviewRows, parseReviewsFilters } from './reviews-list'
 
 describe('reviews-list utils', () => {
   it('parses review filters with fallback behavior', () => {
-    expect(parseReviewsFilters({ status: 'approved', itemId: '42' })).toMatchObject({
+    expect(parseReviewsFilters({ status: 'approved', listingId: '42' })).toMatchObject({
       statusFilter: 'approved',
-      itemIdFilter: '42',
-      parsedItemIdFilter: 42,
-      hasValidItemIdFilter: true,
+      listingIdFilter: '42',
+      parsedListingIdFilter: 42,
+      hasValidListingIdFilter: true,
     })
 
-    expect(parseReviewsFilters({ status: 'bad-status', itemId: 'nope' })).toMatchObject({
+    expect(parseReviewsFilters({ status: 'bad-status', listingId: 'nope' })).toMatchObject({
       statusFilter: 'pending_review',
-      hasValidItemIdFilter: false,
+      hasValidListingIdFilter: false,
     })
   })
 
@@ -21,14 +21,14 @@ describe('reviews-list utils', () => {
     const rows = mapReviewRows(
       [
         {
-          item_id: 1,
+          listing_id: 1,
           status: 'approved',
-          item: { id: 10, slug: 'auth', title: 'Auth', partner_id: 9 },
+          listing: { id: 10, slug: 'auth', title: 'Auth', partner_id: 9 },
         },
         {
-          item_id: 2,
+          listing_id: 2,
           status: null,
-          item: null,
+          listing: null,
         },
       ],
       new Map([[9, 'Partner A']])
@@ -37,9 +37,9 @@ describe('reviews-list utils', () => {
     expect(rows).toEqual([
       {
         reviewId: 1,
-        itemId: 10,
-        itemSlug: 'auth',
-        itemTitle: 'Auth',
+        listingId: 10,
+        listingSlug: 'auth',
+        listingTitle: 'Auth',
         partnerTitle: 'Partner A',
         status: 'approved',
       },

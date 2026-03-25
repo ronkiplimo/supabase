@@ -13,23 +13,23 @@ import { Input } from 'ui-patterns/DataInputs/Input'
 
 type ReviewsFiltersProps = {
   status: string
-  itemId: string
+  listingId: string
 }
 
-export function ReviewsFilters({ status, itemId }: ReviewsFiltersProps) {
+export function ReviewsFilters({ status, listingId }: ReviewsFiltersProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
   const [nextStatus, setNextStatus] = useState(status)
-  const [nextItemId, setNextItemId] = useState(itemId)
+  const [nextListingId, setNextListingId] = useState(listingId)
 
   useEffect(() => {
     setNextStatus(status)
-    setNextItemId(itemId)
-  }, [status, itemId])
+    setNextListingId(listingId)
+  }, [status, listingId])
 
-  const pushFilters = (statusValue: string, itemIdValue: string) => {
+  const pushFilters = (statusValue: string, listingIdValue: string) => {
     const params = new URLSearchParams(searchParams.toString())
 
     if (statusValue === 'pending_review') {
@@ -38,11 +38,11 @@ export function ReviewsFilters({ status, itemId }: ReviewsFiltersProps) {
       params.set('status', statusValue)
     }
 
-    const trimmedItemId = itemIdValue.trim()
-    if (trimmedItemId.length === 0) {
-      params.delete('itemId')
+    const trimmedListingId = listingIdValue.trim()
+    if (trimmedListingId.length === 0) {
+      params.delete('listingId')
     } else {
-      params.set('itemId', trimmedItemId)
+      params.set('listingId', trimmedListingId)
     }
 
     const query = params.toString()
@@ -55,7 +55,7 @@ export function ReviewsFilters({ status, itemId }: ReviewsFiltersProps) {
         value={nextStatus}
         onValueChange={(value) => {
           setNextStatus(value)
-          pushFilters(value, nextItemId)
+          pushFilters(value, nextListingId)
         }}
       >
         <SelectTrigger className="w-full md:w-[180px]" size="tiny">
@@ -70,15 +70,15 @@ export function ReviewsFilters({ status, itemId }: ReviewsFiltersProps) {
         </SelectContent>
       </Select>
       <Input
-        value={nextItemId}
+        value={nextListingId}
         size="tiny"
         type="number"
         min={1}
-        placeholder="Filter by item ID"
+        placeholder="Filter by listing ID"
         className="w-full md:max-w-[220px]"
         onChange={(event) => {
           const value = event.target.value
-          setNextItemId(value)
+          setNextListingId(value)
           pushFilters(nextStatus, value)
         }}
       />

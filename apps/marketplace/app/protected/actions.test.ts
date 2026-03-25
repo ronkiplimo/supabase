@@ -2,15 +2,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   addPartnerMemberAction,
-  createItemAction,
-  createItemDraftAction,
+  createListingAction,
+  createListingDraftAction,
   createPartnerAction,
-  requestItemReviewAction,
-  saveItemFilesAction,
-  saveItemReviewAction,
-  updateItemAction,
-  updateItemDraftAction,
-  updateItemReviewAction,
+  requestListingReviewAction,
+  saveListingFilesAction,
+  saveListingReviewAction,
+  updateListingAction,
+  updateListingDraftAction,
+  updateListingReviewAction,
   updatePartnerAction,
 } from './actions'
 
@@ -179,7 +179,7 @@ beforeEach(() => {
 })
 
 describe('protected actions', () => {
-  it('redirects unauthenticated create item requests', async () => {
+  it('redirects unauthenticated create listing requests', async () => {
     redirectMock.mockImplementation(() => {
       throw new Error('NEXT_REDIRECT')
     })
@@ -194,11 +194,11 @@ describe('protected actions', () => {
     const formData = new FormData()
     formData.set('partnerId', '1')
     formData.set('partnerSlug', 'acme')
-    formData.set('title', 'Item')
+    formData.set('title', 'Listing')
     formData.set('type', 'oauth')
     formData.set('url', 'https://example.com')
 
-    await expect(createItemDraftAction(formData)).rejects.toThrow('NEXT_REDIRECT')
+    await expect(createListingDraftAction(formData)).rejects.toThrow('NEXT_REDIRECT')
     expect(redirectMock).toHaveBeenCalledWith('/auth/login')
   })
 
@@ -273,16 +273,16 @@ describe('protected actions', () => {
     })
   })
 
-  it('creates oauth item and review row when requesting review', async () => {
+  it('creates oauth listing and review row when requesting review', async () => {
     const upsertSpy = vi.fn()
     createClientMock.mockResolvedValue(
       createSupabaseMock({
         user: { id: 'user-1' },
         fromHandler: (table, state) => {
-          if (table === 'items' && state.op === 'insert') {
-            return success({ id: 10, slug: 'oauth-item' })
+          if (table === 'listings' && state.op === 'insert') {
+            return success({ id: 10, slug: 'oauth-listing' })
           }
-          if (table === 'item_reviews' && state.op === 'upsert') {
+          if (table === 'listing_reviews' && state.op === 'upsert') {
             upsertSpy(state.upsert)
             return success(null)
           }
@@ -294,17 +294,17 @@ describe('protected actions', () => {
     const formData = new FormData()
     formData.set('partnerId', '1')
     formData.set('partnerSlug', 'acme')
-    formData.set('title', 'OAuth Item')
+    formData.set('title', 'OAuth Listing')
     formData.set('type', 'oauth')
     formData.set('url', 'https://example.com/listing')
     formData.set('intent', 'request_review')
 
-    const result = await createItemDraftAction(formData)
-    expect(result).toEqual({ itemId: 10, itemSlug: 'oauth-item', partnerSlug: 'acme' })
+    const result = await createListingDraftAction(formData)
+    expect(result).toEqual({ listingId: 10, listingSlug: 'oauth-listing', partnerSlug: 'acme' })
     expect(upsertSpy).toHaveBeenCalled()
   })
 
-  it('creates template item and updates registry URL from uploaded package', async () => {
+  it('creates template listing and updates registry URL from uploaded package', async () => {
     jsZipLoadAsyncMock.mockResolvedValue({
       files: {
         'pkg/template.json': {
@@ -334,10 +334,10 @@ describe('protected actions', () => {
           getPublicUrl: () => ({ data: { publicUrl: 'https://cdn.example/template.json' } }),
         },
         fromHandler: (table, state) => {
-          if (table === 'items' && state.op === 'insert') {
-            return success({ id: 20, slug: 'template-item' })
+          if (table === 'listings' && state.op === 'insert') {
+            return success({ id: 20, slug: 'template-listing' })
           }
-          if (table === 'items' && state.op === 'update') {
+          if (table === 'listings' && state.op === 'update') {
             return success(null)
           }
           return success(null)
@@ -352,12 +352,12 @@ describe('protected actions', () => {
       .mockResolvedValue(new ArrayBuffer(8))
     formData.set('partnerId', '1')
     formData.set('partnerSlug', 'acme')
-    formData.set('title', 'Template Item')
+    formData.set('title', 'Template Listing')
     formData.set('type', 'template')
     formData.set('templateZip', templateZip)
 
-    const result = await createItemDraftAction(formData)
-    expect(result).toEqual({ itemId: 20, itemSlug: 'template-item', partnerSlug: 'acme' })
+    const result = await createListingDraftAction(formData)
+    expect(result).toEqual({ listingId: 20, listingSlug: 'template-listing', partnerSlug: 'acme' })
   })
 
   it('creates template drafts without a template package', async () => {
@@ -365,7 +365,7 @@ describe('protected actions', () => {
       createSupabaseMock({
         user: { id: 'user-1' },
         fromHandler: (table, state) => {
-          if (table === 'items' && state.op === 'insert') {
+          if (table === 'listings' && state.op === 'insert') {
             return success({ id: 21, slug: 'draft-template' })
           }
           return success(null)
@@ -379,19 +379,19 @@ describe('protected actions', () => {
     formData.set('title', 'Draft Template')
     formData.set('type', 'template')
 
-    const result = await createItemDraftAction(formData)
-    expect(result).toEqual({ itemId: 21, itemSlug: 'draft-template', partnerSlug: 'acme' })
+    const result = await createListingDraftAction(formData)
+    expect(result).toEqual({ listingId: 21, listingSlug: 'draft-template', partnerSlug: 'acme' })
   })
 
-  it('throws when template item review upsert fails', async () => {
+  it('throws when template listing review upsert fails', async () => {
     createClientMock.mockResolvedValue(
       createSupabaseMock({
         user: { id: 'user-1' },
         fromHandler: (table, state) => {
-          if (table === 'items' && state.op === 'insert') {
-            return success({ id: 10, slug: 'oauth-item' })
+          if (table === 'listings' && state.op === 'insert') {
+            return success({ id: 10, slug: 'oauth-listing' })
           }
-          if (table === 'item_reviews' && state.op === 'upsert') {
+          if (table === 'listing_reviews' && state.op === 'upsert') {
             return failure('review upsert failed')
           }
           return success(null)
@@ -402,21 +402,21 @@ describe('protected actions', () => {
     const formData = new FormData()
     formData.set('partnerId', '1')
     formData.set('partnerSlug', 'acme')
-    formData.set('title', 'OAuth Item')
+    formData.set('title', 'OAuth Listing')
     formData.set('type', 'oauth')
     formData.set('url', 'https://example.com/listing')
     formData.set('intent', 'request_review')
 
-    await expect(createItemDraftAction(formData)).rejects.toThrow('review upsert failed')
+    await expect(createListingDraftAction(formData)).rejects.toThrow('review upsert failed')
   })
 
-  it('redirects after create item action wrapper', async () => {
+  it('redirects after create listing action wrapper', async () => {
     createClientMock.mockResolvedValue(
       createSupabaseMock({
         user: { id: 'user-1' },
         fromHandler: (table, state) => {
-          if (table === 'items' && state.op === 'insert') {
-            return success({ id: 10, slug: 'oauth-item' })
+          if (table === 'listings' && state.op === 'insert') {
+            return success({ id: 10, slug: 'oauth-listing' })
           }
           return success(null)
         },
@@ -426,12 +426,12 @@ describe('protected actions', () => {
     const formData = new FormData()
     formData.set('partnerId', '1')
     formData.set('partnerSlug', 'acme')
-    formData.set('title', 'OAuth Item')
+    formData.set('title', 'OAuth Listing')
     formData.set('type', 'oauth')
     formData.set('url', 'https://example.com/listing')
 
-    await createItemAction(formData)
-    expect(redirectMock).toHaveBeenCalledWith('/protected/acme/items/oauth-item')
+    await createListingAction(formData)
+    expect(redirectMock).toHaveBeenCalledWith('/protected/acme/items/oauth-listing')
   })
 
   it('does not upsert review when current status is draft', async () => {
@@ -440,13 +440,13 @@ describe('protected actions', () => {
       createSupabaseMock({
         user: { id: 'reviewer' },
         fromHandler: (table, state) => {
-          if (table === 'items' && state.op === 'select') {
-            return success({ type: 'oauth', registry_item_url: null, url: 'https://example.com' })
+          if (table === 'listings' && state.op === 'select') {
+            return success({ type: 'oauth', registry_listing_url: null, url: 'https://example.com' })
           }
-          if (table === 'item_reviews' && state.op === 'select') {
+          if (table === 'listing_reviews' && state.op === 'select') {
             return success({ status: 'draft' })
           }
-          if (table === 'item_reviews' && state.op === 'upsert') {
+          if (table === 'listing_reviews' && state.op === 'upsert') {
             upsertSpy()
             return success(null)
           }
@@ -456,13 +456,13 @@ describe('protected actions', () => {
     )
 
     const formData = new FormData()
-    formData.set('itemId', '7')
-    formData.set('itemSlug', 'my-item')
+    formData.set('listingId', '7')
+    formData.set('listingSlug', 'my-listing')
     formData.set('partnerSlug', 'acme')
 
-    await requestItemReviewAction(formData)
+    await requestListingReviewAction(formData)
     expect(upsertSpy).not.toHaveBeenCalled()
-    expect(redirectMock).toHaveBeenCalledWith('/protected/acme/items/my-item')
+    expect(redirectMock).toHaveBeenCalledWith('/protected/acme/items/my-listing')
   })
 
   it('rejects invalid review statuses', async () => {
@@ -474,26 +474,26 @@ describe('protected actions', () => {
     )
 
     const formData = new FormData()
-    formData.set('itemId', '9')
+    formData.set('listingId', '9')
     formData.set('partnerSlug', 'acme')
     formData.set('status', 'invalid_status')
 
-    await expect(saveItemReviewAction(formData)).rejects.toThrow('Invalid review status')
+    await expect(saveListingReviewAction(formData)).rejects.toThrow('Invalid review status')
   })
 
-  it('deletes removed files when saving item file URLs', async () => {
+  it('deletes removed files when saving listing file URLs', async () => {
     const storageRemoveSpy = vi.fn().mockResolvedValue({ error: null })
     createClientMock.mockResolvedValue(
       createSupabaseMock({
         user: { id: 'user-1' },
         fromHandler: (table, state) => {
-          if (table === 'items' && state.op === 'select') {
+          if (table === 'listings' && state.op === 'select') {
             return success({
-              slug: 'updated-item',
-              files: ['https://project.supabase.co/storage/v1/object/public/item_files/1/items/2/files/a.png'],
+              slug: 'updated-listing',
+              files: ['https://project.supabase.co/storage/v1/object/public/listing_files/1/listings/2/files/a.png'],
             })
           }
-          if (table === 'items' && state.op === 'update') {
+          if (table === 'listings' && state.op === 'update') {
             return success(null)
           }
           return success(null)
@@ -505,31 +505,31 @@ describe('protected actions', () => {
     )
 
     const formData = new FormData()
-    formData.set('itemId', '2')
+    formData.set('listingId', '2')
     formData.set('partnerSlug', 'acme')
     formData.append(
       'files[]',
-      'https://project.supabase.co/storage/v1/object/public/item_files/1/items/2/files/b.png'
+      'https://project.supabase.co/storage/v1/object/public/listing_files/1/listings/2/files/b.png'
     )
 
-    const result = await saveItemFilesAction(formData)
+    const result = await saveListingFilesAction(formData)
     expect(result).toEqual({
-      itemId: 2,
-      itemSlug: 'updated-item',
-      files: ['https://project.supabase.co/storage/v1/object/public/item_files/1/items/2/files/b.png'],
+      listingId: 2,
+      listingSlug: 'updated-listing',
+      files: ['https://project.supabase.co/storage/v1/object/public/listing_files/1/listings/2/files/b.png'],
     })
-    expect(storageRemoveSpy).toHaveBeenCalledWith('item_files', ['1/items/2/files/a.png'])
+    expect(storageRemoveSpy).toHaveBeenCalledWith('listing_files', ['1/listings/2/files/a.png'])
   })
 
-  it('throws when storage file deletion fails while saving item file URLs', async () => {
+  it('throws when storage file deletion fails while saving listing file URLs', async () => {
     createClientMock.mockResolvedValue(
       createSupabaseMock({
         user: { id: 'user-1' },
         fromHandler: (table, state) => {
-          if (table === 'items' && state.op === 'select') {
+          if (table === 'listings' && state.op === 'select') {
             return success({
-              slug: 'updated-item',
-              files: ['https://project.supabase.co/storage/v1/object/public/item_files/1/items/2/files/a.png'],
+              slug: 'updated-listing',
+              files: ['https://project.supabase.co/storage/v1/object/public/listing_files/1/listings/2/files/a.png'],
             })
           }
           return success(null)
@@ -541,29 +541,29 @@ describe('protected actions', () => {
     )
 
     const formData = new FormData()
-    formData.set('itemId', '2')
+    formData.set('listingId', '2')
     formData.set('partnerSlug', 'acme')
     formData.append(
       'files[]',
-      'https://project.supabase.co/storage/v1/object/public/item_files/1/items/2/files/b.png'
+      'https://project.supabase.co/storage/v1/object/public/listing_files/1/listings/2/files/b.png'
     )
 
-    await expect(saveItemFilesAction(formData)).rejects.toThrow('storage delete failed')
+    await expect(saveListingFilesAction(formData)).rejects.toThrow('storage delete failed')
   })
 
-  it('throws when updating item file URLs fails', async () => {
+  it('throws when updating listing file URLs fails', async () => {
     createClientMock.mockResolvedValue(
       createSupabaseMock({
         user: { id: 'user-1' },
         fromHandler: (table, state) => {
-          if (table === 'items' && state.op === 'select') {
+          if (table === 'listings' && state.op === 'select') {
             return success({
-              slug: 'updated-item',
-              files: ['https://project.supabase.co/storage/v1/object/public/item_files/1/items/2/files/a.png'],
+              slug: 'updated-listing',
+              files: ['https://project.supabase.co/storage/v1/object/public/listing_files/1/listings/2/files/a.png'],
             })
           }
-          if (table === 'items' && state.op === 'update') {
-            return failure('item update failed')
+          if (table === 'listings' && state.op === 'update') {
+            return failure('listing update failed')
           }
           return success(null)
         },
@@ -574,34 +574,34 @@ describe('protected actions', () => {
     )
 
     const formData = new FormData()
-    formData.set('itemId', '2')
+    formData.set('listingId', '2')
     formData.set('partnerSlug', 'acme')
     formData.append(
       'files[]',
-      'https://project.supabase.co/storage/v1/object/public/item_files/1/items/2/files/b.png'
+      'https://project.supabase.co/storage/v1/object/public/listing_files/1/listings/2/files/b.png'
     )
 
-    await expect(saveItemFilesAction(formData)).rejects.toThrow('item update failed')
+    await expect(saveListingFilesAction(formData)).rejects.toThrow('listing update failed')
   })
 
-  it('redirects after update item action wrapper', async () => {
+  it('redirects after update listing action wrapper', async () => {
     createClientMock.mockResolvedValue(
       createSupabaseMock({
         user: { id: 'user-1' },
         fromHandler: (table, state) => {
-          if (table === 'items' && state.op === 'update') {
-            return success({ slug: 'updated-item' })
+          if (table === 'listings' && state.op === 'update') {
+            return success({ slug: 'updated-listing' })
           }
-          if (table === 'items' && state.op === 'select') {
+          if (table === 'listings' && state.op === 'select') {
             return success({
               id: 2,
               partner_id: 1,
               published: false,
               type: 'oauth',
-              registry_item_url: null,
+              registry_listing_url: null,
             })
           }
-          if (table === 'item_reviews' && state.op === 'select') {
+          if (table === 'listing_reviews' && state.op === 'select') {
             return success(null)
           }
           return success(null)
@@ -610,15 +610,15 @@ describe('protected actions', () => {
     )
 
     const formData = new FormData()
-    formData.set('itemId', '2')
+    formData.set('listingId', '2')
     formData.set('partnerId', '1')
     formData.set('partnerSlug', 'acme')
-    formData.set('name', 'Updated Item')
+    formData.set('name', 'Updated Listing')
     formData.set('type', 'oauth')
     formData.set('url', 'https://example.com')
 
-    await updateItemAction(formData)
-    expect(redirectMock).toHaveBeenCalledWith('/protected/acme/items/updated-item')
+    await updateListingAction(formData)
+    expect(redirectMock).toHaveBeenCalledWith('/protected/acme/items/updated-listing')
   })
 
   it('throws when fetching existing review fails', async () => {
@@ -626,10 +626,10 @@ describe('protected actions', () => {
       createSupabaseMock({
         user: { id: 'reviewer' },
         fromHandler: (table, state) => {
-          if (table === 'items' && state.op === 'select') {
-            return success({ type: 'oauth', registry_item_url: null, url: 'https://example.com' })
+          if (table === 'listings' && state.op === 'select') {
+            return success({ type: 'oauth', registry_listing_url: null, url: 'https://example.com' })
           }
-          if (table === 'item_reviews' && state.op === 'select') {
+          if (table === 'listing_reviews' && state.op === 'select') {
             return failure('existing review query failed')
           }
           return success(null)
@@ -638,11 +638,11 @@ describe('protected actions', () => {
     )
 
     const formData = new FormData()
-    formData.set('itemId', '7')
-    formData.set('itemSlug', 'my-item')
+    formData.set('listingId', '7')
+    formData.set('listingSlug', 'my-listing')
     formData.set('partnerSlug', 'acme')
 
-    await expect(requestItemReviewAction(formData)).rejects.toThrow('existing review query failed')
+    await expect(requestListingReviewAction(formData)).rejects.toThrow('existing review query failed')
   })
 
   it('rejects template review requests when no template package has been uploaded', async () => {
@@ -650,8 +650,8 @@ describe('protected actions', () => {
       createSupabaseMock({
         user: { id: 'reviewer' },
         fromHandler: (table, state) => {
-          if (table === 'items' && state.op === 'select') {
-            return success({ type: 'template', registry_item_url: null, url: null })
+          if (table === 'listings' && state.op === 'select') {
+            return success({ type: 'template', registry_listing_url: null, url: null })
           }
           return success(null)
         },
@@ -659,12 +659,12 @@ describe('protected actions', () => {
     )
 
     const formData = new FormData()
-    formData.set('itemId', '7')
-    formData.set('itemSlug', 'my-item')
+    formData.set('listingId', '7')
+    formData.set('listingSlug', 'my-listing')
     formData.set('partnerSlug', 'acme')
 
-    await expect(requestItemReviewAction(formData)).rejects.toThrow(
-      'Template items require a template ZIP package before publishing or requesting review'
+    await expect(requestListingReviewAction(formData)).rejects.toThrow(
+      'Template listings require a template ZIP package before publishing or requesting review'
     )
   })
 
@@ -673,13 +673,13 @@ describe('protected actions', () => {
       createSupabaseMock({
         user: { id: 'reviewer' },
         fromHandler: (table, state) => {
-          if (table === 'items' && state.op === 'select') {
-            return success({ type: 'oauth', registry_item_url: null, url: 'https://example.com' })
+          if (table === 'listings' && state.op === 'select') {
+            return success({ type: 'oauth', registry_listing_url: null, url: 'https://example.com' })
           }
-          if (table === 'item_reviews' && state.op === 'select') {
+          if (table === 'listing_reviews' && state.op === 'select') {
             return success({ status: 'rejected' })
           }
-          if (table === 'item_reviews' && state.op === 'upsert') {
+          if (table === 'listing_reviews' && state.op === 'upsert') {
             return failure('upsert failed')
           }
           return success(null)
@@ -688,11 +688,11 @@ describe('protected actions', () => {
     )
 
     const formData = new FormData()
-    formData.set('itemId', '7')
-    formData.set('itemSlug', 'my-item')
+    formData.set('listingId', '7')
+    formData.set('listingSlug', 'my-listing')
     formData.set('partnerSlug', 'acme')
 
-    await expect(requestItemReviewAction(formData)).rejects.toThrow('upsert failed')
+    await expect(requestListingReviewAction(formData)).rejects.toThrow('upsert failed')
   })
 
   it('throws when save review upsert fails', async () => {
@@ -700,7 +700,7 @@ describe('protected actions', () => {
       createSupabaseMock({
         user: { id: 'reviewer' },
         fromHandler: (table, state) => {
-          if (table === 'item_reviews' && state.op === 'upsert') {
+          if (table === 'listing_reviews' && state.op === 'upsert') {
             return failure('save review failed')
           }
           return success(null)
@@ -709,29 +709,29 @@ describe('protected actions', () => {
     )
 
     const formData = new FormData()
-    formData.set('itemId', '9')
+    formData.set('listingId', '9')
     formData.set('partnerSlug', 'acme')
     formData.set('status', 'approved')
     formData.set('reviewNotes', 'ok')
 
-    await expect(saveItemReviewAction(formData)).rejects.toThrow('save review failed')
+    await expect(saveListingReviewAction(formData)).rejects.toThrow('save review failed')
   })
 
-  it('redirects after update item review action wrapper', async () => {
+  it('redirects after update listing review action wrapper', async () => {
     createClientMock.mockResolvedValue(
       createSupabaseMock({
         user: { id: 'reviewer' },
         fromHandler: (table, state) => {
-          if (table === 'items' && state.op === 'select') {
+          if (table === 'listings' && state.op === 'select') {
             return success({
               id: 9,
               partner_id: 1,
               published: false,
               type: 'oauth',
-              registry_item_url: null,
+              registry_listing_url: null,
             })
           }
-          if (table === 'item_reviews' && state.op === 'select') {
+          if (table === 'listing_reviews' && state.op === 'select') {
             return success({ status: 'approved' })
           }
           return success(null)
@@ -740,12 +740,12 @@ describe('protected actions', () => {
     )
 
     const formData = new FormData()
-    formData.set('itemId', '9')
+    formData.set('listingId', '9')
     formData.set('partnerSlug', 'acme')
     formData.set('status', 'approved')
     formData.set('reviewNotes', 'ok')
 
-    await updateItemReviewAction(formData)
+    await updateListingReviewAction(formData)
     expect(redirectMock).toHaveBeenCalledWith('/protected/acme/reviews/9')
   })
 })

@@ -2,36 +2,36 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/app/protected/actions', () => ({
-  requestItemReviewAction: vi.fn(),
+  requestListingReviewAction: vi.fn(),
 }))
 
-import { ItemReviewPrimaryAction } from '@/components/item-review-primary-action'
+import { ListingReviewPrimaryAction } from '@/components/item-review-primary-action'
 
 const baseProps = {
-  itemId: 12,
-  itemSlug: 'auth-item',
+  listingId: 12,
+  listingSlug: 'auth-item',
   partnerSlug: 'acme',
   latestReviewStatus: null,
   latestReviewNotes: null,
   openReviewStatusLabel: null,
 }
 
-describe('ItemReviewPrimaryAction', () => {
+describe('ListingReviewPrimaryAction', () => {
   it('renders approved badge when item is approved', () => {
-    render(<ItemReviewPrimaryAction {...baseProps} isApproved hasOpenReview={false} />)
+    render(<ListingReviewPrimaryAction {...baseProps} isApproved hasOpenReview={false} />)
 
     expect(screen.getByText('Approved')).toBeInTheDocument()
   })
 
   it('renders request review button when no review is open', () => {
-    render(<ItemReviewPrimaryAction {...baseProps} isApproved={false} hasOpenReview={false} />)
+    render(<ListingReviewPrimaryAction {...baseProps} isApproved={false} hasOpenReview={false} />)
 
     expect(screen.getByRole('button', { name: 'Request review' })).toBeInTheDocument()
   })
 
   it('renders open review status badge when review is in progress', () => {
     render(
-      <ItemReviewPrimaryAction
+      <ListingReviewPrimaryAction
         {...baseProps}
         isApproved={false}
         hasOpenReview

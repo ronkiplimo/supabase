@@ -16,10 +16,10 @@ vi.mock('@/lib/supabase/server', () => ({
 }))
 
 import {
-  createItemDraftAction,
+  createListingDraftAction,
   createPartnerAction,
-  requestItemReviewAction,
-  saveItemReviewAction,
+  requestListingReviewAction,
+  saveListingReviewAction,
 } from '@/app/protected/actions'
 
 beforeEach(() => {
@@ -27,7 +27,7 @@ beforeEach(() => {
 })
 
 describe('marketplace flow smoke', () => {
-  it('covers partner -> item -> request review -> reviewer decision', async () => {
+  it('covers partner -> listing -> request review -> reviewer decision', async () => {
     const upsertCalls: unknown[] = []
 
     createClientMock.mockResolvedValue({
@@ -40,7 +40,7 @@ describe('marketplace flow smoke', () => {
           error: null as null | { message: string },
           insert(value: unknown) {
             if (table === 'partners') chain.data = { id: 1, slug: 'acme' }
-            if (table === 'items') chain.data = { id: 5, slug: 'auth-item' }
+            if (table === 'listings') chain.data = { id: 5, slug: 'auth-item' }
             return chain
           },
           upsert(value: unknown) {
@@ -52,10 +52,10 @@ describe('marketplace flow smoke', () => {
             return chain
           },
           select() {
-            if (table === 'items') {
-              chain.data = { type: 'oauth', registry_item_url: null, url: 'https://example.com/listing' }
+            if (table === 'listings') {
+              chain.data = { type: 'oauth', registry_listing_url: null, url: 'https://example.com/listing' }
             }
-            if (table === 'item_reviews') {
+            if (table === 'listing_reviews') {
               chain.data = { status: 'rejected' }
             }
             return chain
@@ -90,28 +90,28 @@ describe('marketplace flow smoke', () => {
     partnerForm.set('title', 'Acme')
     await createPartnerAction(partnerForm)
 
-    const itemForm = new FormData()
-    itemForm.set('partnerId', '1')
-    itemForm.set('partnerSlug', 'acme')
-    itemForm.set('title', 'Auth Item')
-    itemForm.set('type', 'oauth')
-    itemForm.set('url', 'https://example.com/listing')
-    itemForm.set('intent', 'request_review')
-    const created = await createItemDraftAction(itemForm)
+    const listingForm = new FormData()
+    listingForm.set('partnerId', '1')
+    listingForm.set('partnerSlug', 'acme')
+    listingForm.set('title', 'Auth Item')
+    listingForm.set('type', 'oauth')
+    listingForm.set('url', 'https://example.com/listing')
+    listingForm.set('intent', 'request_review')
+    const created = await createListingDraftAction(listingForm)
 
     const requestForm = new FormData()
-    requestForm.set('itemId', String(created.itemId))
-    requestForm.set('itemSlug', created.itemSlug)
+    requestForm.set('listingId', String(created.listingId))
+    requestForm.set('listingSlug', created.listingSlug)
     requestForm.set('partnerSlug', created.partnerSlug)
-    await requestItemReviewAction(requestForm)
+    await requestListingReviewAction(requestForm)
 
     const reviewerForm = new FormData()
-    reviewerForm.set('itemId', String(created.itemId))
+    reviewerForm.set('listingId', String(created.listingId))
     reviewerForm.set('partnerSlug', created.partnerSlug)
     reviewerForm.set('status', 'approved')
     reviewerForm.set('reviewNotes', 'Ship it')
     reviewerForm.set('featured', 'on')
-    await saveItemReviewAction(reviewerForm)
+    await saveListingReviewAction(reviewerForm)
 
     expect(upsertCalls.length).toBeGreaterThan(0)
     expect(redirectMock).toHaveBeenCalled()

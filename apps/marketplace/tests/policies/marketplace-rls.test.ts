@@ -28,9 +28,9 @@ const CATEGORY_SLUG = `category-${RUN_ID}`
 let partnerId: number
 let otherPartnerId: number
 let reviewerPartnerId: number
-let partnerItemId: number
-let otherPartnerItemId: number
-let partnerDraftItemId: number
+let partnerListingId: number
+let otherPartnerListingId: number
+let partnerDraftListingId: number
 let categoryId: number
 
 const admin = hasRequiredEnv
@@ -148,21 +148,21 @@ describeIfConfigured('Marketplace RLS policies', () => {
     ])
     expect(memberInsertError).toBeNull()
 
-    const { data: itemRows, error: itemInsertError } = await adminClient
-      .from('items')
+    const { data: listingRows, error: listingInsertError } = await adminClient
+      .from('listings')
       .insert([
         {
           partner_id: partnerId,
-          slug: `partner-item-${RUN_ID}`,
-          title: 'Partner Visible Item',
+          slug: `partner-listing-${RUN_ID}`,
+          title: 'Partner Visible Listing',
           type: 'oauth',
           url: 'https://example.com/partner',
           submitted_by: PARTNER_USER_ID,
         },
         {
           partner_id: otherPartnerId,
-          slug: `other-partner-item-${RUN_ID}`,
-          title: 'Other Partner Item',
+          slug: `other-partner-listing-${RUN_ID}`,
+          title: 'Other Partner Listing',
           type: 'oauth',
           url: 'https://example.com/other',
           submitted_by: OTHER_PARTNER_USER_ID,
@@ -170,13 +170,13 @@ describeIfConfigured('Marketplace RLS policies', () => {
       ])
       .select('id, partner_id')
 
-    expect(itemInsertError).toBeNull()
-    expect(itemRows).toHaveLength(2)
+    expect(listingInsertError).toBeNull()
+    expect(listingRows).toHaveLength(2)
 
-    const ownItem = itemRows!.find((row) => row.partner_id === partnerId)
-    const foreignItem = itemRows!.find((row) => row.partner_id === otherPartnerId)
-    partnerItemId = ownItem!.id
-    otherPartnerItemId = foreignItem!.id
+    const ownListing = listingRows!.find((row) => row.partner_id === partnerId)
+    const foreignListing = listingRows!.find((row) => row.partner_id === otherPartnerId)
+    partnerListingId = ownListing!.id
+    otherPartnerListingId = foreignListing!.id
 
     const { data: categoryRow, error: categoryInsertError } = await adminClient
       .from('categories')
@@ -192,38 +192,38 @@ describeIfConfigured('Marketplace RLS policies', () => {
     expect(categoryRow).toBeDefined()
     categoryId = categoryRow!.id
 
-    const { error: categoryItemInsertError } = await adminClient.from('category_items').insert({
+    const { error: categoryListingInsertError } = await adminClient.from('category_listings').insert({
       category_id: categoryId,
-      item_id: partnerItemId,
+      listing_id: partnerListingId,
     })
-    expect(categoryItemInsertError).toBeNull()
+    expect(categoryListingInsertError).toBeNull()
 
-    const { error: reviewInsertError } = await adminClient.from('item_reviews').insert({
-      item_id: partnerItemId,
+    const { error: reviewInsertError } = await adminClient.from('listing_reviews').insert({
+      listing_id: partnerListingId,
       status: 'pending_review',
       featured: false,
     })
     expect(reviewInsertError).toBeNull()
 
-    const { error: itemFilesUpdateError } = await adminClient
-      .from('items')
+    const { error: listingFilesUpdateError } = await adminClient
+      .from('listings')
       .update({
         files: [
-          `${process.env.SUPABASE_URL}/storage/v1/object/public/item_files/${partnerId}/items/${partnerItemId}/preview.png`,
+          `${process.env.SUPABASE_URL}/storage/v1/object/public/listing_files/${partnerId}/listings/${partnerListingId}/preview.png`,
         ],
       })
-      .eq('id', partnerItemId)
-    expect(itemFilesUpdateError).toBeNull()
+      .eq('id', partnerListingId)
+    expect(listingFilesUpdateError).toBeNull()
 
-    const { error: otherItemFilesUpdateError } = await adminClient
-      .from('items')
+    const { error: otherListingFilesUpdateError } = await adminClient
+      .from('listings')
       .update({
         files: [
-          `${process.env.SUPABASE_URL}/storage/v1/object/public/item_files/${otherPartnerId}/items/${otherPartnerItemId}/preview.png`,
+          `${process.env.SUPABASE_URL}/storage/v1/object/public/listing_files/${otherPartnerId}/listings/${otherPartnerListingId}/preview.png`,
         ],
       })
-      .eq('id', otherPartnerItemId)
-    expect(otherItemFilesUpdateError).toBeNull()
+      .eq('id', otherPartnerListingId)
+    expect(otherListingFilesUpdateError).toBeNull()
 
     await Promise.all([
       signIn(partnerClient!, PARTNER_EMAIL, PASSWORD),
@@ -235,19 +235,19 @@ describeIfConfigured('Marketplace RLS policies', () => {
   afterAll(async () => {
     if (!admin) return
 
-    await admin.from('category_items').delete().eq('category_id', categoryId)
+    await admin.from('category_listings').delete().eq('category_id', categoryId)
 
     await admin.from('categories').delete().eq('id', categoryId)
 
     await admin
-      .from('item_reviews')
+      .from('listing_reviews')
       .delete()
-      .in('item_id', [partnerItemId, otherPartnerItemId, partnerDraftItemId].filter(Boolean))
+      .in('listing_id', [partnerListingId, otherPartnerListingId, partnerDraftListingId].filter(Boolean))
 
     await admin
-      .from('items')
+      .from('listings')
       .delete()
-      .in('id', [partnerItemId, otherPartnerItemId, partnerDraftItemId].filter(Boolean))
+      .in('id', [partnerListingId, otherPartnerListingId, partnerDraftListingId].filter(Boolean))
 
     await admin
       .from('partner_members')
@@ -263,16 +263,16 @@ describeIfConfigured('Marketplace RLS policies', () => {
     ])
   })
 
-  it('allows partners to read only their own items', async () => {
-    const { data, error } = await partnerClient!.from('items').select('id, partner_id')
+  it('allows partners to read only their own listings', async () => {
+    const { data, error } = await partnerClient!.from('listings').select('id, partner_id')
 
     expect(error).toBeNull()
-    expect(data?.some((item) => item.id === partnerItemId)).toBe(true)
-    expect(data?.some((item) => item.id === otherPartnerItemId)).toBe(false)
+    expect(data?.some((listing) => listing.id === partnerListingId)).toBe(true)
+    expect(data?.some((listing) => listing.id === otherPartnerListingId)).toBe(false)
   })
 
-  it('blocks partner item inserts for a different partner', async () => {
-    const { error } = await partnerClient!.from('items').insert({
+  it('blocks partner listing inserts for a different partner', async () => {
+    const { error } = await partnerClient!.from('listings').insert({
       partner_id: otherPartnerId,
       slug: `blocked-cross-partner-${RUN_ID}`,
       title: 'Should Not Insert',
@@ -286,10 +286,10 @@ describeIfConfigured('Marketplace RLS policies', () => {
 
   it('allows partner inserts only with own submitted_by', async () => {
     const { data: ownInsertData, error: ownInsertError } = await partnerClient!
-      .from('items')
+      .from('listings')
       .insert({
         partner_id: partnerId,
-        slug: `allowed-own-item-${RUN_ID}`,
+        slug: `allowed-own-listing-${RUN_ID}`,
         title: 'Own Partner Insert',
         type: 'oauth',
         url: 'https://example.com/own',
@@ -300,9 +300,9 @@ describeIfConfigured('Marketplace RLS policies', () => {
 
     expect(ownInsertError).toBeNull()
     expect(ownInsertData).toBeDefined()
-    partnerDraftItemId = ownInsertData!.id
+    partnerDraftListingId = ownInsertData!.id
 
-    const { error: spoofedSubmitterError } = await partnerClient!.from('items').insert({
+    const { error: spoofedSubmitterError } = await partnerClient!.from('listings').insert({
       partner_id: partnerId,
       slug: `blocked-submitter-spoof-${RUN_ID}`,
       title: 'Spoofed Submitter',
@@ -315,16 +315,16 @@ describeIfConfigured('Marketplace RLS policies', () => {
   })
 
   it('allows partner review requests only as pending_review', async () => {
-    const { error: blockedError } = await partnerClient!.from('item_reviews').insert({
-      item_id: partnerDraftItemId,
+    const { error: blockedError } = await partnerClient!.from('listing_reviews').insert({
+      listing_id: partnerDraftListingId,
       status: 'approved',
       featured: true,
       reviewed_by: PARTNER_USER_ID,
     })
     expect(blockedError).not.toBeNull()
 
-    const { error: allowedError } = await partnerClient!.from('item_reviews').insert({
-      item_id: partnerDraftItemId,
+    const { error: allowedError } = await partnerClient!.from('listing_reviews').insert({
+      listing_id: partnerDraftListingId,
       status: 'pending_review',
       featured: false,
       reviewed_by: null,
@@ -337,20 +337,20 @@ describeIfConfigured('Marketplace RLS policies', () => {
 
   it('prevents partners from approving reviews and allows reviewer approval', async () => {
     const { error: partnerUpdateError } = await partnerClient!
-      .from('item_reviews')
+      .from('listing_reviews')
       .update({
         status: 'approved',
         review_notes: 'Partner attempted approval',
         reviewed_by: PARTNER_USER_ID,
       })
-      .eq('item_id', partnerItemId)
+      .eq('listing_id', partnerListingId)
 
     expect(partnerUpdateError).toBeNull()
 
     const { data: afterPartnerAttempt, error: afterPartnerAttemptError } = await admin!
-      .from('item_reviews')
+      .from('listing_reviews')
       .select('status, reviewed_by')
-      .eq('item_id', partnerItemId)
+      .eq('listing_id', partnerListingId)
       .single()
 
     expect(afterPartnerAttemptError).toBeNull()
@@ -358,21 +358,21 @@ describeIfConfigured('Marketplace RLS policies', () => {
     expect(afterPartnerAttempt?.reviewed_by).toBeNull()
 
     const { error: reviewerUpdateError } = await reviewerClient!
-      .from('item_reviews')
+      .from('listing_reviews')
       .update({
         status: 'approved',
         featured: true,
         reviewed_by: REVIEWER_USER_ID,
         review_notes: 'Approved by reviewer',
       })
-      .eq('item_id', partnerItemId)
+      .eq('listing_id', partnerListingId)
 
     expect(reviewerUpdateError).toBeNull()
 
     const { data: finalReview, error: finalReviewError } = await admin!
-      .from('item_reviews')
+      .from('listing_reviews')
       .select('status, reviewed_by, featured')
-      .eq('item_id', partnerItemId)
+      .eq('listing_id', partnerListingId)
       .single()
 
     expect(finalReviewError).toBeNull()
@@ -389,36 +389,36 @@ describeIfConfigured('Marketplace RLS policies', () => {
     expect(data?.[0]?.slug).toBe(CATEGORY_SLUG)
   })
 
-  it('allows anonymous reads only for published items with latest approved review', async () => {
+  it('allows anonymous reads only for published listings with latest approved review', async () => {
     const { error: pendingSetupError } = await admin!
-      .from('items')
+      .from('listings')
       .update({ published: true })
-      .eq('id', partnerItemId)
+      .eq('id', partnerListingId)
     expect(pendingSetupError).toBeNull()
 
     const { error: pendingReviewError } = await admin!
-      .from('item_reviews')
+      .from('listing_reviews')
       .update({
         status: 'pending_review',
         reviewed_by: REVIEWER_USER_ID,
       })
-      .eq('item_id', partnerItemId)
+      .eq('listing_id', partnerListingId)
     expect(pendingReviewError).toBeNull()
 
-    const { data: pendingItems, error: pendingItemsError } = await publicClient!
-      .from('items')
+    const { data: pendingListings, error: pendingListingsError } = await publicClient!
+      .from('listings')
       .select('id, files')
-      .eq('id', partnerItemId)
-    expect(pendingItemsError).toBeNull()
-    expect(pendingItems).toHaveLength(0)
+      .eq('id', partnerListingId)
+    expect(pendingListingsError).toBeNull()
+    expect(pendingListings).toHaveLength(0)
 
-    const { data: pendingCategoryItems, error: pendingCategoryItemsError } = await publicClient!
-      .from('category_items')
-      .select('category_id, item_id')
+    const { data: pendingCategoryListings, error: pendingCategoryListingsError } = await publicClient!
+      .from('category_listings')
+      .select('category_id, listing_id')
       .eq('category_id', categoryId)
-      .eq('item_id', partnerItemId)
-    expect(pendingCategoryItemsError).toBeNull()
-    expect(pendingCategoryItems).toHaveLength(0)
+      .eq('listing_id', partnerListingId)
+    expect(pendingCategoryListingsError).toBeNull()
+    expect(pendingCategoryListings).toHaveLength(0)
 
     const { data: pendingPartners, error: pendingPartnersError } = await publicClient!
       .from('partners')
@@ -428,29 +428,29 @@ describeIfConfigured('Marketplace RLS policies', () => {
     expect(pendingPartners).toHaveLength(0)
 
     const { error: approvedReviewError } = await admin!
-      .from('item_reviews')
+      .from('listing_reviews')
       .update({
         status: 'approved',
         reviewed_by: REVIEWER_USER_ID,
       })
-      .eq('item_id', partnerItemId)
+      .eq('listing_id', partnerListingId)
     expect(approvedReviewError).toBeNull()
 
-    const { data: approvedItems, error: approvedItemsError } = await publicClient!
-      .from('items')
+    const { data: approvedListings, error: approvedListingsError } = await publicClient!
+      .from('listings')
       .select('id, files')
-      .eq('id', partnerItemId)
-    expect(approvedItemsError).toBeNull()
-    expect(approvedItems).toHaveLength(1)
-    expect(approvedItems?.[0]?.files).toHaveLength(1)
+      .eq('id', partnerListingId)
+    expect(approvedListingsError).toBeNull()
+    expect(approvedListings).toHaveLength(1)
+    expect(approvedListings?.[0]?.files).toHaveLength(1)
 
-    const { data: approvedCategoryItems, error: approvedCategoryItemsError } = await publicClient!
-      .from('category_items')
-      .select('category_id, item_id')
+    const { data: approvedCategoryListings, error: approvedCategoryListingsError } = await publicClient!
+      .from('category_listings')
+      .select('category_id, listing_id')
       .eq('category_id', categoryId)
-      .eq('item_id', partnerItemId)
-    expect(approvedCategoryItemsError).toBeNull()
-    expect(approvedCategoryItems).toHaveLength(1)
+      .eq('listing_id', partnerListingId)
+    expect(approvedCategoryListingsError).toBeNull()
+    expect(approvedCategoryListings).toHaveLength(1)
 
     const { data: approvedPartners, error: approvedPartnersError } = await publicClient!
       .from('partners')
@@ -461,25 +461,25 @@ describeIfConfigured('Marketplace RLS policies', () => {
     expect(approvedPartners?.[0]?.id).toBe(partnerId)
 
     const { error: unpublishedSetupError } = await admin!
-      .from('items')
+      .from('listings')
       .update({ published: false })
-      .eq('id', partnerItemId)
+      .eq('id', partnerListingId)
     expect(unpublishedSetupError).toBeNull()
 
-    const { data: unpublishedItems, error: unpublishedItemsError } = await publicClient!
-      .from('items')
+    const { data: unpublishedListings, error: unpublishedListingsError } = await publicClient!
+      .from('listings')
       .select('id, files')
-      .eq('id', partnerItemId)
-    expect(unpublishedItemsError).toBeNull()
-    expect(unpublishedItems).toHaveLength(0)
+      .eq('id', partnerListingId)
+    expect(unpublishedListingsError).toBeNull()
+    expect(unpublishedListings).toHaveLength(0)
 
-    const { data: unpublishedCategoryItems, error: unpublishedCategoryItemsError } = await publicClient!
-      .from('category_items')
-      .select('category_id, item_id')
+    const { data: unpublishedCategoryListings, error: unpublishedCategoryListingsError } = await publicClient!
+      .from('category_listings')
+      .select('category_id, listing_id')
       .eq('category_id', categoryId)
-      .eq('item_id', partnerItemId)
-    expect(unpublishedCategoryItemsError).toBeNull()
-    expect(unpublishedCategoryItems).toHaveLength(0)
+      .eq('listing_id', partnerListingId)
+    expect(unpublishedCategoryListingsError).toBeNull()
+    expect(unpublishedCategoryListings).toHaveLength(0)
 
     const { data: unpublishedPartners, error: unpublishedPartnersError } = await publicClient!
       .from('partners')

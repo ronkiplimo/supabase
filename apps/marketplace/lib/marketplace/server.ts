@@ -7,7 +7,7 @@ export type PartnerSidebarData = {
   title: string
   membershipRole: 'member' | 'admin'
   partnerRole: 'partner' | 'reviewer' | 'admin'
-  items: Array<{
+  listings: Array<{
     id: number
     slug: string
     title: string
@@ -51,29 +51,29 @@ export async function getMarketplaceSidebarData() {
       title: partner.title,
       membershipRole: entry.role === 'admin' ? 'admin' : 'member',
       partnerRole: partner.role,
-      items: [],
+      listings: [],
     })
   }
 
   const partnerIds = Array.from(partnerMap.keys())
 
   if (partnerIds.length > 0) {
-    const { data: items, error: itemsError } = await supabase
-      .from('items')
-      .select('id, partner_id, slug, title, item_reviews(status)')
+    const { data: listings, error: listingsError } = await supabase
+      .from('listings')
+      .select('id, partner_id, slug, title, listing_reviews(status)')
       .in('partner_id', partnerIds)
       .order('title', { ascending: true })
 
-    if (itemsError) {
-      throw new Error(itemsError.message)
+    if (listingsError) {
+      throw new Error(listingsError.message)
     }
 
-    for (const item of (items ?? []) as Array<{
+    for (const listing of (listings ?? []) as Array<{
       id: number
       partner_id: number
       slug: string
       title: string
-      item_reviews?:
+      listing_reviews?:
         | {
             status: ReviewStatus | null
           }
@@ -82,14 +82,14 @@ export async function getMarketplaceSidebarData() {
           }>
         | null
     }>) {
-      const partner = partnerMap.get(item.partner_id)
+      const partner = partnerMap.get(listing.partner_id)
       if (!partner) continue
-      const latestReview = Array.isArray(item.item_reviews) ? item.item_reviews[0] : item.item_reviews
+      const latestReview = Array.isArray(listing.listing_reviews) ? listing.listing_reviews[0] : listing.listing_reviews
 
-      partner.items.push({
-        id: item.id,
-        slug: item.slug,
-        title: item.title,
+      partner.listings.push({
+        id: listing.id,
+        slug: listing.slug,
+        title: listing.title,
         latestReviewStatus: latestReview?.status ?? null,
       })
     }

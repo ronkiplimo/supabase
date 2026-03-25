@@ -47,7 +47,7 @@ export default async function NewPartnerPage() {
               <PageSectionSummary>
                 <PageSectionTitle>Create your partner</PageSectionTitle>
                 <p className="text-sm text-muted-foreground">
-                  You need a partner before you can manage marketplace items.
+                  You need a partner before you can manage marketplace listings.
                 </p>
               </PageSectionSummary>
             </PageSectionMeta>

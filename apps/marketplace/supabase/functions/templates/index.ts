@@ -3,10 +3,10 @@ import { corsHeaders } from 'jsr:@supabase/supabase-js@2/cors'
 
 import { resolveTemplateJsonRelativePaths } from './template-json.ts'
 
-type ItemRow = {
+type ListingRow = {
   slug: string
   type: 'oauth' | 'template'
-  registry_item_url: string | null
+  registry_listing_url: string | null
 }
 
 const templateRoutePattern = new URLPattern({ pathname: '/templates/:slug' })
@@ -59,31 +59,31 @@ Deno.serve(async (req: Request) => {
     auth: { persistSession: false, autoRefreshToken: false },
   })
 
-  const { data: item, error } = await supabase
-    .from('items')
-    .select('slug,type,registry_item_url')
+  const { data: listing, error } = await supabase
+    .from('listings')
+    .select('slug,type,registry_listing_url')
     .eq('slug', slug)
-    .maybeSingle<ItemRow>()
+    .maybeSingle<ListingRow>()
 
   if (error) {
-    return jsonResponse({ error: `Failed to query item: ${error.message}` }, 500)
+    return jsonResponse({ error: `Failed to query listing: ${error.message}` }, 500)
   }
 
-  if (!item) {
-    return jsonResponse({ error: 'Item not found or not visible to anonymous role' }, 404)
+  if (!listing) {
+    return jsonResponse({ error: 'Listing not found or not visible to anonymous role' }, 404)
   }
 
-  if (item.type !== 'template') {
-    return jsonResponse({ error: 'Item is not a template' }, 400)
+  if (listing.type !== 'template') {
+    return jsonResponse({ error: 'Listing is not a template' }, 400)
   }
 
-  if (!item.registry_item_url) {
-    return jsonResponse({ error: 'Template item is missing template_url (registry_item_url)' }, 400)
+  if (!listing.registry_listing_url) {
+    return jsonResponse({ error: 'Template listing is missing template_url (registry_listing_url)' }, 400)
   }
 
   let upstream: Response
   try {
-    upstream = await fetch(item.registry_item_url, {
+    upstream = await fetch(listing.registry_listing_url, {
       headers: { Accept: 'application/json' },
     })
   } catch (err) {

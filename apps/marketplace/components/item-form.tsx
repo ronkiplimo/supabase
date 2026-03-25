@@ -13,6 +13,11 @@ import {
   Input_Shadcn_ as Input,
   RadioGroupStacked,
   RadioGroupStackedItem,
+  Select_Shadcn_ as Select,
+  SelectContent_Shadcn_ as SelectContent,
+  SelectItem_Shadcn_ as SelectItem,
+  SelectTrigger_Shadcn_ as SelectTrigger,
+  SelectValue_Shadcn_ as SelectValue,
   Switch,
   TextArea_Shadcn_ as TextArea,
   TreeView,
@@ -21,23 +26,23 @@ import {
 import { FormItemLayout } from 'ui-patterns/form/FormItemLayout/FormItemLayout'
 import { z } from 'zod'
 
-import { createItemDraftAction, updateItemDraftAction } from '@/app/protected/actions'
-import { ItemFilesUploader, type ItemPreviewFile } from '@/components/item-files-uploader'
+import { createListingDraftAction, updateListingDraftAction } from '@/app/protected/actions'
+import { ListingFilesUploader, type ListingPreviewFile } from '@/components/item-files-uploader'
 import {
-  getItemTemplateStoragePath,
+  getListingTemplateStoragePath,
   MARKETPLACE_STORAGE_BUCKET,
 } from '@/lib/marketplace/item-storage'
 import { normalizeTemplatePath, shouldIgnoreTemplatePath } from '@/lib/marketplace/template-package'
 import { createClient } from '@/lib/supabase/client'
 
-export type ItemFile = string
+export type ListingFile = string
 
 export type PartnerInfo = {
   id: number
   slug: string
 }
 
-export type ItemInfo = {
+export type ListingInfo = {
   id: number
   slug: string
   title: string
@@ -46,14 +51,16 @@ export type ItemInfo = {
   published: boolean
   type: string
   url: string | null
-  registry_item_url: string | null
+  registry_listing_url: string | null
   documentation_url: string | null
+  initiation_action_url: string | null
+  initiation_action_method: string | null
 }
 
 type BaseProps = {
   partner: PartnerInfo
-  onValuesChange?: (values: ItemFormValues) => void
-  onPreviewFilesChange?: (files: ItemPreviewFile[]) => void
+  onValuesChange?: (values: ListingFormValues) => void
+  onPreviewFilesChange?: (files: ListingPreviewFile[]) => void
 }
 
 type CreateModeProps = BaseProps & {
@@ -62,21 +69,21 @@ type CreateModeProps = BaseProps & {
 
 type EditModeProps = BaseProps & {
   mode: 'edit'
-  item: ItemInfo
-  initialFiles: ItemFile[]
+  listing: ListingInfo
+  initialFiles: ListingFile[]
 }
 
-type ItemFormProps = CreateModeProps | EditModeProps
+type ListingFormProps = CreateModeProps | EditModeProps
 
 type SubmitResult = {
-  itemId: number
-  itemSlug: string
+  listingId: number
+  listingSlug: string
   partnerSlug: string
 }
 
-const EMPTY_ITEM_FILES: ItemFile[] = []
+const EMPTY_LISTING_FILES: ListingFile[] = []
 
-const itemTypeEnum = z.enum(['template', 'oauth'])
+const listingTypeEnum = z.enum(['template', 'oauth'])
 
 function areStringArraysEqual(left: string[], right: string[]) {
   if (left.length !== right.length) return false
@@ -130,13 +137,13 @@ function buildTemplateTree(paths: string[]) {
   return root
 }
 
-const itemFormSchema = z.object({
-  title: z.string().min(1, 'Item name is required'),
+const listingFormSchema = z.object({
+  title: z.string().min(1, 'Listing name is required'),
   slug: z.string().optional(),
   summary: z.string().optional(),
   content: z.string().optional(),
   published: z.boolean(),
-  type: itemTypeEnum,
+  type: listingTypeEnum,
   url: z
     .string()
     .optional()
@@ -149,13 +156,20 @@ const itemFormSchema = z.object({
     .refine((value) => !value || Boolean(z.string().url().safeParse(value).success), {
       message: 'Enter a valid URL',
     }),
+  initiation_action_url: z
+    .string()
+    .optional()
+    .refine((value) => !value || Boolean(z.string().url().safeParse(value).success), {
+      message: 'Enter a valid URL',
+    }),
+  initiation_action_method: z.enum(['POST', 'GET']).nullable().optional(),
   files: z.array(z.string()),
   template_files: z.array(z.string()),
 })
 
-export type ItemFormValues = z.infer<typeof itemFormSchema>
+export type ListingFormValues = z.infer<typeof listingFormSchema>
 
-export function ItemForm(props: ItemFormProps) {
+export function ListingForm(props: ListingFormProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -172,44 +186,48 @@ export function ItemForm(props: ItemFormProps) {
   const supabase = useMemo(() => createClient(), [])
 
   const isCreateMode = props.mode === 'create'
-  const item = props.mode === 'edit' ? props.item : null
-  const itemId = isCreateMode ? submitResult?.itemId : item?.id
-  const initialFiles = props.mode === 'edit' ? props.initialFiles : EMPTY_ITEM_FILES
+  const listing = props.mode === 'edit' ? props.listing : null
+  const listingId = isCreateMode ? submitResult?.listingId : listing?.id
+  const initialFiles = props.mode === 'edit' ? props.initialFiles : EMPTY_LISTING_FILES
   const fieldsDisabled = isPending || isWaitingForAutoUpload
   const initialFilesFieldValue = useMemo(() => initialFiles.slice(), [initialFiles])
-  const defaultValues = useMemo<ItemFormValues>(
+  const defaultValues = useMemo<ListingFormValues>(
     () => ({
-      title: item?.title ?? '',
-      slug: item?.slug ?? '',
-      summary: item?.summary ?? '',
-      content: item?.content ?? '',
-      published: item?.published ?? false,
-      type: item?.type === 'oauth' ? 'oauth' : 'template',
-      url: item?.url ?? '',
-      documentation_url: item?.documentation_url ?? '',
+      title: listing?.title ?? '',
+      slug: listing?.slug ?? '',
+      summary: listing?.summary ?? '',
+      content: listing?.content ?? '',
+      published: listing?.published ?? false,
+      type: listing?.type === 'oauth' ? 'oauth' : 'template',
+      url: listing?.url ?? '',
+      documentation_url: listing?.documentation_url ?? '',
+      initiation_action_url: listing?.initiation_action_url ?? '',
+      initiation_action_method: (listing?.initiation_action_method as 'POST' | 'GET') ?? null,
       files: initialFilesFieldValue,
       template_files: [],
     }),
     [
       initialFilesFieldValue,
-      item?.content,
-      item?.documentation_url,
-      item?.slug,
-      item?.summary,
-      item?.title,
-      item?.type,
-      item?.url,
+      listing?.content,
+      listing?.documentation_url,
+      listing?.initiation_action_url,
+      listing?.initiation_action_method,
+      listing?.slug,
+      listing?.summary,
+      listing?.title,
+      listing?.type,
+      listing?.url,
     ]
   )
 
-  const form = useForm<ItemFormValues>({
+  const form = useForm<ListingFormValues>({
     defaultValues,
     values: defaultValues,
   })
   const onValuesChange = props.onValuesChange
   const onPreviewFilesChange = props.onPreviewFilesChange
   const handlePreviewFilesChange = useCallback(
-    (files: ItemPreviewFile[]) => {
+    (files: ListingPreviewFile[]) => {
       const normalizedFiles = files
         .map((file) => file.description ?? file.name)
         .slice()
@@ -232,7 +250,7 @@ export function ItemForm(props: ItemFormProps) {
   }, [defaultValues, form])
 
   useEffect(() => {
-    if (isCreateMode || item?.type !== 'template' || !itemId) {
+    if (isCreateMode || listing?.type !== 'template' || !listingId) {
       setExistingTemplateFiles([])
       setSelectedTemplateFiles([])
       setInitialTemplateFilesFieldValue([])
@@ -244,7 +262,7 @@ export function ItemForm(props: ItemFormProps) {
     }
 
     let isCancelled = false
-    const basePath = getItemTemplateStoragePath(props.partner.id, itemId)
+    const basePath = getListingTemplateStoragePath(props.partner.id, listingId)
 
     const loadTemplateFiles = async () => {
       const listRecursive = async (prefix = ''): Promise<string[]> => {
@@ -288,7 +306,7 @@ export function ItemForm(props: ItemFormProps) {
     return () => {
       isCancelled = true
     }
-  }, [form, isCreateMode, item?.type, itemId, props.partner.id, supabase])
+  }, [form, isCreateMode, listing?.type, listingId, props.partner.id, supabase])
 
   useEffect(() => {
     if (!templateZipFile) {
@@ -346,6 +364,8 @@ export function ItemForm(props: ItemFormProps) {
         type: value.type === 'oauth' ? 'oauth' : 'template',
         url: value.url ?? '',
         documentation_url: value.documentation_url ?? '',
+        initiation_action_url: value.initiation_action_url ?? '',
+        initiation_action_method: value.initiation_action_method ?? null,
         files: (value.files ?? []).filter((entry): entry is string => typeof entry === 'string'),
         template_files: (value.template_files ?? []).filter(
           (entry): entry is string => typeof entry === 'string'
@@ -356,13 +376,13 @@ export function ItemForm(props: ItemFormProps) {
     return () => subscription.unsubscribe()
   }, [form, onValuesChange])
 
-  const onSubmit = (values: ItemFormValues) => {
-    const parsed = itemFormSchema.safeParse(values)
+  const onSubmit = (values: ListingFormValues) => {
+    const parsed = listingFormSchema.safeParse(values)
     if (!parsed.success) {
       parsed.error.issues.forEach((issue) => {
         const fieldName = issue.path[0]
         if (typeof fieldName === 'string') {
-          form.setError(fieldName as keyof ItemFormValues, {
+          form.setError(fieldName as keyof ListingFormValues, {
             type: 'manual',
             message: issue.message,
           })
@@ -376,7 +396,7 @@ export function ItemForm(props: ItemFormProps) {
 
     const intent = submitIntentRef.current
     if (parsed.data.type === 'template') {
-      const hasExistingRegistryFile = Boolean(item?.registry_item_url)
+      const hasExistingRegistryFile = Boolean(listing?.registry_listing_url)
       const requiresTemplatePackage = parsed.data.published || intent === 'request_review'
       if (requiresTemplatePackage && !templateZipFile && !hasExistingRegistryFile) {
         setError(
@@ -386,7 +406,7 @@ export function ItemForm(props: ItemFormProps) {
       }
     }
     if (parsed.data.type === 'oauth' && !parsed.data.url?.trim()) {
-      setError('OAuth items require a listing URL.')
+      setError('OAuth listings require a listing URL.')
       return
     }
 
@@ -401,39 +421,41 @@ export function ItemForm(props: ItemFormProps) {
     formData.set('published', parsed.data.published ? 'true' : 'false')
     formData.set('url', parsed.data.type === 'oauth' ? parsed.data.url ?? '' : '')
     formData.set('documentationUrl', parsed.data.documentation_url ?? '')
+    formData.set('initiationActionUrl', parsed.data.initiation_action_url ?? '')
+    formData.set('initiationActionMethod', parsed.data.initiation_action_method ?? '')
     formData.set('content', parsed.data.content ?? '')
     formData.set('intent', intent)
-    formData.set('existingRegistryItemUrl', item?.registry_item_url ?? '')
+    formData.set('existingRegistryListingUrl', listing?.registry_listing_url ?? '')
     if (templateZipFile && parsed.data.type === 'template') {
       formData.set('templateZip', templateZipFile)
     }
 
     if (isCreateMode) {
       formData.set('title', parsed.data.title)
-    } else if (item) {
-      formData.set('itemId', String(item.id))
+    } else if (listing) {
+      formData.set('listingId', String(listing.id))
       formData.set('name', parsed.data.title)
     }
 
     startTransition(async () => {
       try {
         const result = isCreateMode
-          ? await createItemDraftAction(formData)
-          : await updateItemDraftAction(formData)
+          ? await createListingDraftAction(formData)
+          : await updateListingDraftAction(formData)
 
         if (isCreateMode) {
           setSubmitResult(result)
           setIsWaitingForAutoUpload(true)
           setAutoUploadSignal((value) => value + 1)
-          setSuccess('Item created. Finalizing file uploads...')
+          setSuccess('Listing created. Finalizing file uploads...')
           return
         } else {
           setSubmitResult(result)
           setAutoUploadSignal((value) => value + 1)
-          setSuccess('Item saved.')
+          setSuccess('Listing saved.')
         }
       } catch (submitError) {
-        const message = submitError instanceof Error ? submitError.message : 'Unable to save item'
+        const message = submitError instanceof Error ? submitError.message : 'Unable to save listing'
         setError(message)
       }
     })
@@ -454,9 +476,9 @@ export function ItemForm(props: ItemFormProps) {
     setSuccess(null)
   }
 
-  const goToItemPage = () => {
+  const goToListingPage = () => {
     if (!submitResult) return
-    router.push(`/protected/${submitResult.partnerSlug}/items/${submitResult.itemSlug}`)
+    router.push(`/protected/${submitResult.partnerSlug}/items/${submitResult.listingSlug}`)
   }
 
   const handleAutoUploadComplete = ({ success: uploadSuccess }: { success: boolean }) => {
@@ -464,17 +486,17 @@ export function ItemForm(props: ItemFormProps) {
 
     setIsWaitingForAutoUpload(false)
     if (!uploadSuccess) {
-      setError('Item created, but file upload failed. Please open the item and try again.')
+      setError('Listing created, but file upload failed. Please open the listing and try again.')
       return
     }
 
-    router.push(`/protected/${submitResult.partnerSlug}/items/${submitResult.itemSlug}`)
+    router.push(`/protected/${submitResult.partnerSlug}/items/${submitResult.listingSlug}`)
   }
 
-  const titleLabel = isCreateMode ? 'Item name' : 'Item name'
+  const titleLabel = isCreateMode ? 'Listing name' : 'Listing name'
   const slugLabel = isCreateMode ? 'Slug (optional)' : 'Slug'
   const isDirty = form.formState.isDirty
-  const itemType = form.watch('type')
+  const listingType = form.watch('type')
   const hasExistingTemplateFiles = existingTemplateFiles.length > 0
   const templateFilesForTree =
     selectedTemplateFiles.length > 0 || templateZipFile
@@ -503,7 +525,7 @@ export function ItemForm(props: ItemFormProps) {
                   >
                     <FormControl>
                       <Input
-                        id="item-title"
+                        id="listing-title"
                         placeholder="Authentication starter"
                         required
                         disabled={fieldsDisabled}
@@ -525,13 +547,13 @@ export function ItemForm(props: ItemFormProps) {
                     label={slugLabel}
                     description={
                       isCreateMode
-                        ? 'Leave empty to auto-generate from the item name.'
-                        : 'Slug is used in the item URL and should remain unique per partner.'
+                        ? 'Leave empty to auto-generate from the listing name.'
+                        : 'Slug is used in the listing URL and should remain unique per partner.'
                     }
                   >
                     <FormControl>
                       <Input
-                        id="item-slug"
+                        id="listing-slug"
                         placeholder="authentication-starter"
                         disabled={fieldsDisabled}
                         {...field}
@@ -554,7 +576,7 @@ export function ItemForm(props: ItemFormProps) {
                   >
                     <FormControl>
                       <TextArea
-                        id="item-summary"
+                        id="listing-summary"
                         rows={3}
                         placeholder="One-sentence summary shown in cards and listings."
                         disabled={fieldsDisabled}
@@ -577,12 +599,12 @@ export function ItemForm(props: ItemFormProps) {
                     description={
                       isCreateMode
                         ? 'Detailed markdown shown on the listing page.'
-                        : 'Write the full markdown content for this item listing.'
+                        : 'Write the full markdown content for this listing.'
                     }
                   >
                     <FormControl>
                       <TextArea
-                        id="item-content"
+                        id="listing-content"
                         rows={8}
                         placeholder="## Overview"
                         disabled={fieldsDisabled}
@@ -602,11 +624,11 @@ export function ItemForm(props: ItemFormProps) {
                   <FormItemLayout
                     layout="flex-row-reverse"
                     label="Published"
-                    description="Published items are visible to readers once the latest review is approved."
+                    description="Published listings are visible to readers once the latest review is approved."
                   >
                     <FormControl className="col-span-8">
                       <Switch
-                        id="item-published"
+                        id="listing-published"
                         checked={field.value}
                         onCheckedChange={field.onChange}
                         disabled={fieldsDisabled}
@@ -627,8 +649,8 @@ export function ItemForm(props: ItemFormProps) {
                     label="Type"
                     description={
                       isCreateMode
-                        ? 'Pick the primary listing type for this item.'
-                        : 'Controls where this item appears in discovery.'
+                        ? 'Pick the primary listing type.'
+                        : 'Controls where this listing appears in discovery.'
                     }
                   >
                     <FormControl>
@@ -652,7 +674,7 @@ export function ItemForm(props: ItemFormProps) {
               />
             </div>
 
-            {itemType === 'oauth' ? (
+            {listingType === 'oauth' ? (
               <div className="p-6 pt-0">
                 <FormField
                   control={form.control}
@@ -665,7 +687,7 @@ export function ItemForm(props: ItemFormProps) {
                     >
                       <FormControl>
                         <Input
-                          id="item-url"
+                          id="listing-url"
                           type="url"
                           placeholder="https://example.com"
                           required
@@ -706,7 +728,7 @@ export function ItemForm(props: ItemFormProps) {
                   description="Upload a zip containing template.json and functions/, plus migrations/, schemas/, config.toml, or any combination of those."
                 >
                   <Input
-                    id="item-template-zip"
+                    id="listing-template-zip"
                     type="file"
                     accept=".zip,application/zip"
                     disabled={fieldsDisabled}
@@ -770,11 +792,11 @@ export function ItemForm(props: ItemFormProps) {
                   <FormItemLayout
                     layout="vertical"
                     label="Documentation URL (optional)"
-                    description="Direct link to setup or API documentation for this item."
+                    description="Direct link to setup or API documentation for this listing."
                   >
                     <FormControl>
                       <Input
-                        id="item-documentation-url"
+                        id="listing-documentation-url"
                         type="url"
                         placeholder="https://example.com/docs"
                         disabled={fieldsDisabled}
@@ -787,16 +809,70 @@ export function ItemForm(props: ItemFormProps) {
             </div>
 
             <div className="p-6 pt-0">
+              <FormField
+                control={form.control}
+                name="initiation_action_url"
+                render={({ field }) => (
+                  <FormItemLayout
+                    layout="vertical"
+                    label="Initiation action URL (optional)"
+                    description="The URL that will be called when a user initiates this listing."
+                  >
+                    <FormControl>
+                      <Input
+                        id="listing-initiation-action-url"
+                        type="url"
+                        placeholder="https://example.com/api/initiate"
+                        disabled={fieldsDisabled}
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItemLayout>
+                )}
+              />
+            </div>
+
+            <div className="p-6 pt-0">
+              <FormField
+                control={form.control}
+                name="initiation_action_method"
+                render={({ field }) => (
+                  <FormItemLayout
+                    layout="vertical"
+                    label="Initiation action method"
+                    description="HTTP method used when calling the initiation action URL."
+                  >
+                    <FormControl>
+                      <Select
+                        value={field.value ?? ''}
+                        onValueChange={(value) => field.onChange(value || null)}
+                        disabled={fieldsDisabled}
+                      >
+                        <SelectTrigger id="listing-initiation-action-method">
+                          <SelectValue placeholder="Select method" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="GET">GET</SelectItem>
+                          <SelectItem value="POST">POST</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                  </FormItemLayout>
+                )}
+              />
+            </div>
+
+            <div className="p-6 pt-0">
               <FormItemLayout
                 layout="vertical"
                 label="Files"
-                description="Upload listing assets and artifacts for this item."
+                description="Upload listing assets and artifacts."
               >
                 <div>
-                  <ItemFilesUploader
+                  <ListingFilesUploader
                     partnerId={props.partner.id}
                     partnerSlug={props.partner.slug}
-                    itemId={itemId}
+                    listingId={listingId}
                     initialFiles={initialFiles}
                     autoUploadSignal={autoUploadSignal}
                     showUploadAction={false}
@@ -841,28 +917,16 @@ export function ItemForm(props: ItemFormProps) {
                     }}
                     disabled={!isDirty || isPending || isWaitingForAutoUpload}
                   >
-                    {isPending || isWaitingForAutoUpload ? 'Creating...' : 'Create item'}
+                    {isPending || isWaitingForAutoUpload ? 'Creating...' : 'Create listing'}
                   </Button>
-                  {/* <Button
-                    htmlType="submit"
-                    type="secondary"
-                    onClick={() => {
-                      submitIntentRef.current = 'request_review'
-                    }}
-                    disabled={!isDirty || isPending || isWaitingForAutoUpload}
-                  >
-                    {isPending || isWaitingForAutoUpload
-                      ? 'Creating...'
-                      : 'Create and request review'}
-                  </Button> */}
                 </>
               ) : (
                 <>
                   <Button htmlType="submit" disabled={!isDirty || isPending}>
                     {isPending ? 'Saving...' : 'Save changes'}
                   </Button>
-                  {submitResult && submitResult.itemSlug !== item?.slug ? (
-                    <Button htmlType="button" type="secondary" onClick={goToItemPage}>
+                  {submitResult && submitResult.listingSlug !== listing?.slug ? (
+                    <Button htmlType="button" type="secondary" onClick={goToListingPage}>
                       Open updated URL
                     </Button>
                   ) : null}

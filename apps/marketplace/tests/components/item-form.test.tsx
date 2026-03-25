@@ -2,11 +2,11 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ItemForm } from '@/components/item-form'
+import { ListingForm } from '@/components/item-form'
 
 const pushMock = vi.fn()
-const createItemDraftActionMock = vi.fn()
-const updateItemDraftActionMock = vi.fn()
+const createListingDraftActionMock = vi.fn()
+const updateListingDraftActionMock = vi.fn()
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: pushMock }),
@@ -19,33 +19,33 @@ vi.mock('@/lib/supabase/client', () => ({
 }))
 
 vi.mock('@/components/item-files-uploader', () => ({
-  ItemFilesUploader: () => <div data-testid="item-files-uploader" />,
+  ListingFilesUploader: () => <div data-testid="listing-files-uploader" />,
 }))
 
 vi.mock('@/app/protected/actions', () => ({
-  createItemDraftAction: (...args: unknown[]) => createItemDraftActionMock(...args),
-  updateItemDraftAction: (...args: unknown[]) => updateItemDraftActionMock(...args),
+  createListingDraftAction: (...args: unknown[]) => createListingDraftActionMock(...args),
+  updateListingDraftAction: (...args: unknown[]) => updateListingDraftActionMock(...args),
 }))
 
-describe('ItemForm', () => {
+describe('ListingForm', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
   it('allows creating a template draft without a zip package', async () => {
     const user = userEvent.setup()
-    createItemDraftActionMock.mockResolvedValue({
-      itemId: 1,
-      itemSlug: 'auth-template',
+    createListingDraftActionMock.mockResolvedValue({
+      listingId: 1,
+      listingSlug: 'auth-template',
       partnerSlug: 'acme',
     })
 
-    render(<ItemForm mode="create" partner={{ id: 1, slug: 'acme' }} />)
+    render(<ListingForm mode="create" partner={{ id: 1, slug: 'acme' }} />)
 
     await user.type(screen.getByPlaceholderText('Authentication starter'), 'Auth Template')
-    await user.click(screen.getByRole('button', { name: 'Create item' }))
+    await user.click(screen.getByRole('button', { name: 'Create listing' }))
 
-    await waitFor(() => expect(createItemDraftActionMock).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(createListingDraftActionMock).toHaveBeenCalledTimes(1))
     expect(
       screen.queryByText('Upload a template ZIP package that includes template.json.')
     ).not.toBeInTheDocument()

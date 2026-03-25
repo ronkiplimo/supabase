@@ -19,7 +19,7 @@ import { FormItemLayout } from 'ui-patterns/form/FormItemLayout/FormItemLayout'
 import { MultiSelector } from 'ui-patterns/multi-select'
 import { z } from 'zod'
 
-import { saveItemReviewAction } from '@/app/protected/actions'
+import { saveListingReviewAction } from '@/app/protected/actions'
 import { buildReviewDecisionFormData } from '@/lib/marketplace/review-form'
 
 const reviewStatusEnum = z.enum(['pending_review', 'approved', 'rejected', 'draft'])
@@ -35,7 +35,7 @@ type ReviewFormValues = z.infer<typeof reviewFormSchema>
 
 type ReviewDecisionFormProps = {
   partnerSlug: string
-  itemId: number
+  listingId: number
   defaultValues: {
     status: z.infer<typeof reviewStatusEnum>
     featured: boolean
@@ -50,7 +50,7 @@ type ReviewDecisionFormProps = {
 
 export function ReviewDecisionForm({
   partnerSlug,
-  itemId,
+  listingId,
   defaultValues,
   categoryOptions,
 }: ReviewDecisionFormProps) {
@@ -84,7 +84,7 @@ export function ReviewDecisionForm({
 
     const formData = buildReviewDecisionFormData({
       partnerSlug,
-      itemId,
+      listingId,
       status: parsed.data.status,
       reviewNotes: parsed.data.reviewNotes,
       featured: parsed.data.featured,
@@ -95,7 +95,7 @@ export function ReviewDecisionForm({
 
     startTransition(async () => {
       try {
-        await saveItemReviewAction(formData)
+        await saveListingReviewAction(formData)
         setSuccess('Review decision saved.')
         form.reset(parsed.data)
       } catch (submitError) {
@@ -156,7 +156,7 @@ export function ReviewDecisionForm({
                   <FormItemLayout
                     layout="flex-row-reverse"
                     label="Featured"
-                    description="Featured items can appear in highlighted marketplace placements."
+                    description="Featured listings can appear in highlighted marketplace placements."
                   >
                     <FormControl className="col-span-8">
                       <Switch
@@ -179,7 +179,7 @@ export function ReviewDecisionForm({
                   <FormItemLayout
                     layout="vertical"
                     label="Categories"
-                    description="Assign this item to one or more marketplace categories."
+                    description="Assign this listing to one or more marketplace categories."
                   >
                     <FormControl>
                       <MultiSelector

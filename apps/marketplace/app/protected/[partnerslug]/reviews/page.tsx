@@ -22,11 +22,11 @@ type ReviewsPageProps = {
   searchParams?:
     | {
         status?: string
-        itemId?: string
+        listingId?: string
       }
     | Promise<{
         status?: string
-        itemId?: string
+        listingId?: string
       }>
 }
 
@@ -34,7 +34,7 @@ export default async function ReviewsPage({ params, searchParams }: ReviewsPageP
   const { partnerslug } = params
   const supabase = await createClient()
   const resolvedSearchParams = searchParams ? await searchParams : undefined
-  const { statusFilter, itemIdFilter, parsedItemIdFilter, hasValidItemIdFilter } =
+  const { statusFilter, listingIdFilter, parsedListingIdFilter, hasValidListingIdFilter } =
     parseReviewsFilters(resolvedSearchParams)
 
   const { data: currentPartner, error: currentPartnerError } = await supabase
@@ -52,16 +52,16 @@ export default async function ReviewsPage({ params, searchParams }: ReviewsPageP
   }
 
   let reviewsQuery = supabase
-    .from('item_reviews')
-    .select('item_id, status, item:items(id, slug, title, partner_id)')
+    .from('listing_reviews')
+    .select('listing_id, status, listing:listings(id, slug, title, partner_id)')
     .order('updated_at', { ascending: false })
 
   if (statusFilter !== 'all') {
     reviewsQuery = reviewsQuery.eq('status', statusFilter)
   }
 
-  if (hasValidItemIdFilter) {
-    reviewsQuery = reviewsQuery.eq('item_id', parsedItemIdFilter)
+  if (hasValidListingIdFilter) {
+    reviewsQuery = reviewsQuery.eq('listing_id', parsedListingIdFilter)
   }
 
   const { data: reviews, error: reviewsError } = await reviewsQuery
@@ -74,8 +74,8 @@ export default async function ReviewsPage({ params, searchParams }: ReviewsPageP
     new Set(
       (reviews ?? [])
         .map((review) => {
-          const item = Array.isArray(review.item) ? review.item[0] : review.item
-          return item?.partner_id
+          const listing = Array.isArray(review.listing) ? review.listing[0] : review.listing
+          return listing?.partner_id
         })
         .filter((partnerId): partnerId is number => Number.isFinite(partnerId))
     )
@@ -103,7 +103,7 @@ export default async function ReviewsPage({ params, searchParams }: ReviewsPageP
           <PageHeaderSummary>
             <PageHeaderTitle>Reviews</PageHeaderTitle>
             <PageHeaderDescription>
-              Review marketplace items submitted from all partners
+              Review marketplace listings submitted from all partners
             </PageHeaderDescription>
           </PageHeaderSummary>
         </PageHeaderMeta>
@@ -111,10 +111,10 @@ export default async function ReviewsPage({ params, searchParams }: ReviewsPageP
       <PageContainer size="default">
         <PageSection>
           <PageSectionContent>
-            <ReviewsFilters status={statusFilter} itemId={itemIdFilter} />
+            <ReviewsFilters status={statusFilter} listingId={listingIdFilter} />
             {reviewRows.length === 0 ? (
               <div className="rounded-lg border bg-card p-6 text-sm text-muted-foreground">
-                {statusFilter === 'pending_review' && !hasValidItemIdFilter
+                {statusFilter === 'pending_review' && !hasValidListingIdFilter
                   ? 'No pending reviews right now.'
                   : 'No reviews match these filters.'}
               </div>
@@ -124,7 +124,7 @@ export default async function ReviewsPage({ params, searchParams }: ReviewsPageP
                   <TableHeader>
                     <TableRow>
                       <TableHead>Partner</TableHead>
-                      <TableHead>Item</TableHead>
+                      <TableHead>Listing</TableHead>
                       <TableHead>Slug</TableHead>
                       <TableHead>Status</TableHead>
                     </TableRow>
@@ -134,7 +134,7 @@ export default async function ReviewsPage({ params, searchParams }: ReviewsPageP
                       <TableRow key={review.reviewId} className="group">
                         <TableCell className="p-0 text-muted-foreground">
                           <Link
-                            href={`/protected/${partnerslug}/reviews/${review.itemId}`}
+                            href={`/protected/${partnerslug}/reviews/${review.listingId}`}
                             className="block px-4 py-4 group-hover:underline"
                           >
                             {review.partnerTitle}
@@ -142,23 +142,23 @@ export default async function ReviewsPage({ params, searchParams }: ReviewsPageP
                         </TableCell>
                         <TableCell className="p-0 font-medium">
                           <Link
-                            href={`/protected/${partnerslug}/reviews/${review.itemId}`}
+                            href={`/protected/${partnerslug}/reviews/${review.listingId}`}
                             className="block px-4 py-4 group-hover:underline"
                           >
-                            {review.itemTitle}
+                            {review.listingTitle}
                           </Link>
                         </TableCell>
                         <TableCell className="p-0 text-muted-foreground">
                           <Link
-                            href={`/protected/${partnerslug}/reviews/${review.itemId}`}
+                            href={`/protected/${partnerslug}/reviews/${review.listingId}`}
                             className="block px-4 py-4 group-hover:underline"
                           >
-                            /{review.itemSlug}
+                            /{review.listingSlug}
                           </Link>
                         </TableCell>
                         <TableCell className="p-0 text-muted-foreground">
                           <Link
-                            href={`/protected/${partnerslug}/reviews/${review.itemId}`}
+                            href={`/protected/${partnerslug}/reviews/${review.listingId}`}
                             className="block px-4 py-4 capitalize group-hover:underline"
                           >
                             {review.status.replace(/_/g, ' ')}

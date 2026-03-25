@@ -17,7 +17,7 @@ import { useIsFeatureEnabled } from '@/hooks/misc/useIsFeatureEnabled'
  */
 export const useAvailableIntegrations = () => {
   const { hasLoaded } = useContext(FeatureFlagContext)
-  const isMarketplaceEnabled = useFlag('marketplaceIntegrations')
+  const isMarketplaceEnabled = useFlag('marketplaceIntegrations') || true
   const { integrationsWrappers } = useIsFeatureEnabled(['integrations:wrappers'])
 
   const { data: cliData } = useCLIReleaseVersionQuery()

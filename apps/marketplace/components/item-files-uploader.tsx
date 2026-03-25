@@ -3,32 +3,32 @@
 import { File as FileIcon, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { saveItemFilesAction } from '@/app/protected/actions'
+import { saveListingFilesAction } from '@/app/protected/actions'
 import { Dropzone, DropzoneContent, DropzoneEmptyState } from '@/components/dropzone'
 import { useSupabaseUpload } from '@/hooks/use-supabase-upload'
 import {
-  getItemFilesStoragePath,
+  getListingFilesStoragePath,
   MARKETPLACE_STORAGE_BUCKET,
 } from '@/lib/marketplace/item-storage'
 import { createClient } from '@/lib/supabase/client'
 
-export type ItemPreviewFile = {
+export type ListingPreviewFile = {
   id?: string | number
   name: string
   href?: string
   description?: string
 }
 
-type ItemFilesUploaderProps = {
+type ListingFilesUploaderProps = {
   partnerId: number
   partnerSlug: string
-  itemId?: number
+  listingId?: number
   initialFiles?: string[]
   autoUploadSignal?: number
   showUploadAction?: boolean
   disabled?: boolean
   onAutoUploadComplete?: (result: { success: boolean }) => void
-  onPreviewFilesChange?: (files: ItemPreviewFile[]) => void
+  onPreviewFilesChange?: (files: ListingPreviewFile[]) => void
 }
 
 function getFileName(fileUrlOrPath: string) {
@@ -46,18 +46,18 @@ function isImagePath(path: string) {
   return /\.(jpg|jpeg|png|webp|gif|avif|svg)$/i.test(path)
 }
 
-export function ItemFilesUploader({
+export function ListingFilesUploader({
   partnerId,
   partnerSlug,
-  itemId,
+  listingId,
   initialFiles = [],
   autoUploadSignal = 0,
   showUploadAction = true,
   disabled = false,
   onAutoUploadComplete,
   onPreviewFilesChange,
-}: ItemFilesUploaderProps) {
-  const [itemFiles, setItemFiles] = useState<string[]>(initialFiles)
+}: ListingFilesUploaderProps) {
+  const [listingFiles, setListingFiles] = useState<string[]>(initialFiles)
   const [isSavingFiles, setIsSavingFiles] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const handleUploadRef = useRef<() => Promise<{ name: string; message?: string }[]>>(async () => [])
@@ -65,13 +65,13 @@ export function ItemFilesUploader({
   const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
-    setItemFiles(initialFiles)
+    setListingFiles(initialFiles)
   }, [initialFiles])
 
   const storagePath = useMemo(() => {
-    if (!itemId) return undefined
-    return getItemFilesStoragePath(partnerId, itemId)
-  }, [itemId, partnerId])
+    if (!listingId) return undefined
+    return getListingFilesStoragePath(partnerId, listingId)
+  }, [listingId, partnerId])
 
   const upload = useSupabaseUpload({
     bucketName: MARKETPLACE_STORAGE_BUCKET,
@@ -83,24 +83,24 @@ export function ItemFilesUploader({
 
   const persistFiles = useCallback(
     async (nextFiles: string[]) => {
-      if (!itemId) {
-        throw new Error('Create the item first, then upload files.')
+      if (!listingId) {
+        throw new Error('Create the listing first, then upload files.')
       }
 
       const formData = new FormData()
-      formData.set('itemId', String(itemId))
+      formData.set('listingId', String(listingId))
       formData.set('partnerSlug', partnerSlug)
       nextFiles.forEach((fileUrl) => {
         formData.append('files[]', fileUrl)
       })
-      await saveItemFilesAction(formData)
+      await saveListingFilesAction(formData)
     },
-    [itemId, partnerSlug]
+    [listingId, partnerSlug]
   )
 
   const handleUpload = useCallback(async () => {
-    if (!itemId || !storagePath) {
-      const message = 'Create the item first, then upload files.'
+    if (!listingId || !storagePath) {
+      const message = 'Create the listing first, then upload files.'
       setSaveError(message)
       return [{ name: 'files', message }]
     }
@@ -119,11 +119,11 @@ export function ItemFilesUploader({
 
       return publicUrl
     })
-    const nextFiles = Array.from(new Set([...itemFiles, ...uploadedUrls]))
+    const nextFiles = Array.from(new Set([...listingFiles, ...uploadedUrls]))
 
     try {
       await persistFiles(nextFiles)
-      setItemFiles(nextFiles)
+      setListingFiles(nextFiles)
       if (uploadedNames.length > 0) {
         upload.setFiles((currentFiles: typeof upload.files) =>
           currentFiles.filter((file) => !uploadedNames.includes(file.name))
@@ -131,13 +131,13 @@ export function ItemFilesUploader({
       }
       return responses
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to save item files'
+      const message = error instanceof Error ? error.message : 'Unable to save listing files'
       setSaveError(message)
       return [...responses, { name: 'files', message }]
     } finally {
       setIsSavingFiles(false)
     }
-  }, [itemFiles, itemId, persistFiles, storagePath, supabase, upload])
+  }, [listingFiles, listingId, persistFiles, storagePath, supabase, upload])
 
   useEffect(() => {
     handleUploadRef.current = handleUpload
@@ -148,13 +148,13 @@ export function ItemFilesUploader({
   }, [onAutoUploadComplete])
 
   const handleRemovePersistedFile = (fileUrl: string) => {
-    setItemFiles((currentFiles) => currentFiles.filter((currentFile) => currentFile !== fileUrl))
+    setListingFiles((currentFiles) => currentFiles.filter((currentFile) => currentFile !== fileUrl))
   }
 
   useEffect(() => {
     if (!onPreviewFilesChange) return
 
-    const persistedPreviews = itemFiles.map((fileUrl) => ({
+    const persistedPreviews = listingFiles.map((fileUrl) => ({
       id: fileUrl,
       name: getFileName(fileUrl),
       href: isImagePath(fileUrl) ? fileUrl : undefined,
@@ -172,10 +172,10 @@ export function ItemFilesUploader({
       }))
 
     onPreviewFilesChange([...persistedPreviews, ...pendingPreviews])
-  }, [itemFiles, onPreviewFilesChange, upload.files])
+  }, [listingFiles, onPreviewFilesChange, upload.files])
 
   useEffect(() => {
-    if (!itemId || autoUploadSignal === 0) return
+    if (!listingId || autoUploadSignal === 0) return
 
     let isCancelled = false
 
@@ -193,7 +193,7 @@ export function ItemFilesUploader({
     return () => {
       isCancelled = true
     }
-  }, [autoUploadSignal, itemId])
+  }, [autoUploadSignal, listingId])
 
   return (
     <div>
@@ -203,9 +203,9 @@ export function ItemFilesUploader({
       </Dropzone>
       {isSavingFiles ? <p className="text-xs text-muted-foreground">Saving files...</p> : null}
       {saveError ? <p className="text-xs text-destructive">{saveError}</p> : null}
-      {itemFiles.length > 0 ? (
+      {listingFiles.length > 0 ? (
         <ul className="space-y-2 mt-2">
-          {itemFiles.map((fileUrl) => (
+          {listingFiles.map((fileUrl) => (
             <li
               key={fileUrl}
               className="flex items-center gap-3 rounded-md border px-3 py-2 text-sm text-muted-foreground"

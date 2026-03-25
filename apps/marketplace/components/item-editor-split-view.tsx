@@ -4,31 +4,31 @@ import { useEffect, useMemo, useState } from 'react'
 import { MarketplaceItem, type MarketplaceItemFile } from 'ui-patterns/MarketplaceItem'
 
 import {
-  ItemForm,
-  type ItemFile,
-  type ItemFormValues,
-  type ItemInfo,
+  ListingForm,
+  type ListingFile,
+  type ListingFormValues,
+  type ListingInfo,
   type PartnerInfo,
 } from '@/components/item-form'
 
-type ItemEditorSplitViewProps =
+type ListingEditorSplitViewProps =
   | {
       mode: 'create'
       partner: PartnerInfo & { title: string }
       initialPreviewFiles?: MarketplaceItemFile[]
-      initialFormValues?: Partial<ItemFormValues>
+      initialFormValues?: Partial<ListingFormValues>
     }
   | {
       mode: 'edit'
       partner: PartnerInfo & { title: string }
-      item: ItemInfo & { updated_at?: string | null }
-      initialFiles: ItemFile[]
+      listing: ListingInfo & { updated_at?: string | null }
+      initialFiles: ListingFile[]
       initialPreviewFiles?: MarketplaceItemFile[]
     }
 
 const EMPTY_PREVIEW_FILES: MarketplaceItemFile[] = []
 
-function toPreviewFiles(initialFiles: ItemFile[]): MarketplaceItemFile[] {
+function toPreviewFiles(initialFiles: ListingFile[]): MarketplaceItemFile[] {
   return initialFiles.map((file) => {
     const fileName = file.split('/').pop() ?? file
     return {
@@ -61,18 +61,20 @@ function maybeRenderLink(value: string) {
   }
 }
 
-export function ItemEditorSplitView(props: ItemEditorSplitViewProps) {
-  const baseValues: ItemFormValues =
+export function ListingEditorSplitView(props: ListingEditorSplitViewProps) {
+  const baseValues: ListingFormValues =
     props.mode === 'edit'
       ? {
-          title: props.item.title,
-          slug: props.item.slug,
-          summary: props.item.summary ?? '',
-          content: props.item.content ?? '',
-          published: props.item.published ?? false,
-          type: props.item.type === 'oauth' ? 'oauth' : 'template',
-          url: props.item.url ?? '',
-          documentation_url: props.item.documentation_url ?? '',
+          title: props.listing.title,
+          slug: props.listing.slug,
+          summary: props.listing.summary ?? '',
+          content: props.listing.content ?? '',
+          published: props.listing.published ?? false,
+          type: props.listing.type === 'oauth' ? 'oauth' : 'template',
+          url: props.listing.url ?? '',
+          documentation_url: props.listing.documentation_url ?? '',
+          initiation_action_url: props.listing.initiation_action_url ?? '',
+          initiation_action_method: (props.listing.initiation_action_method as 'POST' | 'GET') ?? null,
           files: [],
           template_files: [],
         }
@@ -85,11 +87,13 @@ export function ItemEditorSplitView(props: ItemEditorSplitViewProps) {
           type: props.initialFormValues?.type === 'oauth' ? 'oauth' : 'template',
           url: props.initialFormValues?.url ?? '',
           documentation_url: props.initialFormValues?.documentation_url ?? '',
+          initiation_action_url: props.initialFormValues?.initiation_action_url ?? '',
+          initiation_action_method: props.initialFormValues?.initiation_action_method ?? null,
           files: [],
           template_files: [],
         }
 
-  const [previewValues, setPreviewValues] = useState<ItemFormValues>(baseValues)
+  const [previewValues, setPreviewValues] = useState<ListingFormValues>(baseValues)
   const editInitialFiles = props.mode === 'edit' ? props.initialFiles : null
   const initialPreviewFiles = useMemo(() => {
     if (props.initialPreviewFiles) return props.initialPreviewFiles
@@ -107,16 +111,16 @@ export function ItemEditorSplitView(props: ItemEditorSplitViewProps) {
       <section className="max-w-xl w-full min-w-lg min-h-0 border-r flex flex-col">
         <div className="min-h-0 flex-1">
           {props.mode === 'edit' ? (
-            <ItemForm
+            <ListingForm
               mode="edit"
               partner={{ id: props.partner.id, slug: props.partner.slug }}
-              item={props.item}
+              listing={props.listing}
               initialFiles={props.initialFiles}
               onValuesChange={setPreviewValues}
               onPreviewFilesChange={setPreviewFiles}
             />
           ) : (
-            <ItemForm
+            <ListingForm
               mode="create"
               partner={{ id: props.partner.id, slug: props.partner.slug }}
               onValuesChange={setPreviewValues}
@@ -146,19 +150,19 @@ export function ItemEditorSplitView(props: ItemEditorSplitViewProps) {
           </div>
           <div className="flex-1 overflow-y-auto">
             <MarketplaceItem
-              title={previewValues.title || 'Untitled item'}
+              title={previewValues.title || 'Untitled listing'}
               summary={previewValues.summary}
               content={previewValues.content}
               primaryActionUrl={
                 previewValues.type === 'oauth'
                   ? previewValues.url
                   : props.mode === 'edit'
-                    ? props.item.registry_item_url
+                    ? props.listing.registry_listing_url
                     : null
               }
               files={previewFiles}
               partnerName={props.partner.title}
-              lastUpdatedAt={props.mode === 'edit' ? props.item.updated_at : null}
+              lastUpdatedAt={props.mode === 'edit' ? props.listing.updated_at : null}
               type={previewValues.type}
               metaFields={[
                 ...(previewValues.type === 'oauth'

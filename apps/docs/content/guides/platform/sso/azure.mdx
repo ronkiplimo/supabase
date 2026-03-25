@@ -112,7 +112,7 @@ We do not permit use of public domains like `gmail.com`, `yahoo.com`.
 
 <Admonition type="note">
 
-Each SSO provider can be configured with different email domains. For multi-environment setups (Dev/Staging/Prod), we recommend using IdP-initiated flow with multiple SAML apps under the same domain rather than domain-based routing. For more details, see the [Multiple SSO Providers guide](/docs/guides/platform/sso/multiple-providers).
+You can configure each SSO provider with different email domains. For multi-environment setups (Dev/Staging/Prod), we recommend using IdP-initiated flow with multiple SAML apps under the same domain rather than domain-based routing. For more details, see the [Multiple SSO Providers guide](/docs/guides/platform/sso/multiple-providers).
 
 </Admonition>
 
@@ -130,9 +130,9 @@ Fill out the Attribute Mapping section using the **Azure** preset.
 
 ## Step 12: Join organization on signup (optional) [#dashboard-configure-autojoin]
 
-<Admonition type="tip">
+<Admonition type="tip" label="Recommended workflow">
 
-**Recommended workflow:** Start with auto-join **disabled** to test your SSO configuration. Once SSO login is working correctly, enable auto-join if desired.
+Start with auto-join **disabled** to test your SSO configuration. Once SSO login is working correctly, enable auto-join if desired.
 
 </Admonition>
 
@@ -152,7 +152,7 @@ We recommend choosing **Developer** as the default role (principle of least priv
 
 <Admonition type="note">
 
-Visit [access-control](/docs/guides/platform/access-control) documentation for details about each role.
+Read [the Access Control documentation](/docs/guides/platform/access-control) for details about each role.
 
 </Admonition>
 
@@ -162,7 +162,7 @@ When you click **Save changes**, your new SSO configuration is applied immediate
 
 ## Step 14: Test your SSO configuration
 
-Before rolling out SSO to your organization, we strongly recommend thorough testing. Visit our [SSO Testing and Best Practices](/docs/guides/platform/sso/testing-best-practices) guide for:
+Before rolling out SSO to your organization, we strongly recommend thorough testing. Read [the SSO Testing and Best Practices guide](/docs/guides/platform/sso/testing-best-practices) for:
 
 - Step-by-step testing instructions
 - How to verify auto-join works correctly
@@ -170,8 +170,8 @@ Before rolling out SSO to your organization, we strongly recommend thorough test
 - Security best practices
 - Pre-launch checklist
 
-<Admonition type="note">
+<Admonition type="note" label="Testing in Azure sandbox">
 
-**Testing in Azure sandbox:** If your organization has an Azure sandbox or test tenant, consider testing your SSO configuration there first before applying to production.
+If your organization has an Azure sandbox or test tenant, consider testing your SSO configuration there first before applying to production.
 
 </Admonition>

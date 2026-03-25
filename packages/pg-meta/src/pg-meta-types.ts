@@ -39,7 +39,7 @@ function list({
   sql: string
   zod: typeof pgTypeArrayZod
 } {
-  let sql = TYPES_SQL
+  let sql = `-- source: dashboard\n-- description: List all types with metadata\n` + TYPES_SQL
   if (!includeArrayTypes) {
     sql += ` and not exists (
       select from pg_type el

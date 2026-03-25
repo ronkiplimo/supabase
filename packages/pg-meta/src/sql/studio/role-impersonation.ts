@@ -8,6 +8,8 @@ function getPostgrestRoleImpersonationSql({
   unexpiredClaims: Object
 }) {
   return `
+-- source: dashboard
+-- description: Set PostgREST role and JWT claims for role impersonation in a session
 select set_config('role', ${literal(role)}, true),
 set_config('request.jwt.claims', ${literal(JSON.stringify(unexpiredClaims))}, true),
 set_config('request.method', 'POST', true),
@@ -18,6 +20,8 @@ set_config('request.headers', '{"accept": "*/*"}', true);
 
 function getCustomRoleImpersonationSql(roleName: string) {
   return /* SQL */ `
+-- source: dashboard
+-- description: Set the local role for custom role impersonation in a session
     set local role ${literal(roleName)};
   `.trim()
 }

@@ -141,7 +141,7 @@ export function Chooser() {
   )
 
   return (
-    <div className="flex flex-col gap-8 p-6 max-w-4xl mx-auto w-full">
+    <div className="flex flex-col gap-4 p-6 max-w-3xl mx-auto w-full">
       {/* Search */}
       <div>
         <Input
@@ -157,7 +157,7 @@ export function Chooser() {
       {/* Category groups */}
       {filteredGroups.map((group) => (
         <div key={group.label}>
-          <h3 className="text-xs text-foreground-lighter uppercase tracking-wider mb-3">
+          <h3 className="text-xs text-foreground-lighter uppercase tracking-wider mb-2">
             {group.label}
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
@@ -174,9 +174,7 @@ export function Chooser() {
                 >
                   <div className="flex items-center gap-2 w-full">
                     <span className="text-foreground-lighter">{CATEGORY_ICONS[cat]}</span>
-                    <span className="text-sm text-foreground-light leading-none truncate">
-                      {label}
-                    </span>
+                    <span className="text-sm text-foreground-light truncate">{label}</span>
                   </div>
                   <div>
                     <span className="text-foreground-lighter font-mono text-base leading-none">

@@ -1,33 +1,40 @@
 'use client'
 
+import { RouteParamsOverrideProvider } from 'common'
 import { LINTER_LEVELS } from 'components/interfaces/Linter/Linter.constants'
 import {
   parseConnectionsData,
   parseInfrastructureMetrics,
 } from 'components/interfaces/Observability/DatabaseInfrastructureSection.utils'
+import { ProjectUsageSection } from 'components/interfaces/ProjectHome/ProjectUsageSection'
 import { SIDEBAR_KEYS } from 'components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
 import { useInfraMonitoringAttributesQuery } from 'data/analytics/infra-monitoring-query'
 import type { InfraMonitoringAttribute } from 'data/analytics/infra-monitoring-query'
 import { getKeys, useAPIKeysQuery } from 'data/api-keys/api-keys-query'
 import { useBranchesQuery } from 'data/branches/branches-query'
+import { useProjectApiUrl } from 'data/config/project-endpoint-query'
+import { useBackupsQuery } from 'data/database/backups-query'
 import { useMaxConnectionsQuery } from 'data/database/max-connections-query'
+import { useMigrationsQuery } from 'data/database/migrations-query'
 import { useProjectLintsQuery as useLints } from 'data/lint/lint-query'
 import { useOrganizationsQuery } from 'data/organizations/organizations-query'
 import { useProjectDetailQuery } from 'data/projects/project-detail-query'
 import dayjs from 'dayjs'
-import { API_URL, IS_PLATFORM } from 'lib/constants'
-import { AlertTriangle, CircleAlert, Info } from 'lucide-react'
+import { IS_PLATFORM } from 'lib/constants'
+import { AlertTriangle, Archive, CircleAlert, Database, GitBranch, Info } from 'lucide-react'
 import dynamic from 'next/dynamic'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { parseAsBoolean, useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 import { useAdvisorStateSnapshot } from 'state/advisor-state'
 import { useSidebarManagerSnapshot } from 'state/sidebar-manager-state'
-import { Badge, Button, cn, copyToClipboard } from 'ui'
+import { Badge, Button, cn } from 'ui'
+import { TimestampInfo } from 'ui-patterns'
+import { Input } from 'ui-patterns/DataInputs/Input'
 
 import { HomeViewDataCountersRow } from './HomeViewDataCountersRow'
 import { useV2DataCounts } from './useV2DataCounts'
 import { useV2Params } from '@/app/v2/V2ParamsContext'
-import { useV2DashboardStore } from '@/stores/v2-dashboard'
 
 const HomeViewInfrastructureDiagram = dynamic(
   () => import('./HomeViewInfrastructureDiagram').then((m) => m.HomeViewInfrastructureDiagram),
@@ -82,7 +89,6 @@ function maskConnectionString(conn: string | null | undefined) {
 }
 
 export function HomeView() {
-  const router = useRouter()
   const { projectRef, orgSlug } = useV2Params()
 
   const { data: project } = useProjectDetailQuery(
@@ -103,6 +109,18 @@ export function HomeView() {
 
   const mainBranch = branches?.find((b) => b.is_default)
   const currentBranch = branches?.find((b) => b.project_ref === projectRef)
+  const isDefaultProject = project?.parent_project_ref === undefined
+  const latestNonDefaultBranch = useMemo(() => {
+    const list = (branches ?? []).filter((b) => !b.is_default)
+    if (list.length === 0) return undefined
+    return list
+      .slice()
+      .sort(
+        (a, b) =>
+          new Date(b.created_at ?? b.updated_at).valueOf() -
+          new Date(a.created_at ?? a.updated_at).valueOf()
+      )[0]
+  }, [branches])
   const branchName = currentBranch?.name ?? mainBranch?.name ?? 'main'
   const branchBadge = currentBranch?.is_default ? 'prod' : 'preview'
 
@@ -143,13 +161,26 @@ export function HomeView() {
     projectRef,
     connectionString: project?.connectionString,
   })
+  const { data: migrationsData = [], isPending: isLoadingMigrations } = useMigrationsQuery({
+    projectRef,
+    connectionString: project?.connectionString,
+  })
+  const latestMigration = useMemo(() => migrationsData[0], [migrationsData])
+  const migrationLabelText =
+    migrationsData.length === 0 ? 'No migrations' : (latestMigration?.name ?? 'Unknown')
+
+  const { data: backupsData, isPending: isLoadingBackups } = useBackupsQuery({ projectRef })
+  const latestBackup = useMemo(() => {
+    const list = backupsData?.backups ?? []
+    if (list.length === 0) return undefined
+    return list
+      .slice()
+      .sort((a, b) => new Date(b.inserted_at).valueOf() - new Date(a.inserted_at).valueOf())[0]
+  }, [backupsData])
   const counts = useV2DataCounts(projectRef)
 
   const metrics = parseInfrastructureMetrics(infraData)
   const connections = parseConnectionsData(infraData, maxConnectionsData)
-
-  const { recentItems } = useV2DashboardStore((s) => ({ recentItems: s.recentItems }))
-  const openDataTab = useV2DashboardStore((s) => s.openDataTab)
 
   const { openSidebar } = useSidebarManagerSnapshot()
   const { setSelectedItem } = useAdvisorStateSnapshot()
@@ -160,24 +191,13 @@ export function HomeView() {
     openSidebar(SIDEBAR_KEYS.ADVISOR_PANEL)
   }
 
-  const handleOpenRecent = (item: (typeof recentItems)[number]) => {
-    if (!projectRef) return
-    openDataTab({
-      id: item.id,
-      label: item.label,
-      type: 'detail',
-      category: item.category,
-      domain: item.domain,
-      path: item.path,
-    })
-    router.push(item.path)
-  }
-
+  const [, setShowConnect] = useQueryState('showConnect', parseAsBoolean.withDefault(false))
+  const { data: projectApiUrl } = useProjectApiUrl({ projectRef }, { enabled: Boolean(projectRef) })
   const { data: apiKeys } = useAPIKeysQuery(
     { projectRef, reveal: false },
     { enabled: Boolean(projectRef) }
   )
-  const { anonKey } = getKeys(apiKeys)
+  const { publishableKey } = getKeys(apiKeys)
 
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col gap-6 p-4">
@@ -211,30 +231,113 @@ export function HomeView() {
           </div>
         </div>
 
-        {/* Project health metrics */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="border border-border bg-surface-100 rounded-md p-3">
-            <div className="text-xs text-foreground-lighter">Connections</div>
-            <div className="text-sm  mt-1">
-              {connections.max > 0 ? `${connections.current}/${connections.max}` : '—'}
+        {/* Compact activity + metrics */}
+        <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="border border-border bg-surface-100 rounded-md p-2">
+              <div className="text-xs text-foreground-lighter">Service</div>
+              <div className="text-xs mt-1">
+                <span
+                  className={cn(
+                    'font-mono',
+                    project?.status === 'ACTIVE_HEALTHY'
+                      ? 'text-brand'
+                      : project?.status
+                        ? 'text-warning'
+                        : 'text-foreground-lighter'
+                  )}
+                >
+                  {project?.status ? project.status.replaceAll('_', ' ').toLowerCase() : 'Unknown'}
+                </span>
+              </div>
             </div>
+            <Link
+              href={projectRef ? `/project/${projectRef}/database/migrations` : '#'}
+              className="border border-border bg-surface-100 rounded-md p-2 hover:bg-sidebar-accent/50 transition-colors"
+            >
+              <div className="text-xs text-foreground-lighter flex items-center gap-1.5">
+                <Database size={12} strokeWidth={1.5} />
+                <span>Last migration</span>
+              </div>
+              <div className="text-xs mt-1 truncate" title={migrationLabelText}>
+                {isLoadingMigrations ? 'Loading...' : migrationLabelText}
+              </div>
+            </Link>
+            <Link
+              href={projectRef ? `/project/${projectRef}/database/backups/scheduled` : '#'}
+              className="border border-border bg-surface-100 rounded-md p-2 hover:bg-sidebar-accent/50 transition-colors"
+            >
+              <div className="text-xs text-foreground-lighter flex items-center gap-1.5">
+                <Archive size={12} strokeWidth={1.5} />
+                <span>Last backup</span>
+              </div>
+              <div className="text-xs mt-1">
+                {isLoadingBackups ? (
+                  'Loading...'
+                ) : backupsData?.pitr_enabled ? (
+                  'PITR enabled'
+                ) : latestBackup ? (
+                  <TimestampInfo
+                    className="text-xs"
+                    displayAs="utc"
+                    label={dayjs(latestBackup.inserted_at).fromNow()}
+                    utcTimestamp={latestBackup.inserted_at}
+                  />
+                ) : (
+                  'No backups'
+                )}
+              </div>
+            </Link>
+            <Link
+              href={projectRef ? `/project/${projectRef}/branches` : '#'}
+              className="border border-border bg-surface-100 rounded-md p-2 hover:bg-sidebar-accent/50 transition-colors"
+            >
+              <div className="text-xs text-foreground-lighter flex items-center gap-1.5">
+                <GitBranch size={12} strokeWidth={1.5} />
+                <span>{isDefaultProject ? 'Recent branch' : 'Branch created'}</span>
+              </div>
+              <div className="text-xs mt-1 truncate">
+                {isDefaultProject ? (
+                  <span title={latestNonDefaultBranch?.name ?? 'No branches'}>
+                    {latestNonDefaultBranch?.name ?? 'No branches'}
+                  </span>
+                ) : currentBranch?.created_at ? (
+                  <TimestampInfo
+                    className="text-xs"
+                    label={dayjs(currentBranch.created_at).fromNow()}
+                    utcTimestamp={currentBranch.created_at}
+                  />
+                ) : (
+                  'Unknown'
+                )}
+              </div>
+            </Link>
           </div>
-          <div className="border border-border bg-surface-100 rounded-md p-3">
-            <div className="text-xs text-foreground-lighter">Memory</div>
-            <div className="text-sm  mt-1">
-              {metrics?.ram ? `${metrics.ram.current.toFixed(0)}%` : '—'}
+
+          <div className="grid grid-cols-2 flex-1 gap-2">
+            <div className="border border-border bg-surface-100 rounded-md p-2">
+              <div className="text-xs text-foreground-lighter">Connections</div>
+              <div className="text-xs mt-1 font-mono">
+                {connections.max > 0 ? `${connections.current}/${connections.max}` : '—'}
+              </div>
             </div>
-          </div>
-          <div className="border border-border bg-surface-100 rounded-md p-3">
-            <div className="text-xs text-foreground-lighter">Disk</div>
-            <div className="text-sm  mt-1">
-              {metrics?.disk ? `${metrics.disk.current.toFixed(0)}%` : '—'}
+            <div className="border border-border bg-surface-100 rounded-md p-2">
+              <div className="text-xs text-foreground-lighter">Memory</div>
+              <div className="text-xs mt-1 font-mono">
+                {metrics?.ram ? `${metrics.ram.current.toFixed(0)}%` : '—'}
+              </div>
             </div>
-          </div>
-          <div className="border border-border bg-surface-100 rounded-md p-3">
-            <div className="text-xs text-foreground-lighter">CPU</div>
-            <div className="text-sm  mt-1">
-              {metrics?.cpu ? `${metrics.cpu.current.toFixed(0)}%` : '—'}
+            <div className="border border-border bg-surface-100 rounded-md p-2">
+              <div className="text-xs text-foreground-lighter">Disk</div>
+              <div className="text-xs mt-1 font-mono">
+                {metrics?.disk ? `${metrics.disk.current.toFixed(0)}%` : '—'}
+              </div>
+            </div>
+            <div className="border border-border bg-surface-100 rounded-md p-2">
+              <div className="text-xs text-foreground-lighter">CPU</div>
+              <div className="text-xs mt-1 font-mono">
+                {metrics?.cpu ? `${metrics.cpu.current.toFixed(0)}%` : '—'}
+              </div>
             </div>
           </div>
         </div>
@@ -243,50 +346,49 @@ export function HomeView() {
       <HomeViewDataCountersRow projectRef={projectRef} counts={counts} />
 
       <div className="w-full grid lg:grid-cols-2 gap-3">
-        {/* g) Connect */}
-        <div className="border border-border bg-surface-100 rounded-md p-2">
-          <h2 className="text-base mb-2">Connect</h2>
-          <div className="flex flex-col gap-2">
-            <div className="border border-border bg-alternative rounded-md p-3">
-              <div className="text-xs text-foreground-lighter mb-1">Connection string</div>
-              <div className="font-mono text-xs break-all">
-                {maskConnectionString(project?.connectionString)}
-              </div>
-              <div className="mt-2">
-                <Button
-                  type="default"
-                  size="tiny"
-                  onClick={() => copyToClipboard(project?.connectionString ?? '')}
-                  disabled={!project?.connectionString}
-                >
-                  Copy
-                </Button>
-              </div>
+        {/* Connect */}
+        <div className="">
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <h2 className="text-base">Connect</h2>
+            <Button type="default" size="tiny" onClick={() => setShowConnect(true)}>
+              View advanced connection params
+            </Button>
+          </div>
+          <div className="border border-border bg-surface-100 rounded-md p-2 space-y-2">
+            <div>
+              <div className="text-xs text-foreground-lighter mb-1">Project URL</div>
+              <Input
+                copy
+                readOnly
+                value={projectApiUrl ?? ''}
+                placeholder="Project URL unavailable"
+                className="font-mono text-xs"
+              />
             </div>
-            <div className="border border-border bg-alternative rounded-md p-3">
-              <div className="text-xs text-foreground-lighter mb-1">API</div>
-              <div className="font-mono text-xs break-all">{API_URL}</div>
-              <div className="font-mono text-xs break-all mt-2">
-                {anonKey?.api_key ? `anon: ${anonKey.api_key}` : 'anon: —'}
-              </div>
-              <div className="mt-2 flex gap-2">
-                <Button type="default" size="tiny" onClick={() => copyToClipboard(API_URL)}>
-                  Copy URL
-                </Button>
-                <Button
-                  type="default"
-                  size="tiny"
-                  onClick={() => copyToClipboard(anonKey?.api_key ?? '')}
-                  disabled={!anonKey?.api_key}
-                >
-                  Copy anon
-                </Button>
-              </div>
+            <div>
+              <div className="text-xs text-foreground-lighter mb-1">Publishable key</div>
+              <Input
+                copy
+                readOnly
+                value={publishableKey?.api_key ?? ''}
+                placeholder="Publishable key unavailable"
+                className="font-mono text-xs"
+              />
+            </div>
+            <div>
+              <div className="text-xs text-foreground-lighter mb-1">Connection string</div>
+              <Input
+                copy
+                readOnly
+                value={maskConnectionString(project?.connectionString)}
+                placeholder="Connection string unavailable"
+                className="font-mono text-xs"
+              />
             </div>
           </div>
         </div>
         {/* Active issues */}
-        <div className="max-w-full max-h-[300px]">
+        <div className="max-w-full h-full max-h-[300px] border-b overflow-hidden">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-base ">Active issues</h2>
             <span className="text-xs text-foreground-lighter">{issues.length} shown</span>
@@ -298,12 +400,12 @@ export function HomeView() {
               No issues detected
             </div>
           ) : (
-            <div className="border border-border rounded-md p-3 overflow-y-auto max-h-full">
+            <div className="overflow-hidden overflow-y-auto max-h-full pb-8">
               <div className="space-y-1">
                 {issues.map((lint) => {
                   const pillStyle =
                     lint.level === LINTER_LEVELS.ERROR &&
-                    'bg-destructive-200 border-destructive-500 text-destructive'
+                    'bg-destructive-200 border-destructive-500 text-destructive hover:bg-destructive-400/50'
                   return (
                     <button
                       key={lint.cache_key}
@@ -323,9 +425,6 @@ export function HomeView() {
                           {lint.description ?? lint.detail}
                         </div>
                       </div>
-                      <span className="text-xs text-foreground underline underline-offset-2 shrink-0">
-                        View
-                      </span>
                     </button>
                   )
                 })}
@@ -335,63 +434,11 @@ export function HomeView() {
         </div>
       </div>
 
-      {/* e) Quick Access */}
-      <div className="border border-border rounded-md p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base ">Quick access</h2>
-          <span className="text-xs text-foreground-lighter">{recentItems.length}/20</span>
-        </div>
-        {recentItems.length === 0 ? (
-          <div className="text-sm text-foreground-lighter">
-            Open a detail page to populate this list.
-          </div>
-        ) : (
-          <div className="grid grid-cols-3 gap-3">
-            {recentItems.slice(0, 6).map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => handleOpenRecent(item)}
-                className="text-left border border-border rounded-md p-3 hover:bg-sidebar-accent/50"
-              >
-                <div className="text-sm  truncate">{item.label}</div>
-                <div className="text-xs text-foreground-lighter truncate">{item.category}</div>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Quick actions */}
-      <div className="grid grid-cols-4 gap-3">
-        {[
-          {
-            title: '+ New table',
-            href: projectRef ? `/v2/project/${projectRef}/data/tables` : '#',
-          },
-          {
-            title: '+ New bucket',
-            href: projectRef ? `/v2/project/${projectRef}/data/buckets` : '#',
-          },
-          {
-            title: '+ New function',
-            href: projectRef ? `/v2/project/${projectRef}/data/edge-functions` : '#',
-          },
-          {
-            title: '+ Add user',
-            href: projectRef ? `/v2/project/${projectRef}/data/users` : '#',
-          },
-        ].map((a) => (
-          <button
-            key={a.title}
-            type="button"
-            onClick={() => router.push(a.href)}
-            className="border border-border rounded-md p-3 hover:bg-sidebar-accent/50 text-left"
-          >
-            <div className="text-sm ">{a.title}</div>
-          </button>
-        ))}
-      </div>
+      {IS_PLATFORM && Boolean(projectRef) && (
+        <RouteParamsOverrideProvider value={{ ref: projectRef }}>
+          <ProjectUsageSection />
+        </RouteParamsOverrideProvider>
+      )}
     </div>
   )
 }

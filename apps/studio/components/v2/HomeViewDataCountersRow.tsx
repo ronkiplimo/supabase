@@ -332,13 +332,9 @@ export function HomeViewDataCountersRow({
   }, [])
 
   return (
-    <div className="relative group/home-counters -mt-4">
-      <div
-        className={cn(
-          'flex items-center justify-end mb-1 -mt-1 gap-1 opacity-0 transition-opacity group-hover/home-counters:opacity-100 focus-within:opacity-100',
-          open && 'opacity-100'
-        )}
-      >
+    <div className="relative group/home-counters">
+      <div className="flex items-center justify-between mb-1 -mt-1 gap-1 focus-within:opacity-100">
+        <h2 className="!text-sm text-foreground-light">Your project in numbers</h2>
         <DropdownMenu open={open} onOpenChange={setOpen}>
           <DropdownMenuTrigger asChild>
             <Button
@@ -346,7 +342,10 @@ export function HomeViewDataCountersRow({
               size="tiny"
               title="Choose and reorder data counters"
               aria-label="Edit data counters"
-              className="hover:bg-transparent text-foreground-lighter hover:text-foreground"
+              className={cn(
+                'hover:bg-transparent text-foreground-lighter hover:text-foreground opacity-0 transition-opacity group-hover/home-counters group-hover/home-counters:opacity-100',
+                open && 'opacity-100'
+              )}
               onClick={(e) => e.stopPropagation()}
               icon={<Settings size={10} />}
             >

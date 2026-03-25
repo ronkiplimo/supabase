@@ -6,6 +6,34 @@ import { useCallback, type PropsWithChildren } from 'react'
 import { prefetchProjectDetail } from 'data/projects/project-detail-query'
 import PrefetchableLink, { type PrefetchableLinkProps } from './PrefetchableLink'
 
+/** `next/link` `href` can be a string or UrlObject; prefetch APIs expect a path string. */
+function hrefToPrefetchPath(href: PrefetchableLinkProps['href']): string {
+  if (href == null) return ''
+  if (typeof href === 'string') return href
+  const o = href as {
+    pathname?: string | null
+    search?: string | null
+    query?: Record<string, string | string[] | undefined>
+  }
+  let path = o.pathname ?? ''
+  if (o.search) {
+    path += o.search.startsWith('?') ? o.search : `?${o.search}`
+  } else if (o.query) {
+    const params = new URLSearchParams()
+    for (const [key, value] of Object.entries(o.query)) {
+      if (value === undefined) continue
+      if (Array.isArray(value)) {
+        for (const v of value) params.append(key, v)
+      } else {
+        params.append(key, value)
+      }
+    }
+    const qs = params.toString()
+    if (qs) path += `?${qs}`
+  }
+  return path
+}
+
 export function usePrefetchProjectIndexPage() {
   const compatRouter = useCompatRouter()
   const appRouter = useAppRouter()
@@ -45,11 +73,15 @@ export function ProjectIndexPageLink({
 }: PropsWithChildren<ProjectIndexPageLinkProps>) {
   const prefetch = usePrefetchProjectIndexPage()
   const resolvedHref = href ?? `/project/${projectRef}`
+  const prefetchPath = hrefToPrefetchPath(resolvedHref)
 
   return (
     <PrefetchableLink
       href={resolvedHref}
-      prefetcher={() => prefetch({ projectRef, path: resolvedHref })}
+      prefetcher={() => {
+        if (!prefetchPath) return
+        void prefetch({ projectRef, path: prefetchPath })
+      }}
       {...props}
     >
       {children}

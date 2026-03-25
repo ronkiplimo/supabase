@@ -121,7 +121,7 @@ Assign appropriate users to each app. Users only see the tiles they're assigned 
 
 Configure both organizations with SP-initiated enabled using the same domain:
 
-- Both orgs add `company.com` as a domain
+- Both organizations add `company.com` as a domain
 - Users can log in via SP-initiated at supabase.com
 - System routes based on org membership (first match wins)
 - Also provide IDP tiles for explicit routing
@@ -450,7 +450,7 @@ Each organization must have at least one non-SSO owner account:
 1. Verify app assignment in IDP admin console
 2. Check app is published/active
 3. Confirm user has logged out and back into IDP
-4. Verify user is checking correct IDP portal (some orgs have multiple)
+4. Verify user is checking correct IDP portal (some organizations have multiple)
 
 ### Auto-join adding users to wrong organization
 
@@ -474,7 +474,7 @@ Each organization must have at least one non-SSO owner account:
 
 ### Multiple organizations with same domain (SP-initiated confusion)
 
-**Symptom:** With SP-initiated enabled and same domain in multiple orgs, users get routed to unexpected organization.
+**Symptom:** With SP-initiated enabled and same domain in multiple organizations, users get routed to unexpected organization.
 
 **Cause:** SP-initiated routing uses first matching provider.
 

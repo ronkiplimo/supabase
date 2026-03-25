@@ -4,6 +4,7 @@ import dayjs from 'dayjs'
 import { DOCS_URL } from 'lib/constants'
 import {
   Checkbox_Shadcn_,
+  cn,
   Input_Shadcn_,
   Select_Shadcn_,
   SelectContent_Shadcn_,
@@ -32,6 +33,7 @@ export function JitDbAccessRoleGrantFields({
 }: JitDbAccessRoleGrantFieldsProps) {
   const isSuperuserRole = role.id === 'postgres'
   const isReadOnlyRole = role.id === 'supabase_read_only_user'
+  const showRoleAdmonition = isSuperuserRole || isReadOnlyRole
   const checkboxId = `jit-role-${role.id}`
 
   return (
@@ -115,11 +117,11 @@ export function JitDbAccessRoleGrantFields({
                     with only the permissions required.
                   </>
                 }
-                className="rounded-md"
+                className="rounded-md mb-2"
               />
             )}
 
-            <div className="space-y-2 border-t border-muted pt-3">
+            <div className={cn('space-y-2', !showRoleAdmonition && 'border-t border-muted pt-3')}>
               <p className="text-sm text-foreground">Expires in</p>
               <div className="flex gap-2">
                 <div className="flex-1">

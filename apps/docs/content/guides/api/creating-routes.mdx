@@ -43,8 +43,8 @@ create table
 grant select on public.todos to anon;
 -- Allow full CRUD for authenticated clients
 grant select, insert, update, delete on public.todos to authenticated;
--- Allow unrestricted access for the server-side service role
-grant all on public.todos to service_role;
+-- Allow full CRUD for the server-side service role
+grant select, insert, update, delete on public.todos to service_role;
 -- Important: enable Row Level Security and create appropriate policies
 -- before granting write access to client roles (see RLS guide)
 ```

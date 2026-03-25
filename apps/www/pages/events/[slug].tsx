@@ -25,7 +25,7 @@ import utc from 'dayjs/plugin/utc'
 
 import { Button, Image } from 'ui'
 import ShareArticleActions from '~/components/Blog/ShareArticleActions'
-import WebinarContactForm from '~/components/Events/WebinarContactForm'
+import HubSpotForm from '~/components/Events/HubSpotForm'
 import DefaultLayout from '~/components/Layouts/Default'
 import SectionContainer from '~/components/Layouts/SectionContainer'
 
@@ -390,7 +390,7 @@ const EventPage = ({ event }: InferGetStaticPropsType<typeof getStaticProps>) =>
                   {...content}
                   components={{
                     ...mdxComponents(),
-                    WebinarContactForm,
+                    HubSpotForm,
                   }}
                 />
               </div>

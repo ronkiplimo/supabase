@@ -214,25 +214,24 @@ const ProjectUsage = () => {
 }
 export default ProjectUsage
 
-const PanelHeader = (props: {
-  icon: ReactNode
-  title: string
-  href?: string
-}) => {
-  const Tag = props?.href ? Link : 'div'
-  return (
-    <Tag href={props.href}>
-      <div
-        className={
-          'flex items-center space-x-3 opacity-80 transition ' +
-          (props.href ? 'cursor-pointer hover:text-gray-1200 hover:opacity-100' : '')
-        }
-      >
-        <div>{props.icon}</div>
-        <span className="flex items-center space-x-1">
-          <h4 className="mb-0 text-lg">{props.title}</h4>
-        </span>
-      </div>
-    </Tag>
+const PanelHeader = (props: { icon: ReactNode; title: string; href?: string }) => {
+  const inner = (
+    <div
+      className={
+        'flex items-center space-x-3 opacity-80 transition ' +
+        (props.href ? 'cursor-pointer hover:text-gray-1200 hover:opacity-100' : '')
+      }
+    >
+      <div>{props.icon}</div>
+      <span className="flex items-center space-x-1">
+        <h4 className="mb-0 text-lg">{props.title}</h4>
+      </span>
+    </div>
   )
+
+  if (props.href) {
+    return <Link href={props.href}>{inner}</Link>
+  }
+
+  return inner
 }

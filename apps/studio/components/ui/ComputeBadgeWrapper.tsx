@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { useState } from 'react'
+import { useTrack } from 'lib/telemetry/track'
 
 import { getAddons } from 'components/interfaces/Billing/Subscription/Subscription.utils'
 import { ProjectDetail } from 'data/projects/project-detail-query'
@@ -67,6 +68,7 @@ export const ComputeBadgeWrapper = ({
   // handles the state of the hover card
   // once open it will fetch the addons
   const [open, setOpenState] = useState(false)
+  const track = useTrack()
 
   // returns hardcoded values for infra
   const cpuArchitecture = getCloudProviderArchitecture(cloudProvider)
@@ -201,17 +203,48 @@ export const ComputeBadgeWrapper = ({
               </div>
               <div>
                 {isFreeOnNano ? (
-                  <UpgradePlanButton source="compute_badge" plan="Pro" slug={slug}>
+                  <UpgradePlanButton
+                    source="compute_badge"
+                    plan="Pro"
+                    slug={slug}
+                    onClick={() =>
+                      track('compute_badge_upgrade_clicked', {
+                        computeSize: computeSize ?? '',
+                        planId: data?.plan.id ?? '',
+                        upgradeType: 'pro_upgrade',
+                      })
+                    }
+                  >
                     Upgrade to Pro
                   </UpgradePlanButton>
                 ) : isEligibleForFreeUpgrade ? (
-                  <Button asChild type="primary">
+                  <Button
+                    asChild
+                    type="primary"
+                    onClick={() =>
+                      track('compute_badge_upgrade_clicked', {
+                        computeSize: computeSize ?? '',
+                        planId: data?.plan.id ?? '',
+                        upgradeType: 'free_micro_upgrade',
+                      })
+                    }
+                  >
                     <Link href={`/project/${projectRef}/settings/compute-and-disk?upgrade=micro`}>
                       Upgrade for free
                     </Link>
                   </Button>
                 ) : (
-                  <Button asChild type="primary">
+                  <Button
+                    asChild
+                    type="primary"
+                    onClick={() =>
+                      track('compute_badge_upgrade_clicked', {
+                        computeSize: computeSize ?? '',
+                        planId: data?.plan.id ?? '',
+                        upgradeType: 'compute_upgrade',
+                      })
+                    }
+                  >
                     <Link href={`/project/${projectRef}/settings/compute-and-disk`}>
                       Upgrade compute
                     </Link>

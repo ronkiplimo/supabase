@@ -3058,6 +3058,25 @@ export interface LogExplorerQueryRunButtonClickedEvent {
 }
 
 /**
+ * User clicked an upgrade CTA inside the compute badge hover card.
+ *
+ * @group Events
+ * @source studio
+ */
+export interface ComputeBadgeUpgradeClickedEvent {
+  action: 'compute_badge_upgrade_clicked'
+  properties: {
+    /** Current compute size of the project, e.g. 'nano', 'micro' */
+    computeSize: string
+    /** Current org plan id, e.g. 'free', 'pro' */
+    planId: string
+    /** Which CTA was clicked */
+    upgradeType: 'pro_upgrade' | 'free_micro_upgrade' | 'compute_upgrade'
+  }
+  groups: TelemetryGroups
+}
+
+/**
  * @hidden
  */
 export type TelemetryEvent =
@@ -3225,3 +3244,4 @@ export type TelemetryEvent =
   | OrgMenuBackClickedEvent
   | OrgMenuItemClickedEvent
   | PricingCalculatorExperimentExposedEvent
+  | ComputeBadgeUpgradeClickedEvent

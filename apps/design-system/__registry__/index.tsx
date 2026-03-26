@@ -82,6 +82,17 @@ export const Index: Record<string, any> = {
       subcategory: "undefined",
       chunks: []
     },
+    "StateBadge": {
+      name: "StateBadge",
+      type: "components:fragment",
+      registryDependencies: undefined,
+      component: React.lazy(() => import("@/../../packages/ui-patterns/src/StateBadge")),
+      source: "",
+      files: ["registry/default//StateBadge/index.tsx"],
+      category: "undefined",
+      subcategory: "undefined",
+      chunks: []
+    },
     "accordion-demo": {
       name: "accordion-demo",
       type: "components:example",
@@ -2982,6 +2993,17 @@ export const Index: Record<string, any> = {
       component: React.lazy(() => import("@/registry/default/example/status-code-demo")),
       source: "",
       files: ["registry/default/example/status-code-demo.tsx"],
+      category: "undefined",
+      subcategory: "undefined",
+      chunks: []
+    },
+    "state-badge-demo": {
+      name: "state-badge-demo",
+      type: "components:example",
+      registryDependencies: undefined,
+      component: React.lazy(() => import("@/registry/default/example/state-badge-demo")),
+      source: "",
+      files: ["registry/default/example/state-badge-demo.tsx"],
       category: "undefined",
       subcategory: "undefined",
       chunks: []

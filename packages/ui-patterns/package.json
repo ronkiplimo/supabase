@@ -586,6 +586,10 @@
       "import": "./src/SqlToRest/util.ts",
       "types": "./src/SqlToRest/util.ts"
     },
+    "./StateBadge": {
+      "import": "./src/StateBadge/index.tsx",
+      "types": "./src/StateBadge/index.tsx"
+    },
     "./ThemeToggle": {
       "import": "./src/ThemeToggle.tsx",
       "types": "./src/ThemeToggle.tsx"

@@ -1616,4 +1616,9 @@ export const examples: Registry = [
     type: 'components:example',
     files: ['example/status-code-demo.tsx'],
   },
+  {
+    name: 'state-badge-demo',
+    type: 'components:example',
+    files: ['example/state-badge-demo.tsx'],
+  },
 ]

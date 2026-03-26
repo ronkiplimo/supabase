@@ -213,6 +213,11 @@ export const docsConfig: DocsConfig = {
           items: [],
         },
         {
+          title: 'State Badge',
+          href: '/docs/fragments/state-badges',
+          items: [],
+        },
+        {
           title: 'Key/Value Field Array',
           href: '/docs/fragments/key-value-field-array',
           items: [],

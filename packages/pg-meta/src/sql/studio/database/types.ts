@@ -36,7 +36,7 @@ export const getUpdateEnumeratedTypeSQL = ({
   values?: { original: string; updated: string; isNew: boolean }[]
 }) => {
   const statements: string[] = [
-    '-- source: dashboard\n-- description: Update an enumerated type by renaming, adding, or modifying values',
+    '-- source: dashboard\n-- description: Update an enumerated type by renaming, adding, or modifying values\n',
   ]
   if (name.original !== name.updated) {
     statements.push(`alter type "${schema}"."${name.original}" rename to "${name.updated}";`)

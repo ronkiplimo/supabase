@@ -290,7 +290,7 @@ export const CreateOrUpdateOAuthAppSheet = ({
                       render={({ field }) => (
                         <FormItemLayout
                           label="Logo"
-                          description="Paste an absolute image URL/path or select one from Storage."
+                          description={`Paste an absolute image URL/path or select one from File Storage buckets. Note: Use a public bucket for a stable logo URL.`}
                         >
                           <FormControl_Shadcn_>
                             <div className="flex w-full flex-col gap-3">
@@ -299,6 +299,7 @@ export const CreateOrUpdateOAuthAppSheet = ({
                                   className={cn(
                                     'flex items-center justify-center h-10 w-10 shrink-0 text-foreground-lighter overflow-hidden rounded-full bg-cover border'
                                   )}
+                                  title={logoUrl ? undefined : 'No image selected'}
                                   style={{
                                     backgroundImage: logoUrl ? `url("${logoUrl}")` : 'none',
                                   }}

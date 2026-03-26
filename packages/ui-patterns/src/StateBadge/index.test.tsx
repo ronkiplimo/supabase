@@ -6,15 +6,10 @@ import { StateBadge, type StateBadgeState } from './index'
 const stateBadgeExpectations: Array<{
   state: StateBadgeState
   label: string
-  tone: 'positive' | 'destructive' | 'neutral'
+  tone: 'positive' | 'neutral'
 }> = [
-  { state: 'success', label: 'Success', tone: 'positive' },
-  { state: 'failure', label: 'Failure', tone: 'destructive' },
-  { state: 'pending', label: 'Pending', tone: 'neutral' },
-  { state: 'skipped', label: 'Skipped', tone: 'neutral' },
   { state: 'enabled', label: 'Enabled', tone: 'positive' },
   { state: 'disabled', label: 'Disabled', tone: 'neutral' },
-  { state: 'unknown', label: 'Unknown', tone: 'neutral' },
 ]
 
 describe('StateBadge', () => {
@@ -36,19 +31,19 @@ describe('StateBadge', () => {
 
       expect(root).toHaveAttribute('data-state', state)
       expect(root).toHaveAttribute('data-tone', tone)
-      expect(root?.querySelector('[data-slot="state-badge-icon"] svg')).toBeInTheDocument()
+      expect(root?.querySelector('[data-slot="state-badge-icon"]')).toBeInTheDocument()
     }
   )
 
   it('allows children to override the rendered label without changing the semantic styling', () => {
-    render(<StateBadge state="pending">Retrying</StateBadge>)
+    render(<StateBadge state="enabled">Active</StateBadge>)
 
-    const root = screen.getByText('Retrying').closest('[data-state]')
+    const root = screen.getByText('Active').closest('[data-state]')
 
-    expect(screen.getByText('Retrying')).toBeVisible()
-    expect(screen.queryByText('Pending')).not.toBeInTheDocument()
-    expect(root).toHaveAttribute('data-state', 'pending')
-    expect(root).toHaveAttribute('data-tone', 'neutral')
+    expect(screen.getByText('Active')).toBeVisible()
+    expect(screen.queryByText('Enabled')).not.toBeInTheDocument()
+    expect(root).toHaveAttribute('data-state', 'enabled')
+    expect(root).toHaveAttribute('data-tone', 'positive')
   })
 
   it('passes className through to the root and keeps the badge non-wrapping', () => {
@@ -58,5 +53,6 @@ describe('StateBadge', () => {
 
     expect(root).toHaveClass('test-class')
     expect(root).toHaveClass('whitespace-nowrap')
+    expect(root?.querySelector('[data-slot="state-badge-icon"]')).toBeInTheDocument()
   })
 })

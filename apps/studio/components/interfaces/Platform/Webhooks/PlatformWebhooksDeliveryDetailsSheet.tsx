@@ -1,7 +1,6 @@
-import { Copy, RotateCcw } from 'lucide-react'
-
 import { getStatusLevel } from 'components/interfaces/UnifiedLogs/UnifiedLogs.utils'
 import { DataTableColumnStatusCode } from 'components/ui/DataTable/DataTableColumn/DataTableColumnStatusCode'
+import { Copy, RotateCcw } from 'lucide-react'
 import {
   Button,
   Card,
@@ -19,7 +18,8 @@ import {
   TabsTrigger_Shadcn_ as TabsTrigger,
 } from 'ui'
 import { TimestampInfo } from 'ui-patterns'
-import { StateBadge } from 'ui-patterns/StateBadge'
+import { StatusBadge } from 'ui-patterns/StatusBadge'
+
 import type { WebhookDelivery } from './PlatformWebhooks.types'
 
 interface PlatformWebhooksDeliveryDetailsSheetProps {
@@ -56,7 +56,7 @@ export const PlatformWebhooksDeliveryDetailsSheet = ({
         <SheetHeader>
           <div className="flex items-center gap-2">
             <SheetTitle>Delivery details</SheetTitle>
-            {selectedDelivery && <StateBadge state={selectedDelivery.status} />}
+            {selectedDelivery && <StatusBadge status={selectedDelivery.status} />}
           </div>
         </SheetHeader>
         <Separator />
@@ -143,7 +143,7 @@ export const PlatformWebhooksDeliveryDetailsSheet = ({
                 <TabsContent value="response" className="space-y-4 pt-4">
                   <div className="space-y-1">
                     <p className="text-sm text-foreground-light">Status</p>
-                    <StateBadge state={selectedDelivery.status} />
+                    <StatusBadge status={selectedDelivery.status} />
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-foreground-light">Response code</p>

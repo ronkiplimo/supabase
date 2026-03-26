@@ -208,6 +208,11 @@ export const docsConfig: DocsConfig = {
           items: [],
         },
         {
+          title: 'Context Badge',
+          href: '/docs/fragments/context-badges',
+          items: [],
+        },
+        {
           title: 'Status Codes',
           href: '/docs/fragments/status-codes',
           items: [],
@@ -215,6 +220,11 @@ export const docsConfig: DocsConfig = {
         {
           title: 'State Badge',
           href: '/docs/fragments/state-badges',
+          items: [],
+        },
+        {
+          title: 'Status Badge',
+          href: '/docs/fragments/status-badges',
           items: [],
         },
         {

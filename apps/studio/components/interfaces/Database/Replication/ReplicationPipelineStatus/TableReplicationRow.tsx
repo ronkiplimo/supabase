@@ -2,7 +2,7 @@ import { useParams } from 'common'
 import { ExternalLink, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
 import { Button, cn, TableCell, TableRow, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
-import { StateBadge } from 'ui-patterns/StateBadge'
+import { StatusBadge } from 'ui-patterns/StatusBadge'
 
 import { ErroredTableDetails } from '../ErroredTableDetails'
 import { TableState } from './ReplicationPipelineStatus.types'
@@ -58,11 +58,11 @@ export const TableReplicationRow = ({
 
       <TableCell className="align-top">
         {isRestarting ? (
-          <StateBadge state="pending">Restarting</StateBadge>
+          <StatusBadge status="pending">Restarting</StatusBadge>
         ) : showDisabledState ? (
-          <StateBadge state="unknown">Not Available</StateBadge>
+          <StatusBadge status="unknown">Not Available</StatusBadge>
         ) : (
-          <StateBadge state={statusConfig.badge.state}>{statusConfig.badge.label}</StateBadge>
+          <StatusBadge status={statusConfig.badge.status}>{statusConfig.badge.label}</StatusBadge>
         )}
       </TableCell>
 

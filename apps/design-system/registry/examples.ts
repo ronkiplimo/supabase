@@ -109,6 +109,11 @@ export const examples: Registry = [
     registryDependencies: ['badge'],
     files: ['example/badge-secondary.tsx'],
   },
+  {
+    name: 'context-badge-demo',
+    type: 'components:example',
+    files: ['example/context-badge-demo.tsx'],
+  },
   // {
   //   name: 'breadcrumb-demo',
   //   type: 'components:example',
@@ -1620,5 +1625,10 @@ export const examples: Registry = [
     name: 'state-badge-demo',
     type: 'components:example',
     files: ['example/state-badge-demo.tsx'],
+  },
+  {
+    name: 'status-badge-demo',
+    type: 'components:example',
+    files: ['example/status-badge-demo.tsx'],
   },
 ]

@@ -61,10 +61,7 @@ export const PlatformWebhooksHeader = ({
             <span className="flex w-full min-w-0 items-center gap-2">
               <span className="block min-w-0 truncate leading-tight">{headerTitle}</span>
               {hasSelectedEndpoint && endpointStatus && (
-                <StateBadge
-                  className="shrink-0 self-center"
-                  state={endpointStatus === 'enabled' ? 'enabled' : 'disabled'}
-                />
+                <StateBadge className="shrink-0 self-center" state={endpointStatus} />
               )}
             </span>
           </PageHeaderTitle>

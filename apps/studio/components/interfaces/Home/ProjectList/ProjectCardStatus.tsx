@@ -3,7 +3,7 @@ import { getWarningContent } from 'components/ui/ResourceExhaustionWarningBanner
 import type { ResourceWarning } from 'data/usage/resource-warnings-query'
 import { AlertTriangle, Info, PauseCircle, RefreshCcw } from 'lucide-react'
 import { Badge, cn, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
-import { StateBadge, type StateBadgeState } from 'ui-patterns/StateBadge'
+import { StatusBadge, type StatusBadgeStatus } from 'ui-patterns/StatusBadge'
 
 import { InferredProjectStatus } from './ProjectCard.utils'
 
@@ -14,18 +14,18 @@ export interface ProjectCardWarningsProps {
 }
 
 const projectStatusBadgeConfig: Partial<
-  Record<Exclude<InferredProjectStatus, undefined>, { state: StateBadgeState; label: string }>
+  Record<Exclude<InferredProjectStatus, undefined>, { status: StatusBadgeStatus; label: string }>
 > = {
-  isHealthy: { state: 'success', label: 'Active' },
-  isPaused: { state: 'disabled', label: 'Paused' },
-  isPausing: { state: 'pending', label: 'Pausing' },
-  isRestarting: { state: 'pending', label: 'Restarting' },
-  isResizing: { state: 'pending', label: 'Resizing' },
-  isComingUp: { state: 'pending', label: 'Starting' },
-  isRestoring: { state: 'pending', label: 'Restoring' },
-  isUpgrading: { state: 'pending', label: 'Upgrading' },
-  isRestoreFailed: { state: 'failure', label: 'Restore Failed' },
-  isPauseFailed: { state: 'failure', label: 'Pause Failed' },
+  isHealthy: { status: 'success', label: 'Active' },
+  isPaused: { status: 'inactive', label: 'Paused' },
+  isPausing: { status: 'pending', label: 'Pausing' },
+  isRestarting: { status: 'pending', label: 'Restarting' },
+  isResizing: { status: 'pending', label: 'Resizing' },
+  isComingUp: { status: 'pending', label: 'Starting' },
+  isRestoring: { status: 'pending', label: 'Restoring' },
+  isUpgrading: { status: 'pending', label: 'Upgrading' },
+  isRestoreFailed: { status: 'failure', label: 'Restore Failed' },
+  isPauseFailed: { status: 'failure', label: 'Pause Failed' },
 }
 
 export const ProjectCardStatus = ({
@@ -127,7 +127,7 @@ export const ProjectCardStatus = ({
 
   const alertTitle = getTitle()
   const alertDescription = getDescription()
-  const stateBadgeConfig = projectStatus ? projectStatusBadgeConfig[projectStatus] : undefined
+  const statusBadgeConfig = projectStatus ? projectStatusBadgeConfig[projectStatus] : undefined
   const alertType = isCritical
     ? 'destructive'
     : projectStatus === 'isPaused'
@@ -146,18 +146,20 @@ export const ProjectCardStatus = ({
     // Render a fallback en dash if no title is available
     if (!alertTitle) return <span className="text-xs text-foreground-muted">–</span>
 
-    if (stateBadgeConfig) {
+    if (statusBadgeConfig) {
       return (
         <div className="flex items-center overflow-visible">
           {alertDescription ? (
             <Tooltip>
               <TooltipTrigger asChild>
-                <StateBadge state={stateBadgeConfig.state}>{stateBadgeConfig.label}</StateBadge>
+                <StatusBadge status={statusBadgeConfig.status}>
+                  {statusBadgeConfig.label}
+                </StatusBadge>
               </TooltipTrigger>
               <TooltipContent side="bottom">{alertDescription}</TooltipContent>
             </Tooltip>
           ) : (
-            <StateBadge state={stateBadgeConfig.state}>{stateBadgeConfig.label}</StateBadge>
+            <StatusBadge status={statusBadgeConfig.status}>{statusBadgeConfig.label}</StatusBadge>
           )}
         </div>
       )

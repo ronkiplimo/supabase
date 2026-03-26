@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 import { formatBytes } from 'lib/helpers'
 import { Activity, Clock, HelpCircle, Loader2, XCircle } from 'lucide-react'
 import { PipelineStatusRequestStatus } from 'state/replication-pipeline-request-status'
-import type { StateBadgeState } from 'ui-patterns/StateBadge'
+import type { StatusBadgeStatus } from 'ui-patterns/StatusBadge'
 
 import { getPipelineStateMessages } from '../Pipeline.utils'
 import { RetryPolicy, TableState } from './ReplicationPipelineStatus.types'
@@ -14,42 +14,42 @@ export const getStatusConfig = (state: TableState['state']) => {
   switch (state.name) {
     case 'queued':
       return {
-        badge: { state: 'pending' as StateBadgeState, label: 'Queued' },
+        badge: { status: 'pending' as StatusBadgeStatus, label: 'Queued' },
         description: 'Table is waiting for ETL to pick it up for replication.',
         tooltip: 'Table is waiting for ETL to pick it up for replication.',
         color: 'text-warning',
       }
     case 'copying_table':
       return {
-        badge: { state: 'pending' as StateBadgeState, label: 'Copying' },
+        badge: { status: 'pending' as StatusBadgeStatus, label: 'Copying' },
         description: "Table's existing rows are being copied before live streaming begins.",
         tooltip: "Table's existing rows are being copied before live streaming begins.",
         color: 'text-brand-600',
       }
     case 'copied_table':
       return {
-        badge: { state: 'success' as StateBadgeState, label: 'Copied' },
+        badge: { status: 'success' as StatusBadgeStatus, label: 'Copied' },
         description: "Table copy is complete and it's preparing to follow WAL changes.",
         tooltip: "Table copy is complete and it's preparing to follow WAL changes.",
         color: 'text-success-600',
       }
     case 'following_wal':
       return {
-        badge: { state: 'success' as StateBadgeState, label: 'Live' },
+        badge: { status: 'success' as StatusBadgeStatus, label: 'Live' },
         description: 'Table is streaming new changes in real time from the WAL.',
         tooltip: 'Table is streaming new changes in real time from the WAL.',
         color: 'text-success-600',
       }
     case 'error':
       return {
-        badge: { state: 'failure' as StateBadgeState, label: 'Error' },
+        badge: { status: 'failure' as StatusBadgeStatus, label: 'Error' },
         description: 'Replication is paused because the table encountered an error.',
         tooltip: 'Replication is paused because the table encountered an error.',
         color: 'text-destructive-600',
       }
     default:
       return {
-        badge: { state: 'unknown' as StateBadgeState, label: 'Unknown' },
+        badge: { status: 'unknown' as StatusBadgeStatus, label: 'Unknown' },
         description: 'Table status is unavailable.',
         tooltip: 'Table status is unavailable.',
         color: 'text-warning',

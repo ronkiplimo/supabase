@@ -5,7 +5,7 @@ import { PipelineStatusRequestStatus } from 'state/replication-pipeline-request-
 import type { ResponseError } from 'types'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui'
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
-import { StateBadge, type StateBadgeState } from 'ui-patterns/StateBadge'
+import { StatusBadge, type StatusBadgeStatus } from 'ui-patterns/StatusBadge'
 
 import { getPipelineStateMessages } from './Pipeline.utils'
 import { PipelineStatusName } from './Replication.constants'
@@ -34,7 +34,7 @@ export const PipelineStatus = ({
   // Map backend statuses to UX-friendly display
   const getStatusConfig = (): {
     label: string
-    state: StateBadgeState
+    status: StatusBadgeStatus
     tooltip: string
   } => {
     const statusName =
@@ -48,39 +48,39 @@ export const PipelineStatus = ({
     // Show optimistic request state while backend still reports steady states
     switch (requestStatus) {
       case PipelineStatusRequestStatus.RestartRequested:
-        return { label: 'Restarting', state: 'pending', tooltip: stateMessages.message }
+        return { label: 'Restarting', status: 'pending', tooltip: stateMessages.message }
       case PipelineStatusRequestStatus.StartRequested:
-        return { label: 'Starting', state: 'pending', tooltip: stateMessages.message }
+        return { label: 'Starting', status: 'pending', tooltip: stateMessages.message }
       case PipelineStatusRequestStatus.StopRequested:
-        return { label: 'Stopping', state: 'pending', tooltip: stateMessages.message }
+        return { label: 'Stopping', status: 'pending', tooltip: stateMessages.message }
     }
 
     if (pipelineStatus && typeof pipelineStatus === 'object' && 'name' in pipelineStatus) {
       switch (pipelineStatus.name) {
         case PipelineStatusName.FAILED:
-          return { label: 'Failed', state: 'failure', tooltip: stateMessages.message }
+          return { label: 'Failed', status: 'failure', tooltip: stateMessages.message }
         case PipelineStatusName.STARTING:
-          return { label: 'Starting', state: 'pending', tooltip: stateMessages.message }
+          return { label: 'Starting', status: 'pending', tooltip: stateMessages.message }
         case PipelineStatusName.STARTED:
-          return { label: 'Running', state: 'success', tooltip: stateMessages.message }
+          return { label: 'Running', status: 'success', tooltip: stateMessages.message }
         case PipelineStatusName.STOPPED:
-          return { label: 'Stopped', state: 'disabled', tooltip: stateMessages.message }
+          return { label: 'Stopped', status: 'inactive', tooltip: stateMessages.message }
         case PipelineStatusName.STOPPING:
-          return { label: 'Stopping', state: 'pending', tooltip: stateMessages.message }
+          return { label: 'Stopping', status: 'pending', tooltip: stateMessages.message }
         default:
-          return { label: 'Unknown', state: 'unknown', tooltip: stateMessages.message }
+          return { label: 'Unknown', status: 'unknown', tooltip: stateMessages.message }
       }
     }
 
     // Fallback for undefined or invalid status
     return {
       label: 'Unknown',
-      state: 'unknown',
+      status: 'unknown',
       tooltip: 'Pipeline status is unclear - check logs for details',
     }
   }
 
-  const { state, tooltip, label } = getStatusConfig()
+  const { status, tooltip, label } = getStatusConfig()
 
   const pipelineLogsUrl = pipelineId
     ? `/project/${ref}/logs/replication-logs?f=${encodeURIComponent(
@@ -95,7 +95,7 @@ export const PipelineStatus = ({
       {isError && (
         <Tooltip>
           <TooltipTrigger asChild>
-            <StateBadge state="unknown" />
+            <StatusBadge status="unknown" />
           </TooltipTrigger>
           <TooltipContent side="bottom" className="w-64 text-center">
             Unable to retrieve status: {error?.message}
@@ -106,7 +106,7 @@ export const PipelineStatus = ({
       {isSuccess && (
         <Tooltip>
           <TooltipTrigger asChild>
-            <StateBadge state={state}>{label}</StateBadge>
+            <StatusBadge status={status}>{label}</StatusBadge>
           </TooltipTrigger>
           <TooltipContent side="bottom">
             {tooltip}{' '}

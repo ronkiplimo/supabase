@@ -1,7 +1,7 @@
 import { InlineLink } from 'components/ui/InlineLink'
 import { DOCS_URL } from 'lib/constants'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui'
-import { StateBadge, type StateBadgeState } from 'ui-patterns/StateBadge'
+import { StatusBadge, type StatusBadgeStatus } from 'ui-patterns/StatusBadge'
 
 import { InvoiceStatus } from './Invoices.types'
 
@@ -11,29 +11,29 @@ interface InvoiceStatusBadgeProps {
   paymentProcessing: boolean
 }
 
-const invoiceStatusMapping: Record<InvoiceStatus, { label: string; state: StateBadgeState }> = {
+const invoiceStatusMapping: Record<InvoiceStatus, { label: string; status: StatusBadgeStatus }> = {
   [InvoiceStatus.PAID]: {
     label: 'Paid',
-    state: 'success',
+    status: 'success',
   },
   [InvoiceStatus.VOID]: {
     label: 'Forgiven',
-    state: 'skipped',
+    status: 'skipped',
   },
 
   // We do not want to overcomplicate it for the user, so we'll treat uncollectible/open/issued the same from a user perspective
   // it's an outstanding invoice
   [InvoiceStatus.UNCOLLECTIBLE]: {
     label: 'Outstanding',
-    state: 'failure',
+    status: 'failure',
   },
   [InvoiceStatus.OPEN]: {
     label: 'Outstanding',
-    state: 'failure',
+    status: 'failure',
   },
   [InvoiceStatus.ISSUED]: {
     label: 'Outstanding',
-    state: 'failure',
+    status: 'failure',
   },
 }
 
@@ -45,16 +45,16 @@ const InvoiceStatusBadge = ({
   const statusMapping = paymentProcessing
     ? {
         label: 'Processing',
-        state: 'pending' as StateBadgeState,
+        status: 'pending' as StatusBadgeStatus,
       }
     : invoiceStatusMapping[status]
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <StateBadge state={statusMapping?.state || 'unknown'}>
+        <StatusBadge status={statusMapping?.status || 'unknown'}>
           {statusMapping?.label || status}
-        </StateBadge>
+        </StatusBadge>
       </TooltipTrigger>
       <TooltipContent side="bottom" className="max-w-xs [&>p]:text-center [&>div>p]:text-center">
         {[InvoiceStatus.OPEN, InvoiceStatus.ISSUED, InvoiceStatus.UNCOLLECTIBLE].includes(status) &&

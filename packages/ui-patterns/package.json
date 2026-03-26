@@ -278,6 +278,10 @@
       "import": "./src/ComputeBadge/index.tsx",
       "types": "./src/ComputeBadge/index.tsx"
     },
+    "./ContextBadge": {
+      "import": "./src/ContextBadge/index.tsx",
+      "types": "./src/ContextBadge/index.tsx"
+    },
     "./ConsentToast": {
       "import": "./src/ConsentToast/index.tsx",
       "types": "./src/ConsentToast/index.tsx"
@@ -589,6 +593,10 @@
     "./StateBadge": {
       "import": "./src/StateBadge/index.tsx",
       "types": "./src/StateBadge/index.tsx"
+    },
+    "./StatusBadge": {
+      "import": "./src/StatusBadge/index.tsx",
+      "types": "./src/StatusBadge/index.tsx"
     },
     "./ThemeToggle": {
       "import": "./src/ThemeToggle.tsx",

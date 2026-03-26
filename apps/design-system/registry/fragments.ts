@@ -44,9 +44,21 @@ export const fragments: Registry = [
     optionalPath: '/StatusCode',
   },
   {
+    name: 'ContextBadge',
+    type: 'components:fragment',
+    files: ['/ContextBadge/index.tsx'],
+    optionalPath: '/ContextBadge',
+  },
+  {
     name: 'StateBadge',
     type: 'components:fragment',
     files: ['/StateBadge/index.tsx'],
     optionalPath: '/StateBadge',
+  },
+  {
+    name: 'StatusBadge',
+    type: 'components:fragment',
+    files: ['/StatusBadge/index.tsx'],
+    optionalPath: '/StatusBadge',
   },
 ]

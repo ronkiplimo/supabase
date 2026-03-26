@@ -1,6 +1,6 @@
 ---
 title: State Badge
-description: Segmented operational status badges for delivery outcomes, enabled or disabled state, and unknown state.
+description: Binary state badges for enabled and disabled UI.
 fragment: true
 ---
 
@@ -13,19 +13,19 @@ import { StateBadge } from 'ui-patterns/StateBadge'
 ```
 
 ```tsx
-<StateBadge state="success" />
+<StateBadge state="enabled" />
 ```
 
 ## API Reference
 
-| Prop        | Type                                                                                       | Default | Description                                                            |
-| ----------- | ------------------------------------------------------------------------------------------ | ------- | ---------------------------------------------------------------------- |
-| `state`     | `'success' \| 'failure' \| 'pending' \| 'skipped' \| 'enabled' \| 'disabled' \| 'unknown'` | —       | Semantic state. Determines both the icon and the badge tone.           |
-| `children`  | `React.ReactNode`                                                                          | —       | Optional label override. Keeps the semantic icon and colour treatment. |
-| `className` | `string`                                                                                   | —       | Additional classes applied to the root wrapper.                        |
+| Prop        | Type                      | Default | Description                                                         |
+| ----------- | ------------------------- | ------- | ------------------------------------------------------------------- |
+| `state`     | `'enabled' \| 'disabled'` | —       | Semantic binary state. Determines both the icon and the badge tone. |
+| `children`  | `React.ReactNode`         | —       | Optional label override. Useful for `Active` and `Inactive` copy.   |
+| `className` | `string`                  | —       | Additional classes applied to the root wrapper.                     |
 
 ## Guidance
 
-Use `StateBadge` for short operational states where icon plus label improves scanability, such as delivery results, enabled and disabled status, or operational uncertainty.
+Use `StateBadge` for binary state such as enabled and disabled, or `Active` and `Inactive` where the semantic meaning is still on versus off.
 
-Keep the text to one or two words. For broader product categories or generic contextual metadata, keep using the `Badge` atom instead.
+For lifecycle or outcome status such as pending, failed, skipped, or success, use `StatusBadge` instead.

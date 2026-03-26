@@ -14,7 +14,7 @@ import {
 } from 'ui'
 import { TimestampInfo } from 'ui-patterns'
 import { Input } from 'ui-patterns/DataInputs/Input'
-import { StateBadge } from 'ui-patterns/StateBadge'
+import { StatusBadge } from 'ui-patterns/StatusBadge'
 
 import type { WebhookDelivery, WebhookEndpoint } from './PlatformWebhooks.types'
 
@@ -151,7 +151,7 @@ export const PlatformWebhooksEndpointDetails = ({
                     tabIndex={0}
                   >
                     <TableCell>
-                      <StateBadge state={delivery.status} />
+                      <StatusBadge status={delivery.status} />
                     </TableCell>
                     <TableCell>
                       <code className="text-code-inline">{delivery.eventType}</code>

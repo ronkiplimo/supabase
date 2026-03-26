@@ -54,7 +54,7 @@ export function list({
   sql: string
   zod: typeof pgTriggerArrayZod
 } {
-  let sql = `-- source: dashboard\n-- description: List all triggers with metadata\nwith triggers as (${TRIGGERS_SQL}) select * from triggers`
+  let sql = `with triggers as (${TRIGGERS_SQL}) select * from triggers`
   const filter = filterByList(
     includedSchemas,
     excludedSchemas,

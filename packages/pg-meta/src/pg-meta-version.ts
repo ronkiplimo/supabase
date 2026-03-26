@@ -11,9 +11,7 @@ export const pgVersionZod = z.object({
 
 function retrieve() {
   return {
-    sql:
-      `-- source: dashboard\n-- description: Retrieve a single PostgreSQL version by identifier\n` +
-      VERSION_SQL,
+    sql: VERSION_SQL,
     zod: pgVersionZod,
   }
 }

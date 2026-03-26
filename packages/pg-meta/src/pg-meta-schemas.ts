@@ -25,7 +25,7 @@ function list({
   sql: string
   zod: typeof pgSchemaArrayZod
 } {
-  let sql = `-- source: dashboard\n-- description: List all schemas with metadata\n` + SCHEMAS_SQL
+  let sql = SCHEMAS_SQL
   if (!includeSystemSchemas) {
     sql = `${sql} and not (n.nspname in (${DEFAULT_SYSTEM_SCHEMAS.map(literal).join(',')}))`
   }

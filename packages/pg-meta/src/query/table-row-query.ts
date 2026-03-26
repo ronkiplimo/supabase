@@ -243,7 +243,7 @@ export const getTableRowsSql = ({
   const DASHBOARD_QUERY_COMMENT = `
     -- source: dashboard
     -- description: Fetch table rows with filtering, sorting, pagination, and truncation
-  `
+  `.trim()
   return `${DASHBOARD_QUERY_COMMENT}
   ${baseSelectQuery}
   ${finalQueryChain.toSql({ isCTE: true, isFinal: true })}`

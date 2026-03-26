@@ -53,17 +53,31 @@ export default function TimeSlotPicker({
           className="p-1.5 rounded-md text-foreground-lighter hover:bg-surface-300/50 hover:text-foreground transition-colors"
           aria-label="Back to calendar"
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M10 12L6 8L10 4"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </button>
         <span className="text-foreground font-medium text-sm">
           {dateLabel}
           <span className="text-foreground-lighter font-normal">
             {' · '}
-            {new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'short' })
-              .formatToParts(new Date())
-              .find((p) => p.type === 'timeZoneName')?.value}
+            {
+              new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'short' })
+                .formatToParts(new Date())
+                .find((p) => p.type === 'timeZoneName')?.value
+            }
           </span>
         </span>
       </div>
@@ -74,25 +88,24 @@ export default function TimeSlotPicker({
         </p>
       ) : (
         <ScrollFadeList>
-            {formattedSlots.map((slot) => {
-              const isSelected =
-                selectedSlot?.startMillisUtc === slot.startMillisUtc
-              return (
-                <button
-                  key={slot.startMillisUtc}
-                  type="button"
-                  onClick={() => onSelectSlot(slot)}
-                  className={cn(
-                    'w-full px-4 py-2.5 rounded-md text-sm text-left transition-colors border',
-                    isSelected
-                      ? 'border-brand-500 bg-brand-500/10 text-brand-500 font-medium'
-                      : 'border-muted text-foreground hover:border-foreground-lighter hover:bg-surface-300/30'
-                  )}
-                >
-                  {slot.label}
-                </button>
-              )
-            })}
+          {formattedSlots.map((slot, idx) => {
+            const isSelected = selectedSlot?.startMillisUtc === slot.startMillisUtc
+            return (
+              <button
+                key={`${idx}-${slot.startMillisUtc}`}
+                type="button"
+                onClick={() => onSelectSlot(slot)}
+                className={cn(
+                  'w-full px-4 py-2.5 rounded-md text-sm text-left transition-colors border',
+                  isSelected
+                    ? 'border-brand-500 bg-brand-500/10 text-brand-500 font-medium'
+                    : 'border-muted text-foreground hover:border-foreground-lighter hover:bg-surface-300/30'
+                )}
+              >
+                {slot.label}
+              </button>
+            )
+          })}
         </ScrollFadeList>
       )}
     </div>
@@ -130,7 +143,11 @@ function ScrollFadeList({ children }: { children: React.ReactNode }) {
       ref={onRef}
       onScroll={updateFades}
       className="flex flex-col gap-2 max-h-[320px] overflow-y-auto pr-1 py-1"
-      style={{ maskImage: mask, WebkitMaskImage: mask, transition: 'mask-image 0.15s ease, -webkit-mask-image 0.15s ease' }}
+      style={{
+        maskImage: mask,
+        WebkitMaskImage: mask,
+        transition: 'mask-image 0.15s ease, -webkit-mask-image 0.15s ease',
+      }}
     >
       {children}
     </div>

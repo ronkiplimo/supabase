@@ -1,8 +1,9 @@
 import useLatest from 'hooks/misc/useLatest'
 import { useEffect } from 'react'
 import { eventMatchesHotkey, parseHotkey } from 'state/shortcuts/hotkey-utils'
-import { SHORTCUT_DEFINITIONS, type ShortcutId } from 'state/shortcuts/registry'
+import { SHORTCUT_DEFINITIONS } from 'state/shortcuts/registry'
 import { useShortcutStateSnapshot } from 'state/shortcuts/shortcut-state'
+import { ShortcutId } from 'state/shortcuts/types'
 
 /**
  * Subscribe to a registered shortcut by ID.

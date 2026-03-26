@@ -1,4 +1,13 @@
 import { RotateCcw } from 'lucide-react'
+import { hotkeyToDisplayKeys } from 'state/shortcuts/hotkey-utils'
+import { SHORTCUT_DEFINITIONS } from 'state/shortcuts/registry'
+import {
+  resetAllShortcuts,
+  resetShortcut,
+  setShortcutEnabled,
+  useShortcutStateSnapshot,
+} from 'state/shortcuts/shortcut-state'
+import { SHORTCUT_CATEGORIES, ShortcutDefinition, ShortcutId } from 'state/shortcuts/types'
 import { Button, Card, CardContent, KeyboardShortcut, Switch } from 'ui'
 import {
   PageSection,
@@ -9,28 +18,9 @@ import {
   PageSectionTitle,
 } from 'ui-patterns/PageSection'
 
-import {
-  SHORTCUT_CATEGORIES,
-  SHORTCUT_DEFINITIONS,
-  type ShortcutDefinition,
-  type ShortcutId,
-} from 'state/shortcuts/registry'
-import {
-  resetAllShortcuts,
-  resetShortcut,
-  setShortcutEnabled,
-  useShortcutStateSnapshot,
-} from 'state/shortcuts/shortcut-state'
-import { hotkeyToDisplayKeys } from 'state/shortcuts/hotkey-utils'
 import { ShortcutRecorder } from './ShortcutRecorder'
 
-function ShortcutRow({
-  definition,
-  isLast,
-}: {
-  definition: ShortcutDefinition
-  isLast: boolean
-}) {
+function ShortcutRow({ definition, isLast }: { definition: ShortcutDefinition; isLast: boolean }) {
   const snap = useShortcutStateSnapshot()
   const override = snap.overrides[definition.id]
   const effectiveHotkey = (override?.hotkey as string) ?? definition.defaultHotkey
@@ -90,7 +80,12 @@ export function ShortcutSettings() {
         <div className="space-y-6">
           {hasOverrides && (
             <div className="flex justify-end">
-              <Button type="default" size="tiny" icon={<RotateCcw size={14} />} onClick={resetAllShortcuts}>
+              <Button
+                type="default"
+                size="tiny"
+                icon={<RotateCcw size={14} />}
+                onClick={resetAllShortcuts}
+              >
                 Reset all to defaults
               </Button>
             </div>

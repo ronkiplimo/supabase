@@ -28,7 +28,8 @@ interface ModelSelectorProps {
 export const ModelSelector = ({ selectedModel, onSelectModel }: ModelSelectorProps) => {
   const router = useRouter()
   const { data: organization } = useSelectedOrganizationQuery()
-  const { hasAccess: hasAccessToAdvanceModel } = useCheckEntitlements('assistant.advance_model')
+  const { hasAccess: hasAccessToAdvanceModel, isLoading: isLoadingEntitlements } =
+    useCheckEntitlements('assistant.advance_model')
 
   const [open, setOpen] = useState(false)
 
@@ -81,7 +82,7 @@ export const ModelSelector = ({ selectedModel, onSelectModel }: ModelSelectorPro
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div>
-                          <Badge role="button" variant="warning">
+                          <Badge variant="warning">
                             Upgrade
                           </Badge>
                         </div>

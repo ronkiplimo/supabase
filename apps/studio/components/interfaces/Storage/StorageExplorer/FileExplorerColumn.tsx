@@ -21,6 +21,7 @@ import {
 } from '../Storage.constants'
 import type { StorageColumn, StorageItemWithColumn } from '../Storage.types'
 import { FileExplorerRow } from './FileExplorerRow'
+import { isPickerItemSelectable, useStorageExplorerPicker } from './StorageExplorerPickerContext'
 
 const DragOverOverlay = ({ isOpen, onDragLeave, onDrop, folderIsEmpty }: any) => {
   return (
@@ -83,6 +84,7 @@ export const FileExplorerColumn = ({
   const fileExplorerColumnRef = useRef<any>(null)
 
   const snap = useStorageExplorerStateSnapshot()
+  const picker = useStorageExplorerPicker()
   const { can: canUpdateStorage } = useAsyncCheckPermissions(PermissionAction.STORAGE_WRITE, '*')
 
   useEffect(() => {
@@ -94,19 +96,24 @@ export const FileExplorerColumn = ({
     }
   }, [column])
 
+  const visibleColumnItems =
+    picker && picker.hideUnsupportedFiles
+      ? column.items.filter((item) => isPickerItemSelectable(item, picker))
+      : column.items
+
   const haveSelectedItems = selectedItems.length > 0
-  const columnItemsId = column.items.map((item) => item.id)
-  const columnFiles = column.items.filter((item) => item.type === STORAGE_ROW_TYPES.FILE)
+  const columnItemsId = visibleColumnItems.map((item) => item.id)
+  const columnFiles = visibleColumnItems.filter((item) => item.type === STORAGE_ROW_TYPES.FILE)
   const selectedItemsFromColumn = selectedItems.filter((item) => columnItemsId.includes(item.id))
   const selectedFilesFromColumn = selectedItemsFromColumn.filter(
     (item) => item.type === STORAGE_ROW_TYPES.FILE
   )
 
-  const columnItems = column.items.map((item, index) => ({ ...item, columnIndex: index }))
+  const columnItems = visibleColumnItems.map((item, index) => ({ ...item, columnIndex: index }))
   const columnItemsSize = sum(columnItems.map((item) => get(item, ['metadata', 'size'], 0)))
 
   const isEmpty =
-    column.items.filter((item) => item.status !== STORAGE_ROW_STATUS.LOADING).length === 0
+    visibleColumnItems.filter((item) => item.status !== STORAGE_ROW_STATUS.LOADING).length === 0
 
   const { show } = useContextMenu()
   const displayMenu = (event: any) => {
@@ -248,7 +255,7 @@ export const FileExplorerColumn = ({
 
       {/* Drag drop upload CTA for when column is empty */}
       {!(snap.isSearching && itemSearchString.length > 0) &&
-        column.items.length === 0 &&
+        visibleColumnItems.length === 0 &&
         column.status !== STORAGE_ROW_STATUS.LOADING && (
           <div className="h-full w-full flex flex-col items-center justify-center">
             <img

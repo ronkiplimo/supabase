@@ -27,6 +27,8 @@ export type StorageExplorerProps = {
   variant?: 'default' | 'picker'
   pickerReturnValue?: StoragePickerReturnValue
   onPickerPick?: (value: string) => void
+  pickerAcceptedFileExtensions?: string[]
+  pickerHideUnsupportedFiles?: boolean
   /** Mobile sheet: list layout only; hides column/list switch (sort remains available). */
   forceListView?: boolean
   /** When set (embedded picker), loading gate uses bucket id from store instead of the route. */
@@ -38,6 +40,8 @@ export const StorageExplorer = ({
   variant = 'default',
   pickerReturnValue = 'objectPath',
   onPickerPick,
+  pickerAcceptedFileExtensions,
+  pickerHideUnsupportedFiles = false,
   forceListView = false,
   expectedBucketId,
   className,
@@ -226,6 +230,8 @@ export const StorageExplorer = ({
         returnValue={pickerReturnValue}
         onPick={onPickerPick}
         forceListView={forceListView}
+        acceptedFileExtensions={pickerAcceptedFileExtensions}
+        hideUnsupportedFiles={pickerHideUnsupportedFiles}
       >
         {explorerTree}
       </StorageExplorerPickerProvider>

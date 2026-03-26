@@ -48,8 +48,8 @@ import {
 } from '../Storage.constants'
 import { StorageItemWithColumn, type StorageItem } from '../Storage.types'
 import { FileExplorerRowEditing } from './FileExplorerRowEditing'
-import { useStorageExplorerPicker } from './StorageExplorerPickerContext'
 import { copyPathToFolder, getPathAlongFoldersToIndex } from './StorageExplorer.utils'
+import { isPickerItemSelectable, useStorageExplorerPicker } from './StorageExplorerPickerContext'
 import { useCopyUrl } from './useCopyUrl'
 import { fetchFileUrl } from './useFetchFileUrlQuery'
 import { useProjectApiUrl } from '@/data/config/project-endpoint-query'
@@ -144,6 +144,7 @@ export const FileExplorerRow = ({
     openedFolders.length > columnIndex ? openedFolders[columnIndex].name === item.name : false
   const isPreviewed = !isEmpty(selectedFilePreview) && isEqual(selectedFilePreview?.id, item.id)
   const { can: canUpdateFiles } = useAsyncCheckPermissions(PermissionAction.STORAGE_WRITE, '*')
+  const isSelectableInPicker = isPickerItemSelectable(item, picker)
 
   const onSelectFile = async (columnIndex: number) => {
     popColumnAtIndex(columnIndex)
@@ -159,19 +160,14 @@ export const FileExplorerRow = ({
   }
 
   const pickFile = async () => {
-    if (!picker || item.isCorrupted) return
+    if (!picker || item.isCorrupted || !isSelectableInPicker) return
     try {
       const objectPath = resolveObjectPathForItem()
       if (picker.returnValue === 'objectPath') {
         picker.onPick(objectPath)
         return
       }
-      let url = await fetchFileUrl(
-        objectPath,
-        projectRef,
-        selectedBucket.id,
-        selectedBucket.public
-      )
+      let url = await fetchFileUrl(objectPath, projectRef, selectedBucket.id, selectedBucket.public)
       const isCustomDomainActive = !!customEndpoint
       if (isCustomDomainActive && hostEndpoint) {
         url = url.replace(hostEndpoint, customEndpoint)
@@ -354,7 +350,8 @@ export const FileExplorerRow = ({
           `${isOpened ? 'bg-selection' : ''}`,
           `${isSelected ? 'bg-selection' : ''}`,
           `${isPreviewed ? 'bg-selection hover:bg-selection' : ''}`,
-          `${item.status !== STORAGE_ROW_STATUS.LOADING ? 'cursor-pointer' : ''}`
+          `${item.status !== STORAGE_ROW_STATUS.LOADING ? 'cursor-pointer' : ''}`,
+          `${picker && !isSelectableInPicker ? 'opacity-50 cursor-not-allowed' : ''}`
         )}
         onClick={(event) => {
           event.stopPropagation()
@@ -365,6 +362,7 @@ export const FileExplorerRow = ({
             return
           }
           if (picker) {
+            if (!isSelectableInPicker) return
             void pickFile()
             return
           }

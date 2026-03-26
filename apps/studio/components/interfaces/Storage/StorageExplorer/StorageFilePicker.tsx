@@ -29,6 +29,8 @@ export type StorageFilePickerProps = {
   onOpenChange: (open: boolean) => void
   projectRef: string
   returnValue?: StoragePickerReturnValue
+  acceptedFileExtensions?: string[]
+  hideUnsupportedFiles?: boolean
   onSelect: (value: string) => void
   title?: string
 }
@@ -50,12 +52,16 @@ function StorageFilePickerExplorer({
   projectRef,
   bucketId,
   returnValue,
+  acceptedFileExtensions,
+  hideUnsupportedFiles,
   onSelect,
   forceListView,
 }: {
   projectRef: string
   bucketId: string
   returnValue: StoragePickerReturnValue
+  acceptedFileExtensions?: string[]
+  hideUnsupportedFiles?: boolean
   onSelect: (value: string) => void
   forceListView: boolean
 }) {
@@ -71,6 +77,8 @@ function StorageFilePickerExplorer({
         <StorageExplorer
           variant="picker"
           pickerReturnValue={returnValue}
+          pickerAcceptedFileExtensions={acceptedFileExtensions}
+          pickerHideUnsupportedFiles={hideUnsupportedFiles}
           onPickerPick={onSelect}
           forceListView={forceListView}
           expectedBucketId={bucketId}
@@ -107,6 +115,8 @@ export function StorageFilePicker({
   onOpenChange,
   projectRef,
   returnValue = 'objectPath',
+  acceptedFileExtensions,
+  hideUnsupportedFiles = false,
   onSelect,
   title = 'Choose a file',
 }: StorageFilePickerProps) {
@@ -148,6 +158,8 @@ export function StorageFilePicker({
         projectRef={projectRef}
         bucketId={selectedBucket.id}
         returnValue={returnValue}
+        acceptedFileExtensions={acceptedFileExtensions}
+        hideUnsupportedFiles={hideUnsupportedFiles}
         onSelect={handleSelect}
         forceListView={isMobileLayout}
       />

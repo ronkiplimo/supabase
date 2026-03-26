@@ -238,6 +238,7 @@ export const CreateOrUpdateOAuthAppSheet = ({
           onOpenChange={setStoragePickerOpen}
           projectRef={projectRef}
           returnValue="publicUrl"
+          acceptedFileExtensions={['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg']}
           title="Choose logo from Storage"
           onSelect={handlePickLogoFromStorage}
         />

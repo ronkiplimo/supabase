@@ -11,7 +11,7 @@ An internal 504 from an Edge Function means the function failed to return a resp
 
 As of now, this limit cannot be increased. If your function always needs more time than allowed, skip to [When optimization isn't enough](#when-optimization-is-not-enough) section. Otherwise, follow the steps below to speed up response times.
 
-### Step 1: Identifying Slow Functions
+### Step 1: Identifying slow Functions
 
 You can filter for 504 events in the Log Explorer with the below [query](/dashboard/project/_/logs/explorer?q=select%0A++cast%28timestamp+as+datetime%29+as+timestamp%2C%0A++req.pathname%2C%0A++res.status_code%2C%0A++metadata.execution_time_ms%0Afrom%0A++function_edge_logs%0A++cross+join+UNNEST%28metadata%29+as+metadata%0A++cross+join+UNNEST%28metadata.request%29+as+req%0A++cross+join+UNNEST%28metadata.response%29+as+res%0Awhere+res.status_code+%3D+504%0Alimit+20%3B):
 ```sql

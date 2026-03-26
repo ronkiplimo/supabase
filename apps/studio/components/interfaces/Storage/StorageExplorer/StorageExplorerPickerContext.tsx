@@ -39,7 +39,9 @@ export function StorageExplorerPickerProvider({
     hideUnsupportedFiles,
   }
   return (
-    <StorageExplorerPickerContext.Provider value={value}>{children}</StorageExplorerPickerContext.Provider>
+    <StorageExplorerPickerContext.Provider value={value}>
+      {children}
+    </StorageExplorerPickerContext.Provider>
   )
 }
 

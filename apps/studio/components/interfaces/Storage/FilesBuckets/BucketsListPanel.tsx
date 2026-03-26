@@ -52,7 +52,8 @@ export const BucketsListPanel = ({
   const normalizedSearch = debouncedFilterString.trim()
 
   const isSortEnabled = !!sortBucket && !!onSortBucketChange
-  const sortColumn = isSortEnabled && sortBucket === STORAGE_BUCKET_SORT.CREATED_AT ? 'created_at' : 'name'
+  const sortColumn =
+    isSortEnabled && sortBucket === STORAGE_BUCKET_SORT.CREATED_AT ? 'created_at' : 'name'
   const sortOrder = isSortEnabled && sortBucket === STORAGE_BUCKET_SORT.CREATED_AT ? 'desc' : 'asc'
 
   const { data: storageConfig } = useProjectStorageConfigQuery(
@@ -138,7 +139,8 @@ export const BucketsListPanel = ({
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button type="default" icon={<ArrowDownNarrowWide />}>
-                          Sorted by {sortBucket === STORAGE_BUCKET_SORT.ALPHABETICAL ? 'name' : 'created at'}
+                          Sorted by{' '}
+                          {sortBucket === STORAGE_BUCKET_SORT.ALPHABETICAL ? 'name' : 'created at'}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="w-40">

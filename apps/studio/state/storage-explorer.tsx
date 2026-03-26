@@ -1989,10 +1989,7 @@ export const StorageExplorerEmbeddedStateProvider = ({
   persistExplorerPreferences = false,
   initialView,
 }: StorageExplorerEmbeddedStateProviderProps) => {
-  const { data: project } = useProjectDetailQuery(
-    { ref: projectRef },
-    { enabled: !!projectRef }
-  )
+  const { data: project } = useProjectDetailQuery({ ref: projectRef }, { enabled: !!projectRef })
   const isPaused = project?.status === PROJECT_STATUS.INACTIVE
 
   const { data: bucket } = useBucketQuery(

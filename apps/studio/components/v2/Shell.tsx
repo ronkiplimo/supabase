@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { PanelLeftOpen } from 'lucide-react'
 import { MobileSheetProvider } from 'components/layouts/Navigation/NavigationBar/MobileSheetContext'
 import { LayoutSidebar } from 'components/layouts/ProjectLayout/LayoutSidebar'
+import { PanelLeftOpen, Plus } from 'lucide-react'
 import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import {
+  Button,
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
@@ -28,6 +29,7 @@ const BROWSER_COLLAPSED_STORAGE_KEY = 'v2-browser-panel-collapsed'
 
 export function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const isData = Boolean(pathname?.includes('/data/') || pathname?.endsWith('/data'))
   const { projectRef } = useV2Params()
   const [isBrowserCollapsed, setIsBrowserCollapsed] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false
@@ -72,7 +74,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 {showCollapsed && (
                   <div className="flex flex-col items-center w-9 shrink-0 border-r border-border bg-dash-sidebar pt-1.5 gap-1">
                     <Tooltip delayDuration={0}>
-                      <TooltipTrigger asChild>
+                      <TooltipTrigger className="flex flex-col gap-2">
                         <button
                           type="button"
                           onClick={() => setIsBrowserCollapsed(false)}
@@ -82,10 +84,25 @@ export function Shell({ children }: { children: React.ReactNode }) {
                           <PanelLeftOpen className="h-4 w-4" strokeWidth={1.5} />
                         </button>
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="text-xs">
+                      <TooltipContent side="right" className="text-xs px-2">
                         Expand panel
                       </TooltipContent>
                     </Tooltip>
+                    {isData && (
+                      <Tooltip delayDuration={0}>
+                        <TooltipTrigger className="flex flex-col gap-2">
+                          <Button
+                            type="default"
+                            size="tiny"
+                            className="px-0 aspect-square"
+                            icon={<Plus className="h-3 w-3" strokeWidth={1.5} />}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="text-xs px-2">
+                          Add module
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
                   </div>
                 )}
 

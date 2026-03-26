@@ -90,7 +90,7 @@ export function ActivityBar({
                   </button>
                 )}
               </TooltipTrigger>
-              <TooltipContent side={tooltipSide} className="text-xs">
+              <TooltipContent side={tooltipSide} className="text-xs px-2">
                 {item.label}
               </TooltipContent>
             </Tooltip>
@@ -156,7 +156,7 @@ export function LeftActivityBar() {
         {
           id: 'obs',
           icon: <ChartArea className="h-4 w-4" strokeWidth={1.5} />,
-          label: 'Health',
+          label: 'Observe',
           badge: hasAdvisorWarnings,
           href: `${base}/obs/logs`,
         },

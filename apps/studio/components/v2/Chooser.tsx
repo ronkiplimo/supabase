@@ -8,6 +8,7 @@ import {
   FunctionSquare,
   Globe,
   HardDrive,
+  Plug,
   KeyRound,
   Layers,
   ShieldCheck,
@@ -42,12 +43,17 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   buckets: <HardDrive className="size-3" strokeWidth={1.5} />,
   'edge-functions': <EdgeFunctions className="size-3" strokeWidth={1.5} />,
   channels: <Realtime className="size-3" strokeWidth={1.5} />,
+  integrations: <Plug className="size-3" strokeWidth={1.5} />,
 }
 
 const CATEGORY_GROUPS: Array<{ label: string; categories: string[] }> = [
   {
     label: 'Database',
     categories: ['tables', 'functions', 'types', 'roles', 'extensions', 'indexes', 'publications'],
+  },
+  {
+    label: 'Integrations',
+    categories: ['integrations'],
   },
   {
     label: 'Auth',

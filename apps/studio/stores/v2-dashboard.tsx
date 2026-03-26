@@ -48,6 +48,7 @@ export const CATEGORY_DOMAIN: Record<string, DataTabDomain> = {
   buckets: 'st',
   'edge-functions': 'fn',
   channels: 'rt',
+  integrations: 'db',
 }
 
 export const CATEGORY_LABELS: Record<string, string> = {
@@ -64,6 +65,7 @@ export const CATEGORY_LABELS: Record<string, string> = {
   buckets: 'Buckets',
   'edge-functions': 'Edge functions',
   channels: 'Channels',
+  integrations: 'Integrations',
 }
 
 /** Legacy global keys (pre–per-project persistence); read once for migration. */

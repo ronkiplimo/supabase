@@ -3,7 +3,7 @@
 import { Plus, X } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect } from 'react'
-import { cn } from 'ui'
+import { cn, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
 
 import { TypeBadge } from './TypeBadge'
 import { useV2Params } from '@/app/v2/V2ParamsContext'
@@ -13,6 +13,8 @@ import {
   useV2DashboardStore,
   type DataTab,
 } from '@/stores/v2-dashboard'
+
+const NEW_TAB_ID = 'data:new'
 
 /** Returns the most specific (longest-path) tab that the current pathname is under. */
 function useActiveTab(dataTabs: DataTab[], pathname: string | null): DataTab | null {
@@ -34,6 +36,29 @@ export function DataTabBar() {
   const activeTab = useActiveTab(visibleTabs, pathname)
   const chooserPath = projectRef ? `/v2/project/${projectRef}/data` : '#'
 
+  // Manage temporary chooser tab lifecycle.
+  useEffect(() => {
+    if (!projectRef || !pathname) return
+    const hasNewTab = dataTabs.some((t) => t.id === NEW_TAB_ID)
+    const isChooser = pathname === chooserPath
+
+    if (isChooser && !hasNewTab) {
+      openDataTab({
+        id: NEW_TAB_ID,
+        label: 'New',
+        type: 'list',
+        category: 'chooser',
+        domain: 'db',
+        path: chooserPath,
+      })
+      return
+    }
+
+    if (!isChooser && hasNewTab) {
+      closeDataTab(NEW_TAB_ID)
+    }
+  }, [projectRef, pathname, chooserPath, dataTabs, openDataTab, closeDataTab])
+
   // Auto-register tabs for direct deep links to single-data list views (e.g. /data/users).
   useEffect(() => {
     if (!projectRef || !pathname) return
@@ -47,8 +72,10 @@ export function DataTabBar() {
     if (!(category in CATEGORY_LABELS)) return
 
     if (category === 'edge-functions' && detailKey) {
+      const id = `edge-function:${detailKey}`
+      if (dataTabs.some((t) => t.id === id)) return
       openDataTab({
-        id: `edge-function:${detailKey}`,
+        id,
         label: detailKey,
         type: 'detail',
         category,
@@ -58,6 +85,7 @@ export function DataTabBar() {
       return
     }
 
+    if (dataTabs.some((t) => t.id === category)) return
     openDataTab({
       id: category,
       label: CATEGORY_LABELS[category] ?? category,
@@ -66,7 +94,7 @@ export function DataTabBar() {
       domain: CATEGORY_DOMAIN[category] ?? 'db',
       path: `${base}${category}`,
     })
-  }, [projectRef, pathname, openDataTab])
+  }, [projectRef, pathname, openDataTab, dataTabs])
 
   const closeTabAndRoute = (tab: DataTab) => {
     closeDataTab(tab.id)
@@ -132,14 +160,33 @@ export function DataTabBar() {
           })}
         </div>
       </div>
-      <button
-        type="button"
-        onClick={() => router.push(chooserPath)}
-        className="shrink-0 h-full aspect-square flex items-center justify-center border-l border-border text-foreground-lighter hover:text-foreground hover:bg-sidebar-accent/50 transition-colors"
-        aria-label="Open data chooser"
-      >
-        <Plus className="h-4 w-4" />
-      </button>
+      <Tooltip>
+        <TooltipTrigger>
+          <button
+            type="button"
+            onClick={() => {
+              if (!dataTabs.some((t) => t.id === NEW_TAB_ID)) {
+                openDataTab({
+                  id: NEW_TAB_ID,
+                  label: 'New',
+                  type: 'list',
+                  category: 'chooser',
+                  domain: 'db',
+                  path: chooserPath,
+                })
+              }
+              router.push(chooserPath)
+            }}
+            className="shrink-0 h-full aspect-square flex items-center justify-center border-l border-border text-foreground-lighter hover:text-foreground hover:bg-sidebar-accent/50 transition-colors"
+            aria-label="Open data chooser"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="text-xs px-2">
+          New tab
+        </TooltipContent>
+      </Tooltip>
     </div>
   )
 }

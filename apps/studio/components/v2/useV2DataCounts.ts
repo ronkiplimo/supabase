@@ -14,6 +14,7 @@ import { useProjectDetailQuery } from 'data/projects/project-detail-query'
 import { useTablesQuery } from 'data/tables/tables-query'
 import { usePaginatedBucketsQuery } from 'data/storage/buckets-query'
 import { thirdPartyAuthIntegrationsQueryOptions } from 'data/third-party-auth/integrations-query'
+import { useInstalledIntegrations } from 'components/interfaces/Integrations/Landing/useInstalledIntegrations'
 
 export function useV2DataCounts(projectRef: string | undefined) {
   const { data: project } = useProjectDetailQuery(
@@ -67,6 +68,7 @@ export function useV2DataCounts(projectRef: string | undefined) {
   )
 
   const { data: oauthAppsData } = useOAuthServerAppsQuery({ projectRef })
+  const { installedIntegrations } = useInstalledIntegrations()
 
   return {
     tables: Array.isArray(tables) ? tables.length : 0,
@@ -81,6 +83,7 @@ export function useV2DataCounts(projectRef: string | undefined) {
     indexes: Array.isArray(indexes) ? indexes.length : 0,
     providers: Array.isArray(thirdPartyAuth) ? thirdPartyAuth.length : 0,
     oauthApps: oauthAppsData?.clients?.length ?? 0,
+    integrations: installedIntegrations.length,
     /** Realtime channels — v2 data UI is not wired to an API yet */
     channels: 0,
   }

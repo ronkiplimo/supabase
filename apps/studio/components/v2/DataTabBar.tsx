@@ -132,7 +132,7 @@ export function DataTabBar() {
                 tabIndex={0}
                 aria-selected={isActive}
                 className={cn(
-                  'group relative flex items-center gap-1.5 pl-2.5 pr-1 py-1.5 border-r border-border shrink-0 h-full max-w-[200px] cursor-pointer select-none',
+                  'group relative flex items-center gap-1.5 pl-2.5 pr-2 py-1.5 border-r border-border shrink-0 h-full max-w-[200px] cursor-pointer select-none',
                   isActive
                     ? 'bg-background text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-foreground'
                     : 'text-foreground-lighter hover:text-foreground hover:bg-sidebar-accent/50'
@@ -150,7 +150,7 @@ export function DataTabBar() {
                 <button
                   type="button"
                   onClick={(e) => handleClose(tab, e)}
-                  className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-sidebar-accent text-foreground-lighter hover:text-foreground shrink-0"
+                  className="-ml-0.5 opacity-0 group-hover:opacity-100 p-0.5 rounded hover:!bg-sidebar-accent text-foreground-lighter hover:text-foreground shrink-0"
                   aria-label={`Close ${tab.label}`}
                 >
                   <X className="h-3 w-3" />
@@ -161,7 +161,7 @@ export function DataTabBar() {
         </div>
       </div>
       <Tooltip>
-        <TooltipTrigger>
+        <TooltipTrigger asChild>
           <button
             type="button"
             onClick={() => {

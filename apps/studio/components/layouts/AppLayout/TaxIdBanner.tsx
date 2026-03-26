@@ -26,6 +26,7 @@ export const TaxIdBanner = () => {
   const shouldFetch = Boolean(
     !!slug &&
     org?.plan?.id !== 'free' &&
+    !org?.billing_partner &&
     isDismissLoaded &&
     !isDismissed &&
     !!org?.organization_missing_tax_id
@@ -42,6 +43,7 @@ export const TaxIdBanner = () => {
     pathname.includes('sign-in') ||
     !org ||
     org.plan?.id === 'free' ||
+    org.billing_partner ||
     !isDismissLoaded ||
     isDismissed ||
     !org.organization_missing_tax_id ||

@@ -20,7 +20,6 @@ import {
 } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useContextMenu } from 'react-contexify'
-import { toast } from 'sonner'
 import { useStorageExplorerStateSnapshot } from 'state/storage-explorer'
 import {
   Checkbox,
@@ -48,11 +47,9 @@ import {
 } from '../Storage.constants'
 import { StorageItemWithColumn, type StorageItem } from '../Storage.types'
 import { FileExplorerRowEditing } from './FileExplorerRowEditing'
-import { copyPathToFolder, getPathAlongFoldersToIndex } from './StorageExplorer.utils'
+import { copyPathToFolder } from './StorageExplorer.utils'
 import { isPickerItemSelectable, useStorageExplorerPicker } from './StorageExplorerPickerContext'
 import { useCopyUrl } from './useCopyUrl'
-import { fetchFileUrl } from './useFetchFileUrlQuery'
-import { useProjectApiUrl } from '@/data/config/project-endpoint-query'
 
 export const RowIcon = ({
   view,
@@ -114,7 +111,6 @@ export const FileExplorerRow = ({
   style,
 }: FileExplorerRowProps) => {
   const {
-    projectRef,
     selectedBucket,
     selectedFilePreview,
     openedFolders,
@@ -133,7 +129,6 @@ export const FileExplorerRow = ({
     selectRangeItems,
   } = useStorageExplorerStateSnapshot()
   const picker = useStorageExplorerPicker()
-  const { hostEndpoint, customEndpoint } = useProjectApiUrl({ projectRef })
   const { show } = useContextMenu()
   const { onCopyUrl } = useCopyUrl()
 
@@ -151,32 +146,6 @@ export const FileExplorerRow = ({
     popOpenedFoldersAtIndex(columnIndex - 1)
     setSelectedFilePreview(itemWithColumnIndex)
     clearSelectedItems()
-  }
-
-  const resolveObjectPathForItem = () => {
-    if (item.path) return item.path
-    const pathToFile = getPathAlongFoldersToIndex({ openedFolders }, columnIndex)
-    return pathToFile.length > 0 ? `${pathToFile}/${item.name}` : item.name
-  }
-
-  const pickFile = async () => {
-    if (!picker || item.isCorrupted || !isSelectableInPicker) return
-    try {
-      const objectPath = resolveObjectPathForItem()
-      if (picker.returnValue === 'objectPath') {
-        picker.onPick(objectPath)
-        return
-      }
-      let url = await fetchFileUrl(objectPath, projectRef, selectedBucket.id, selectedBucket.public)
-      const isCustomDomainActive = !!customEndpoint
-      if (isCustomDomainActive && hostEndpoint) {
-        url = url.replace(hostEndpoint, customEndpoint)
-      }
-      picker.onPick(url)
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : 'Failed to resolve file URL'
-      toast.error(message)
-    }
   }
 
   const onCheckItem = (isShiftKeyHeld: boolean) => {
@@ -363,7 +332,7 @@ export const FileExplorerRow = ({
           }
           if (picker) {
             if (!isSelectableInPicker) return
-            void pickFile()
+            void onSelectFile(columnIndex)
             return
           }
           if (!isOpened && !isPreviewed) {

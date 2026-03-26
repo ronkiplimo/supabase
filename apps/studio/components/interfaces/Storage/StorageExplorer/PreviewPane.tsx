@@ -7,9 +7,11 @@ import { formatBytes } from 'lib/helpers'
 import { isEmpty } from 'lodash'
 import { AlertCircle, ChevronDown, Copy, Download, LoaderCircle, Trash2, X } from 'lucide-react'
 import SVG from 'react-inlinesvg'
+import { toast } from 'sonner'
 import { useStorageExplorerStateSnapshot } from 'state/storage-explorer'
 import {
   Button,
+  cn,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -18,8 +20,11 @@ import {
 
 import { URL_EXPIRY_DURATION } from '../Storage.constants'
 import { StorageItem } from '../Storage.types'
+import { getPathAlongFoldersToIndex } from './StorageExplorer.utils'
+import { useStorageExplorerPicker } from './StorageExplorerPickerContext'
 import { useCopyUrl } from './useCopyUrl'
-import { useFetchFileUrlQuery } from './useFetchFileUrlQuery'
+import { fetchFileUrl, useFetchFileUrlQuery } from './useFetchFileUrlQuery'
+import { useProjectApiUrl } from '@/data/config/project-endpoint-query'
 
 const PREVIEW_SIZE_LIMIT = 10 * 1024 * 1024 // 10MB
 
@@ -115,14 +120,18 @@ const PreviewFile = ({ item }: { item: StorageItem }) => {
 
 export const PreviewPane = () => {
   const {
+    projectRef,
     selectedBucket,
+    openedFolders,
     selectedFilePreview: file,
     setSelectedItemsToDelete,
     setSelectedFilePreview,
     setSelectedFileCustomExpiry,
     downloadFile,
   } = useStorageExplorerStateSnapshot()
+  const picker = useStorageExplorerPicker()
   const { onCopyUrl } = useCopyUrl()
+  const { hostEndpoint, customEndpoint } = useProjectApiUrl({ projectRef })
 
   const { can: canUpdateFiles } = useAsyncCheckPermissions(PermissionAction.STORAGE_WRITE, '*')
 
@@ -135,6 +144,32 @@ export const PreviewPane = () => {
   const createdAt = file.created_at ? new Date(file.created_at).toLocaleString() : 'Unknown'
   const updatedAt = file.updated_at ? new Date(file.updated_at).toLocaleString() : 'Unknown'
 
+  const onPickFromPreview = async () => {
+    if (!picker || !file || file.isCorrupted) return
+    try {
+      const objectPath =
+        file.path ??
+        (() => {
+          const pathToFile = getPathAlongFoldersToIndex({ openedFolders }, file.columnIndex)
+          return pathToFile.length > 0 ? `${pathToFile}/${file.name}` : file.name
+        })()
+
+      if (picker.returnValue === 'objectPath') {
+        picker.onPick(objectPath)
+        return
+      }
+
+      let url = await fetchFileUrl(objectPath, projectRef, selectedBucket.id, selectedBucket.public)
+      if (customEndpoint && hostEndpoint) {
+        url = url.replace(hostEndpoint, customEndpoint)
+      }
+      picker.onPick(url)
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Failed to resolve file URL'
+      toast.error(message)
+    }
+  }
+
   return (
     <Transition
       show={isOpen}
@@ -146,22 +181,36 @@ export const PreviewPane = () => {
       leaveTo="transform opacity-0"
     >
       <div
-        className="h-full border-l border-overlay bg-surface-100 p-4 overflow-y-auto"
+        className="h-full border-l border-overlay bg-surface-100 p-4 pt-0 overflow-y-auto"
         style={{ width }}
       >
         {/* Preview Header */}
-        <div className="flex w-full justify-end text-foreground-lighter transition-colors hover:text-foreground">
-          <X
-            className="cursor-pointer"
-            size={14}
-            strokeWidth={2}
-            onClick={() => setSelectedFilePreview(undefined)}
-          />
+        <div className="sticky top-0 z-10 -mt-4 -mx-4 mb-4 flex items-center justify-between border-b border-overlay bg-surface-100 px-4 py-3">
+          <div>
+            {picker && (
+              <Button
+                type="primary"
+                size="tiny"
+                onClick={() => void onPickFromPreview()}
+                disabled={file.isCorrupted}
+              >
+                Select file
+              </Button>
+            )}
+          </div>
+          <div className="text-foreground-lighter transition-colors hover:text-foreground">
+            <X
+              className="cursor-pointer"
+              size={14}
+              strokeWidth={2}
+              onClick={() => setSelectedFilePreview(undefined)}
+            />
+          </div>
         </div>
 
         {/* Preview Thumbnail*/}
-        <div className="my-4 border border-overlay">
-          <div className="flex h-56 w-full items-center 2xl:h-72">
+        <div className="mb-4 mt-8 border border-overlay">
+          <div className={cn('flex h-56 w-full items-center 2xl:h-72', picker && '2xl:h-56')}>
             <PreviewFile item={file} />
           </div>
         </div>

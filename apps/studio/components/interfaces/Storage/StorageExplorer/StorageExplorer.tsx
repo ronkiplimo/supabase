@@ -203,7 +203,7 @@ export const StorageExplorer = ({
             fetchMoreFolderContents({ index, column, searchString: itemSearchString })
           }
         />
-        {!isPicker && <PreviewPane />}
+        <PreviewPane />
       </div>
 
       <ConfirmDeleteModal />

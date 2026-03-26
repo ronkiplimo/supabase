@@ -7,6 +7,8 @@ import {
 import saveAs from 'file-saver'
 import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
 import { useHotKey } from 'hooks/ui/useHotKey'
+import { useShortcut } from 'hooks/ui/useShortcut'
+import { SHORTCUT_IDS } from 'state/shortcuts/registry'
 import { ChevronDown, Copy, Download, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -91,13 +93,13 @@ export const DownloadResultsButton = ({
     })
   }
 
-  useHotKey(
+  useShortcut(
+    SHORTCUT_IDS.RESULTS_COPY_MARKDOWN,
     (e) => {
       e.preventDefault()
       copyAsMarkdown()
     },
-    'm',
-    { enabled: copyMarkdownEnabled ?? isEmpty, shift: true }
+    { enabled: copyMarkdownEnabled ?? isEmpty }
   )
 
   useHotKey(

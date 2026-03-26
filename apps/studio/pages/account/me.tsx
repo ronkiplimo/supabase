@@ -5,6 +5,7 @@ import { AnalyticsSettings } from 'components/interfaces/Account/Preferences/Ana
 import { HotkeySettings } from 'components/interfaces/Account/Preferences/HotkeySettings'
 import { InlineEditorSettings } from 'components/interfaces/Account/Preferences/InlineEditorSettings'
 import { ProfileInformation } from 'components/interfaces/Account/Preferences/ProfileInformation'
+import { ShortcutSettings } from 'components/interfaces/Account/Preferences/ShortcutSettings'
 import { ThemeSettings } from 'components/interfaces/Account/Preferences/ThemeSettings'
 import AccountLayout from 'components/layouts/AccountLayout/AccountLayout'
 import { AppLayout } from 'components/layouts/AppLayout/AppLayout'
@@ -88,6 +89,8 @@ const ProfileCard = () => {
         <ThemeSettings />
 
         <HotkeySettings />
+
+        <ShortcutSettings />
 
         <InlineEditorSettings />
 

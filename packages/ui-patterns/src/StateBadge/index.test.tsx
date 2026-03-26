@@ -14,6 +14,7 @@ const stateBadgeExpectations: Array<{
   { state: 'skipped', label: 'Skipped', tone: 'neutral' },
   { state: 'enabled', label: 'Enabled', tone: 'positive' },
   { state: 'disabled', label: 'Disabled', tone: 'neutral' },
+  { state: 'unknown', label: 'Unknown', tone: 'neutral' },
 ]
 
 describe('StateBadge', () => {

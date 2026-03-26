@@ -9,6 +9,7 @@ export default function StateBadgeDemo() {
       <StateBadge state="skipped" />
       <StateBadge state="enabled" />
       <StateBadge state="disabled" />
+      <StateBadge state="unknown" />
       <StateBadge state="pending">Retrying</StateBadge>
     </div>
   )

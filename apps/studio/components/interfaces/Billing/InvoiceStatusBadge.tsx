@@ -1,6 +1,8 @@
 import { InlineLink } from 'components/ui/InlineLink'
 import { DOCS_URL } from 'lib/constants'
-import { Badge, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
+import { Tooltip, TooltipContent, TooltipTrigger } from 'ui'
+import { StateBadge, type StateBadgeState } from 'ui-patterns/StateBadge'
+
 import { InvoiceStatus } from './Invoices.types'
 
 interface InvoiceStatusBadgeProps {
@@ -9,32 +11,29 @@ interface InvoiceStatusBadgeProps {
   paymentProcessing: boolean
 }
 
-const invoiceStatusMapping: Record<
-  InvoiceStatus,
-  { label: string; badgeVariant: React.ComponentProps<typeof Badge>['variant'] }
-> = {
+const invoiceStatusMapping: Record<InvoiceStatus, { label: string; state: StateBadgeState }> = {
   [InvoiceStatus.PAID]: {
     label: 'Paid',
-    badgeVariant: 'success',
+    state: 'success',
   },
   [InvoiceStatus.VOID]: {
     label: 'Forgiven',
-    badgeVariant: 'warning',
+    state: 'skipped',
   },
 
   // We do not want to overcomplicate it for the user, so we'll treat uncollectible/open/issued the same from a user perspective
   // it's an outstanding invoice
   [InvoiceStatus.UNCOLLECTIBLE]: {
     label: 'Outstanding',
-    badgeVariant: 'destructive',
+    state: 'failure',
   },
   [InvoiceStatus.OPEN]: {
     label: 'Outstanding',
-    badgeVariant: 'destructive',
+    state: 'failure',
   },
   [InvoiceStatus.ISSUED]: {
     label: 'Outstanding',
-    badgeVariant: 'destructive',
+    state: 'failure',
   },
 }
 
@@ -46,16 +45,16 @@ const InvoiceStatusBadge = ({
   const statusMapping = paymentProcessing
     ? {
         label: 'Processing',
-        badgeVariant: 'warning' as React.ComponentProps<typeof Badge>['variant'],
+        state: 'pending' as StateBadgeState,
       }
     : invoiceStatusMapping[status]
 
   return (
     <Tooltip>
-      <TooltipTrigger>
-        <Badge variant={statusMapping?.badgeVariant || 'default'}>
+      <TooltipTrigger asChild>
+        <StateBadge state={statusMapping?.state || 'unknown'}>
           {statusMapping?.label || status}
-        </Badge>
+        </StateBadge>
       </TooltipTrigger>
       <TooltipContent side="bottom" className="max-w-xs [&>p]:text-center [&>div>p]:text-center">
         {[InvoiceStatus.OPEN, InvoiceStatus.ISSUED, InvoiceStatus.UNCOLLECTIBLE].includes(status) &&

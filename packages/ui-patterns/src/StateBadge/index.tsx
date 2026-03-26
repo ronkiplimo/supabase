@@ -1,11 +1,4 @@
-import {
-  Check,
-  Clock3,
-  SkipForward,
-  ToggleLeft,
-  ToggleRight,
-  X,
-} from 'lucide-react'
+import { Check, Clock3, HelpCircle, SkipForward, ToggleLeft, ToggleRight, X } from 'lucide-react'
 import type { ComponentType, HTMLAttributes, ReactNode } from 'react'
 import { cn } from 'ui'
 
@@ -16,6 +9,7 @@ export type StateBadgeState =
   | 'skipped'
   | 'enabled'
   | 'disabled'
+  | 'unknown'
 
 interface StateBadgeProps extends HTMLAttributes<HTMLDivElement> {
   state: StateBadgeState
@@ -29,8 +23,7 @@ const stateBadgeClassName =
 
 const stateBadgeToneClassNames: Record<StateBadgeTone, string> = {
   positive: 'bg-brand bg-opacity-10 text-brand-600 border-brand-500',
-  destructive:
-    'bg-destructive bg-opacity-10 text-destructive-600 border-destructive-500',
+  destructive: 'bg-destructive bg-opacity-10 text-destructive-600 border-destructive-500',
   neutral: 'bg-surface-75 text-foreground-light border-strong',
 }
 
@@ -71,6 +64,11 @@ const stateBadgeConfig: Record<
     label: 'Disabled',
     tone: 'neutral',
     icon: ToggleLeft,
+  },
+  unknown: {
+    label: 'Unknown',
+    tone: 'neutral',
+    icon: HelpCircle,
   },
 }
 

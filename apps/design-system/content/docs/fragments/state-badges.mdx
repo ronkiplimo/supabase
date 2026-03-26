@@ -1,6 +1,6 @@
 ---
 title: State Badge
-description: Segmented operational status badges for delivery outcomes and enabled or disabled state.
+description: Segmented operational status badges for delivery outcomes, enabled or disabled state, and unknown state.
 fragment: true
 ---
 
@@ -18,14 +18,14 @@ import { StateBadge } from 'ui-patterns/StateBadge'
 
 ## API Reference
 
-| Prop        | Type                                                                          | Default | Description                                                            |
-| ----------- | ----------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------- |
-| `state`     | `'success' \| 'failure' \| 'pending' \| 'skipped' \| 'enabled' \| 'disabled'` | —       | Semantic state. Determines both the icon and the badge tone.           |
-| `children`  | `React.ReactNode`                                                             | —       | Optional label override. Keeps the semantic icon and colour treatment. |
-| `className` | `string`                                                                      | —       | Additional classes applied to the root wrapper.                        |
+| Prop        | Type                                                                                       | Default | Description                                                            |
+| ----------- | ------------------------------------------------------------------------------------------ | ------- | ---------------------------------------------------------------------- |
+| `state`     | `'success' \| 'failure' \| 'pending' \| 'skipped' \| 'enabled' \| 'disabled' \| 'unknown'` | —       | Semantic state. Determines both the icon and the badge tone.           |
+| `children`  | `React.ReactNode`                                                                          | —       | Optional label override. Keeps the semantic icon and colour treatment. |
+| `className` | `string`                                                                                   | —       | Additional classes applied to the root wrapper.                        |
 
 ## Guidance
 
-Use `StateBadge` for short operational states where icon plus label improves scanability, such as delivery results or enabled and disabled status.
+Use `StateBadge` for short operational states where icon plus label improves scanability, such as delivery results, enabled and disabled status, or operational uncertainty.
 
 Keep the text to one or two words. For broader product categories or generic contextual metadata, keep using the `Badge` atom instead.

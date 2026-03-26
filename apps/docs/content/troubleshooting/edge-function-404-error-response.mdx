@@ -45,7 +45,7 @@ If the body contains a different message, or something custom, your code execute
 
 Go to: [Your function returned a 404](#your-function-returned-a-404)
 
-### Identifying 404s from the Function Logs
+### Identifying 404s from the Function logs
 
 Run the below query in the [Log Explorer](/dashboard/project/_/logs/explorer?q=SELECT%0A++req.pathname+AS+function_name,%0A++CASE%0A++++WHEN+metadata.execution_id+IS+NULL+THEN+%27unrecognized_function%27%0A++++ELSE+%27app_level_error%27%0A++END+AS+cause,%0A++timestamp%0AFROM%0A++function_edge_logs%0A++CROSS+JOIN+UNNEST(metadata)+AS+metadata%0A++CROSS+JOIN+UNNEST(metadata.request)+AS+req%0A++CROSS+JOIN+UNNEST(metadata.response)+AS+res%0AWHERE%0A++res.status_code+=+404%0ALIMIT+10;&its=&ite=):
 

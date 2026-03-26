@@ -1,8 +1,8 @@
 import { noop } from 'lodash'
 import { useEffect, useRef } from 'react'
-
 import { useStorageExplorerStateSnapshot } from 'state/storage-explorer'
 import { cn } from 'ui'
+
 import { CONTEXT_MENU_KEYS, STORAGE_ROW_STATUS, STORAGE_VIEWS } from '../Storage.constants'
 import type { StorageColumn, StorageItemWithColumn } from '../Storage.types'
 import { ColumnContextMenu } from './ColumnContextMenu'
@@ -47,7 +47,7 @@ export const FileExplorer = ({
     <div
       ref={fileExplorerRef}
       className={cn(
-        'file-explorer relative flex min-h-0 min-w-0 w-full flex-1 justify-between overflow-x-auto',
+        'file-explorer relative flex min-h-0 min-w-0 w-full flex-1 h-full justify-between overflow-x-auto',
         snap.view === STORAGE_VIEWS.LIST && 'h-full min-h-0 flex-col',
         snap.view === STORAGE_VIEWS.COLUMNS && 'h-full'
       )}

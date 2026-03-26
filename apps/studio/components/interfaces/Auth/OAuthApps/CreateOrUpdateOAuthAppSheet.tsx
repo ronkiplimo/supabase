@@ -11,6 +11,7 @@ import { useProjectApiUrl } from 'data/config/project-endpoint-query'
 import { useOAuthServerAppCreateMutation } from 'data/oauth-server-apps/oauth-server-app-create-mutation'
 import { useOAuthServerAppRegenerateSecretMutation } from 'data/oauth-server-apps/oauth-server-app-regenerate-secret-mutation'
 import { useOAuthServerAppUpdateMutation } from 'data/oauth-server-apps/oauth-server-app-update-mutation'
+import { Storage } from 'icons'
 import { DOCS_URL } from 'lib/constants'
 import { FolderOpen, Plus, Trash2, Upload, X } from 'lucide-react'
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
@@ -323,7 +324,7 @@ export const CreateOrUpdateOAuthAppSheet = ({
                       render={() => (
                         <FormItemLayout
                           label="Logo"
-                          description="Upload an image, or pick a file from Storage (choose a bucket, then a file). A public URL is used as logo_uri when possible—use a public bucket for a stable logo URL."
+                          description="Pick a file from a Storage bucket. Use a public bucket for a stable logo URL."
                         >
                           <FormControl_Shadcn_>
                             <div className="flex w-full max-w-md flex-col gap-3">
@@ -341,22 +342,22 @@ export const CreateOrUpdateOAuthAppSheet = ({
                                   {!hasLogo && <Upload size={14} />}
                                 </button>
                                 <div className="flex flex-wrap items-center gap-2">
-                                  <Button
+                                  {/* <Button
                                     type="default"
                                     size="tiny"
                                     icon={<Upload size={14} />}
                                     onClick={handleUploadLogo}
                                   >
                                     Upload
-                                  </Button>
+                                  </Button> */}
                                   {projectRef ? (
                                     <Button
                                       type="default"
                                       size="tiny"
-                                      icon={<FolderOpen size={14} />}
+                                      icon={<Storage strokeWidth={1.5} />}
                                       onClick={() => setStoragePickerOpen(true)}
                                     >
-                                      Storage
+                                      Select from Storage
                                     </Button>
                                   ) : null}
                                   {hasLogo && (

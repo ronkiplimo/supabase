@@ -126,6 +126,11 @@ function createStorageExplorerState(
         abortController = new AbortController()
       }
     },
+    latestFetchRequestId: 0,
+    createFetchRequest: () => {
+      state.latestFetchRequestId += 1
+      return state.latestFetchRequestId
+    },
 
     abortUploadCallbacks: {} as { [key: string]: (() => void)[] },
     abortUploads: (toastId: string | number) => {
@@ -334,6 +339,8 @@ function createStorageExplorerState(
       index: number
       searchString?: string
     }) => {
+      const previousColumns = state.columns
+      const requestId = state.createFetchRequest()
       state.abortApiCalls()
       state.updateRowStatus({
         name: folderName,
@@ -367,6 +374,8 @@ function createStorageExplorerState(
           abortController?.signal
         )
 
+        if (requestId !== state.latestFetchRequestId) return
+
         state.updateRowStatus({
           name: folderName,
           status: STORAGE_ROW_STATUS.READY,
@@ -385,13 +394,13 @@ function createStorageExplorerState(
           index
         )
       } catch (error: any) {
+        if (requestId !== state.latestFetchRequestId) return
+
         if (error.name === 'AbortError') {
-          state.updateRowStatus({
-            name: folderName,
-            status: STORAGE_ROW_STATUS.READY,
-            columnIndex: index,
-          })
+          // Preserve current content if this fetch was interrupted.
+          state.columns = previousColumns
         } else {
+          state.columns = previousColumns
           toast.error(`Failed to retrieve folder contents from "${folderName}": ${error.message}`)
         }
       }
@@ -462,6 +471,9 @@ function createStorageExplorerState(
       showLoading?: boolean
     }) => {
       if (state.selectedBucket.id === undefined) return
+      const previousColumns = state.columns
+      const previousOpenedFolders = state.openedFolders
+      const requestId = state.createFetchRequest()
 
       const pathsWithEmptyPrefix = [''].concat(paths)
 
@@ -495,6 +507,8 @@ function createStorageExplorerState(
           }
         })
       )
+
+      if (requestId !== state.latestFetchRequestId) return
 
       const formattedFolders = foldersItems.map((folderItems, idx) => {
         const prefix = paths.slice(0, idx).join('/')
@@ -532,6 +546,12 @@ function createStorageExplorerState(
         return folderInfo
       })
       state.openedFolders = updatedOpenedFolders
+
+      // If request was superseded while processing, keep latest known UI context.
+      if (requestId !== state.latestFetchRequestId) {
+        state.columns = previousColumns
+        state.openedFolders = previousOpenedFolders
+      }
     },
 
     /**
@@ -1993,28 +2013,52 @@ export const StorageExplorerEmbeddedStateProvider = ({
 
   useEffect(() => {
     const hasDataReady = !!project && !!bucket
-    if (!isPaused && hasDataReady && isSuccessSettings) {
-      const clientEndpoint = storageEndpoint ?? hostEndpoint ?? ''
-      const resumableUploadUrl = `${clientEndpoint}/storage/v1/upload/resumable`
+    if (isPaused || !hasDataReady || !isSuccessSettings) return
 
-      setState(
-        createStorageExplorerState(
+    const clientEndpoint = storageEndpoint ?? hostEndpoint ?? ''
+    const resumableUploadUrl = `${clientEndpoint}/storage/v1/upload/resumable`
+    const nextConnectionString = project.connectionString ?? ''
+    setState((current) => {
+      const isUninitialized = !current.projectRef
+
+      if (isUninitialized) {
+        return createStorageExplorerState(
           {
             projectRef: project.ref,
-            connectionString: project.connectionString ?? '',
+            connectionString: nextConnectionString,
             bucket,
             resumableUploadUrl,
             clientEndpoint,
           },
           { persistExplorerPreferences, initialView }
         )
-      )
-    }
+      }
+
+      const bucketChanged = current.selectedBucket?.id !== bucket.id
+
+      // Keep a stable store instance for the picker and patch context updates in place.
+      current.projectRef = project.ref
+      current.connectionString = nextConnectionString
+      current.resumableUploadUrl = resumableUploadUrl
+      current.selectedBucket = bucket
+
+      if (bucketChanged) {
+        current.columns = []
+        current.openedFolders = []
+        current.clearSelectedItems()
+        current.setSelectedItemsToDelete([])
+        current.setSelectedItemsToMove([])
+        current.setSelectedFilePreview(undefined)
+        current.setSelectedFileCustomExpiry(undefined)
+        current.setIsSearching(false)
+      }
+
+      return current
+    })
   }, [
     isPaused,
     project,
     bucket,
-    bucketId,
     isSuccessSettings,
     hostEndpoint,
     storageEndpoint,

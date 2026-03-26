@@ -340,11 +340,8 @@ export const FileExplorerRow = ({
       style={style}
       className="h-full border-b border-default"
       onContextMenu={(event) => {
+        event.preventDefault()
         event.stopPropagation()
-        if (picker) {
-          event.preventDefault()
-          return
-        }
         item.type === STORAGE_ROW_TYPES.FILE
           ? displayMenu(event, STORAGE_ROW_TYPES.FILE)
           : displayMenu(event, STORAGE_ROW_TYPES.FOLDER)
@@ -450,7 +447,7 @@ export const FileExplorerRow = ({
               size={14}
               strokeWidth={2}
             />
-          ) : picker ? null : (
+          ) : (
             <DropdownMenu>
               <DropdownMenuTrigger>
                 <div className="storage-row-menu opacity-0">

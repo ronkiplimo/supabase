@@ -76,6 +76,8 @@ export const StorageExplorer = ({
     : isRouteBucketLoading || (!!bucketId && bucketId !== selectedBucket.id)
 
   const bucketForFetch = isPicker ? (selectedBucket as Bucket | undefined) : routeBucket
+  const bucketForFetchId = bucketForFetch?.id
+  const bucketForFetchName = bucketForFetch?.name
 
   const [itemSearchString, setItemSearchString] = useState('')
   const debouncedSearchString = useDebounce(itemSearchString, 500)
@@ -117,10 +119,12 @@ export const StorageExplorer = ({
   })
 
   useEffect(() => {
-    const b = bucketForFetch as Bucket | undefined
-    if (!projectRef || !b?.id) return
-    void fetchContents(b)
-  }, [bucketForFetch, projectRef, debouncedSearchString, selectedBucket.id, view, fetchContents])
+    if (!projectRef || !bucketForFetchId || !bucketForFetchName) return
+    // These values intentionally trigger refetches when search/sort view changes.
+    void debouncedSearchString
+    void view
+    void fetchContents({ id: bucketForFetchId, name: bucketForFetchName } as Bucket)
+  }, [projectRef, bucketForFetchId, bucketForFetchName, debouncedSearchString, view, fetchContents])
 
   const onSelectAllItemsInColumn = (columnIndex: number) => {
     const columnFiles = columns[columnIndex].items
@@ -167,7 +171,7 @@ export const StorageExplorer = ({
     <div
       ref={storageExplorerRef}
       className={cn(
-        'bg-studio border border-overlay flex h-full min-h-0 w-full min-w-0 flex-1 flex-col rounded-md',
+        'bg-studio border border-overlay flex h-full min-h-full w-full min-w-0 flex-1 flex-col rounded-md',
         className
       )}
     >
@@ -182,7 +186,7 @@ export const StorageExplorer = ({
       ) : (
         <FileExplorerHeaderSelection />
       )}
-      <div className="file-explorer flex min-h-0 min-w-0 flex-1">
+      <div className="file-explorer flex min-h-0 min-w-0 flex-1 h-full">
         <FileExplorer
           columns={columns}
           selectedItems={selectedItems}
@@ -198,10 +202,10 @@ export const StorageExplorer = ({
         {!isPicker && <PreviewPane />}
       </div>
 
+      <ConfirmDeleteModal />
+
       {!isPicker && (
         <>
-          <ConfirmDeleteModal />
-
           <MoveItemsModal
             bucketName={selectedBucket.name}
             visible={selectedItemsToMove.length > 0}

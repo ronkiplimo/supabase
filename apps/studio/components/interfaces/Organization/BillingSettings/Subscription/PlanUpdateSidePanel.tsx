@@ -208,9 +208,9 @@ export const PlanUpdateSidePanel = () => {
                     <div className="flex items-center space-x-2">
                       <p className="text-brand-link text-sm uppercase">{plan.name}</p>
                       {isCurrentPlan ? (
-                        <div className="text-xs bg-surface-300 text-foreground-light rounded px-2 py-0.5">
+                        <Badge variant="default" className="shrink-0">
                           Current plan
-                        </div>
+                        </Badge>
                       ) : plan.nameBadge ? (
                         <Badge variant="success" className="shrink-0">
                           {plan.nameBadge}

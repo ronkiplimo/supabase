@@ -94,7 +94,7 @@ return new Response(JSON.stringify({ error: 'Not found' }), {
 **How to fix:**
 
 1. Search your function code for `404`. Look for explicit status codes on `Response` objects.
-2. Trace the condition that triggered it. If your function calls external APIs, it may simply be passing along errors returned by those services.
+2. Trace the condition that triggered it. If your function calls external APIs, it may be passing along errors returned by those services.
 3. Add logging before the return so future occurrences leave a trace:
 
 ```js

@@ -5,7 +5,6 @@ const BANNER_ID = {
   INDEX_ADVISOR: 'index-advisor-banner',
   TABLE_EDITOR_QUEUE_OPERATIONS: 'table-editor-queue-operations-banner',
   RLS_EVENT_TRIGGER: 'rls-event-trigger-banner',
-  MICRO_UPGRADE: 'micro-upgrade-banner',
 } as const
 
 export type BannerId = (typeof BANNER_ID)[keyof typeof BANNER_ID]

@@ -114,11 +114,6 @@ export const LOCAL_STORAGE_KEYS = {
   // Tax ID banner dismissed
   TAX_ID_BANNER_DISMISSED: (slug: string) => `tax-id-banner-dismissed-${slug}`,
 
-  // Micro upgrade banner dismissed
-  MICRO_UPGRADE_BANNER_DISMISSED: (slug: string) => `micro-upgrade-banner-dismissed-${slug}`,
-
-  TABLE_EDITOR_NEW_FILTER_BANNER_DISMISSED: (ref: string) =>
-    `table-editor-new-filter-banner-dismissed-${ref}`,
   TABLE_EDITOR_QUEUE_OPERATIONS_BANNER_DISMISSED: (ref: string) =>
     `table-editor-queue-operations-banner-dismissed-${ref}`,
   PRIVACY_NOTICE_ACKNOWLEDGED: 'privacy-notice-acknowledged-2026-03',

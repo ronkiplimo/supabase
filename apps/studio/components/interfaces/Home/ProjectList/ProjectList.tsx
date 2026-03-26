@@ -2,22 +2,15 @@ import { keepPreviousData } from '@tanstack/react-query'
 import { useDebounce } from '@uidotdev/usehooks'
 import { LOCAL_STORAGE_KEYS, useParams } from 'common'
 import AlertError from 'components/ui/AlertError'
-import { BannerMicroUpgrade } from 'components/ui/BannerStack/Banners/BannerMicroUpgrade'
-import { useBannerStack } from 'components/ui/BannerStack/BannerStackProvider'
 import { NoSearchResults } from 'components/ui/NoSearchResults'
 import { useGitHubConnectionsQuery } from 'data/integrations/github-connections-query'
 import { useOrgIntegrationsQuery } from 'data/integrations/integrations-query-org-only'
 import { usePermissionsQuery } from 'data/permissions/permissions-query'
-import {
-  getComputeSize,
-  useOrgProjectsInfiniteQuery,
-} from 'data/projects/org-projects-infinite-query'
-import { useOrgSubscriptionQuery } from 'data/subscriptions/org-subscription-query'
+import { useOrgProjectsInfiniteQuery } from 'data/projects/org-projects-infinite-query'
 import { useResourceWarningsQuery } from 'data/usage/resource-warnings-query'
 import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
 import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
 import { IS_PLATFORM } from 'lib/constants'
-import { useEffect } from 'react'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 import type { Organization } from 'types'
@@ -100,37 +93,6 @@ export const ProjectList = ({ organization: organization_, rewriteHref }: Projec
     error: permissionsError,
   } = usePermissionsQuery()
   const { data: resourceWarnings } = useResourceWarningsQuery({ slug })
-
-  const { addBanner, dismissBanner } = useBannerStack()
-  const { data: subscription } = useOrgSubscriptionQuery({ orgSlug: slug }, { enabled: !!slug })
-  const [isMicroUpgradeBannerDismissed] = useLocalStorageQuery(
-    LOCAL_STORAGE_KEYS.MICRO_UPGRADE_BANNER_DISMISSED(slug ?? ''),
-    false
-  )
-
-  const isFreePlan = !!subscription && subscription.plan.id === 'free'
-  const hasNanoProject = orgProjects.some((p) => getComputeSize(p) === 'nano')
-  const isEligibleForMicroUpgrade = !!subscription && hasNanoProject
-
-  useEffect(() => {
-    if (!isEligibleForMicroUpgrade || isMicroUpgradeBannerDismissed || !slug) return
-
-    addBanner({
-      id: 'micro-upgrade-banner',
-      priority: 1,
-      isDismissed: false,
-      content: <BannerMicroUpgrade slug={slug} isFreePlan={isFreePlan} />,
-    })
-
-    return () => dismissBanner('micro-upgrade-banner')
-  }, [
-    addBanner,
-    dismissBanner,
-    isEligibleForMicroUpgrade,
-    isMicroUpgradeBannerDismissed,
-    isFreePlan,
-    slug,
-  ])
 
   // Move all hooks to the top to comply with Rules of Hooks
   const { data: integrations } = useOrgIntegrationsQuery({ orgSlug: organization?.slug })

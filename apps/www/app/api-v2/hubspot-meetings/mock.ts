@@ -10,7 +10,10 @@ export function shouldUseMock(): boolean {
 }
 
 /** Generate mock time slots for the next 30 days, excluding weekends */
-function generateMockSlots(timezone: string, monthOffset: number): Record<string, Array<{ startMillisUtc: number; endMillisUtc: number }>> {
+function generateMockSlots(
+  timezone: string,
+  monthOffset: number
+): Record<string, Array<{ startMillisUtc: number; endMillisUtc: number }>> {
   const now = new Date()
   const target = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1)
   const daysInMonth = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate()

@@ -67,7 +67,9 @@ export default function CalendarPicker({
           disabled={!hasPrev}
           className={cn(
             'p-2 rounded-md text-foreground-lighter transition-colors',
-            hasPrev ? 'hover:bg-surface-300/50 hover:text-foreground' : 'opacity-30 cursor-not-allowed'
+            hasPrev
+              ? 'hover:bg-surface-300/50 hover:text-foreground'
+              : 'opacity-30 cursor-not-allowed'
           )}
           aria-label="Previous month"
         >
@@ -80,7 +82,9 @@ export default function CalendarPicker({
           disabled={!hasNext}
           className={cn(
             'p-2 rounded-md text-foreground-lighter transition-colors',
-            hasNext ? 'hover:bg-surface-300/50 hover:text-foreground' : 'opacity-30 cursor-not-allowed'
+            hasNext
+              ? 'hover:bg-surface-300/50 hover:text-foreground'
+              : 'opacity-30 cursor-not-allowed'
           )}
           aria-label="Next month"
         >
@@ -133,7 +137,13 @@ export default function CalendarPicker({
 function ChevronLeftIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M10 12L6 8L10 4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }
@@ -141,7 +151,13 @@ function ChevronLeftIcon() {
 function ChevronRightIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M6 4L10 8L6 12"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }

@@ -12,7 +12,10 @@ async function parseErrorResponse(res: Response, fallback: string): Promise<stri
 }
 
 function wrapNetworkError(err: unknown): never {
-  if (err instanceof TypeError && (err.message === 'Failed to fetch' || err.message === 'Load failed')) {
+  if (
+    err instanceof TypeError &&
+    (err.message === 'Failed to fetch' || err.message === 'Load failed')
+  ) {
     throw new Error('Unable to connect. Please check your internet connection and try again.')
   }
   throw err
@@ -37,10 +40,7 @@ export async function fetchBookingInfo(
   return res.json()
 }
 
-export async function fetchAvailability(
-  slug: string,
-  timezone: string
-): Promise<BookingInfo> {
+export async function fetchAvailability(slug: string, timezone: string): Promise<BookingInfo> {
   const params = new URLSearchParams({ timezone })
   let res: Response
   try {

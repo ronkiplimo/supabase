@@ -68,4 +68,11 @@ export interface BookingConfirmation {
   isOffline: boolean
 }
 
-export type SchedulerStep = 'loading' | 'date-select' | 'time-select' | 'form' | 'submitting' | 'confirmed' | 'error'
+export type SchedulerStep =
+  | 'loading'
+  | 'date-select'
+  | 'time-select'
+  | 'form'
+  | 'submitting'
+  | 'confirmed'
+  | 'error'

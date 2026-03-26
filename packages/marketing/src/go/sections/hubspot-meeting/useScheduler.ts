@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { bookMeeting, fetchBookingInfo } from './api'
-import type { BookingConfirmation, BookingInfo, BookingRequest, SchedulerStep, TimeSlot } from './types'
+import type {
+  BookingConfirmation,
+  BookingInfo,
+  BookingRequest,
+  SchedulerStep,
+  TimeSlot,
+} from './types'
 
 /** How many months to prefetch (current + 3 ahead) */
 const MONTHS_TO_FETCH = 4
@@ -59,9 +65,7 @@ export function useScheduler(slug: string, enabled = true) {
         setState((s) => ({ ...s, step: 'loading', error: null }))
 
         const results = await Promise.all(
-          Array.from({ length: MONTHS_TO_FETCH }, (_, i) =>
-            fetchBookingInfo(slug, effectiveTz, i)
-          )
+          Array.from({ length: MONTHS_TO_FETCH }, (_, i) => fetchBookingInfo(slug, effectiveTz, i))
         )
 
         const cache: Record<number, BookingInfo> = {}
@@ -69,8 +73,7 @@ export function useScheduler(slug: string, enabled = true) {
           cache[i] = results[i]
         }
 
-        const defaultDuration =
-          results[0]?.customParams?.availableDurations?.[0] ?? 1800000
+        const defaultDuration = results[0]?.customParams?.availableDurations?.[0] ?? 1800000
 
         setMonthCache(cache)
         setState((s) => ({
@@ -134,7 +137,12 @@ export function useScheduler(slug: string, enabled = true) {
   }, [])
 
   const submitBooking = useCallback(
-    async (form: { firstName: string; lastName: string; email: string; guestEmails?: string[] }) => {
+    async (form: {
+      firstName: string
+      lastName: string
+      email: string
+      guestEmails?: string[]
+    }) => {
       if (!state.selectedSlot) return
 
       setState((s) => ({ ...s, step: 'submitting' }))

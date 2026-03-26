@@ -5,10 +5,7 @@ import { getMockAvailability, shouldUseMock } from '../../mock'
 const HUBSPOT_BASE =
   'https://api.hubspot.com/scheduler/v3/meetings/meeting-links/book/availability-page'
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { searchParams } = new URL(request.url)
   const timezone = searchParams.get('timezone') || 'America/New_York'
 
@@ -30,10 +27,7 @@ export async function GET(
 
   if (!res.ok) {
     const text = await res.text()
-    return NextResponse.json(
-      { error: 'HubSpot API error', detail: text },
-      { status: res.status }
-    )
+    return NextResponse.json({ error: 'HubSpot API error', detail: text }, { status: res.status })
   }
 
   const data = await res.json()

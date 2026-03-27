@@ -1,44 +1,96 @@
+import { useFlag } from 'common'
 import { Loader, Search } from 'lucide-react'
 import { NextSeo } from 'next-seo'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Input } from 'ui'
 import { useDebounce } from 'use-debounce'
 import DefaultLayout from '~/components/Layouts/Default'
 import SectionContainer from '~/components/Layouts/SectionContainer'
 import BecomeAPartner from '~/components/Partners/BecomeAPartner'
 import PartnerLinkBox from '~/components/Partners/PartnerLinkBox'
+import TileGrid, { type IntegrationTile } from '../../../components/Partners/TileGrid'
 import supabase from '~/lib/supabaseMisc'
+import {
+  getPublishedMarketplaceListings,
+  type MarketplaceListingWithRelations,
+} from '~/lib/supabaseMarketplace'
 import type { Partner } from '~/types/partners'
-import TileGrid from '../../../components/Partners/TileGrid'
+
+function partnerToTile(p: Partner): IntegrationTile {
+  return {
+    slug: p.slug,
+    href: `/partners/${p.slug}`,
+    title: p.title,
+    description: p.description,
+    logo: p.logo,
+    category: p.category,
+    featured: p.featured ?? false,
+  }
+}
+
+function listingToTile(listing: MarketplaceListingWithRelations): IntegrationTile {
+  const firstCategory = listing.categories?.[0]
+  return {
+    slug: `marketplace-${listing.slug}`,
+    href: `/partners/integrations/marketplace/${listing.slug}`,
+    title: listing.title,
+    description: listing.summary,
+    logo: listing.partner?.logo_url ?? null,
+    category: firstCategory?.title ?? 'Marketplace',
+    featured: listing.listing_reviews?.featured ?? false,
+  }
+}
 
 export async function getStaticProps() {
-  const { data: partners } = await supabase
-    .from('partners')
-    .select('*')
-    .eq('approved', true)
-    .eq('type', 'technology')
-    .order('category')
-    .order('title')
+  const [{ data: partners }, listings] = await Promise.all([
+    supabase
+      .from('partners')
+      .select('*')
+      .eq('approved', true)
+      .eq('type', 'technology')
+      .order('category')
+      .order('title'),
+    getPublishedMarketplaceListings(),
+  ])
 
   return {
     props: {
-      partners,
+      partners: partners ?? [],
+      listings,
     },
-    // TODO: consider using Next.js' On-demand Revalidation with Supabase Database Webhooks instead
-    revalidate: 1800, // 30 minutes
+    revalidate: 1800,
   }
 }
 
 interface Props {
   partners: Partner[]
+  listings: MarketplaceListingWithRelations[]
 }
 
 function IntegrationPartnersPage(props: Props) {
   const initialPartners = props.partners ?? []
-  const [partners, setPartners] = useState(initialPartners)
+  const marketplaceListings = props.listings ?? []
+  const isMarketplaceEnabled = useFlag('marketplaceIntegrations')
 
-  const allCategories = Array.from(new Set(initialPartners?.map((p) => p.category)))
+  const partnerTiles = useMemo(() => initialPartners.map(partnerToTile), [initialPartners])
+  const listingTiles = useMemo(
+    () => (isMarketplaceEnabled ? marketplaceListings.map(listingToTile) : []),
+    [isMarketplaceEnabled, marketplaceListings]
+  )
+  const allInitialTiles = useMemo(
+    () => [...partnerTiles, ...listingTiles],
+    [partnerTiles, listingTiles]
+  )
+
+  const [tiles, setTiles] = useState(allInitialTiles)
+
+  // Re-sync tiles when the flag resolves (it starts as undefined)
+  useEffect(() => {
+    setTiles(allInitialTiles)
+  }, [allInitialTiles])
+
+  const allCategories = Array.from(new Set(allInitialTiles.map((t) => t.category)))
 
   const router = useRouter()
 
@@ -74,15 +126,23 @@ function IntegrationPartnersPage(props: Props) {
 
     if (search.trim() === '') {
       setIsSearching(false)
-      setPartners(initialPartners)
+      setTiles(allInitialTiles)
       return
     }
 
-    searchPartners().then((partners) => {
-      if (partners) {
-        setPartners(partners)
-      }
+    const normalizedSearch = search.trim().toLowerCase()
 
+    // Filter marketplace listings client-side (no tsv column)
+    const filteredListingTiles = listingTiles.filter(
+      (t) =>
+        t.title.toLowerCase().includes(normalizedSearch) ||
+        (t.description ?? '').toLowerCase().includes(normalizedSearch) ||
+        t.category.toLowerCase().includes(normalizedSearch)
+    )
+
+    searchPartners().then((partners) => {
+      const searchedPartnerTiles = (partners ?? []).map(partnerToTile)
+      setTiles([...searchedPartnerTiles, ...filteredListingTiles])
       setIsSearching(false)
     })
   }, [debouncedSearchTerm, router])
@@ -177,8 +237,8 @@ function IntegrationPartnersPage(props: Props) {
             <div className="lg:col-span-8 xl:col-span-9">
               {/* Partner Tiles */}
               <div className="grid space-y-10">
-                {partners?.length ? (
-                  <TileGrid partners={partners} />
+                {tiles?.length ? (
+                  <TileGrid partners={tiles} />
                 ) : (
                   <p className="h2">No Partners Found</p>
                 )}

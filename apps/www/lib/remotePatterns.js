@@ -107,6 +107,17 @@ module.exports = [
     port: '',
     pathname: '/dms/image/**',
   },
+  // Marketplace storage (listing logos and files)
+  ...(process.env.NEXT_PUBLIC_MARKETPLACE_API_URL
+    ? [
+        {
+          protocol: 'https',
+          hostname: new URL(process.env.NEXT_PUBLIC_MARKETPLACE_API_URL).hostname,
+          port: '',
+          pathname: '**',
+        },
+      ]
+    : []),
   // OG Edge Function
   {
     protocol: 'https',

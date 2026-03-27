@@ -7,6 +7,6 @@ type PartnerPageProps = {
 }
 
 export default async function PartnerPage({ params }: PartnerPageProps) {
-  const { partnerslug } = params
+  const { partnerslug } = await params
   redirect(`/protected/${partnerslug}/items`)
 }

@@ -1,5 +1,5 @@
-import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import {
   BreadcrumbItem_Shadcn_ as BreadcrumbItem,
   BreadcrumbLink_Shadcn_ as BreadcrumbLink,
@@ -25,7 +25,7 @@ type NewListingPageProps = {
 }
 
 export default async function NewListingPage({ params }: NewListingPageProps) {
-  const { partnerslug } = params
+  const { partnerslug } = await params
   const supabase = await createClient()
 
   const { data: partner, error } = await supabase

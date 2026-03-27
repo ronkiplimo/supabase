@@ -1,5 +1,5 @@
-import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import {
   BreadcrumbItem_Shadcn_ as BreadcrumbItem,
   BreadcrumbLink_Shadcn_ as BreadcrumbLink,
@@ -7,6 +7,7 @@ import {
   BreadcrumbPage_Shadcn_ as BreadcrumbPage,
   BreadcrumbSeparator_Shadcn_ as BreadcrumbSeparator,
 } from 'ui'
+import type { MarketplaceItemFile } from 'ui-patterns/MarketplaceItem'
 import {
   PageHeader,
   PageHeaderAside,
@@ -15,7 +16,6 @@ import {
   PageHeaderSummary,
   PageHeaderTitle,
 } from 'ui-patterns/PageHeader'
-import type { MarketplaceItemFile } from 'ui-patterns/MarketplaceItem'
 
 import { ListingEditorSplitView } from '@/components/item-editor-split-view'
 import { ListingReviewPrimaryAction } from '@/components/item-review-primary-action'
@@ -30,7 +30,7 @@ type EditListingPageProps = {
 }
 
 export default async function EditListingPage({ params }: EditListingPageProps) {
-  const { partnerslug, slug } = params
+  const { partnerslug, slug } = await params
   const supabase = await createClient()
 
   const { data: partner, error: partnerError } = await supabase

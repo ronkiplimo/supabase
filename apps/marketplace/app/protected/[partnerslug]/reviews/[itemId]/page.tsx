@@ -28,7 +28,7 @@ type ReviewDetailPageProps = {
 }
 
 export default async function ReviewDetailPage({ params }: ReviewDetailPageProps) {
-  const { partnerslug, itemId } = params
+  const { partnerslug, itemId } = await params
   const supabase = await createClient()
   const parsedListingId = Number(itemId)
 
@@ -95,15 +95,17 @@ export default async function ReviewDetailPage({ params }: ReviewDetailPageProps
     categories: assignedCategoryTitles,
   }
 
-  const marketplaceFiles: MarketplaceItemFile[] = ((listing.files ?? []) as string[]).map((fileUrl) => {
-    const fileName = fileUrl.split('/').pop() ?? fileUrl
-    return {
-      id: fileUrl,
-      name: fileName,
-      href: fileUrl,
-      description: fileUrl,
+  const marketplaceFiles: MarketplaceItemFile[] = ((listing.files ?? []) as string[]).map(
+    (fileUrl) => {
+      const fileName = fileUrl.split('/').pop() ?? fileUrl
+      return {
+        id: fileUrl,
+        name: fileName,
+        href: fileUrl,
+        description: fileUrl,
+      }
     }
-  })
+  )
 
   return (
     <div className="flex h-full min-h-full min-w-0 flex-col">
@@ -160,7 +162,9 @@ export default async function ReviewDetailPage({ params }: ReviewDetailPageProps
                 title={listing.title || 'Untitled listing'}
                 summary={listing.summary}
                 content={listing.content}
-                primaryActionUrl={listing.type === 'template' ? listing.registry_listing_url : listing.url}
+                primaryActionUrl={
+                  listing.type === 'template' ? listing.registry_listing_url : listing.url
+                }
                 files={marketplaceFiles}
                 partnerName={(listing.partner as { title?: string } | null)?.title}
                 lastUpdatedAt={listing.updated_at}

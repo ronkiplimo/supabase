@@ -31,7 +31,7 @@ type ReviewsPageProps = {
 }
 
 export default async function ReviewsPage({ params, searchParams }: ReviewsPageProps) {
-  const { partnerslug } = params
+  const { partnerslug } = await params
   const supabase = await createClient()
   const resolvedSearchParams = searchParams ? await searchParams : undefined
   const { statusFilter, listingIdFilter, parsedListingIdFilter, hasValidListingIdFilter } =

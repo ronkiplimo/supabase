@@ -21,7 +21,7 @@ type CategoriesPageProps = {
 }
 
 export default async function CategoriesPage({ params }: CategoriesPageProps) {
-  const { partnerslug } = params
+  const { partnerslug } = await params
   const supabase = await createClient()
 
   const { data: partner, error: partnerError } = await supabase

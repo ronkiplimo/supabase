@@ -1,12 +1,15 @@
 'use client'
 
-import { useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { Building2, ChevronRight, Search } from 'lucide-react'
+import { IS_PLATFORM, LOCAL_STORAGE_KEYS } from 'common'
+import { useEffect, useMemo, useState } from 'react'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { AlertTriangle, Building2, ChevronRight, Search } from 'lucide-react'
 
 import { useOrganizationsQuery } from 'data/organizations/organizations-query'
 import { useOrgProjectsInfiniteQuery } from 'data/projects/org-projects-infinite-query'
+import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
+import { Alert_Shadcn_ as Alert, AlertDescription_Shadcn_ as AlertDescription, AlertTitle_Shadcn_ as AlertTitle } from 'ui'
 
 /**
  * Disambiguation page for /v2/project/_/[...routeSlug].
@@ -18,14 +21,31 @@ import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
  */
 export default function V2ProjectDisambiguationPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const params = useParams()
   const routeSlug = params?.routeSlug as string[] | undefined
 
   const subPath = routeSlug?.length ? `/${routeSlug.join('/')}` : '/data/tables'
 
-  const { data: organizations = [], isPending: isLoadingOrgs } = useOrganizationsQuery()
+  const [lastVisitedOrgSlug] = useLocalStorageQuery(LOCAL_STORAGE_KEYS.LAST_VISITED_ORGANIZATION, '')
+  const {
+    data: organizations = [],
+    isPending: isLoadingOrgs,
+    isError: isErrorOrgs,
+  } = useOrganizationsQuery({ enabled: IS_PLATFORM })
   const [selectedOrgSlug, setSelectedOrgSlug] = useState<string | undefined>(undefined)
   const activeOrg = organizations.find((o) => o.slug === selectedOrgSlug) ?? organizations[0]
+
+  useEffect(() => {
+    if (selectedOrgSlug) return
+    if (lastVisitedOrgSlug) {
+      setSelectedOrgSlug(lastVisitedOrgSlug)
+      return
+    }
+    if (organizations.length > 0) {
+      setSelectedOrgSlug(organizations[0].slug)
+    }
+  }, [selectedOrgSlug, lastVisitedOrgSlug, organizations])
 
   const [search, setSearch] = useState('')
 
@@ -38,8 +58,14 @@ export default function V2ProjectDisambiguationPage() {
     ? allProjects.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
     : allProjects
 
+  const queryString = useMemo(() => {
+    const qs = searchParams?.toString() ?? ''
+    return qs.length > 0 ? `?${qs}` : ''
+  }, [searchParams])
+
   const handleSelectProject = (ref: string) => {
-    router.push(`/v2/project/${ref}${subPath}`)
+    const hash = typeof window !== 'undefined' ? window.location.hash : ''
+    router.push(`/v2/project/${ref}${subPath}${queryString}${hash}`)
   }
 
   return (
@@ -61,6 +87,14 @@ export default function V2ProjectDisambiguationPage() {
             <div className="space-y-1 px-3 py-2">
               <ShimmeringLoader className="h-7" />
               <ShimmeringLoader className="h-7 w-4/5" />
+            </div>
+          ) : isErrorOrgs ? (
+            <div className="p-3">
+              <Alert variant="warning">
+                <AlertTriangle />
+                <AlertTitle>Failed to load organizations</AlertTitle>
+                <AlertDescription>Try refreshing the page.</AlertDescription>
+              </Alert>
             </div>
           ) : (
             organizations.map((org) => {
@@ -105,6 +139,10 @@ export default function V2ProjectDisambiguationPage() {
                 <ShimmeringLoader className="h-10" />
                 <ShimmeringLoader className="h-10 w-4/5" />
                 <ShimmeringLoader className="h-10 w-3/5" />
+              </div>
+            ) : !activeOrg ? (
+              <div className="flex items-center justify-center h-32 text-sm text-muted-foreground">
+                No organizations available.
               </div>
             ) : projects.length === 0 ? (
               <div className="flex items-center justify-center h-32 text-sm text-muted-foreground">

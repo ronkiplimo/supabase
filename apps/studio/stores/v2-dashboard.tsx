@@ -158,6 +158,8 @@ interface V2DashboardState {
 
   openDataTab: (tab: DataTab) => void
   closeDataTab: (id: string) => void
+  reorderDataTabs: (activeId: string, overId: string) => void
+  replaceDataTabs: (tabs: DataTab[]) => void
   addRecentItem: (item: Omit<RecentItem, 'timestamp'>) => void
   toggleGroup: (groupId: string) => void
   setExpandedGroup: (groupId: string, expanded: boolean) => void
@@ -327,6 +329,24 @@ export function V2DashboardProvider({
     setDataTabs((prev) => prev.filter((t) => t.id !== id))
   }, [])
 
+  const reorderDataTabs = useCallback((activeId: string, overId: string) => {
+    setDataTabs((prev) => {
+      if (activeId === overId) return prev
+      const oldIndex = prev.findIndex((t) => t.id === activeId)
+      const newIndex = prev.findIndex((t) => t.id === overId)
+      if (oldIndex < 0 || newIndex < 0 || oldIndex === newIndex) return prev
+
+      const next = [...prev]
+      const [moved] = next.splice(oldIndex, 1)
+      next.splice(newIndex, 0, moved)
+      return next
+    })
+  }, [])
+
+  const replaceDataTabs = useCallback((tabs: DataTab[]) => {
+    setDataTabs(tabs)
+  }, [])
+
   const toggleGroup = useCallback((groupId: string) => {
     setExpandedGroups((state) => ({ ...state, [groupId]: !state[groupId] }))
   }, [])
@@ -358,6 +378,8 @@ export function V2DashboardProvider({
       insightExpanded,
       openDataTab,
       closeDataTab,
+      reorderDataTabs,
+      replaceDataTabs,
       addRecentItem,
       toggleGroup,
       setExpandedGroup,
@@ -374,6 +396,8 @@ export function V2DashboardProvider({
       insightExpanded,
       openDataTab,
       closeDataTab,
+      reorderDataTabs,
+      replaceDataTabs,
       addRecentItem,
       toggleGroup,
       setExpandedGroup,

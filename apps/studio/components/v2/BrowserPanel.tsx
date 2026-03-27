@@ -3,7 +3,16 @@
 import { ChevronRight, PanelLeftClose, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Button, cn, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
+import {
+  Button,
+  CollapsibleContent_Shadcn_,
+  CollapsibleTrigger_Shadcn_,
+  Collapsible_Shadcn_,
+  cn,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from 'ui'
 
 import { useV2DataCounts } from './useV2DataCounts'
 import { useV2Params } from '@/app/v2/V2ParamsContext'
@@ -155,7 +164,7 @@ export function BrowserPanel({ onCollapse }: { onCollapse?: () => void }) {
   const router = useRouter()
   const pathname = usePathname()
   const { projectRef } = useV2Params()
-  const { expandedGroups, toggleGroup } = useV2DashboardStore()
+  const { expandedGroups, setExpandedGroup } = useV2DashboardStore()
   const counts = useV2DataCounts(projectRef)
 
   const base = projectRef ? `/v2/project/${projectRef}` : ''
@@ -195,56 +204,61 @@ export function BrowserPanel({ onCollapse }: { onCollapse?: () => void }) {
       <div className="flex-1 overflow-auto py-1">
         {groups.map((group) => {
           const isExpanded = expandedGroups[group.id] !== false
-          return (
-            <div key={group.id} className="py-0.5">
-              <button
-                type="button"
-                onClick={() => toggleGroup(group.id)}
-                className="group/browser-panel-collapsible flex items-center justify-between w-full px-3 py-1.5 text-left font-mono uppercase text-xs text-foreground-lighter hover:text-foreground-light hover:bg-sidebar-accent gap-2"
+          const renderedItems = group.items.map((item) => {
+            const itemHref = isData
+              ? `${base}/data/${item.href}`
+              : isObs
+                ? `${base}/obs/${item.href}`
+                : `${base}/settings/${item.href}`
+            const isActive = pathname === itemHref || pathname?.startsWith(itemHref + '/')
+            return (
+              <Link
+                key={`${group.id}-${item.label}-${item.href}`}
+                href={itemHref}
+                className={cn(
+                  'flex items-center justify-between pl-8 pr-4 py-1 text-xs',
+                  isActive
+                    ? 'bg-sidebar-accent text-foreground font-medium'
+                    : 'text-foreground-light hover:text-foreground hover:bg-sidebar-accent/50'
+                )}
               >
-                <span className="truncate">{group.label}</span>
-                <span className="flex items-center gap-1.5 shrink-0">
-                  {/* <span
-                    className={cn('h-1.5 w-1.5 rounded-full', getStatusClass(status))}
-                    aria-label={`${status} status`}
-                  /> */}
-                  <ChevronRight
-                    className={cn(
-                      'h-4 w-4 shrink-0 transition-transform text-foreground-muted group-hover/browser-panel-collapsible:text-foreground-light',
-                      isExpanded && 'rotate-90'
-                    )}
-                  />
-                </span>
-              </button>
-              {isExpanded &&
-                group.items.map((item) => {
-                  const itemHref = isData
-                    ? `${base}/data/${item.href}`
-                    : isObs
-                      ? `${base}/obs/${item.href}`
-                      : `${base}/settings/${item.href}`
-                  const isActive = pathname === itemHref || pathname?.startsWith(itemHref + '/')
-                  return (
-                    <Link
-                      key={`${group.id}-${item.label}-${item.href}`}
-                      href={itemHref}
+                <span className="truncate">{item.label}</span>
+                {'countKey' in item && (
+                  <span className="text-xs text-foreground-muted shrink-0">
+                    {getCount(counts, String(item.countKey))}
+                  </span>
+                )}
+              </Link>
+            )
+          })
+
+          return (
+            <Collapsible_Shadcn_
+              key={group.id}
+              open={isExpanded}
+              onOpenChange={(open) => setExpandedGroup(group.id, open)}
+              className="py-0.5"
+            >
+              <CollapsibleTrigger_Shadcn_ asChild>
+                <button
+                  type="button"
+                  className="group/browser-panel-collapsible flex items-center justify-between w-full px-3 py-1.5 text-left font-mono uppercase text-xs text-foreground-lighter hover:text-foreground-light hover:bg-sidebar-accent gap-2"
+                >
+                  <span className="truncate">{group.label}</span>
+                  <span className="flex items-center gap-1.5 shrink-0">
+                    <ChevronRight
                       className={cn(
-                        'flex items-center justify-between pl-8 pr-4 py-1 text-xs',
-                        isActive
-                          ? 'bg-sidebar-accent text-foreground font-medium'
-                          : 'text-foreground-light hover:text-foreground hover:bg-sidebar-accent/50'
+                        'h-4 w-4 shrink-0 transition-transform text-foreground-muted group-hover/browser-panel-collapsible:text-foreground-light',
+                        isExpanded && 'rotate-90'
                       )}
-                    >
-                      <span className="truncate">{item.label}</span>
-                      {'countKey' in item && (
-                        <span className="text-xs text-foreground-muted shrink-0">
-                          {getCount(counts, String(item.countKey))}
-                        </span>
-                      )}
-                    </Link>
-                  )
-                })}
-            </div>
+                    />
+                  </span>
+                </button>
+              </CollapsibleTrigger_Shadcn_>
+              <CollapsibleContent_Shadcn_>
+                {renderedItems}
+              </CollapsibleContent_Shadcn_>
+            </Collapsible_Shadcn_>
           )
         })}
       </div>

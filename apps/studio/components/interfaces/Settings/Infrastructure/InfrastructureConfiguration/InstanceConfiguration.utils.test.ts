@@ -10,7 +10,7 @@ const BASE_WARNING: ResourceWarning = {
   cpu_exhaustion: null,
   disk_io_exhaustion: null,
   memory_and_swap_exhaustion: null,
-  need_pitr: false,
+  need_pitr: null,
   auth_rate_limit_exhaustion: null,
 }
 

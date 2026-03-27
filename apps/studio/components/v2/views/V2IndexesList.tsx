@@ -47,6 +47,7 @@ const INDEXES_COLUMNS: DataTableColumn<DatabaseIndex>[] = [
 
 export function V2IndexesList() {
   const { projectRef } = useV2Params()
+  const schema = 'public'
 
   const { data: project, isPending: isProjectPending } = useProjectDetailQuery(
     { ref: projectRef },
@@ -61,7 +62,7 @@ export function V2IndexesList() {
     isError,
     error,
   } = useIndexesQuery(
-    { projectRef, connectionString: project?.connectionString },
+    { projectRef, connectionString: project?.connectionString, schema },
     { enabled: shouldFetch }
   )
 

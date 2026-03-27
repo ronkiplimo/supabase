@@ -17,14 +17,14 @@ export function BadgeCell({ value, badgeMap }: BadgeCellProps) {
 
   if (mapping) {
     return (
-      <Badge variant={mapping.variant && 'default'} className="">
+      <Badge variant={mapping.variant && 'default'} className="leading-none">
         {mapping.label}
       </Badge>
     )
   }
 
   return (
-    <Badge variant="default" className="text-[11px]">
+    <Badge variant="default" className="text-[11px] leading-none">
       {key}
     </Badge>
   )

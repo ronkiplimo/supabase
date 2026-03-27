@@ -22,7 +22,7 @@ const BUCKETS_COLUMNS: DataTableColumn<Bucket>[] = [
     type: 'badge',
     renderCell: (_v, row) =>
       row.public ? (
-        <span className="inline-flex items-center rounded border border-warning-500 bg-warning-300 px-1.5 py-0.5 text-[11px] text-warning-600">
+        <span className="inline-flex items-center rounded border border-warning-500 bg-warning-300 px-1.5 py-0.5 leading-none text-[11px] text-warning">
           Public
         </span>
       ) : (

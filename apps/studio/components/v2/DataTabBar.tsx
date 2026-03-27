@@ -341,7 +341,7 @@ export function DataTabBar() {
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <div className="border-b border-border bg-background shrink-0 min-h-[36px] flex items-stretch">
+      <div className="border-b border-border bg-background shrink-0 min-h-[33px] flex items-stretch">
         <div ref={tabsListRef} className="min-w-0 flex-1 overflow-x-auto h-full">
           <div className="flex items-center w-max h-full">
             <SortableContext
@@ -375,7 +375,7 @@ export function DataTabBar() {
                     }
                     router.push(chooserPath)
                   }}
-              className="sticky right-0 z-10 shrink-0 h-full aspect-square flex items-center justify-center border-l border-border text-foreground-lighter hover:text-foreground hover:bg-sidebar-accent/50 bg-background transition-colors"
+                  className="sticky right-0 z-10 shrink-0 h-full aspect-square flex items-center justify-center border-l border-border text-foreground-lighter hover:text-foreground hover:bg-sidebar-accent/50 bg-background transition-colors"
                   aria-label="Open data chooser"
                 >
                   <Plus className="h-4 w-4" />

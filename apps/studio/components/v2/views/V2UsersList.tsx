@@ -7,10 +7,13 @@ import type { User, Filter as UserTypeFilter } from 'data/auth/users-infinite-qu
 import { isValidConnString } from 'data/fetchers'
 import { useProjectDetailQuery } from 'data/projects/project-detail-query'
 import { useIsFeatureEnabled } from 'hooks/misc/useIsFeatureEnabled'
+import { parseAsString, useQueryState } from 'nuqs'
 import { useState } from 'react'
+import { ResizablePanel, ResizablePanelGroup } from 'ui'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
 import { AddUserDropdown } from '@/components/interfaces/Auth/Users/AddUserDropdown'
+import { UserPanel } from '@/components/interfaces/Auth/Users/UserPanel'
 import { PROVIDER_FILTER_OPTIONS } from '@/components/interfaces/Auth/Users/Users.constants'
 import { DataTableRenderer } from '@/components/v2/DataTableRenderer'
 import type { DataTableColumn, FilterState, SortState } from '@/components/v2/DataTableRenderer'
@@ -44,7 +47,7 @@ const USERS_COLUMNS: DataTableColumn<User>[] = [
       row.phone ? (
         <span className="truncate">{row.phone}</span>
       ) : (
-        <span className="text-foreground-lighter italic">—</span>
+        <span className="text-foreground-lighter italic">-</span>
       ),
   },
   {
@@ -54,7 +57,7 @@ const USERS_COLUMNS: DataTableColumn<User>[] = [
     type: 'badge',
     renderCell: (_v, row) => {
       const providers = row.providers ?? []
-      if (providers.length === 0) return <span className="text-foreground-lighter">—</span>
+      if (providers.length === 0) return <span className="text-foreground-lighter">-</span>
       return (
         <div className="flex gap-1 truncate">
           {providers.slice(0, 2).map((p: string) => (
@@ -88,6 +91,10 @@ const USERS_COLUMNS: DataTableColumn<User>[] = [
 
 export function V2UsersList() {
   const { projectRef } = useV2Params()
+  const [selectedId, setSelectedId] = useQueryState(
+    'show',
+    parseAsString.withOptions({ history: 'push', clearOnDefault: true })
+  )
   const [search, setSearch] = useState('')
   const [filterUserType, setFilterUserType] = useState<'all' | UserTypeFilter>('all')
   const [selectedProviders, setSelectedProviders] = useState<string[]>([])
@@ -146,12 +153,10 @@ export function V2UsersList() {
     { enabled: shouldFetch }
   )
 
-  // Accumulate all fetched pages up to current page
   const allUsers = data?.pages.flatMap((p) => p.result) ?? []
   const pageUsers = allUsers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const handlePageChange = async (nextPage: number) => {
-    // Fetch next pages if we haven't loaded them yet
     const pagesNeeded = Math.ceil((nextPage * PAGE_SIZE) / PAGE_SIZE)
     const pagesLoaded = data?.pages.length ?? 0
     if (pagesNeeded > pagesLoaded) {
@@ -196,70 +201,83 @@ export function V2UsersList() {
   }
 
   return (
-    <DataTableRenderer<User>
-      columns={USERS_COLUMNS}
-      rows={pageUsers}
-      rowKey="id"
-      isLoading={isProjectLoading || (shouldFetch && isUsersPending && !isFetchingNextPage)}
-      error={isError ? (error as Error) : null}
-      sort={sort}
-      onSortChange={handleSortChange}
-      renderSortControl={() => (
-        <SortDropdown
-          specificFilterColumn="freeform"
-          sortColumn={sortColumn}
-          sortOrder={sortOrder}
-          sortByValue={sortByValue}
-          showSortByEmail={showSortByEmail}
-          showSortByPhone={showSortByPhone}
-          setSortByValue={handleSortByValue}
-          improvedSearchEnabled
+    <ResizablePanelGroup
+      orientation="horizontal"
+      className="relative flex flex-grow bg-alternative min-h-0"
+      autoSaveId="v2-auth-users-layout"
+    >
+      <ResizablePanel>
+        <DataTableRenderer<User>
+          columns={USERS_COLUMNS}
+          rows={pageUsers}
+          rowKey="id"
+          isLoading={isProjectLoading || (shouldFetch && isUsersPending && !isFetchingNextPage)}
+          error={isError ? (error as Error) : null}
+          sort={sort}
+          onSortChange={handleSortChange}
+          renderSortControl={() => (
+            <SortDropdown
+              specificFilterColumn="freeform"
+              sortColumn={sortColumn}
+              sortOrder={sortOrder}
+              sortByValue={sortByValue}
+              showSortByEmail={showSortByEmail}
+              showSortByPhone={showSortByPhone}
+              setSortByValue={handleSortByValue}
+              improvedSearchEnabled
+            />
+          )}
+          filters={[
+            {
+              id: 'search',
+              label: 'Search',
+              type: 'search',
+              placeholder: 'Search by email or phone...',
+            },
+            {
+              id: 'userType',
+              label: 'User type',
+              type: 'select',
+              options: [
+                { value: 'all', label: 'All users' },
+                { value: 'verified', label: 'Verified users' },
+                { value: 'unverified', label: 'Unverified users' },
+                { value: 'anonymous', label: 'Anonymous users' },
+              ],
+            },
+            {
+              id: 'providers',
+              label: 'Provider',
+              type: 'multi-select',
+              options: PROVIDER_FILTER_OPTIONS.map((provider) => ({
+                value: provider.value,
+                label: provider.name,
+              })),
+            },
+          ]}
+          filterState={{ search, userType: filterUserType, providers: selectedProviders }}
+          onFilterChange={handleFilterChange}
+          toolbarRight={<AddUserDropdown />}
+          pagination={{
+            page,
+            pageSize: PAGE_SIZE,
+            total,
+          }}
+          onPageChange={handlePageChange}
+          onRowClick={(row) => {
+            if (!row.id) return
+            setSelectedId(row.id)
+          }}
+          selectable
+          emptyState={{
+            title: 'No users found',
+            description: search
+              ? 'No users match your search.'
+              : 'There are no users in this project yet.',
+          }}
         />
-      )}
-      filters={[
-        {
-          id: 'search',
-          label: 'Search',
-          type: 'search',
-          placeholder: 'Search by email or phone…',
-        },
-        {
-          id: 'userType',
-          label: 'User type',
-          type: 'select',
-          options: [
-            { value: 'all', label: 'All users' },
-            { value: 'verified', label: 'Verified users' },
-            { value: 'unverified', label: 'Unverified users' },
-            { value: 'anonymous', label: 'Anonymous users' },
-          ],
-        },
-        {
-          id: 'providers',
-          label: 'Provider',
-          type: 'multi-select',
-          options: PROVIDER_FILTER_OPTIONS.map((provider) => ({
-            value: provider.value,
-            label: provider.name,
-          })),
-        },
-      ]}
-      filterState={{ search, userType: filterUserType, providers: selectedProviders }}
-      onFilterChange={handleFilterChange}
-      toolbarRight={<AddUserDropdown />}
-      pagination={{
-        page,
-        pageSize: PAGE_SIZE,
-        total,
-      }}
-      onPageChange={handlePageChange}
-      selectable
-      emptyState={{
-        title: 'No users found',
-        description: search
-          ? 'No users match your search.'
-          : 'There are no users in this project yet.',
-      }}
-    />
+      </ResizablePanel>
+      {!!selectedId && <UserPanel />}
+    </ResizablePanelGroup>
   )
 }

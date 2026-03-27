@@ -3,6 +3,7 @@
 import { RouteParamsOverrideProvider } from 'common'
 import { LINTER_LEVELS } from 'components/interfaces/Linter/Linter.constants'
 import {
+  applyDemoInfrastructureIfUnreliable,
   parseConnectionsData,
   parseInfrastructureMetrics,
 } from 'components/interfaces/Observability/DatabaseInfrastructureSection.utils'
@@ -33,6 +34,8 @@ import { TimestampInfo } from 'ui-patterns'
 import { Input } from 'ui-patterns/DataInputs/Input'
 
 import { HomeViewDataCountersRow } from './HomeViewDataCountersRow'
+import { HomeViewSupaAiSummary } from './HomeViewSupaAiSummary'
+import { getMockHomeSummaryData, HOME_SUPA_AI_SUMMARY_USE_MOCK } from './homeViewSupaAiSummaryMock'
 import { useV2DataCounts } from './useV2DataCounts'
 import { useV2Params } from '@/app/v2/V2ParamsContext'
 
@@ -91,15 +94,24 @@ function maskConnectionString(conn: string | null | undefined) {
 export function HomeView() {
   const { projectRef, orgSlug } = useV2Params()
 
-  const { data: project } = useProjectDetailQuery(
+  const { data: project, isPending: isProjectDetailPending } = useProjectDetailQuery(
     { ref: projectRef },
     { enabled: Boolean(projectRef) }
   )
 
-  const { data: organization } = useOrganizationsQuery({
-    enabled: Boolean(orgSlug),
-    select: (data) => data.find((o) => o.slug === orgSlug),
+  const { data: organizations = [], isPending: isOrganizationsPending } = useOrganizationsQuery({
+    enabled: Boolean(projectRef),
   })
+  const organization = useMemo(() => {
+    if (orgSlug) return organizations.find((o) => o.slug === orgSlug)
+    if (project?.organization_id) {
+      return organizations.find((o) => o.id === project.organization_id)
+    }
+    return undefined
+  }, [orgSlug, organizations, project?.organization_id])
+
+  /** Context org slug can lag behind project load; API needs slug for hosted org gate. */
+  const homeSummaryOrgSlug = orgSlug ?? organization?.slug
 
   const parentRef = project?.parent_project_ref ?? projectRef
   const { data: branches } = useBranchesQuery(
@@ -179,8 +191,23 @@ export function HomeView() {
   }, [backupsData])
   const counts = useV2DataCounts(projectRef)
 
-  const metrics = parseInfrastructureMetrics(infraData)
-  const connections = parseConnectionsData(infraData, maxConnectionsData)
+  const rawMetrics = parseInfrastructureMetrics(infraData)
+  const rawConnections = parseConnectionsData(infraData, maxConnectionsData)
+  const { metrics, connections } = applyDemoInfrastructureIfUnreliable(
+    infraData,
+    rawMetrics,
+    rawConnections
+  )
+
+  const mockHomeSummary = useMemo(
+    () => (HOME_SUPA_AI_SUMMARY_USE_MOCK && projectRef ? getMockHomeSummaryData() : null),
+    [projectRef]
+  )
+  const summaryLints = mockHomeSummary?.lints ?? lints
+  const summaryMetrics = mockHomeSummary?.metrics ?? metrics
+  const summaryConnections = mockHomeSummary?.connections ?? connections
+  const summaryLintsPending = mockHomeSummary ? false : lintsQuery.isLoading
+  const summaryUsesMockData = Boolean(mockHomeSummary)
 
   const { openSidebar } = useSidebarManagerSnapshot()
   const { setSelectedItem } = useAdvisorStateSnapshot()
@@ -233,114 +260,104 @@ export function HomeView() {
 
         {/* Compact activity + metrics */}
         <div className="flex flex-col gap-3">
-          <div className="grid grid-cols-2 gap-2">
-            <div className="border border-border bg-surface-100 rounded-md p-2">
-              <div className="text-xs text-foreground-lighter">Services</div>
-              <div className="text-xs mt-1">
-                <span
-                  className={cn(
-                    'font-mono',
-                    project?.status === 'ACTIVE_HEALTHY'
-                      ? 'text-brand'
-                      : project?.status
-                        ? 'text-warning'
-                        : 'text-foreground-lighter'
-                  )}
-                >
-                  {project?.status ? project.status.replaceAll('_', ' ').toLowerCase() : 'Unknown'}
-                </span>
-              </div>
-            </div>
-            <Link
-              href={projectRef ? `/project/${projectRef}/database/migrations` : '#'}
-              className="border border-border bg-surface-100 rounded-md p-2 hover:bg-sidebar-accent/50 transition-colors"
-            >
-              <div className="text-xs text-foreground-lighter flex items-center gap-1.5">
-                <Database size={12} strokeWidth={1.5} />
-                <span>Last migration</span>
-              </div>
-              <div className="text-xs mt-1 truncate" title={migrationLabelText}>
-                {isLoadingMigrations ? 'Loading...' : migrationLabelText}
-              </div>
-            </Link>
-            <Link
-              href={projectRef ? `/project/${projectRef}/database/backups/scheduled` : '#'}
-              className="border border-border bg-surface-100 rounded-md p-2 hover:bg-sidebar-accent/50 transition-colors"
-            >
-              <div className="text-xs text-foreground-lighter flex items-center gap-1.5">
-                <Archive size={12} strokeWidth={1.5} />
-                <span>Last backup</span>
-              </div>
-              <div className="text-xs mt-1">
-                {isLoadingBackups ? (
-                  'Loading...'
-                ) : backupsData?.pitr_enabled ? (
-                  'PITR enabled'
-                ) : latestBackup ? (
-                  <TimestampInfo
-                    className="text-xs"
-                    displayAs="utc"
-                    label={dayjs(latestBackup.inserted_at).fromNow()}
-                    utcTimestamp={latestBackup.inserted_at}
-                  />
-                ) : (
-                  'No backups'
-                )}
-              </div>
-            </Link>
-            <Link
-              href={projectRef ? `/project/${projectRef}/branches` : '#'}
-              className="border border-border bg-surface-100 rounded-md p-2 hover:bg-sidebar-accent/50 transition-colors"
-            >
-              <div className="text-xs text-foreground-lighter flex items-center gap-1.5">
-                <GitBranch size={12} strokeWidth={1.5} />
-                <span>{isDefaultProject ? 'Recent branch' : 'Branch created'}</span>
-              </div>
-              <div className="text-xs mt-1 truncate">
-                {isDefaultProject ? (
-                  <span title={latestNonDefaultBranch?.name ?? 'No branches'}>
-                    {latestNonDefaultBranch?.name ?? 'No branches'}
-                  </span>
-                ) : currentBranch?.created_at ? (
-                  <TimestampInfo
-                    className="text-xs"
-                    label={dayjs(currentBranch.created_at).fromNow()}
-                    utcTimestamp={currentBranch.created_at}
-                  />
-                ) : (
-                  'Unknown'
-                )}
-              </div>
-            </Link>
-          </div>
+          <HomeViewSupaAiSummary
+            className="flex-1"
+            projectRef={projectRef}
+            projectName={project?.name}
+            projectStatus={project?.status}
+            orgSlug={homeSummaryOrgSlug}
+            projectDetailPending={Boolean(projectRef) && isProjectDetailPending}
+            organizationsPending={Boolean(projectRef) && IS_PLATFORM && isOrganizationsPending}
+            lints={summaryLints}
+            lintsPending={summaryLintsPending}
+            metrics={summaryMetrics}
+            connections={summaryConnections}
+            counts={counts}
+            migrationLabel={migrationLabelText}
+            usesMockData={summaryUsesMockData}
+          />
+        </div>
+      </div>
 
-          <div className="grid grid-cols-2 flex-1 gap-2">
-            <div className="border border-border bg-surface-100 rounded-md p-2">
-              <div className="text-xs text-foreground-lighter">Connections</div>
-              <div className="text-xs mt-1 font-mono">
-                {connections.max > 0 ? `${connections.current}/${connections.max}` : '—'}
-              </div>
-            </div>
-            <div className="border border-border bg-surface-100 rounded-md p-2">
-              <div className="text-xs text-foreground-lighter">Memory</div>
-              <div className="text-xs mt-1 font-mono">
-                {metrics?.ram ? `${metrics.ram.current.toFixed(0)}%` : '—'}
-              </div>
-            </div>
-            <div className="border border-border bg-surface-100 rounded-md p-2">
-              <div className="text-xs text-foreground-lighter">Disk</div>
-              <div className="text-xs mt-1 font-mono">
-                {metrics?.disk ? `${metrics.disk.current.toFixed(0)}%` : '—'}
-              </div>
-            </div>
-            <div className="border border-border bg-surface-100 rounded-md p-2">
-              <div className="text-xs text-foreground-lighter">CPU</div>
-              <div className="text-xs mt-1 font-mono">
-                {metrics?.cpu ? `${metrics.cpu.current.toFixed(0)}%` : '—'}
-              </div>
-            </div>
+      <div className="w-full grid grid-cols-2 lg:grid-cols-4 gap-2">
+        <div className="border border-border bg-surface-100 rounded-md p-2">
+          <div className="text-xs text-foreground-lighter">Services</div>
+          <div className="text-xs mt-1">
+            <span
+              className={cn(
+                'font-mono',
+                project?.status === 'ACTIVE_HEALTHY'
+                  ? 'text-brand'
+                  : project?.status
+                    ? 'text-warning'
+                    : 'text-foreground-lighter'
+              )}
+            >
+              {project?.status ? project.status.replaceAll('_', ' ').toLowerCase() : 'Unknown'}
+            </span>
           </div>
         </div>
+        <Link
+          href={projectRef ? `/project/${projectRef}/database/migrations` : '#'}
+          className="border border-border bg-surface-100 rounded-md p-2 hover:bg-sidebar-accent/50 transition-colors"
+        >
+          <div className="text-xs text-foreground-lighter flex items-center gap-1.5">
+            <Database size={12} strokeWidth={1.5} />
+            <span>Last migration</span>
+          </div>
+          <div className="text-xs mt-1 truncate" title={migrationLabelText}>
+            {isLoadingMigrations ? 'Loading...' : migrationLabelText}
+          </div>
+        </Link>
+        <Link
+          href={projectRef ? `/project/${projectRef}/database/backups/scheduled` : '#'}
+          className="border border-border bg-surface-100 rounded-md p-2 hover:bg-sidebar-accent/50 transition-colors"
+        >
+          <div className="text-xs text-foreground-lighter flex items-center gap-1.5">
+            <Archive size={12} strokeWidth={1.5} />
+            <span>Last backup</span>
+          </div>
+          <div className="text-xs mt-1">
+            {isLoadingBackups ? (
+              'Loading...'
+            ) : backupsData?.pitr_enabled ? (
+              'PITR enabled'
+            ) : latestBackup ? (
+              <TimestampInfo
+                className="text-xs"
+                displayAs="utc"
+                label={dayjs(latestBackup.inserted_at).fromNow()}
+                utcTimestamp={latestBackup.inserted_at}
+              />
+            ) : (
+              'No backups'
+            )}
+          </div>
+        </Link>
+        <Link
+          href={projectRef ? `/project/${projectRef}/branches` : '#'}
+          className="border border-border bg-surface-100 rounded-md p-2 hover:bg-sidebar-accent/50 transition-colors"
+        >
+          <div className="text-xs text-foreground-lighter flex items-center gap-1.5">
+            <GitBranch size={12} strokeWidth={1.5} />
+            <span>{isDefaultProject ? 'Recent branch' : 'Branch created'}</span>
+          </div>
+          <div className="text-xs mt-1 truncate">
+            {isDefaultProject ? (
+              <span title={latestNonDefaultBranch?.name ?? 'No branches'}>
+                {latestNonDefaultBranch?.name ?? 'No branches'}
+              </span>
+            ) : currentBranch?.created_at ? (
+              <TimestampInfo
+                className="text-xs"
+                label={dayjs(currentBranch.created_at).fromNow()}
+                utcTimestamp={currentBranch.created_at}
+              />
+            ) : (
+              'Unknown'
+            )}
+          </div>
+        </Link>
       </div>
 
       <HomeViewDataCountersRow projectRef={projectRef} counts={counts} />
@@ -388,7 +405,7 @@ export function HomeView() {
           </div>
         </div>
         {/* Active issues */}
-        <div className="max-w-full h-full max-h-[300px] border-b overflow-hidden">
+        <div className="max-w-full h-full max-h-[230px] overflow-hidden">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-base ">Active issues</h2>
             <span className="text-xs text-foreground-lighter">{issues.length} shown</span>

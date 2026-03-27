@@ -3222,5 +3222,4 @@ export type TelemetryEvent =
   | OrgSubmenuOpenedEvent
   | OrgMenuBackClickedEvent
   | OrgMenuItemClickedEvent
-  | PricingCalculatorExperimentExposedEvent
   | ComputeBadgeUpgradeClickedEvent

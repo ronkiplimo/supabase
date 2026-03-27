@@ -114,7 +114,7 @@ function getUtcOffset(tzId: string): { label: string; minutes: number } {
 function buildGroups(userTz: string): { userEntry: TimezoneEntry; groups: TimezoneGroup[] } {
   const entries: TimezoneEntry[] = TIMEZONE_DATA.map((tz) => {
     const offset = getUtcOffset(tz.id)
-    return { id: tz.id, label: tz.label, offset: offset.label, offsetMinutes: offset.offsetMinutes }
+    return { id: tz.id, label: tz.label, offset: offset.label, offsetMinutes: offset.minutes }
   })
 
   // Build user entry

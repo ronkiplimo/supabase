@@ -41,8 +41,14 @@ export interface SchedulerState {
 }
 
 export function useScheduler(slug: string, enabled = true) {
-  const [timezone, setTimezoneState] = useState(() => getUserTimezone())
-  const locale = useMemo(() => getUserLocale(), [])
+  const [timezone, setTimezoneState] = useState('America/New_York')
+  const [locale, setLocale] = useState('en-US')
+
+  // Hydrate timezone/locale from browser after mount to avoid SSR mismatches
+  useEffect(() => {
+    setTimezoneState(getUserTimezone())
+    setLocale(getUserLocale())
+  }, [])
 
   /** Cached booking info keyed by month offset */
   const [monthCache, setMonthCache] = useState<Record<number, BookingInfo>>({})
@@ -208,13 +214,15 @@ export function useScheduler(slug: string, enabled = true) {
 
   /** Month offsets that have at least one available slot */
   const availableMonthOffsets = useMemo(() => {
-    const now = new Date()
+    // Compute "now" in the selected timezone to avoid ±1 month drift near boundaries
+    const nowStr = new Date().toLocaleDateString('en-CA', { timeZone: timezone })
+    const [nowY, nowM] = nowStr.split('-').map(Number)
     const offsets = new Set<number>()
     for (const slot of allSlots) {
       const date = new Date(slot.startMillisUtc)
       const localDateStr = date.toLocaleDateString('en-CA', { timeZone: timezone })
       const [y, m] = localDateStr.split('-').map(Number)
-      const offset = (y - now.getFullYear()) * 12 + (m - 1 - now.getMonth())
+      const offset = (y - nowY) * 12 + (m - nowM)
       if (offset >= 0 && offset < MONTHS_TO_FETCH) {
         offsets.add(offset)
       }

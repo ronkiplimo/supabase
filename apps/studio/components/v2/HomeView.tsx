@@ -235,7 +235,7 @@ export function HomeView() {
         <div className="flex flex-col gap-3">
           <div className="grid grid-cols-2 gap-2">
             <div className="border border-border bg-surface-100 rounded-md p-2">
-              <div className="text-xs text-foreground-lighter">Service</div>
+              <div className="text-xs text-foreground-lighter">Services</div>
               <div className="text-xs mt-1">
                 <span
                   className={cn(

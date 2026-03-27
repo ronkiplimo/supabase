@@ -30,24 +30,24 @@ type V2DataCounts = ReturnType<typeof useV2DataCounts>
 /** Matches `DATA_GROUPS` in BrowserPanel (Data nav) — same hrefs and count keys */
 const HOME_COUNTER_CATALOG = [
   { id: 'tables', label: 'Tables', countKey: 'tables' as const, path: 'tables' },
-  { id: 'functions', label: 'Functions', countKey: 'functions' as const, path: 'functions' },
-  { id: 'types', label: 'Enumerated types', countKey: 'types' as const, path: 'types' },
-  { id: 'roles', label: 'Roles', countKey: 'roles' as const, path: 'roles' },
+  { id: 'functions', label: 'DB Functions', countKey: 'functions' as const, path: 'functions' },
+  { id: 'types', label: 'DB Enum types', countKey: 'types' as const, path: 'types' },
+  { id: 'roles', label: 'DB Roles', countKey: 'roles' as const, path: 'roles' },
   {
     id: 'extensions',
-    label: 'Extensions',
+    label: 'DB Extensions',
     countKey: 'extensions' as const,
     path: 'extensions',
   },
-  { id: 'indexes', label: 'Indexes', countKey: 'indexes' as const, path: 'indexes' },
+  { id: 'indexes', label: 'DB Indexes', countKey: 'indexes' as const, path: 'indexes' },
   {
     id: 'publications',
-    label: 'Publications',
+    label: 'DB Publications',
     countKey: 'publications' as const,
     path: 'publications',
   },
   { id: 'users', label: 'Users', countKey: 'users' as const, path: 'users' },
-  { id: 'providers', label: 'Providers', countKey: 'providers' as const, path: 'providers' },
+  { id: 'providers', label: 'Auth Providers', countKey: 'providers' as const, path: 'providers' },
   {
     id: 'oauthApps',
     label: 'OAuth apps',
@@ -333,8 +333,8 @@ export function HomeViewDataCountersRow({
 
   return (
     <div className="relative group/home-counters">
-      <div className="flex items-center justify-between mb-1 -mt-1 gap-1 focus-within:opacity-100">
-        <h2 className="!text-sm text-foreground-light">Your project in numbers</h2>
+      <div className="flex items-center justify-between mb-1 -mt-1 gap-2 focus-within:opacity-100">
+        <h2 className="!text-base">Your project in numbers</h2>
         <DropdownMenu open={open} onOpenChange={setOpen}>
           <DropdownMenuTrigger asChild>
             <Button
@@ -400,7 +400,7 @@ export function HomeViewDataCountersRow({
             <Link
               key={item.id}
               href={item.href}
-              className="text-left group/quick-access-link border bg-surface-100 p-2 rounded-md hover:border-foreground-lighter"
+              className="text-left group/quick-access-link border bg-surface-100 px-2 py-1 rounded-md hover:border-foreground-lighter"
             >
               <div className="flex gap-1 text-xs font-mono text-foreground-lighter leading-snug tracking-tight truncate">
                 <span title={item.label} className="truncate">

@@ -1,7 +1,7 @@
 import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { ChevronsUpDown, GitBranch } from 'lucide-react'
-import * as React from 'react'
 import { cn, SidebarMenuButton as SidebarMenuButtonComponent } from 'ui'
+import { forwardRef } from 'react'
 
 export interface ProjectBranchSelectorTriggerProps {
   displayProjectName: string
@@ -41,16 +41,20 @@ export const ProjectBranchSelectorTrigger = React.forwardRef<
         >
           {displayProjectName}
         </div>
-        <div
-          className={cn(
-            'flex items-center gap-0.5',
-            isBranch ? 'text-foreground-lighter' : 'text-warning'
-          )}
-        >
-          <GitBranch className="shrink-0 size-3" strokeWidth={1.5} />
-          <span className="truncate min-w-0 leading-tight text-xs">{branchDisplayName}</span>
+        <div className="text-left flex-grow min-w-0">
+          <div className="w-full truncate text-foreground leading-tight max-w-[250px]">
+            {displayProjectName}
+          </div>
+          <div
+            className={cn(
+              'flex items-center gap-0.5',
+              isBranch ? 'text-foreground-lighter' : 'text-warning'
+            )}
+          >
+            <GitBranch className="shrink-0 size-3" strokeWidth={1.5} />
+            <span className="truncate min-w-0 leading-tight text-xs">{branchDisplayName}</span>
+          </div>
         </div>
-      </div>
 
       <ChevronsUpDown
         strokeWidth={1.5}

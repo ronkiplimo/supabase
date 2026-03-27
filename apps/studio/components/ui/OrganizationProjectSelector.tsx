@@ -311,7 +311,7 @@ export const OrganizationProjectSelector = ({
             {isLoadingProjects || isFetching ? (
               <ShimmeringLoader className="w-44 py-2" />
             ) : (
-              selectedProject?.name ?? 'Select a project'
+              (selectedProject?.name ?? 'Select a project')
             )}
           </Button>
         )}

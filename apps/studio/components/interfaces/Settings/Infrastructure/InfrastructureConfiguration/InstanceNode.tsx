@@ -35,7 +35,7 @@ import {
   Region,
   REPLICA_STATUS,
 } from './InstanceConfiguration.constants'
-import { formatSeconds } from './InstanceConfiguration.utils'
+import { formatSeconds, ResourceExhaustionBadge } from './InstanceConfiguration.utils'
 import { useDatabaseSelectorStateSnapshot } from '@/state/database-selector'
 
 interface NodeData {
@@ -51,6 +51,7 @@ interface PrimaryNodeData extends NodeData {
   numReplicas: number
   numRegions: number
   hasLoadBalancer: boolean
+  resourceWarnings: ResourceExhaustionBadge[]
 }
 
 interface LoadBalancerData extends NodeData {
@@ -107,7 +108,7 @@ export const LoadBalancerNode = ({ data }: NodeProps<LoadBalancerData>) => {
 
 export const PrimaryNode = ({ data }: NodeProps<PrimaryNodeData>) => {
   // [Joshen] Just FYI Handles cannot be conditionally rendered
-  const { region, computeSize, numReplicas, numRegions, hasLoadBalancer } = data
+  const { region, computeSize, numReplicas, numRegions, hasLoadBalancer, resourceWarnings } = data
 
   const { projectHomepageShowInstanceSize } = useIsFeatureEnabled([
     'project_homepage:show_instance_size',
@@ -152,6 +153,17 @@ export const PrimaryNode = ({ data }: NodeProps<PrimaryNodeData>) => {
             src={`${BASE_PATH}/img/regions/${region.region}.svg`}
           />
         </div>
+        {resourceWarnings.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 border-t px-3 py-2">
+            {resourceWarnings.map((warning) => (
+              <Link key={warning.key} href={warning.href}>
+                <Badge variant={warning.severity === 'critical' ? 'destructive' : 'warning'}>
+                  {warning.label}
+                </Badge>
+              </Link>
+            ))}
+          </div>
+        )}
         {numReplicas > 0 && (
           <div className="border-t p-3 py-2">
             <p className="text-sm text-foreground-light">

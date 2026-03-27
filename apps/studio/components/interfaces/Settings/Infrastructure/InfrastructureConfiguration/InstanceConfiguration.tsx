@@ -17,6 +17,7 @@ import {
   ReplicaInitializationStatus,
   useReadReplicasStatusesQuery,
 } from 'data/read-replicas/replicas-status-query'
+import { useResourceWarningsQuery } from 'data/usage/resource-warnings-query'
 import { useAsyncCheckPermissions } from 'hooks/misc/useCheckPermissions'
 import { useIsFeatureEnabled } from 'hooks/misc/useIsFeatureEnabled'
 import {
@@ -74,6 +75,10 @@ const InstanceConfigurationUI = ({ diagramOnly = false }: InstanceConfigurationU
     refetch: refetchLoadBalancers,
     isSuccess: isSuccessLoadBalancers,
   } = useLoadBalancersQuery({ projectRef })
+  const { data: resourceWarningsData } = useResourceWarningsQuery({ ref: projectRef })
+  const projectResourceWarnings = (resourceWarningsData ?? []).find(
+    (warning) => warning.project === projectRef
+  )
   const {
     data,
     error,
@@ -143,11 +148,21 @@ const InstanceConfigurationUI = ({ diagramOnly = false }: InstanceConfigurationU
             primary,
             replicas,
             loadBalancers: loadBalancers ?? [],
+            projectRef: projectRef ?? '',
+            resourceWarnings: projectResourceWarnings,
             onSelectRestartReplica: setSelectedReplicaToRestart,
             onSelectDropReplica: setSelectedReplicaToDrop,
           })
         : [],
-    [isSuccessReplicas, isSuccessLoadBalancers, primary, replicas, loadBalancers]
+    [
+      isSuccessReplicas,
+      isSuccessLoadBalancers,
+      primary,
+      replicas,
+      loadBalancers,
+      projectRef,
+      projectResourceWarnings,
+    ]
   )
 
   const edges: Edge[] = useMemo(

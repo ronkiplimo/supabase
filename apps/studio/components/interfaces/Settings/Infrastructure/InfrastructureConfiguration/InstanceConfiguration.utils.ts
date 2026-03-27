@@ -1,10 +1,11 @@
 import dagre from '@dagrejs/dagre'
-import { groupBy } from 'lodash'
-import { Edge, Node, Position } from 'reactflow'
-
 import type { LoadBalancer } from 'data/read-replicas/load-balancers-query'
 import type { Database } from 'data/read-replicas/replicas-query'
+import type { ResourceWarning } from 'data/usage/resource-warnings-query'
+import { groupBy } from 'lodash'
+import { Edge, Node, Position } from 'reactflow'
 import { AWS_REGIONS, AWS_REGIONS_KEYS } from 'shared-data'
+
 import {
   AVAILABLE_REPLICA_REGIONS,
   AWS_REGIONS_COORDINATES,
@@ -13,6 +14,71 @@ import {
   NODE_WIDTH,
 } from './InstanceConfiguration.constants'
 
+export interface ResourceExhaustionBadge {
+  key: string
+  label: string
+  severity: 'warning' | 'critical'
+  href: string
+}
+
+const BADGE_CONFIGS: Array<{
+  key: keyof ResourceWarning
+  label: string
+  href: (ref: string) => string
+}> = [
+  {
+    key: 'disk_space_exhaustion',
+    label: 'Disk',
+    href: (ref) => `/project/${ref}/settings/compute-and-disk`,
+  },
+  {
+    key: 'cpu_exhaustion',
+    label: 'CPU',
+    href: (ref) => `/project/${ref}/settings/infrastructure`,
+  },
+  {
+    key: 'disk_io_exhaustion',
+    label: 'Disk IO',
+    href: (ref) => `/project/${ref}/settings/infrastructure`,
+  },
+  {
+    key: 'memory_and_swap_exhaustion',
+    label: 'Memory',
+    href: (ref) => `/project/${ref}/settings/infrastructure`,
+  },
+]
+
+export function buildResourceWarningBadges(
+  projectRef: string,
+  warnings: ResourceWarning | undefined
+): ResourceExhaustionBadge[] {
+  if (!warnings) return []
+  const badges: ResourceExhaustionBadge[] = []
+
+  if (warnings.is_readonly_mode_enabled) {
+    badges.push({
+      key: 'is_readonly_mode_enabled',
+      label: 'Read-only',
+      severity: 'critical',
+      href: `/project/${projectRef}/settings/compute-and-disk`,
+    })
+  }
+
+  for (const config of BADGE_CONFIGS) {
+    const value = warnings[config.key]
+    if (value === 'warning' || value === 'critical') {
+      badges.push({
+        key: config.key,
+        label: config.label,
+        severity: value,
+        href: config.href(projectRef),
+      })
+    }
+  }
+
+  return badges
+}
+
 // [Joshen] Just FYI the nodes generation assumes each project only has one load balancer
 // Will need to change if this eventually becomes otherwise
 
@@ -20,12 +86,16 @@ export const generateNodes = ({
   primary,
   replicas,
   loadBalancers,
+  projectRef,
+  resourceWarnings,
   onSelectRestartReplica,
   onSelectDropReplica,
 }: {
   primary: Database
   replicas: Database[]
   loadBalancers: LoadBalancer[]
+  projectRef: string
+  resourceWarnings?: ResourceWarning
   onSelectRestartReplica: (database: Database) => void
   onSelectDropReplica: (database: Database) => void
 }): Node[] => {
@@ -88,6 +158,7 @@ export const generateNodes = ({
       numReplicas: replicas.length,
       numRegions: Object.keys(regions).length,
       hasLoadBalancer: loadBalancer !== undefined,
+      resourceWarnings: buildResourceWarningBadges(projectRef, resourceWarnings),
     },
   }
 

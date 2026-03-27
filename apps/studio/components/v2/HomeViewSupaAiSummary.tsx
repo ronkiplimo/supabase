@@ -712,7 +712,7 @@ export function HomeViewSupaAiSummary({
           'motion-reduce:rounded-md motion-reduce:border motion-reduce:border-border'
         )}
       >
-        <div className="flex items-center justify-between gap-2 text-sm font-medium text-foreground">
+        <div className="flex items-center justify-between gap-2 text-sm font-medium text-foreground-light">
           <div className="flex items-center gap-2">
             <AiIconAnimation size={14} className="h-3.5 w-3.5 text-brand shrink-0" aria-hidden />
             <span>Supa AI Summary</span>

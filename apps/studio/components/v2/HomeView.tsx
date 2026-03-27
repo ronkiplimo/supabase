@@ -34,6 +34,7 @@ import { TimestampInfo } from 'ui-patterns'
 import { Input } from 'ui-patterns/DataInputs/Input'
 
 import { HomeViewDataCountersRow } from './HomeViewDataCountersRow'
+import { HomeViewServiceStatusCard } from './HomeViewServiceStatusCard'
 import { HomeViewSupaAiSummary } from './HomeViewSupaAiSummary'
 import { getMockHomeSummaryData, HOME_SUPA_AI_SUMMARY_USE_MOCK } from './homeViewSupaAiSummaryMock'
 import { useV2DataCounts } from './useV2DataCounts'
@@ -280,23 +281,7 @@ export function HomeView() {
       </div>
 
       <div className="w-full grid grid-cols-2 lg:grid-cols-4 gap-2">
-        <div className="border border-border bg-surface-100 rounded-md p-2">
-          <div className="text-xs text-foreground-lighter">Services</div>
-          <div className="text-xs mt-1">
-            <span
-              className={cn(
-                'font-mono',
-                project?.status === 'ACTIVE_HEALTHY'
-                  ? 'text-brand'
-                  : project?.status
-                    ? 'text-warning'
-                    : 'text-foreground-lighter'
-              )}
-            >
-              {project?.status ? project.status.replaceAll('_', ' ').toLowerCase() : 'Unknown'}
-            </span>
-          </div>
-        </div>
+        <HomeViewServiceStatusCard projectRef={projectRef} project={project} />
         <Link
           href={projectRef ? `/project/${projectRef}/database/migrations` : '#'}
           className="border border-border bg-surface-100 rounded-md p-2 hover:bg-sidebar-accent/50 transition-colors"

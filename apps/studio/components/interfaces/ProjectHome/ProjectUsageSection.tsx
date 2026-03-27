@@ -202,7 +202,7 @@ export const ProjectUsageSection = () => {
   const totalRequests = enabledServices.reduce((sum, s) => sum + (s.total || 0), 0)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex flex-row justify-between items-center gap-x-2">
         <div className="flex items-start gap-2 heading-section text-foreground-light">
           <span className="text-foreground">{totalRequests.toLocaleString()}</span>

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import { constructHeaders, fetchHandler } from 'data/fetchers'
 import { BASE_PATH, IS_PLATFORM } from 'lib/constants'
-import type { ResponseError, UseCustomQueryOptions } from 'types'
+import { ResponseError, type UseCustomQueryOptions } from 'types'
 
 import { aiKeys } from './keys'
 

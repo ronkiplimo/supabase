@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Table2,
   Users,
+  Zap,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -32,6 +33,7 @@ import {
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   tables: <Table2 className="size-3" strokeWidth={1.5} />,
   functions: <FunctionSquare className="size-3" strokeWidth={1.5} />,
+  triggers: <Zap className="size-3" strokeWidth={1.5} />,
   types: <Layers className="size-3" strokeWidth={1.5} />,
   roles: <ShieldCheck className="size-3" strokeWidth={1.5} />,
   extensions: <Box className="size-3" strokeWidth={1.5} />,
@@ -49,7 +51,16 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
 const CATEGORY_GROUPS: Array<{ label: string; categories: string[] }> = [
   {
     label: 'Database',
-    categories: ['tables', 'functions', 'types', 'roles', 'extensions', 'indexes', 'publications'],
+    categories: [
+      'tables',
+      'functions',
+      'triggers',
+      'types',
+      'roles',
+      'extensions',
+      'indexes',
+      'publications',
+    ],
   },
   {
     label: 'Integrations',
@@ -72,6 +83,7 @@ const CATEGORY_GROUPS: Array<{ label: string; categories: string[] }> = [
 const COUNT_KEY_MAP: Record<string, keyof ReturnType<typeof useV2DataCounts>> = {
   tables: 'tables',
   functions: 'functions',
+  triggers: 'triggers',
   types: 'types',
   roles: 'roles',
   extensions: 'extensions',

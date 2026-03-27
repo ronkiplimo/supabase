@@ -25,6 +25,7 @@ const DATA_GROUPS = [
     items: [
       { href: 'tables', label: 'Tables', countKey: 'tables' },
       { href: 'functions', label: 'Functions', countKey: 'functions' },
+      { href: 'triggers', label: 'Triggers', countKey: 'triggers' },
       { href: 'types', label: 'Enumerated types', countKey: 'types' },
       { href: 'roles', label: 'Roles', countKey: 'roles' },
       { href: 'extensions', label: 'Extensions', countKey: 'extensions' },
@@ -108,6 +109,7 @@ const SETTINGS_GROUPS = [
       { href: 'general', label: 'General' },
       { href: 'compute', label: 'Compute & disk' },
       { href: 'network', label: 'Network' },
+      { href: 'backups', label: 'Backups' },
       { href: 'api-keys', label: 'API keys' },
       { href: 'preferences', label: 'Preferences' },
     ],
@@ -138,6 +140,8 @@ function getCount(counts: ReturnType<typeof useV2DataCounts>, key: string): numb
       return counts.tables
     case 'functions':
       return counts.functions
+    case 'triggers':
+      return counts.triggers
     case 'types':
       return counts.types
     case 'roles':

@@ -11,6 +11,7 @@ import { useV2DashboardStore, type DataTab } from '@/stores/v2-dashboard'
 const CATEGORY_LABELS: Record<string, string> = {
   tables: 'Tables',
   functions: 'Functions',
+  triggers: 'Triggers',
   types: 'Enumerated types',
   roles: 'Roles',
   extensions: 'Extensions',
@@ -22,6 +23,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   buckets: 'Buckets',
   'edge-functions': 'Edge functions',
   channels: 'Channels',
+  integrations: 'Integrations',
 }
 
 export function TabBar() {

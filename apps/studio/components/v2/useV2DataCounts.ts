@@ -5,6 +5,7 @@ import { useInstalledIntegrations } from 'components/interfaces/Integrations/Lan
 import { useUsersCountQuery } from 'data/auth/users-count-query'
 import { useDatabaseExtensionsQuery } from 'data/database-extensions/database-extensions-query'
 import { useDatabaseFunctionsQuery } from 'data/database-functions/database-functions-query'
+import { useDatabaseTriggersQuery } from 'data/database-triggers/database-triggers-query'
 import { useDatabasePublicationsQuery } from 'data/database-publications/database-publications-query'
 import { useDatabaseRolesQuery } from 'data/database-roles/database-roles-query'
 import { useIndexesQuery } from 'data/database-indexes/indexes-query'
@@ -77,6 +78,10 @@ export function useV2DataCounts(projectRef: string | undefined) {
     { projectRef, connectionString: conn },
     { enabled: canQueryDb }
   )
+  const { data: dbTriggers } = useDatabaseTriggersQuery(
+    { projectRef, connectionString: conn },
+    { enabled: canQueryDb }
+  )
 
   const { data: indexes } = useIndexesQuery(
     { projectRef, connectionString: conn, schema: 'public' },
@@ -103,6 +108,7 @@ export function useV2DataCounts(projectRef: string | undefined) {
     publications: publications?.length ?? 0,
     types: types?.length ?? 0,
     functions: dbFunctions?.length ?? 0,
+    triggers: dbTriggers?.length ?? 0,
     indexes: Array.isArray(indexes) ? indexes.length : 0,
     providers: Array.isArray(thirdPartyAuth) ? thirdPartyAuth.length : 0,
     oauthApps: oauthAppsData?.clients?.length ?? 0,

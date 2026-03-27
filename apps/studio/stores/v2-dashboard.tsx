@@ -37,6 +37,7 @@ export interface RecentItem {
 export const CATEGORY_DOMAIN: Record<string, DataTabDomain> = {
   tables: 'db',
   functions: 'db',
+  triggers: 'db',
   types: 'db',
   roles: 'db',
   extensions: 'db',
@@ -54,6 +55,7 @@ export const CATEGORY_DOMAIN: Record<string, DataTabDomain> = {
 export const CATEGORY_LABELS: Record<string, string> = {
   tables: 'Tables',
   functions: 'Functions',
+  triggers: 'Triggers',
   types: 'Enumerated types',
   roles: 'Roles',
   extensions: 'Extensions',

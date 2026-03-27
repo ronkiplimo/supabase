@@ -23,6 +23,7 @@ export function EditorFrame({ children }: { children: React.ReactNode }) {
     Boolean(
       pathname?.includes('/data/tables') ||
       pathname?.includes('/data/functions') ||
+      pathname?.includes('/data/triggers') ||
       pathname?.includes('/data/types') ||
       pathname?.includes('/data/roles') ||
       pathname?.includes('/data/extensions') ||

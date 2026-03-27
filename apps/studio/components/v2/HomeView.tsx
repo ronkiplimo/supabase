@@ -283,7 +283,11 @@ export function HomeView() {
       <div className="w-full grid grid-cols-2 lg:grid-cols-4 gap-2">
         <HomeViewServiceStatusCard projectRef={projectRef} project={project} />
         <Link
-          href={projectRef ? `/project/${projectRef}/database/migrations` : '#'}
+          href={
+            projectRef
+              ? `/v2/project/${projectRef}/data/tables?schema=supabase_migrations`
+              : '#'
+          }
           className="border border-border bg-surface-100 rounded-md p-2 hover:bg-sidebar-accent/50 transition-colors"
         >
           <div className="text-xs text-foreground-lighter flex items-center gap-1.5">
@@ -295,7 +299,7 @@ export function HomeView() {
           </div>
         </Link>
         <Link
-          href={projectRef ? `/project/${projectRef}/database/backups/scheduled` : '#'}
+          href={projectRef ? `/v2/project/${projectRef}/settings/backups` : '#'}
           className="border border-border bg-surface-100 rounded-md p-2 hover:bg-sidebar-accent/50 transition-colors"
         >
           <div className="text-xs text-foreground-lighter flex items-center gap-1.5">
@@ -320,7 +324,7 @@ export function HomeView() {
           </div>
         </Link>
         <Link
-          href={projectRef ? `/project/${projectRef}/branches` : '#'}
+          href={projectRef ? `/v2/project/${projectRef}/data/branches` : '#'}
           className="border border-border bg-surface-100 rounded-md p-2 hover:bg-sidebar-accent/50 transition-colors"
         >
           <div className="text-xs text-foreground-lighter flex items-center gap-1.5">

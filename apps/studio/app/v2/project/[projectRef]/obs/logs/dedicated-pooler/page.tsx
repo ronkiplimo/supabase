@@ -1,24 +1,22 @@
 'use client'
 
+import { IS_PLATFORM } from 'common'
 import { LogsTableName } from '@/components/interfaces/Settings/Logs/Logs.constants'
 import { LogsPreviewer } from '@/components/interfaces/Settings/Logs/LogsPreviewer'
-import { useParams, useSearchParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 
-export default function ObsLogsPostgresPage() {
+export default function ObsLogsDedicatedPoolerPage() {
   const params = useParams()
-  const searchParams = useSearchParams()
   const projectRef = params?.projectRef as string | undefined
-  const identifier = searchParams?.get('db') ?? undefined
 
-  if (!projectRef) return null
+  if (!IS_PLATFORM || !projectRef) return null
 
   return (
     <LogsPreviewer
       condensedLayout
-      queryType="database"
+      queryType="pgbouncer"
       projectRef={projectRef}
-      tableName={LogsTableName.POSTGRES}
-      filterOverride={identifier ? { identifier } : undefined}
+      tableName={LogsTableName.PGBOUNCER}
     />
   )
 }

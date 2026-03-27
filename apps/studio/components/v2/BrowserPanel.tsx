@@ -5,10 +5,10 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   Button,
+  cn,
+  Collapsible_Shadcn_,
   CollapsibleContent_Shadcn_,
   CollapsibleTrigger_Shadcn_,
-  Collapsible_Shadcn_,
-  cn,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -61,21 +61,19 @@ const DATA_GROUPS = [
 
 const OBS_GROUPS = [
   {
-    id: 'obs-logs',
-    label: 'Logs',
+    id: 'obs-alerts',
+    label: 'Advisors',
     items: [
-      { href: 'logs', label: 'All logs' },
-      { href: 'logs/api', label: 'API gateway' },
-      { href: 'logs/postgres', label: 'Postgres' },
-      { href: 'logs/auth', label: 'Auth' },
+      { href: 'advisors/security', label: 'Security' },
+      { href: 'advisors/performance', label: 'Performance' },
     ],
   },
   {
     id: 'obs-metrics',
-    label: 'Observe',
+    label: 'Observability',
     items: [
+      { href: 'metrics/api-overview', label: 'API gateway' },
       { href: 'metrics/query-performance', label: 'Query Performance' },
-      { href: 'metrics/connections', label: 'API gateway' },
       { href: 'metrics/database', label: 'Database' },
       { href: 'metrics/postgrest', label: 'Data API' },
       { href: 'metrics/auth', label: 'Auth' },
@@ -85,11 +83,19 @@ const OBS_GROUPS = [
     ],
   },
   {
-    id: 'obs-alerts',
-    label: 'Advisors',
+    id: 'obs-logs',
+    label: 'Logs',
     items: [
-      { href: 'alerts', label: 'Security' },
-      { href: 'alerts', label: 'Performance' },
+      { href: 'logs/api', label: 'API gateway' },
+      { href: 'logs/postgres', label: 'Postgres' },
+      { href: 'logs/postgrest', label: 'PostgREST' },
+      { href: 'logs/pooler', label: 'Pooler' },
+      { href: 'logs/dedicated-pooler', label: 'Dedicated Pooler' },
+      { href: 'logs/auth', label: 'Auth' },
+      { href: 'logs/storage', label: 'Storage' },
+      { href: 'logs/realtime', label: 'Realtime' },
+      { href: 'logs/edge-functions', label: 'Edge Functions' },
+      { href: 'logs/cron', label: 'Cron' },
     ],
   },
 ]
@@ -103,6 +109,7 @@ const SETTINGS_GROUPS = [
       { href: 'compute', label: 'Compute & disk' },
       { href: 'network', label: 'Network' },
       { href: 'api-keys', label: 'API keys' },
+      { href: 'preferences', label: 'Preferences' },
     ],
   },
   {
@@ -255,9 +262,7 @@ export function BrowserPanel({ onCollapse }: { onCollapse?: () => void }) {
                   </span>
                 </button>
               </CollapsibleTrigger_Shadcn_>
-              <CollapsibleContent_Shadcn_>
-                {renderedItems}
-              </CollapsibleContent_Shadcn_>
+              <CollapsibleContent_Shadcn_>{renderedItems}</CollapsibleContent_Shadcn_>
             </Collapsible_Shadcn_>
           )
         })}

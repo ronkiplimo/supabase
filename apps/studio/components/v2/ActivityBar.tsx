@@ -158,7 +158,7 @@ export function LeftActivityBar() {
           icon: <ChartArea className="h-4 w-4" strokeWidth={1.5} />,
           label: 'Observe',
           badge: hasAdvisorWarnings,
-          href: `${base}/obs/logs`,
+          href: `${base}/obs/advisors/security`,
         },
         {
           id: 'settings',

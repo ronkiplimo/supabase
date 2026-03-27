@@ -1,27 +1,26 @@
 'use client'
 
-import { useMemo } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useMemo } from 'react'
+import type { NextPageWithLayout } from 'types'
 import { Tabs_Shadcn_, TabsContent_Shadcn_, TabsList_Shadcn_, TabsTrigger_Shadcn_ } from 'ui'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
 import { BannerStackProvider } from '@/components/ui/BannerStack/BannerStackProvider'
 import { StudioDataWorkspace } from '@/components/v2/data/StudioDataWorkspace'
-
-import UrlConfigurationPage from '@/pages/project/[ref]/auth/url-configuration'
-import ProtectionPage from '@/pages/project/[ref]/auth/protection'
+import AuditLogsPage from '@/pages/project/[ref]/auth/audit-logs'
+import HooksPage from '@/pages/project/[ref]/auth/hooks'
 import MfaPage from '@/pages/project/[ref]/auth/mfa'
-import SessionsPage from '@/pages/project/[ref]/auth/sessions'
+import OAuthServerPage from '@/pages/project/[ref]/auth/oauth-server'
+import PerformancePage from '@/pages/project/[ref]/auth/performance'
+import AuthPoliciesPage from '@/pages/project/[ref]/auth/policies'
+import ProtectionPage from '@/pages/project/[ref]/auth/protection'
 import RateLimitsPage from '@/pages/project/[ref]/auth/rate-limits'
+import SessionsPage from '@/pages/project/[ref]/auth/sessions'
 import SmtpPage from '@/pages/project/[ref]/auth/smtp'
 import TemplatesPage from '@/pages/project/[ref]/auth/templates'
-import AuthPoliciesPage from '@/pages/project/[ref]/auth/policies'
-import HooksPage from '@/pages/project/[ref]/auth/hooks'
 import ThirdPartyPage from '@/pages/project/[ref]/auth/third-party'
-import OAuthServerPage from '@/pages/project/[ref]/auth/oauth-server'
-import AuditLogsPage from '@/pages/project/[ref]/auth/audit-logs'
-import PerformancePage from '@/pages/project/[ref]/auth/performance'
-import type { NextPageWithLayout } from 'types'
+import UrlConfigurationPage from '@/pages/project/[ref]/auth/url-configuration'
 
 const TABS: Array<{ key: string; label: string; content: NextPageWithLayout }> = [
   { key: 'url', label: 'URL', content: UrlConfigurationPage },
@@ -64,7 +63,7 @@ export function V2AuthSettingsView() {
     <StudioDataWorkspace projectRef={projectRef}>
       <div className="flex h-full min-h-0 flex-col">
         <Tabs_Shadcn_ value={activeTab} onValueChange={onTabChange}>
-          <div className="sticky top-0 z-10 border-b border-border bg-background px-4 shrink-0">
+          <div className="sticky top-0 z-10 bg-background px-4 shrink-0">
             <TabsList_Shadcn_ className="h-auto bg-transparent p-0 gap-0 overflow-x-auto">
               {TABS.map((tab) => (
                 <TabsTrigger_Shadcn_

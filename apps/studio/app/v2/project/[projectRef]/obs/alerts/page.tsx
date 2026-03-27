@@ -1,5 +1,5 @@
-import { V2PlaceholderView } from '@/components/v2/views/V2PlaceholderView'
+import { redirect } from 'next/navigation'
 
 export default function ObsAlertsPage() {
-  return <V2PlaceholderView title="Active alerts" />
+  redirect('./advisors/security')
 }

@@ -1,5 +1,6 @@
 'use client'
 
+import { FeedbackDropdown } from 'components/layouts/Navigation/LayoutHeader/FeedbackDropdown/FeedbackDropdown'
 import { cn } from 'ui'
 import { CommandMenuTriggerInput } from 'ui-patterns'
 
@@ -12,7 +13,7 @@ export function TopBar() {
         'h-11 md:h-12 flex items-center justify-between pl-1 pr-1.5 border-b border-border bg-dash-sidebar shrink-0'
       )}
     >
-      <div className="flex items-center gap-2 min-w-0 flex-1">
+      <div className="flex items-center gap-2 min-w-0 shrink-0">
         <V2ProjectBranchSelector />
       </div>
       <div className="flex items-center gap-2 shrink-0">
@@ -20,6 +21,9 @@ export function TopBar() {
           placeholder="Search ⌘K"
           className="text-foreground-lighter border border-border rounded px-2 py-1 text-xs"
         />
+      </div>
+      <div className="hidden md:block shrink-0">
+        <FeedbackDropdown />
       </div>
     </header>
   )

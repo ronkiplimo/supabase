@@ -93,6 +93,7 @@ export const ProjectList = ({ organization: organization_, rewriteHref }: Projec
     error: permissionsError,
   } = usePermissionsQuery()
   const { data: resourceWarnings } = useResourceWarningsQuery({ slug })
+  console.log('raw warnings', resourceWarnings, 'looking for', slug)
 
   // Move all hooks to the top to comply with Rules of Hooks
   const { data: integrations } = useOrgIntegrationsQuery({ orgSlug: organization?.slug })

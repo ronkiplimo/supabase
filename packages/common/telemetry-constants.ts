@@ -2035,9 +2035,9 @@ export interface HomeConnectActionClickedEvent {
   action: 'home_connect_action_clicked'
   properties: {
     /**
-     * The connect mode that was clicked
+     * The connect action/tile that was clicked
      */
-    mode: 'framework' | 'direct' | 'orm' | 'mcp'
+    mode: 'framework' | 'direct' | 'orm' | 'mcp' | 'api_keys'
   }
   groups: TelemetryGroups
 }
@@ -3016,27 +3016,6 @@ export interface IntegrationUninstallCompletedEvent {
 export interface RlsEventTriggerBannerCreateButtonClickedEvent {
   action: 'rls_event_trigger_banner_create_button_clicked'
   groups: TelemetryGroups
-}
-
-/**
- * User was exposed to the pricing calculator experiment on the /pricing page.
- *
- * @group Events
- * @source www
- * @page /pricing
- */
-export interface PricingCalculatorExperimentExposedEvent {
-  action: 'pricing_calculator_experiment_exposed'
-  properties: {
-    /**
-     * Experiment identifier for tracking
-     */
-    experiment_id: 'pricingCalculatorExperiment'
-    /**
-     * Experiment variant: 'control' (existing compute section) or 'test' (new compute section)
-     */
-    variant: 'control' | 'test'
-  }
 }
 
 /**

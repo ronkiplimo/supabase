@@ -1,18 +1,18 @@
-import Link from 'next/link'
-import { useState } from 'react'
-import { useTrack } from 'lib/telemetry/track'
-
 import { getAddons } from 'components/interfaces/Billing/Subscription/Subscription.utils'
 import { ProjectDetail } from 'data/projects/project-detail-query'
 import { useOrgSubscriptionQuery } from 'data/subscriptions/org-subscription-query'
 import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
 import { ProjectAddonVariantMeta } from 'data/subscriptions/types'
+import { ResourceWarning } from 'data/usage/resource-warnings-query'
 import { getCloudProviderArchitecture } from 'lib/cloudprovider-utils'
 import { INSTANCE_MICRO_SPECS } from 'lib/constants'
-import { ResourceWarning } from 'data/usage/resource-warnings-query'
+import { useTrack } from 'lib/telemetry/track'
+import Link from 'next/link'
+import { useState } from 'react'
 import { Button, cn, HoverCard, HoverCardContent, HoverCardTrigger, Separator } from 'ui'
 import { ComputeBadge } from 'ui-patterns/ComputeBadge'
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
+
 import { UpgradePlanButton } from './UpgradePlanButton'
 
 const ChevronsUpAnimated = () => (
@@ -109,6 +109,8 @@ export const ComputeBadgeWrapper = ({
 
   const isComputeNearExhaustion =
     !!resourceWarnings?.cpu_exhaustion || !!resourceWarnings?.memory_and_swap_exhaustion
+
+  console.log({ resourceWarnings, isComputeNearExhaustion })
 
   const hasUpgradeAvailable = (isFreeOnNano || isEligibleForFreeUpgrade) && isComputeNearExhaustion
 

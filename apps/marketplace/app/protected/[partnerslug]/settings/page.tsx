@@ -28,7 +28,7 @@ type PartnerSettingsPageProps = {
 }
 
 export default async function PartnerSettingsPage({ params }: PartnerSettingsPageProps) {
-  const { partnerslug } = params
+  const { partnerslug } = await params
   const supabase = await createClient()
   const {
     data: { user },

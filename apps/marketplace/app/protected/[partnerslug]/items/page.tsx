@@ -39,8 +39,11 @@ type PartnerListingsPageProps = {
       }>
 }
 
-export default async function PartnerListingsPage({ params, searchParams }: PartnerListingsPageProps) {
-  const { partnerslug } = params
+export default async function PartnerListingsPage({
+  params,
+  searchParams,
+}: PartnerListingsPageProps) {
+  const { partnerslug } = await params
   const resolvedSearchParams = searchParams ? await searchParams : undefined
   const searchQuery = (resolvedSearchParams?.q ?? '').trim()
   const { user, partners } = await getMarketplaceSidebarData()
@@ -115,7 +118,9 @@ export default async function PartnerListingsPage({ params, searchParams }: Part
                     </TableHeader>
                     <TableBody>
                       {filteredListings.map((listing) => {
-                        const statusDisplay = deriveLatestReviewStatusDisplay(listing.latestReviewStatus)
+                        const statusDisplay = deriveLatestReviewStatusDisplay(
+                          listing.latestReviewStatus
+                        )
 
                         return (
                           <TableRow key={listing.id} className="group">

@@ -46,7 +46,7 @@ export const BackupsList = () => {
               'DD MMM YYYY HH:mm:ss'
             )}`
           )
-          router.push(`/project/${projectRef}`)
+          router?.push(`/project/${projectRef}`)
         }, 3000)
       }
     },

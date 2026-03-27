@@ -43,8 +43,14 @@ function getSeriesValue(
   const samples: number[] = []
   for (const point of infraData.data) {
     let raw: NumericValue
-    if ('values' in point && point.values && key in point.values) {
-      raw = point.values[key]
+    const valuesBag = 'values' in point ? point.values : undefined
+    if (
+      valuesBag !== undefined &&
+      typeof valuesBag === 'object' &&
+      valuesBag !== null &&
+      key in valuesBag
+    ) {
+      raw = (valuesBag as Record<string, NumericValue>)[key]
     } else if (key in point) {
       raw = (point as Record<string, NumericValue>)[key]
     } else continue

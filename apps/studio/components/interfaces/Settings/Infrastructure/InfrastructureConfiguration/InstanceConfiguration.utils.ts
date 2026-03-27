@@ -1,9 +1,9 @@
 import dagre from '@dagrejs/dagre'
+import { Edge, Node, Position } from '@xyflow/react'
 import type { LoadBalancer } from 'data/read-replicas/load-balancers-query'
 import type { Database } from 'data/read-replicas/replicas-query'
 import type { ResourceWarning } from 'data/usage/resource-warnings-query'
 import { groupBy } from 'lodash'
-import { Edge, Node, Position } from 'reactflow'
 import { AWS_REGIONS, AWS_REGIONS_KEYS } from 'shared-data'
 
 import {
@@ -12,14 +12,9 @@ import {
   NODE_ROW_HEIGHT,
   NODE_SEP,
   NODE_WIDTH,
+  ReplicaNodeData,
+  ResourceExhaustionBadge,
 } from './InstanceConfiguration.constants'
-
-export interface ResourceExhaustionBadge {
-  key: string
-  label: string
-  severity: 'warning' | 'critical'
-  href: string
-}
 
 const BADGE_CONFIGS: Array<{
   key: keyof ResourceWarning
@@ -236,7 +231,9 @@ export const getDagreGraphLayout = (nodes: Node[], edges: Edge[]) => {
  */
 export const addRegionNodes = (nodes: Node[], edges: Edge[]) => {
   const regionNodes: Node[] = []
-  const replicaNodes = nodes.filter((node) => node.type === 'READ_REPLICA')
+  const replicaNodes = nodes.filter(
+    (node) => node.type === 'READ_REPLICA'
+  ) as Node<ReplicaNodeData>[]
 
   const nodesByRegion = groupBy(replicaNodes, (node) => node.data.region.key)
   Object.entries(nodesByRegion).map(([key, value]) => {

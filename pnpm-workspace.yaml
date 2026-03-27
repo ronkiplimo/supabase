@@ -45,6 +45,7 @@ minimumReleaseAgeExclude:
   - '@ai-sdk/*'
   - '@supabase/*'
   - '@supabase-labs/*'
+  - postcss-nested
   # The following deps were added due to vulnerabilities. You can remove them after the minimum time has passed.
   - undici
   - next
@@ -52,6 +53,7 @@ minimumReleaseAgeExclude:
   - h3
   - typescript
   - stripe-experiment-sync
+  - tar
 
 onlyBuiltDependencies:
   - node-pty

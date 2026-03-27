@@ -24,7 +24,7 @@ import { PausingState } from '../ProjectLayout/PausingState'
 import { ResizingState } from '../ProjectLayout/ResizingState'
 import RestartingState from '../ProjectLayout/RestartingState'
 import { RestoreFailedState } from '../ProjectLayout/RestoreFailedState'
-import RestoringState from '../ProjectLayout/RestoringState'
+import { RestoringState } from '../ProjectLayout/RestoringState'
 import { UpgradingState } from '../ProjectLayout/UpgradingState'
 
 const routesToIgnoreProjectDetailsRequest = [

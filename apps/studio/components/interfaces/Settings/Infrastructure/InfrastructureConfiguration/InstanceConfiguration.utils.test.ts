@@ -12,6 +12,8 @@ const BASE_WARNING: ResourceWarning = {
   memory_and_swap_exhaustion: null,
   need_pitr: null,
   auth_rate_limit_exhaustion: null,
+  auth_email_offender: null,
+  auth_restricted_email_sending: null,
 }
 
 describe('buildResourceWarningBadges', () => {

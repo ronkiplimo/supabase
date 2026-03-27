@@ -137,7 +137,7 @@ export function LeftActivityBar() {
   const base = projectRef ? `/v2/project/${projectRef}` : '#'
   const homeBase = projectRef && orgSlug ? `/v2/project/${projectRef}` : '#'
 
-  const searchString = searchParams.toString()
+  const searchString = searchParams?.toString() ?? ''
   const connectHref = useMemo(() => {
     if (!projectRef) return '#'
     const path = pathname ?? `/v2/project/${projectRef}`

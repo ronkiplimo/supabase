@@ -1,16 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useDebounce } from '@uidotdev/usehooks'
-import { Check, Github, Loader2 } from 'lucide-react'
-import Image from 'next/image'
-import { useRouter } from 'next/router'
-import { useCallback, useEffect, useState } from 'react'
-import { useForm, useWatch } from 'react-hook-form'
-import { toast } from 'sonner'
-import * as z from 'zod'
-
-import { InlineLink } from '@/components/ui/InlineLink'
 import { useParams } from 'common'
-import { useIsBranching2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { AlertError } from 'components/ui/AlertError'
 import { useBranchUpdateMutation } from 'data/branches/branch-update-mutation'
 import { Branch, useBranchesQuery } from 'data/branches/branches-query'
@@ -19,9 +9,15 @@ import { useGitHubConnectionsQuery } from 'data/integrations/github-connections-
 import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
 import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
 import { BASE_PATH } from 'lib/constants'
+import { Check, Github, Loader2 } from 'lucide-react'
+import Image from 'next/image'
+import { useRouter } from 'next/router'
+import { useCallback, useEffect, useState } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
+import { toast } from 'sonner'
 import {
-  Badge,
   Button,
+  cn,
   Dialog,
   DialogContent,
   DialogFooter,
@@ -29,15 +25,17 @@ import {
   DialogSection,
   DialogSectionSeparator,
   DialogTitle,
+  Form_Shadcn_,
   FormControl_Shadcn_,
   FormField_Shadcn_,
-  Form_Shadcn_,
   Input_Shadcn_,
   Label_Shadcn_ as Label,
-  cn,
 } from 'ui'
 import { FormItemLayout } from 'ui-patterns/form/FormItemLayout/FormItemLayout'
 import { GenericSkeletonLoader } from 'ui-patterns/ShimmeringLoader'
+import * as z from 'zod'
+
+import { InlineLink } from '@/components/ui/InlineLink'
 
 interface EditBranchModalProps {
   branch?: Branch
@@ -50,9 +48,8 @@ export const EditBranchModal = ({ branch, visible, onClose }: EditBranchModalPro
   const router = useRouter()
   const { data: projectDetails } = useSelectedProjectQuery()
   const { data: selectedOrg } = useSelectedOrganizationQuery()
-  const gitlessBranching = useIsBranching2Enabled()
 
-  const [isGitBranchValid, setIsGitBranchValid] = useState(false)
+  const [isGitBranchValid, setIsGitBranchValid] = useState(true)
 
   const isBranch = projectDetails?.parent_project_ref !== undefined
   const projectRef =
@@ -101,12 +98,7 @@ export const EditBranchModal = ({ branch, visible, onClose }: EditBranchModalPro
           val === branch?.name || (branches ?? []).every((b) => b.name !== val),
         'A branch with this name already exists'
       ),
-    gitBranchName: z
-      .string()
-      .refine(
-        (val) => gitlessBranching || !githubConnection || (val && val.length > 0),
-        'Git branch name is required when GitHub is connected'
-      ),
+    gitBranchName: z.string().optional(),
   })
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -200,24 +192,21 @@ export const EditBranchModal = ({ branch, visible, onClose }: EditBranchModalPro
   // Pre-fill form when the modal becomes visible and branch data is available
   useEffect(() => {
     if (visible && branch) {
-      setIsGitBranchValid(!!branch.git_branch || gitlessBranching) // Initial validity based on existing link or gitless branching
       form.reset({
         branchName: branch.name ?? '',
         gitBranchName: branch.git_branch ?? '',
       })
     }
-  }, [branch, visible, form, gitlessBranching])
+  }, [branch, visible, form])
 
   useEffect(() => {
     if (!githubConnection || !debouncedGitBranchName) {
-      setIsGitBranchValid(gitlessBranching)
-      form.clearErrors('gitBranchName')
-      return
+      return form.clearErrors('gitBranchName')
     }
 
     form.clearErrors('gitBranchName')
     validateGitBranchName(debouncedGitBranchName)
-  }, [debouncedGitBranchName, validateGitBranchName, form, githubConnection, gitlessBranching])
+  }, [debouncedGitBranchName, validateGitBranchName, form, githubConnection])
 
   return (
     <Dialog open={visible} onOpenChange={(open) => !open && onClose()}>
@@ -253,9 +242,7 @@ export const EditBranchModal = ({ branch, visible, onClose }: EditBranchModalPro
                     <FormItemLayout
                       label={
                         <div className="flex items-center justify-between w-full gap-4">
-                          <span className="flex-1">
-                            Sync with Git branch {gitlessBranching ? '(optional)' : ''}
-                          </span>
+                          <span className="flex-1">Sync with Git branch</span>
                           <div className="flex items-center gap-2 text-sm">
                             <Image
                               className={cn('dark:invert')}
@@ -270,11 +257,8 @@ export const EditBranchModal = ({ branch, visible, onClose }: EditBranchModalPro
                           </div>
                         </div>
                       }
-                      description={
-                        gitlessBranching
-                          ? 'Automatically deploy changes on every commit'
-                          : 'If linked, migrations from this Git branch will be automatically deployed.'
-                      }
+                      labelOptional="Optional"
+                      description="Automatically deploy changes on every commit"
                     >
                       <div className="relative">
                         <FormControl_Shadcn_>
@@ -314,16 +298,14 @@ export const EditBranchModal = ({ branch, visible, onClose }: EditBranchModalPro
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
                       <Label>Sync with a GitHub branch</Label>
-                      {!gitlessBranching && <Badge variant="warning">Required</Badge>}
                     </div>
                     <p className="text-sm text-foreground-light">
-                      {gitlessBranching
-                        ? 'Optionally connect to a GitHub repository to manage migrations automatically for this branch.'
-                        : 'Keep this preview branch in sync with a chosen GitHub branch'}
+                      Optionally connect to a GitHub repository to manage migrations automatically
+                      for this branch.
                     </p>
                   </div>
                   <Button type="default" icon={<Github />} onClick={openLinkerPanel}>
-                    {gitlessBranching ? 'Connect to GitHub' : 'Configure'}
+                    Connect to GitHub
                   </Button>
                 </div>
               )}
@@ -335,13 +317,7 @@ export const EditBranchModal = ({ branch, visible, onClose }: EditBranchModalPro
               </Button>
               <Button
                 form={formId}
-                disabled={
-                  !isSuccessConnections ||
-                  isUpdating ||
-                  !canSubmit ||
-                  isChecking ||
-                  (!gitlessBranching && !githubConnection)
-                }
+                disabled={!isSuccessConnections || isUpdating || !canSubmit || isChecking}
                 loading={isUpdating}
                 type="primary"
                 htmlType="submit"

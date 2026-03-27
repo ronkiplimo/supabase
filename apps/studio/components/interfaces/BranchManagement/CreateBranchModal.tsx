@@ -1,18 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { PermissionAction } from '@supabase/shared-types/out/constants'
 import { useQueryClient } from '@tanstack/react-query'
-import { Check, DatabaseZap, DollarSign, GitMerge, Github, Loader2 } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { useRouter } from 'next/router'
-import { useCallback, useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import * as z from 'zod'
-
 import { useDebounce } from '@uidotdev/usehooks'
 import { useFlag, useParams } from 'common'
-import { useIsBranching2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { BranchingPITRNotice } from 'components/layouts/AppLayout/EnableBranchingButton/BranchingPITRNotice'
 import AlertError from 'components/ui/AlertError'
 import { ButtonTooltip } from 'components/ui/ButtonTooltip'
@@ -32,10 +22,18 @@ import { useAsyncCheckPermissions } from 'hooks/misc/useCheckPermissions'
 import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
 import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
 import { BASE_PATH, IS_PLATFORM } from 'lib/constants'
+import { Check, DatabaseZap, DollarSign, Github, GitMerge, Loader2 } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/router'
+import { useCallback, useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { useAppStateSnapshot } from 'state/app-state'
 import {
   Badge,
   Button,
+  cn,
   Dialog,
   DialogContent,
   DialogFooter,
@@ -43,19 +41,20 @@ import {
   DialogSection,
   DialogSectionSeparator,
   DialogTitle,
+  Form_Shadcn_,
   FormControl_Shadcn_,
   FormField_Shadcn_,
-  Form_Shadcn_,
   Input_Shadcn_,
   Label_Shadcn_ as Label,
   Switch,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-  cn,
 } from 'ui'
 import { FormItemLayout } from 'ui-patterns/form/FormItemLayout/FormItemLayout'
 import { GenericSkeletonLoader, ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
+import * as z from 'zod'
+
 import {
   estimateComputeSize,
   estimateDiskCost,
@@ -70,10 +69,9 @@ export const CreateBranchModal = () => {
   const { data: selectedOrg } = useSelectedOrganizationQuery()
   const { showCreateBranchModal, setShowCreateBranchModal } = useAppStateSnapshot()
 
-  const gitlessBranching = useIsBranching2Enabled()
   const allowDataBranching = useFlag('allowDataBranching')
 
-  const [isGitBranchValid, setIsGitBranchValid] = useState(false)
+  const [isGitBranchValid, setIsGitBranchValid] = useState(true)
 
   const { can: canCreateBranch } = useAsyncCheckPermissions(
     PermissionAction.CREATE,
@@ -101,12 +99,7 @@ export const CreateBranchModal = () => {
         (val) => (branches ?? []).every((branch) => branch.name !== val),
         'A branch with this name already exists'
       ),
-    gitBranchName: z
-      .string()
-      .refine(
-        (val) => gitlessBranching || !githubConnection || (val && val.length > 0),
-        'Git branch name is required when GitHub is connected'
-      ),
+    gitBranchName: z.string().optional(),
     withData: z.boolean().default(false).optional(),
   })
 
@@ -182,7 +175,7 @@ export const CreateBranchModal = () => {
         action: 'branch_create_button_clicked',
         properties: {
           branchType: data.persistent ? 'persistent' : 'preview',
-          gitlessBranching,
+          gitlessBranching: !!data.git_branch,
         },
         groups: {
           project: ref ?? 'Unknown',
@@ -211,15 +204,10 @@ export const CreateBranchModal = () => {
     !isSuccessConnections ||
     isLoadingEntitlement ||
     !hasAccessToBranching ||
-    (!gitlessBranching && !githubConnection) ||
     isCreatingBranch ||
     isCheckingGHBranchValidity
 
-  const tooltipText = promptPlanUpgrade
-    ? 'Upgrade to unlock branching'
-    : !gitlessBranching && !githubConnection
-      ? 'Set up a GitHub connection first to create branches'
-      : undefined
+  const tooltipText = promptPlanUpgrade ? 'Upgrade to unlock branching' : undefined
 
   const validateGitBranchName = useCallback(
     (branchName: string) => {
@@ -289,14 +277,12 @@ export const CreateBranchModal = () => {
 
   useEffect(() => {
     if (!githubConnection || !debouncedGitBranchName) {
-      setIsGitBranchValid(gitlessBranching)
-      form.clearErrors('gitBranchName')
-      return
+      return form.clearErrors('gitBranchName')
     }
 
     form.clearErrors('gitBranchName')
     validateGitBranchName(debouncedGitBranchName)
-  }, [debouncedGitBranchName, validateGitBranchName, form, githubConnection, gitlessBranching])
+  }, [debouncedGitBranchName, validateGitBranchName, form, githubConnection])
 
   return (
     <Dialog open={showCreateBranchModal} onOpenChange={(open) => setShowCreateBranchModal(open)}>
@@ -355,9 +341,7 @@ export const CreateBranchModal = () => {
                     <FormItemLayout
                       label={
                         <div className="flex items-center justify-between w-full gap-4">
-                          <span className="flex-1">
-                            Sync with Git branch {gitlessBranching ? '(optional)' : ''}
-                          </span>
+                          <span className="flex-1">Sync with Git branch</span>
                           <div className="flex items-center gap-2 text-sm">
                             <Image
                               className={cn('dark:invert')}
@@ -377,6 +361,7 @@ export const CreateBranchModal = () => {
                           </div>
                         </div>
                       }
+                      labelOptional="Optional"
                       description="Automatically deploy changes on every commit"
                     >
                       <div className="relative w-full">
@@ -418,10 +403,7 @@ export const CreateBranchModal = () => {
                   {!githubConnection && (
                     <div className="flex items-center gap-2 justify-between">
                       <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2">
-                          <Label>Sync with a GitHub branch</Label>
-                          {!gitlessBranching && <Badge variant="warning">Required</Badge>}
-                        </div>
+                        <Label>Sync with a GitHub branch</Label>
                         <p className="text-sm text-foreground-lighter">
                           Keep this preview branch in sync with a chosen GitHub branch
                         </p>

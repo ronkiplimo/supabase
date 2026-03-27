@@ -1,8 +1,5 @@
 import { LOCAL_STORAGE_KEYS, useParams } from 'common'
-import {
-  useIsBranching2Enabled,
-  useIsFloatingMobileToolbarEnabled,
-} from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
+import { useIsFloatingMobileToolbarEnabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { Connect } from 'components/interfaces/Connect/Connect'
 import { ConnectButton } from 'components/interfaces/ConnectButton/ConnectButton'
 import { ConnectSheet } from 'components/interfaces/ConnectSheet/ConnectSheet'
@@ -75,7 +72,6 @@ export const LayoutHeader = ({
   const { ref: projectRef, slug } = useParams()
   const { data: selectedProject } = useSelectedProjectQuery()
   const { data: selectedOrganization } = useSelectedOrganizationQuery()
-  const gitlessBranching = useIsBranching2Enabled()
 
   const showFloatingMobileToolbar = useIsFloatingMobileToolbarEnabled()
   const connectSectionVariant = usePHFlag<ConnectSectionVariant | false>('connectSection')
@@ -222,7 +218,7 @@ export const LayoutHeader = ({
                     ease: 'easeOut',
                   }}
                 >
-                  {IS_PLATFORM && gitlessBranching && <MergeRequestButton />}
+                  {IS_PLATFORM && <MergeRequestButton />}
                   <ConnectButton buttonType={connectButtonType} />
                 </motion.div>
               )}

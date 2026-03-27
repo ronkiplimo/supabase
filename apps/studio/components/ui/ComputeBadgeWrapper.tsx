@@ -104,14 +104,9 @@ export const ComputeBadgeWrapper = ({
 
   const isFreeOnNano = !!data && data.plan.id === 'free' && computeSize === 'nano'
   const isEligibleForFreeUpgrade = !!data && data.plan.id !== 'free' && computeSize === 'nano'
-
   const isLoading = isLoadingAddons || isLoadingSubscriptions
-
   const isComputeNearExhaustion =
     !!resourceWarnings?.cpu_exhaustion || !!resourceWarnings?.memory_and_swap_exhaustion
-
-  console.log({ resourceWarnings, isComputeNearExhaustion })
-
   const hasUpgradeAvailable = (isFreeOnNano || isEligibleForFreeUpgrade) && isComputeNearExhaustion
 
   if (!computeSize) return null

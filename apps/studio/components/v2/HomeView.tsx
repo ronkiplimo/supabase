@@ -22,7 +22,7 @@ import { useOrganizationsQuery } from 'data/organizations/organizations-query'
 import { useProjectDetailQuery } from 'data/projects/project-detail-query'
 import dayjs from 'dayjs'
 import { IS_PLATFORM } from 'lib/constants'
-import { AlertTriangle, Archive, CircleAlert, Database, GitBranch, Info } from 'lucide-react'
+import { AlertTriangle, Archive, CircleAlert, Database, GitBranch, Info, Plug } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { parseAsBoolean, useQueryState } from 'nuqs'
@@ -284,9 +284,7 @@ export function HomeView() {
         <HomeViewServiceStatusCard projectRef={projectRef} project={project} />
         <Link
           href={
-            projectRef
-              ? `/v2/project/${projectRef}/data/tables?schema=supabase_migrations`
-              : '#'
+            projectRef ? `/v2/project/${projectRef}/data/tables?schema=supabase_migrations` : '#'
           }
           className="border border-border bg-surface-100 rounded-md p-2 hover:bg-sidebar-accent/50 transition-colors"
         >
@@ -355,9 +353,14 @@ export function HomeView() {
         {/* Connect */}
         <div className="">
           <div className="flex items-start justify-between gap-3 mb-2">
-            <h2 className="text-base">Connect</h2>
-            <Button type="default" size="tiny" onClick={() => setShowConnect(true)}>
-              View advanced connection params
+            <h2 className="text-base">Connect to your project</h2>
+            <Button
+              type="text"
+              size="tiny"
+              onClick={() => setShowConnect(true)}
+              icon={<Plug className="rotate-90" />}
+            >
+              Connect
             </Button>
           </div>
           <div className="border border-border bg-surface-100 rounded-md p-2 space-y-2">

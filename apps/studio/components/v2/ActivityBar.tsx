@@ -1,10 +1,11 @@
 'use client'
 
 import { useProjectLintsQuery } from 'data/lint/lint-query'
-import { ChartArea, Home, Settings, Table2 } from 'lucide-react'
+import { ChartArea, Home, Plug, Settings, Table2 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
+import { useMemo } from 'react'
 import { cn, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
@@ -66,7 +67,7 @@ export function ActivityBar({
                     <span className="relative">
                       {item.icon}
                       {item.badge && (
-                        <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-amber-500" />
+                        <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-destructive" />
                       )}
                     </span>
                   </Link>
@@ -110,6 +111,7 @@ export function ActivityBar({
 
 export function LeftActivityBar() {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const { projectRef, orgSlug } = useV2Params()
 
   const isHomeActive =
@@ -135,6 +137,15 @@ export function LeftActivityBar() {
   const base = projectRef ? `/v2/project/${projectRef}` : '#'
   const homeBase = projectRef && orgSlug ? `/v2/project/${projectRef}` : '#'
 
+  const searchString = searchParams.toString()
+  const connectHref = useMemo(() => {
+    if (!projectRef) return '#'
+    const path = pathname ?? `/v2/project/${projectRef}`
+    const params = new URLSearchParams(searchString)
+    params.set('showConnect', 'true')
+    return `${path}?${params.toString()}`
+  }, [projectRef, pathname, searchString])
+
   return (
     <ActivityBar
       side="left"
@@ -146,6 +157,12 @@ export function LeftActivityBar() {
           label: 'Home',
           href: homeBase,
           separatorAfter: true,
+        },
+        {
+          id: 'connect',
+          icon: <Plug className="h-4 w-4 rotate-90" strokeWidth={1.5} />,
+          label: 'Connect',
+          href: connectHref,
         },
         {
           id: 'data',

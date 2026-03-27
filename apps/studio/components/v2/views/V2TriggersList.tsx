@@ -32,7 +32,11 @@ import { Badge } from 'ui'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
 import { DataTableRenderer } from '@/components/v2/DataTableRenderer'
-import type { DataTableColumn, FilterDefinition } from '@/components/v2/DataTableRenderer'
+import type {
+  DataTableColumn,
+  FilterDefinition,
+  RowAction,
+} from '@/components/v2/DataTableRenderer'
 import { useEntityPanelParams } from '@/components/v2/hooks/useEntityPanelParams'
 
 export function V2TriggersList() {
@@ -327,33 +331,41 @@ execute function function_name();`)
     [aiSnap, openSidebar]
   )
 
-  const rowActions = useMemo(() => {
+  const rowActions = useMemo((): RowAction<PostgresTrigger>[] | undefined => {
     if (isSchemaLocked || !canWriteTriggers) return undefined
     return [
       {
         id: 'edit',
         label: 'Edit trigger',
         icon: <Pencil size={12} />,
-        onClick: (row: PostgresTrigger) => editTrigger(row),
+        onClick: (row: PostgresTrigger): void => {
+          editTrigger(row)
+        },
       },
       {
         id: 'assistant',
         label: 'Edit with Assistant',
         icon: <Sparkles size={12} />,
-        onClick: (row: PostgresTrigger) => openAssistantForTrigger(row),
+        onClick: (row: PostgresTrigger): void => {
+          openAssistantForTrigger(row)
+        },
       },
       {
         id: 'duplicate',
         label: 'Duplicate trigger',
         icon: <CopyPlus size={12} />,
-        onClick: (row: PostgresTrigger) => duplicateTrigger(row),
+        onClick: (row: PostgresTrigger): void => {
+          duplicateTrigger(row)
+        },
       },
       {
         id: 'delete',
         label: 'Delete trigger',
         icon: <Trash2 size={12} />,
         variant: 'danger' as const,
-        onClick: (row: PostgresTrigger) => void setDeleteId(row.id.toString()),
+        onClick: (row: PostgresTrigger): void => {
+          void setDeleteId(row.id.toString())
+        },
       },
     ]
   }, [

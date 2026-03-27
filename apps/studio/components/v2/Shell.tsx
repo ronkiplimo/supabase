@@ -16,6 +16,8 @@ import {
   TooltipTrigger,
 } from 'ui'
 
+import { ConnectSheet } from 'components/interfaces/ConnectSheet/ConnectSheet'
+
 import { LeftActivityBar } from './ActivityBar'
 import { BrowserPanel } from './BrowserPanel'
 import { EditorFrame } from './EditorFrame'
@@ -144,6 +146,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </V2LayoutSidebarProvider>
         </MobileSheetProvider>
       </SidebarProvider>
+      <ConnectSheet />
     </V2DashboardProvider>
   )
 }

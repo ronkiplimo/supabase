@@ -12,15 +12,7 @@ import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization
 import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
 import { Home } from 'icons'
 import { IS_PLATFORM, PROJECT_STATUS } from 'lib/constants'
-import {
-  Blocks,
-  Boxes,
-  ChartArea,
-  Compass,
-  Receipt,
-  Settings,
-  Users,
-} from 'lucide-react'
+import { Blocks, Boxes, ChartArea, Compass, Receipt, Settings, Users } from 'lucide-react'
 import { useRouter } from 'next/router'
 
 import { useGenerateSettingsMenu } from '../ProjectSettingsLayout/SettingsMenu.utils'
@@ -81,8 +73,7 @@ export function useAppSidebarNavItems(
     { enabled: isProjectScope }
   )
 
-  const pgNetExtensionExists =
-    (extensions ?? []).find((ext) => ext.name === 'pg_net') !== undefined
+  const pgNetExtensionExists = (extensions ?? []).find((ext) => ext.name === 'pg_net') !== undefined
   const pitrEnabled = addons?.selected_addons.find((addon) => addon.type === 'pitr') !== undefined
 
   const columnLevelPrivileges = useIsColumnLevelPrivilegesEnabled()

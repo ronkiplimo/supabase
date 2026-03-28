@@ -45,7 +45,7 @@ export function NavGroup({ id, label, items, isCollapsible = true }: NavGroupPro
     LOCAL_STORAGE_KEYS.DASHBOARD_SIDEBAR_STATE,
     {}
   )
-  const isOpen = id ? sidebarState[id] ?? true : true
+  const isOpen = id ? (sidebarState[id] ?? true) : true
   const handleOpenChange = (open: boolean) => {
     if (id && isCollapsible) {
       setSidebarState((prev) => ({ ...prev, [id]: open }))

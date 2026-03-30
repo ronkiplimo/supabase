@@ -16,7 +16,7 @@ export function QueueNameField({ form }: { form: UseFormReturn<CreateQueueForm> 
               <Input_Shadcn_ {...field} />
             </FormControl_Shadcn_>
             <span className="text-foreground-lighter text-xs absolute top-0 right-0">
-              Must be all lowercase letters
+              Can include letters, numbers, underscores, and hyphens
             </span>
           </FormItemLayout>
         )}

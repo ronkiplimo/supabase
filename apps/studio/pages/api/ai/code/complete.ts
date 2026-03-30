@@ -1,5 +1,5 @@
-import pgMeta from '@supabase/pg-meta'
-import { generateText, ModelMessage, stepCountIs } from 'ai'
+import pgMeta, { getEntityDefinitionsSql } from '@supabase/pg-meta'
+import { generateText, ModelMessage } from 'ai'
 import { IS_PLATFORM } from 'common'
 import { source } from 'common-tags'
 import { executeSql } from 'data/sql/execute-sql-query'
@@ -15,7 +15,6 @@ import {
   RLS_PROMPT,
   SECURITY_PROMPT,
 } from 'lib/ai/prompts'
-import { getTools } from 'lib/ai/tools'
 import apiWrapper from 'lib/api/apiWrapper'
 import { executeQuery } from 'lib/api/self-hosted/query'
 import { NextApiRequest, NextApiResponse } from 'next'
@@ -45,7 +44,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const authorization = req.headers.authorization
-    const accessToken = authorization?.replace('Bearer ', '')
 
     let aiOptInLevel: AiOptInLevel = 'disabled'
 
@@ -78,31 +76,54 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(500).json({ error: modelError.message })
     }
 
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(authorization && { Authorization: authorization }),
+    }
+
     // Get a list of all schemas to add to context
     const pgMetaSchemasList = pgMeta.schemas.list()
     type Schemas = z.infer<(typeof pgMetaSchemasList)['zod']>
 
-    const { result: schemas } =
-      aiOptInLevel !== 'disabled'
-        ? await executeSql<Schemas>(
-            {
-              projectRef,
-              connectionString,
-              sql: pgMetaSchemasList.sql,
-            },
-            undefined,
-            {
-              'Content-Type': 'application/json',
-              ...(authorization && { Authorization: authorization }),
-            },
-            IS_PLATFORM ? undefined : executeQuery
-          )
-        : { result: [] }
+    const noOpSql = Promise.resolve({ result: [] })
+    const [{ result: schemas }, { result: publicTableDefinitions }] =
+      await Promise.all([
+        aiOptInLevel !== 'disabled'
+          ? executeSql<Schemas>(
+              { projectRef, connectionString, sql: pgMetaSchemasList.sql },
+              undefined,
+              headers,
+              IS_PLATFORM ? undefined : executeQuery
+            )
+          : noOpSql,
+        aiOptInLevel !== 'disabled'
+          ? executeSql(
+              {
+                projectRef,
+                connectionString,
+                sql: getEntityDefinitionsSql({ schemas: ['public'] }),
+              },
+              undefined,
+              headers,
+              IS_PLATFORM ? undefined : executeQuery
+            )
+          : noOpSql,
+      ])
 
     const schemasString =
       schemas?.length > 0
         ? `The available database schema names are: ${JSON.stringify(schemas)}`
         : "You don't have access to any schemas."
+
+    const tableDefinitionSqls = (publicTableDefinitions as any[])
+      ?.flatMap((r: any) => r.data?.definitions ?? [])
+      .map((d: any) => d.sql)
+      .filter(Boolean)
+
+    const tablesString =
+      tableDefinitionSqls?.length > 0
+        ? `Here are the table and column definitions for the public schema:\n${tableDefinitionSqls.join('\n\n')}`
+        : null
 
     // Important: do not use dynamic content in the system prompt or Bedrock will not cache it
     const system = source`
@@ -129,7 +150,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
              Here is the context:
              ${textBeforeCursor}<selection>${selection}</selection>${textAfterCursor}
 
-            The available database schema names are: ${schemasString}
+            ${schemasString}
+            ${tablesString ?? ''}
 
              Instructions:
              1. Only modify the selected text based on this prompt: ${prompt}
@@ -139,26 +161,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
              5. Ensure the modified text flows naturally within the current line
              6. Avoid duplicating code when considering the full statement
              7. If there is no surrounding context (before or after), make sure your response is a complete valid SQL statement that can be run and resolves the prompt.
-             
+
              Modify the selected text now:
         `,
       },
     ]
 
-    // Get tools
-    const tools = await getTools({
-      projectRef,
-      connectionString,
-      authorization,
-      aiOptInLevel,
-      accessToken,
-    })
-
     const { text } = await generateText({
       ...modelParams,
-      stopWhen: stepCountIs(5),
       messages: coreMessages,
-      tools,
     })
 
     return res.status(200).json(text)

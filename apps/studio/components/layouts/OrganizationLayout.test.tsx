@@ -6,14 +6,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const {
   mockUseAwsRedirectQuery,
+  mockUseCustomContent,
   mockUseLocalStorageQuery,
   mockSetIsBannerDismissed,
+  mockUseRegisterOrgMenu,
   mockUseSelectedOrganizationQuery,
   mockUseVercelRedirectQuery,
 } = vi.hoisted(() => ({
   mockUseAwsRedirectQuery: vi.fn(),
+  mockUseCustomContent: vi.fn(),
   mockUseLocalStorageQuery: vi.fn(),
   mockSetIsBannerDismissed: vi.fn(),
+  mockUseRegisterOrgMenu: vi.fn(),
   mockUseSelectedOrganizationQuery: vi.fn(),
   mockUseVercelRedirectQuery: vi.fn(),
 }))
@@ -34,8 +38,16 @@ vi.mock('hooks/misc/useLocalStorage', () => ({
   useLocalStorageQuery: mockUseLocalStorageQuery,
 }))
 
+vi.mock('hooks/custom-content/useCustomContent', () => ({
+  useCustomContent: mockUseCustomContent,
+}))
+
 vi.mock('hooks/misc/withAuth', () => ({
   withAuth: (Component: any) => Component,
+}))
+
+vi.mock('./OrganizationLayout/useRegisterOrgMenu', () => ({
+  useRegisterOrgMenu: mockUseRegisterOrgMenu,
 }))
 
 vi.mock('components/ui/PartnerIcon', () => ({
@@ -46,7 +58,7 @@ import OrganizationLayout from './OrganizationLayout'
 
 const renderLayout = () =>
   render(
-    <OrganizationLayout>
+    <OrganizationLayout title="General">
       <div>Organization content</div>
     </OrganizationLayout>
   )
@@ -60,6 +72,7 @@ describe('OrganizationLayout', () => {
       mockSetIsBannerDismissed,
       { isSuccess: true, isLoading: false, isError: false, error: null },
     ])
+    mockUseCustomContent.mockReturnValue({ appTitle: 'Supabase' })
     mockUseVercelRedirectQuery.mockReturnValue({ data: undefined, isSuccess: false })
     mockUseAwsRedirectQuery.mockReturnValue({ data: undefined, isSuccess: false })
   })

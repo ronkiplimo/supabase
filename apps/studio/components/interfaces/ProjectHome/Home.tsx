@@ -8,6 +8,7 @@ import { ScaffoldContainer, ScaffoldSection } from 'components/layouts/Scaffold'
 import dayjs from 'dayjs'
 import { useLocalStorage } from 'hooks/misc/useLocalStorage'
 import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
+import { usePHFlag } from 'hooks/ui/useFlag'
 import { PROJECT_STATUS } from 'lib/constants'
 import { useTrack } from 'lib/telemetry/track'
 import { useEffect, useRef } from 'react'
@@ -15,9 +16,12 @@ import { useAppStateSnapshot } from 'state/app-state'
 import { cn } from 'ui'
 
 import { AdvisorSection } from './AdvisorSection'
+import { ConnectSection } from './ConnectSection'
+import type { ConnectSectionVariant } from './ConnectSection.config'
 import { CustomReportSection } from './CustomReportSection'
 import { type GettingStartedState } from './GettingStarted/GettingStarted.types'
 import { GettingStartedSection } from './GettingStarted/GettingStartedSection'
+import { DEFAULT_SECTION_ORDER, getSectionVisibility, mergeSectionOrder } from './Home.utils'
 import { ProjectUsageSection as ProjectUsageSectionV2 } from './ProjectUsageSection'
 
 export const ProjectHome = () => {
@@ -27,6 +31,7 @@ export const ProjectHome = () => {
   const track = useTrack()
 
   const showHomepageUsageV2 = useFlag('newHomepageUsageV2')
+  const connectSectionVariant = usePHFlag<ConnectSectionVariant | false>('connectSection')
 
   const isMatureProject = dayjs(project?.inserted_at).isBefore(dayjs().subtract(10, 'day'))
 
@@ -36,7 +41,7 @@ export const ProjectHome = () => {
 
   const [sectionOrder, setSectionOrder] = useLocalStorage<string[]>(
     `home-section-order-${project?.ref || 'default'}`,
-    ['getting-started', 'usage', 'advisor', 'custom-report']
+    DEFAULT_SECTION_ORDER
   )
 
   const [gettingStartedState, setGettingStartedState] = useLocalStorage<GettingStartedState>(
@@ -73,24 +78,37 @@ export const ProjectHome = () => {
     }
   }, [enableBranching, snap])
 
+  useEffect(() => {
+    setSectionOrder(mergeSectionOrder)
+  }, [setSectionOrder])
+
+  const { showConnectSection, showGettingStarted } = getSectionVisibility({
+    connectSectionVariant,
+    isMatureProject,
+    hasProject: !!project,
+    gettingStartedState,
+  })
+
   return (
     <div className="w-full h-full">
       <ScaffoldContainer size="large" className={cn(isPaused && 'h-full')}>
         <ScaffoldSection
           isFullWidth
-          className={cn(isPaused ? 'h-full flex justify-center !p-0' : 'pt-16 pb-0')}
+          className={cn(isPaused ? 'h-full flex justify-center !p-0' : 'pb-0')}
         >
           <TopSection />
         </ScaffoldSection>
       </ScaffoldContainer>
       {!isPaused && (
         <ScaffoldContainer size="large">
-          <ScaffoldSection isFullWidth className="gap-16 pb-32">
+          <ScaffoldSection isFullWidth className="gap-12 pb-32">
             <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
               <SortableContext
-                items={sectionOrder.filter(
-                  (id) => id !== 'getting-started' || gettingStartedState !== 'hidden'
-                )}
+                items={sectionOrder.filter((id) => {
+                  if (id === 'connect') return showConnectSection
+                  if (id === 'getting-started') return showGettingStarted
+                  return true
+                })}
                 strategy={verticalListSortingStrategy}
               >
                 {sectionOrder.map((id) => {
@@ -103,12 +121,14 @@ export const ProjectHome = () => {
                       </div>
                     )
                   }
-                  if (
-                    id === 'getting-started' &&
-                    !isMatureProject &&
-                    project &&
-                    gettingStartedState !== 'hidden'
-                  ) {
+                  if (id === 'connect' && showConnectSection) {
+                    return (
+                      <SortableSection key={id} id={id}>
+                        <ConnectSection variant={connectSectionVariant as ConnectSectionVariant} />
+                      </SortableSection>
+                    )
+                  }
+                  if (id === 'getting-started' && showGettingStarted) {
                     return (
                       <SortableSection key={id} id={id}>
                         <GettingStartedSection

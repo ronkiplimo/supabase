@@ -2,13 +2,26 @@ import { LOCAL_STORAGE_KEYS } from 'common'
 import PartnerIcon from 'components/ui/PartnerIcon'
 import { useAwsRedirectQuery } from 'data/integrations/aws-redirect-query'
 import { useVercelRedirectQuery } from 'data/integrations/vercel-redirect-query'
+import { useCustomContent } from 'hooks/custom-content/useCustomContent'
 import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
 import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
 import { withAuth } from 'hooks/misc/withAuth'
 import { MANAGED_BY } from 'lib/constants/infrastructure'
+import { buildStudioPageTitle } from 'lib/page-title'
 import { ExternalLink, XIcon } from 'lucide-react'
-import { type PropsWithChildren } from 'react'
+import Head from 'next/head'
+import { useRouter } from 'next/router'
+import type { PropsWithChildren } from 'react'
 import { Alert_Shadcn_, AlertDescription_Shadcn_, AlertTitle_Shadcn_, Button, cn } from 'ui'
+
+import { useRegisterOrgMenu } from './OrganizationLayout/useRegisterOrgMenu'
+
+interface OrganizationLayoutProps {
+  title: string
+}
+
+// [Joshen] Just for page title generation for org settings pages
+const settingsPages = ['general', 'security', 'sso', 'apps', 'audit', 'documents']
 
 type MarketplaceBannerRedirectSource = 'vercel' | 'aws'
 
@@ -61,8 +74,13 @@ function getMarketplaceBannerConfig(managedBy?: string): MarketplaceBannerConfig
   }
 }
 
-const OrganizationLayoutContent = ({ children }: PropsWithChildren) => {
+const OrganizationLayoutContent = ({
+  children,
+  title,
+}: PropsWithChildren<OrganizationLayoutProps>) => {
+  const router = useRouter()
   const { data: selectedOrganization } = useSelectedOrganizationQuery()
+  const { appTitle } = useCustomContent(['app:title'])
   const [isBannerDismissed, setIsBannerDismissed] = useLocalStorageQuery<boolean>(
     getMarketplaceBannerDismissKey({
       organizationSlug: selectedOrganization?.slug,
@@ -71,22 +89,23 @@ const OrganizationLayoutContent = ({ children }: PropsWithChildren) => {
     false
   )
 
+  // Keep title intent close to each page (getLayout) to avoid route-to-title drift in this layout.
+  const isSettingsSurface = settingsPages.some((x) => router.pathname.endsWith(x))
+  const pageTitle = buildStudioPageTitle({
+    section: title,
+    surface: isSettingsSurface ? 'Organization Settings' : undefined,
+    org: selectedOrganization?.name,
+    brand: appTitle || 'Supabase',
+  })
+
   const vercelQuery = useVercelRedirectQuery(
-    {
-      installationId: selectedOrganization?.partner_id,
-    },
-    {
-      enabled: selectedOrganization?.managed_by === MANAGED_BY.VERCEL_MARKETPLACE,
-    }
+    { installationId: selectedOrganization?.partner_id },
+    { enabled: selectedOrganization?.managed_by === MANAGED_BY.VERCEL_MARKETPLACE }
   )
 
   const awsQuery = useAwsRedirectQuery(
-    {
-      organizationSlug: selectedOrganization?.slug,
-    },
-    {
-      enabled: selectedOrganization?.managed_by === MANAGED_BY.AWS_MARKETPLACE,
-    }
+    { organizationSlug: selectedOrganization?.slug },
+    { enabled: selectedOrganization?.managed_by === MANAGED_BY.AWS_MARKETPLACE }
   )
 
   const bannerConfig = getMarketplaceBannerConfig(selectedOrganization?.managed_by)
@@ -106,6 +125,12 @@ const OrganizationLayoutContent = ({ children }: PropsWithChildren) => {
 
   return (
     <div className={cn('h-full w-full flex flex-col overflow-hidden')}>
+      {pageTitle && (
+        <Head>
+          <title>{pageTitle}</title>
+          <meta name="description" content="Supabase Studio" />
+        </Head>
+      )}
       {selectedOrganization && bannerConfig && !isBannerDismissed && (
         <Alert_Shadcn_
           variant="default"
@@ -142,8 +167,9 @@ const OrganizationLayoutContent = ({ children }: PropsWithChildren) => {
   )
 }
 
-const OrganizationLayout = ({ children }: PropsWithChildren) => {
-  return <OrganizationLayoutContent>{children}</OrganizationLayoutContent>
+const OrganizationLayout = ({ children, title }: PropsWithChildren<OrganizationLayoutProps>) => {
+  useRegisterOrgMenu()
+  return <OrganizationLayoutContent title={title}>{children}</OrganizationLayoutContent>
 }
 
 export default withAuth(OrganizationLayout)

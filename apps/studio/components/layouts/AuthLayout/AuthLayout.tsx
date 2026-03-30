@@ -1,14 +1,14 @@
-import { useParams } from 'common'
+import { useFlag, useParams } from 'common'
 import { ProductMenu } from 'components/ui/ProductMenu'
 import { useAuthConfigPrefetch } from 'data/auth/auth-config-query'
 import { withAuth } from 'hooks/misc/withAuth'
 import { useRouter } from 'next/router'
-import { PropsWithChildren } from 'react'
+import type { PropsWithChildren } from 'react'
 
 import { ProjectLayout } from '../ProjectLayout'
 import { useGenerateAuthMenu } from './AuthLayout.utils'
 
-const AuthProductMenu = () => {
+export const AuthProductMenu = () => {
   const router = useRouter()
   const { ref: projectRef = 'default' } = useParams()
 
@@ -22,8 +22,8 @@ const AuthProductMenu = () => {
 const AuthLayout = ({ title, children }: PropsWithChildren<{ title: string }>) => {
   return (
     <ProjectLayout
-      title={title}
       product="Authentication"
+      browserTitle={{ section: title }}
       productMenu={<AuthProductMenu />}
       isBlocking={false}
     >

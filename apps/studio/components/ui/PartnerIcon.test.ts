@@ -6,10 +6,10 @@ import { getDefaultPartnerTooltipText, getPartnerTooltipText } from './PartnerIc
 describe('PartnerIcon tooltip copy', () => {
   it('returns provider-specific default tooltip copy for AWS and Vercel', () => {
     expect(getDefaultPartnerTooltipText(MANAGED_BY.VERCEL_MARKETPLACE)).toBe(
-      'This organization is managed via Vercel Marketplace.'
+      'Managed via Vercel Marketplace'
     )
     expect(getDefaultPartnerTooltipText(MANAGED_BY.AWS_MARKETPLACE)).toBe(
-      'This organization is billed via AWS Marketplace.'
+      'Billed via AWS Marketplace'
     )
   })
 
@@ -27,6 +27,6 @@ describe('PartnerIcon tooltip copy', () => {
       getPartnerTooltipText({
         managedBy: MANAGED_BY.AWS_MARKETPLACE,
       })
-    ).toBe('This organization is billed via AWS Marketplace.')
+    ).toBe('Billed via AWS Marketplace')
   })
 })

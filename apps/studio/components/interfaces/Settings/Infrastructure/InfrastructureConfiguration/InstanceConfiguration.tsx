@@ -99,6 +99,7 @@ const InstanceConfigurationUI = ({ diagramOnly = false }: InstanceConfigurationU
       'disk_fs_used_system',
       'disk_fs_used_wal',
       'disk_fs_size',
+      'pg_database_size',
     ],
     startDate: dateRange.startDate,
     endDate: dateRange.endDate,

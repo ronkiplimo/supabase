@@ -40,7 +40,7 @@ import {
 import { formatSeconds } from './InstanceConfiguration.utils'
 import { useDatabaseSelectorStateSnapshot } from '@/state/database-selector'
 
-export const LoadBalancerNode = ({ data }: NodeProps<Node<LoadBalancerData>>) => {
+export const LoadBalancerNode = ({ data }: NodeProps) => {
   const { ref } = useParams()
   const { numDatabases } = data
 
@@ -88,10 +88,11 @@ function getMetricColorClass(value: number): string {
   return 'text-foreground-light'
 }
 
-export const PrimaryNode = ({ data }: NodeProps<Node<PrimaryNodeData>>) => {
+export const PrimaryNode = ({ data }: NodeProps) => {
   // [Joshen] Just FYI Handles cannot be conditionally rendered
   const { region, computeSize, numReplicas, numRegions, hasLoadBalancer, infraMetrics } = data
 
+  const { ref } = useParams()
   const { projectHomepageShowInstanceSize } = useIsFeatureEnabled([
     'project_homepage:show_instance_size',
   ])
@@ -142,9 +143,16 @@ export const PrimaryNode = ({ data }: NodeProps<Node<PrimaryNodeData>>) => {
               { label: 'Disk', value: infraMetrics.disk.current },
               { label: 'RAM', value: infraMetrics.ram.current },
             ].map(({ label, value }) => (
-              <span key={label} className={cn('text-xs', getMetricColorClass(value))}>
+              <Link
+                key={label}
+                href={`/project/${ref}/observability/database`}
+                className={cn(
+                  'text-xs hover:text-foreground transition-colors',
+                  getMetricColorClass(value)
+                )}
+              >
                 {label} {Math.round(value)}%
-              </span>
+              </Link>
             ))}
           </div>
         )}
@@ -172,7 +180,7 @@ export const PrimaryNode = ({ data }: NodeProps<Node<PrimaryNodeData>>) => {
   )
 }
 
-export const ReplicaNode = ({ data }: NodeProps<Node<ReplicaNodeData>>) => {
+export const ReplicaNode = ({ data }: NodeProps) => {
   const { ref } = useParams()
   const { id, region, computeSize, status, inserted_at } = data
   const { projectHomepageShowInstanceSize } = useIsFeatureEnabled([

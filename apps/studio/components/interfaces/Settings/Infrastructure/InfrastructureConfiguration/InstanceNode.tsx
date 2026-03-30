@@ -82,9 +82,15 @@ export const LoadBalancerNode = ({ data }: NodeProps<Node<LoadBalancerData>>) =>
   )
 }
 
+function getMetricColorClass(value: number): string {
+  if (value >= 90) return 'text-destructive'
+  if (value >= 70) return 'text-warning'
+  return 'text-foreground-light'
+}
+
 export const PrimaryNode = ({ data }: NodeProps<Node<PrimaryNodeData>>) => {
   // [Joshen] Just FYI Handles cannot be conditionally rendered
-  const { region, computeSize, numReplicas, numRegions, hasLoadBalancer, resourceWarnings } = data
+  const { region, computeSize, numReplicas, numRegions, hasLoadBalancer, infraMetrics } = data
 
   const { projectHomepageShowInstanceSize } = useIsFeatureEnabled([
     'project_homepage:show_instance_size',
@@ -129,14 +135,16 @@ export const PrimaryNode = ({ data }: NodeProps<Node<PrimaryNodeData>>) => {
             src={`${BASE_PATH}/img/regions/${region.region}.svg`}
           />
         </div>
-        {resourceWarnings.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 border-t px-3 py-2">
-            {resourceWarnings.map((warning) => (
-              <Link key={warning.key} href={warning.href}>
-                <Badge variant={warning.severity === 'critical' ? 'destructive' : 'warning'}>
-                  {warning.label}
-                </Badge>
-              </Link>
+        {infraMetrics !== null && (
+          <div className="flex items-center gap-3 border-t px-3 py-2">
+            {[
+              { label: 'CPU', value: infraMetrics.cpu.current },
+              { label: 'Disk', value: infraMetrics.disk.current },
+              { label: 'RAM', value: infraMetrics.ram.current },
+            ].map(({ label, value }) => (
+              <span key={label} className={cn('text-xs', getMetricColorClass(value))}>
+                {label} {Math.round(value)}%
+              </span>
             ))}
           </div>
         )}

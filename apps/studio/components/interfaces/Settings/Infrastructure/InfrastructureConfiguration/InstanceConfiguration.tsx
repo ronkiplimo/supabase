@@ -16,15 +16,17 @@ import { useEffect, useMemo, useState } from 'react'
 import '@xyflow/react/dist/style.css'
 
 import { useParams } from 'common'
+import { parseInfrastructureMetrics } from 'components/interfaces/Observability/DatabaseInfrastructureSection.utils'
 import AlertError from 'components/ui/AlertError'
 import { ButtonTooltip } from 'components/ui/ButtonTooltip'
+import { useInfraMonitoringAttributesQuery } from 'data/analytics/infra-monitoring-query'
 import { useLoadBalancersQuery } from 'data/read-replicas/load-balancers-query'
 import { Database, useReadReplicasQuery } from 'data/read-replicas/replicas-query'
 import {
   ReplicaInitializationStatus,
   useReadReplicasStatusesQuery,
 } from 'data/read-replicas/replicas-status-query'
-import { useResourceWarningsQuery } from 'data/usage/resource-warnings-query'
+import dayjs from 'dayjs'
 import { useAsyncCheckPermissions } from 'hooks/misc/useCheckPermissions'
 import { useIsFeatureEnabled } from 'hooks/misc/useIsFeatureEnabled'
 import {
@@ -77,15 +79,33 @@ const InstanceConfigurationUI = ({ diagramOnly = false }: InstanceConfigurationU
 
   const { can: canManageReplicas } = useAsyncCheckPermissions(PermissionAction.CREATE, 'projects')
 
+  const [dateRange] = useState(() => ({
+    startDate: dayjs().subtract(1, 'hour').toISOString(),
+    endDate: new Date().toISOString(),
+  }))
+
   const {
     data: loadBalancers,
     refetch: refetchLoadBalancers,
     isSuccess: isSuccessLoadBalancers,
   } = useLoadBalancersQuery({ projectRef })
-  const { data: resourceWarningsData } = useResourceWarningsQuery({ ref: projectRef })
-  const projectResourceWarnings = (resourceWarningsData ?? []).find(
-    (warning) => warning.project === projectRef
-  )
+
+  const { data: infraMonitoringData } = useInfraMonitoringAttributesQuery({
+    projectRef,
+    attributes: [
+      'avg_cpu_usage',
+      'ram_usage',
+      'disk_io_consumption',
+      'disk_fs_used_system',
+      'disk_fs_used_wal',
+      'disk_fs_size',
+    ],
+    startDate: dateRange.startDate,
+    endDate: dateRange.endDate,
+    interval: '1h',
+  })
+
+  const infraMetrics = parseInfrastructureMetrics(infraMonitoringData)
   const {
     data,
     error,
@@ -155,21 +175,12 @@ const InstanceConfigurationUI = ({ diagramOnly = false }: InstanceConfigurationU
             primary,
             replicas,
             loadBalancers: loadBalancers ?? [],
-            projectRef: projectRef ?? '',
-            resourceWarnings: projectResourceWarnings,
+            infraMetrics,
             onSelectRestartReplica: setSelectedReplicaToRestart,
             onSelectDropReplica: setSelectedReplicaToDrop,
           })
         : [],
-    [
-      isSuccessReplicas,
-      isSuccessLoadBalancers,
-      primary,
-      replicas,
-      loadBalancers,
-      projectRef,
-      projectResourceWarnings,
-    ]
+    [isSuccessReplicas, isSuccessLoadBalancers, primary, replicas, loadBalancers, infraMetrics]
   )
 
   const edges: Edge[] = useMemo(

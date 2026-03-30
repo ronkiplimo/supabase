@@ -20,7 +20,7 @@ type MetricData = {
   max: number
 }
 
-type InfrastructureMetrics = {
+export type InfrastructureMetrics = {
   cpu: MetricData
   ram: MetricData
   disk: MetricData

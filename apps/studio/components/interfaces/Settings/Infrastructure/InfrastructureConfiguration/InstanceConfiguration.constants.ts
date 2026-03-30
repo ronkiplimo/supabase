@@ -1,4 +1,5 @@
 import { ReadReplicaSetupError, ReadReplicaSetupProgress } from '@supabase/shared-types/out/events'
+import type { InfrastructureMetrics } from 'components/interfaces/Observability/DatabaseInfrastructureSection.utils'
 import { components } from 'data/api'
 import { PROJECT_STATUS } from 'lib/constants'
 import type { AWS_REGIONS_KEYS } from 'shared-data'
@@ -20,18 +21,11 @@ export type NodeData = {
   inserted_at: string
 }
 
-export interface ResourceExhaustionBadge {
-  key: string
-  label: string
-  severity: 'warning' | 'critical'
-  href: string
-}
-
 export type PrimaryNodeData = NodeData & {
   numReplicas: number
   numRegions: number
   hasLoadBalancer: boolean
-  resourceWarnings: ResourceExhaustionBadge[]
+  infraMetrics: InfrastructureMetrics | null
 }
 
 export type LoadBalancerData = NodeData & {

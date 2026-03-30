@@ -1,4 +1,5 @@
 import { LOCAL_STORAGE_KEYS } from 'common'
+import { ButtonTooltip } from 'components/ui/ButtonTooltip'
 import PartnerIcon from 'components/ui/PartnerIcon'
 import { useAwsRedirectQuery } from 'data/integrations/aws-redirect-query'
 import { useVercelRedirectQuery } from 'data/integrations/vercel-redirect-query'
@@ -28,11 +29,13 @@ type MarketplaceBannerRedirectSource = 'vercel' | 'aws'
 type MarketplaceBannerConfig = {
   title: string
   description: string
-  redirectSource: MarketplaceBannerRedirectSource
+  redirectSource?: MarketplaceBannerRedirectSource
 }
 
 const MARKETPLACE_BANNER_CONFIG: Record<
-  typeof MANAGED_BY.VERCEL_MARKETPLACE | typeof MANAGED_BY.AWS_MARKETPLACE,
+  | typeof MANAGED_BY.VERCEL_MARKETPLACE
+  | typeof MANAGED_BY.AWS_MARKETPLACE
+  | typeof MANAGED_BY.STRIPE_FABRIC,
   MarketplaceBannerConfig
 > = {
   [MANAGED_BY.VERCEL_MARKETPLACE]: {
@@ -44,6 +47,10 @@ const MARKETPLACE_BANNER_CONFIG: Record<
     title: 'This organization is billed via AWS Marketplace',
     description: 'Changes to billing and payment details must be made in AWS.',
     redirectSource: 'aws',
+  },
+  [MANAGED_BY.STRIPE_FABRIC]: {
+    title: 'This organization is connected to Stripe Fabric',
+    description: 'Changes here will be reflected in your connected Stripe account.',
   },
 }
 
@@ -68,7 +75,8 @@ function getMarketplaceBannerConfig(managedBy?: string): MarketplaceBannerConfig
       return MARKETPLACE_BANNER_CONFIG[MANAGED_BY.VERCEL_MARKETPLACE]
     case MANAGED_BY.AWS_MARKETPLACE:
       return MARKETPLACE_BANNER_CONFIG[MANAGED_BY.AWS_MARKETPLACE]
-    // [Danny] API-928 will add Stripe-specific banner behavior here.
+    case MANAGED_BY.STRIPE_FABRIC:
+      return MARKETPLACE_BANNER_CONFIG[MANAGED_BY.STRIPE_FABRIC]
     default:
       return undefined
   }
@@ -111,7 +119,7 @@ const OrganizationLayoutContent = ({
   const bannerConfig = getMarketplaceBannerConfig(selectedOrganization?.managed_by)
 
   const selectedRedirectQuery = (() => {
-    if (!bannerConfig) return undefined
+    if (!bannerConfig?.redirectSource) return undefined
 
     switch (bannerConfig.redirectSource) {
       case 'aws':
@@ -142,22 +150,20 @@ const OrganizationLayoutContent = ({
             <AlertDescription_Shadcn_>{bannerConfig.description}</AlertDescription_Shadcn_>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              asChild
-              type="default"
-              iconRight={<ExternalLink />}
-              disabled={!selectedRedirectQuery?.isSuccess}
-            >
-              <a href={selectedRedirectQuery?.data?.url} target="_blank" rel="noopener noreferrer">
-                Manage
-              </a>
-            </Button>
-            <Button
+            {selectedRedirectQuery?.data?.url && (
+              <Button asChild type="default" iconRight={<ExternalLink />}>
+                <a href={selectedRedirectQuery.data.url} target="_blank" rel="noopener noreferrer">
+                  Manage
+                </a>
+              </Button>
+            )}
+            <ButtonTooltip
               type="text"
               icon={<XIcon size={14} />}
               className="h-7 w-7 p-0"
               onClick={() => setIsBannerDismissed(true)}
               aria-label="Dismiss banner"
+              tooltip={{ content: { text: 'Dismiss' } }}
             />
           </div>
         </Alert_Shadcn_>

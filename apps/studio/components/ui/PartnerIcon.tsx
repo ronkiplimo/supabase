@@ -19,6 +19,8 @@ export function getDefaultPartnerTooltipText(
       return 'Managed via Vercel Marketplace'
     case MANAGED_BY.AWS_MARKETPLACE:
       return 'Billed via AWS Marketplace'
+    case MANAGED_BY.STRIPE_FABRIC:
+      return 'Connected to Stripe Fabric'
     default:
       return `Managed by ${PARTNER_TO_NAME[managedBy]}`
   }
@@ -83,6 +85,28 @@ function getPartnerIcon(
           </g>
         </svg>
       )
+    case MANAGED_BY.STRIPE_FABRIC:
+      return (
+        <svg
+          className={cn(
+            size === 'small' && 'h-5 w-5',
+            size === 'medium' && 'w-7 h-7',
+            size === 'large' && 'w-10 h-10'
+          )}
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect width="24" height="24" fill="#533AFD" />
+          <path
+            fillRule="evenodd"
+            clipRule="evenodd"
+            d="M5.625 18.375L18.375 15.6711V5.625L5.625 8.36048V18.375Z"
+            fill="white"
+            transform="translate(12 12) scale(0.82) translate(-12 -12)"
+          />
+        </svg>
+      )
     default:
       return null
   }
@@ -96,7 +120,8 @@ function PartnerIcon({
 }: PartnerIconProps) {
   if (
     organization.managed_by === MANAGED_BY.VERCEL_MARKETPLACE ||
-    organization.managed_by === MANAGED_BY.AWS_MARKETPLACE
+    organization.managed_by === MANAGED_BY.AWS_MARKETPLACE ||
+    organization.managed_by === MANAGED_BY.STRIPE_FABRIC
   ) {
     const icon = getPartnerIcon(organization, size)
 
@@ -104,7 +129,7 @@ function PartnerIcon({
       return (
         <div
           className={cn(
-            'bg-surface-100 dark:bg-surface-200 border rounded flex items-center justify-center flex-shrink-0',
+            'bg-surface-100 dark:bg-surface-200 border rounded-md overflow-hidden flex items-center justify-center flex-shrink-0',
             size === 'small' && 'h-5 w-5',
             size === 'medium' && 'w-7 h-7',
             size === 'large' && 'w-10 h-10'
@@ -125,7 +150,7 @@ function PartnerIcon({
         <TooltipTrigger asChild>
           <div
             className={cn(
-              'bg-surface-100 dark:bg-surface-200 border rounded flex items-center justify-center hover:bg-surface-400 dark:hover:bg-surface-400 hover:border-stronger flex-shrink-0',
+              'bg-surface-100 dark:bg-surface-200 border rounded-md overflow-hidden flex items-center justify-center hover:bg-surface-400 dark:hover:bg-surface-400 hover:border-stronger flex-shrink-0',
               size === 'small' && 'h-5 w-5',
               size === 'medium' && 'w-7 h-7',
               size === 'large' && 'w-10 h-10'

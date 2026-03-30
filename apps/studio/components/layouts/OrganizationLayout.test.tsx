@@ -153,6 +153,42 @@ describe('OrganizationLayout', () => {
     )
   })
 
+  it('does not render Manage for Vercel when redirect URL is unavailable', () => {
+    mockUseSelectedOrganizationQuery.mockReturnValue({
+      data: createMockOrganization({
+        managed_by: MANAGED_BY.VERCEL_MARKETPLACE,
+        partner_id: 'vercel-installation-id',
+      }),
+    })
+    mockUseVercelRedirectQuery.mockReturnValue({
+      data: undefined,
+      isSuccess: false,
+    })
+
+    renderLayout()
+
+    expect(screen.getByText('This organization is managed via Vercel Marketplace')).toBeTruthy()
+    expect(screen.queryByRole('link', { name: 'Manage' })).toBeNull()
+  })
+
+  it('does not render Manage for AWS when redirect URL is unavailable', () => {
+    mockUseSelectedOrganizationQuery.mockReturnValue({
+      data: createMockOrganization({
+        managed_by: MANAGED_BY.AWS_MARKETPLACE,
+        slug: 'aws-org',
+      }),
+    })
+    mockUseAwsRedirectQuery.mockReturnValue({
+      data: undefined,
+      isSuccess: false,
+    })
+
+    renderLayout()
+
+    expect(screen.getByText('This organization is billed via AWS Marketplace')).toBeTruthy()
+    expect(screen.queryByRole('link', { name: 'Manage' })).toBeNull()
+  })
+
   it('does not render a banner for Supabase-managed organizations', () => {
     mockUseSelectedOrganizationQuery.mockReturnValue({
       data: createMockOrganization({
@@ -167,15 +203,19 @@ describe('OrganizationLayout', () => {
     expect(screen.queryByText('This organization is billed via AWS Marketplace')).toBeNull()
   })
 
-  it('does not fallback to Vercel redirect behavior for unsupported managed_by values', () => {
+  it('renders Stripe connected copy with no Manage button', () => {
     mockUseSelectedOrganizationQuery.mockReturnValue({
       data: createMockOrganization({
-        managed_by: 'stripe-product' as any,
+        managed_by: MANAGED_BY.STRIPE_FABRIC,
       }),
     })
 
     renderLayout()
 
+    expect(screen.getByText('This organization is connected to Stripe Fabric')).toBeTruthy()
+    expect(
+      screen.getByText('Changes here will be reflected in your connected Stripe account.')
+    ).toBeTruthy()
     expect(screen.queryByRole('link', { name: 'Manage' })).toBeNull()
     expect(mockUseVercelRedirectQuery).toHaveBeenCalledWith(
       { installationId: undefined },
@@ -184,7 +224,7 @@ describe('OrganizationLayout', () => {
     expect(mockUseLocalStorageQuery).toHaveBeenCalledWith(
       LOCAL_STORAGE_KEYS.ORGANIZATION_MARKETPLACE_BANNER_DISMISSED(
         'abcdefghijklmnopqrst',
-        'stripe-product'
+        MANAGED_BY.STRIPE_FABRIC
       ),
       false
     )

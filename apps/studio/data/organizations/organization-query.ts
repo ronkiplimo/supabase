@@ -3,6 +3,7 @@ import { QueryClient, useQuery } from '@tanstack/react-query'
 import { components } from 'api-types'
 import { get, handleError } from 'data/fetchers'
 import type { ResponseError, UseCustomQueryOptions } from 'types'
+import { getManagedByFromOrganizationPartner } from './managed-by-utils'
 import { organizationKeys } from './keys'
 
 export type OrganizationVariables = { slug?: string }
@@ -15,7 +16,7 @@ function castOrganizationSlugResponseToOrganization(
   return {
     ...org,
     billing_email: org.billing_email ?? 'Unknown',
-    managed_by: org.slug.startsWith('vercel_icfg_') ? 'vercel-marketplace' : 'supabase',
+    managed_by: getManagedByFromOrganizationPartner(org.billing_partner),
     partner_id: org.slug.startsWith('vercel_') ? org.slug.replace('vercel_', '') : undefined,
   }
 }

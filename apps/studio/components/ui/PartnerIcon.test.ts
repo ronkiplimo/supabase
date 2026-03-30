@@ -1,15 +1,20 @@
 import { MANAGED_BY } from 'lib/constants/infrastructure'
+import { render } from 'tests/helpers'
+import type { Organization } from 'types'
 import { describe, expect, it } from 'vitest'
 
-import { getDefaultPartnerTooltipText, getPartnerTooltipText } from './PartnerIcon'
+import PartnerIcon, { getDefaultPartnerTooltipText, getPartnerTooltipText } from './PartnerIcon'
 
 describe('PartnerIcon tooltip copy', () => {
-  it('returns provider-specific default tooltip copy for AWS and Vercel', () => {
+  it('returns provider-specific default tooltip copy for AWS, Vercel, and Stripe', () => {
     expect(getDefaultPartnerTooltipText(MANAGED_BY.VERCEL_MARKETPLACE)).toBe(
       'Managed via Vercel Marketplace'
     )
     expect(getDefaultPartnerTooltipText(MANAGED_BY.AWS_MARKETPLACE)).toBe(
       'Billed via AWS Marketplace'
+    )
+    expect(getDefaultPartnerTooltipText(MANAGED_BY.STRIPE_FABRIC)).toBe(
+      'Connected to Stripe Fabric'
     )
   })
 
@@ -28,5 +33,20 @@ describe('PartnerIcon tooltip copy', () => {
         managedBy: MANAGED_BY.AWS_MARKETPLACE,
       })
     ).toBe('Billed via AWS Marketplace')
+  })
+
+  it('renders an icon element for Stripe organizations', () => {
+    const organization = {
+      managed_by: MANAGED_BY.STRIPE_FABRIC,
+    } as Pick<Organization, 'managed_by'>
+
+    const { container } = render(
+      PartnerIcon({
+        organization,
+        showTooltip: false,
+      })
+    )
+
+    expect(container.querySelector('svg')).toBeTruthy()
   })
 })

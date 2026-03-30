@@ -3049,6 +3049,7 @@ export interface ComputeBadgeUpgradeClickedEvent {
     planId: string
     upgradeType: 'pro_upgrade' | 'free_micro_upgrade' | 'compute_upgrade'
   }
+  groups: TelemetryGroups
 }
 
 /**

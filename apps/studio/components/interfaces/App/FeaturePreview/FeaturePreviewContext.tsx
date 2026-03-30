@@ -13,7 +13,6 @@ import {
 } from 'react'
 
 import { useFeaturePreviews } from './useFeaturePreviews'
-import { useLocalStorageQuery } from '@/hooks/misc/useLocalStorage'
 import { useStaticEffectEvent } from '@/hooks/useStaticEffectEvent'
 
 type FeaturePreviewContextType = {
@@ -107,11 +106,6 @@ export const useIsPgDeltaDiffEnabled = () => {
 export const useIsAdvisorRulesEnabled = () => {
   const { flags } = useFeaturePreviewContext()
   return flags[LOCAL_STORAGE_KEYS.UI_PREVIEW_ADVISOR_RULES]
-}
-
-export const useIsQueueOperationsEnabled = () => {
-  const [isEnabled] = useLocalStorageQuery(LOCAL_STORAGE_KEYS.UI_PREVIEW_QUEUE_OPERATIONS, false)
-  return isEnabled
 }
 
 export const useIsPlatformWebhooksEnabled = () => {

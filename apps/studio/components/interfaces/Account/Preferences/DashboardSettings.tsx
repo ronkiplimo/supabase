@@ -16,30 +16,17 @@ import {
 import * as z from 'zod'
 
 import { DashboardToggle } from './DashboardToggle'
+import { useIsInlineEditorSetting, useIsQueueOperationsSetting } from './useDashboardSettings'
 
 const DashboardSettingsSchema = z.object({
   inlineEditorEnabled: z.boolean(),
   queueOperationsEnabled: z.boolean(),
 })
 
-export const useIsInlineEditorEnabled = () => {
-  const [inlineEditorEnabled] = useLocalStorageQuery(
-    LOCAL_STORAGE_KEYS.UI_PREVIEW_INLINE_EDITOR,
-    false
-  )
+export const DashboardSettings = () => {
+  const { inlineEditorEnabled, setInlineEditorEnabled } = useIsInlineEditorSetting()
+  const { isQueueOperationsEnabled, setIsQueueOperationsEnabled } = useIsQueueOperationsSetting()
 
-  return inlineEditorEnabled ?? false
-}
-
-export const InlineEditorSettings = () => {
-  const [inlineEditorEnabled, setInlineEditorEnabled] = useLocalStorageQuery(
-    LOCAL_STORAGE_KEYS.UI_PREVIEW_INLINE_EDITOR,
-    false
-  )
-  const [queueOperationsEnabled, setQueueOperationsEnabled] = useLocalStorageQuery(
-    LOCAL_STORAGE_KEYS.UI_PREVIEW_QUEUE_OPERATIONS,
-    false
-  )
   const { data: org } = useSelectedOrganizationQuery()
 
   const { mutate: sendEvent } = useSendEventMutation()
@@ -48,7 +35,7 @@ export const InlineEditorSettings = () => {
     resolver: zodResolver(DashboardSettingsSchema),
     values: {
       inlineEditorEnabled: inlineEditorEnabled ?? false,
-      queueOperationsEnabled: queueOperationsEnabled ?? false,
+      queueOperationsEnabled: isQueueOperationsEnabled ?? false,
     },
   })
 
@@ -64,7 +51,7 @@ export const InlineEditorSettings = () => {
   }
 
   const handleQueueOperationsToggle = (value: boolean) => {
-    setQueueOperationsEnabled(value)
+    setIsQueueOperationsEnabled(value)
     form.setValue('queueOperationsEnabled', value)
 
     sendEvent({

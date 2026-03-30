@@ -3045,13 +3045,33 @@ export interface LogExplorerQueryRunButtonClickedEvent {
 export interface ComputeBadgeUpgradeClickedEvent {
   action: 'compute_badge_upgrade_clicked'
   properties: {
-    /** Current compute size of the project, e.g. 'nano', 'micro' */
     computeSize: string
-    /** Current org plan id, e.g. 'free', 'pro' */
     planId: string
-    /** Which CTA was clicked */
     upgradeType: 'pro_upgrade' | 'free_micro_upgrade' | 'compute_upgrade'
   }
+}
+
+/**
+ * User clicked the Navigate action in the storage explorer header.
+ *
+ * @group Events
+ * @source studio
+ * @page /project/{ref}/storage/files/buckets/{bucketId}
+ */
+export interface StorageExplorerNavigateClickedEvent {
+  action: 'storage_explorer_navigate_clicked'
+  groups: TelemetryGroups
+}
+
+/**
+ * User submitted a folder path from the storage explorer Navigate action.
+ *
+ * @group Events
+ * @source studio
+ * @page /project/{ref}/storage/files/buckets/{bucketId}
+ */
+export interface StorageExplorerNavigateSubmittedEvent {
+  action: 'storage_explorer_navigate_submitted'
   groups: TelemetryGroups
 }
 
@@ -3129,6 +3149,8 @@ export type TelemetryEvent =
   | SendFeedbackButtonClickedEvent
   | SqlEditorQueryRunButtonClickedEvent
   | LogExplorerQueryRunButtonClickedEvent
+  | StorageExplorerNavigateClickedEvent
+  | StorageExplorerNavigateSubmittedEvent
   | StudioPricingPlanCtaClickedEvent
   | StudioPricingSidePanelOpenedEvent
   | ReportsDatabaseGrafanaBannerClickedEvent

@@ -11,7 +11,7 @@ import {
 type LocalFont = {
   family: string
   dir: string
-  faces: { file: string; weight: number; italicSuffix: string; italicFile?: string }[]
+  faces: { file: string; weight: number; italicSuffix: string; italicFile?: string; ext?: string }[]
 }
 
 const LOCAL_FONTS: LocalFont[] = [
@@ -46,6 +46,21 @@ const LOCAL_FONTS: LocalFont[] = [
     ],
   },
   {
+    family: 'Suisse Intl',
+    dir: '/fonts/suisse',
+    faces: [
+      { file: 'SuisseIntl-Thin', weight: 100, italicSuffix: 'Italic', ext: 'otf' },
+      { file: 'SuisseIntl-Ultralight', weight: 200, italicSuffix: 'Italic', ext: 'otf' },
+      { file: 'SuisseIntl-Light', weight: 300, italicSuffix: 'Italic', ext: 'otf' },
+      { file: 'SuisseIntl-Regular', weight: 400, italicSuffix: 'Italic', ext: 'otf' },
+      { file: 'SuisseIntl-Book', weight: 450, italicSuffix: 'Italic', ext: 'otf' },
+      { file: 'SuisseIntl-Medium', weight: 500, italicSuffix: 'Italic', ext: 'otf' },
+      { file: 'SuisseIntl-SemiBold', weight: 600, italicSuffix: 'Italic', ext: 'otf' },
+      { file: 'SuisseIntl-Bold', weight: 700, italicSuffix: 'Italic', ext: 'otf' },
+      { file: 'SuisseIntl-Black', weight: 900, italicSuffix: 'Italic', ext: 'otf' },
+    ],
+  },
+  {
     family: 'Signifier',
     dir: '/fonts/signifier',
     faces: [
@@ -70,18 +85,20 @@ function ensureLocalFont(font: LocalFont) {
   const el = document.createElement('style')
   el.id = id
   el.textContent = font.faces
-    .flatMap(({ file, weight, italicSuffix, italicFile }) => {
+    .flatMap(({ file, weight, italicSuffix, italicFile, ext: faceExt }) => {
+      const ext = faceExt || 'woff2'
+      const fmt = ext === 'otf' ? 'opentype' : ext === 'ttf' ? 'truetype' : ext
       const rules = [
-        `@font-face { font-family: "${font.family}"; src: url("${font.dir}/${file}.woff2") format("woff2"); font-weight: ${weight}; font-style: normal; font-display: swap; }`,
+        `@font-face { font-family: "${font.family}"; src: url("${font.dir}/${file}.${ext}") format("${fmt}"); font-weight: ${weight}; font-style: normal; font-display: swap; }`,
       ]
       const itFile = italicFile
-        ? `${font.dir}/${italicFile}.woff2`
+        ? `${font.dir}/${italicFile}.${ext}`
         : italicSuffix
-          ? `${font.dir}/${file}${italicSuffix}.woff2`
+          ? `${font.dir}/${file}${italicSuffix}.${ext}`
           : null
       if (itFile) {
         rules.push(
-          `@font-face { font-family: "${font.family}"; src: url("${itFile}") format("woff2"); font-weight: ${weight}; font-style: italic; font-display: swap; }`
+          `@font-face { font-family: "${font.family}"; src: url("${itFile}") format("${fmt}"); font-weight: ${weight}; font-style: italic; font-display: swap; }`
         )
       }
       return rules
@@ -101,6 +118,7 @@ function fv(family: string) {
 const PRIMA = 'var(--font-ktf-prima), ui-sans-serif, system-ui, sans-serif'
 const SOEHNE = fv('Soehne')
 const UNTITLED = fv('Untitled Sans')
+const SUISSE = fv('Suisse Intl')
 const SIGNIFIER = `"Signifier", ui-serif, Georgia, serif`
 const GEIST_MONO = 'var(--font-geist-mono), ui-monospace, Menlo, monospace'
 
@@ -121,6 +139,7 @@ const FONT_OPTIONS: FontOption[] = [
   { label: 'KTF Prima', heading: PRIMA, copy: PRIMA },
   { label: 'Soehne', heading: SOEHNE, copy: SOEHNE, localFamilies: ['Soehne'] },
   { label: 'Untitled Sans', heading: UNTITLED, copy: UNTITLED, localFamilies: ['Untitled Sans'] },
+  { label: 'Suisse Intl', heading: SUISSE, copy: SUISSE, localFamilies: ['Suisse Intl'] },
 
   // Combinations: heading + copy
   {
@@ -140,6 +159,12 @@ const FONT_OPTIONS: FontOption[] = [
     heading: SIGNIFIER,
     copy: UNTITLED,
     localFamilies: ['Signifier', 'Untitled Sans'],
+  },
+  {
+    label: 'Signifier + Suisse Intl',
+    heading: SIGNIFIER,
+    copy: SUISSE,
+    localFamilies: ['Signifier', 'Suisse Intl'],
   },
 ]
 

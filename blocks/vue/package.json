@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.7.0",
+    "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "catalog:",
     "@vueuse/core": "^14.1.0",
     "class-variance-authority": "^0.7.1",

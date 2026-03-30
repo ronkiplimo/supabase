@@ -4,16 +4,7 @@ import { useSendEventMutation } from 'data/telemetry/send-event-mutation'
 import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
 import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
 import { useForm } from 'react-hook-form'
-import {
-  Card,
-  CardContent,
-  Form_Shadcn_,
-  FormControl_Shadcn_,
-  FormField_Shadcn_,
-  Separator,
-  Switch,
-} from 'ui'
-import { FormItemLayout } from 'ui-patterns/form/FormItemLayout/FormItemLayout'
+import { Card, Form_Shadcn_ } from 'ui'
 import {
   PageSection,
   PageSectionContent,
@@ -23,6 +14,8 @@ import {
   PageSectionTitle,
 } from 'ui-patterns/PageSection'
 import * as z from 'zod'
+
+import { DashboardToggle } from './DashboardToggle'
 
 const DashboardSettingsSchema = z.object({
   inlineEditorEnabled: z.boolean(),
@@ -65,12 +58,8 @@ export const InlineEditorSettings = () => {
 
     sendEvent({
       action: 'inline_editor_setting_clicked',
-      properties: {
-        enabled: value,
-      },
-      groups: {
-        organization: org?.slug,
-      },
+      properties: { enabled: value },
+      groups: { organization: org?.slug },
     })
   }
 
@@ -80,12 +69,8 @@ export const InlineEditorSettings = () => {
 
     sendEvent({
       action: 'queue_operations_setting_clicked',
-      properties: {
-        enabled: value,
-      },
-      groups: {
-        organization: org?.slug,
-      },
+      properties: { enabled: value },
+      groups: { organization: org?.slug },
     })
   }
 
@@ -102,52 +87,21 @@ export const InlineEditorSettings = () => {
       <PageSectionContent>
         <Form_Shadcn_ {...form}>
           <Card>
-            <CardContent>
-              <FormField_Shadcn_
-                control={form.control}
-                name="inlineEditorEnabled"
-                render={({ field }) => (
-                  <FormItemLayout
-                    layout="flex-row-reverse"
-                    label="Edit entities in SQL"
-                    description="When enabled, view and edit policies, triggers, and functions directly in the SQL editor instead of a more beginner-friendly UI panel. Ideal for those comfortable with SQL."
-                  >
-                    <FormControl_Shadcn_>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={(value) => {
-                          field.onChange(value)
-                          handleInlineEditorToggle(value)
-                        }}
-                      />
-                    </FormControl_Shadcn_>
-                  </FormItemLayout>
-                )}
-              />
-            </CardContent>
-            <CardContent>
-              <FormField_Shadcn_
-                control={form.control}
-                name="queueOperationsEnabled"
-                render={({ field }) => (
-                  <FormItemLayout
-                    layout="flex-row-reverse"
-                    label="Queue table operations"
-                    description="When enabled, table edits in the Table Editor are queued for review before saving to your database, allowing you to batch multiple changes and commit them together."
-                  >
-                    <FormControl_Shadcn_>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={(value) => {
-                          field.onChange(value)
-                          handleQueueOperationsToggle(value)
-                        }}
-                      />
-                    </FormControl_Shadcn_>
-                  </FormItemLayout>
-                )}
-              />
-            </CardContent>
+            <DashboardToggle
+              form={form}
+              name="inlineEditorEnabled"
+              label="Edit entities in SQL"
+              description="When enabled, view and edit policies, triggers, and functions directly in the SQL editor instead of a more beginner-friendly UI panel. Ideal for those comfortable with SQL."
+              onToggle={handleInlineEditorToggle}
+            />
+            <DashboardToggle
+              form={form}
+              name="queueOperationsEnabled"
+              label="Queue table operations"
+              description="When enabled, table edits in the Table Editor are queued for review before saving to your database, allowing you to batch multiple changes and commit them together."
+              onToggle={handleQueueOperationsToggle}
+              isLast
+            />
           </Card>
         </Form_Shadcn_>
       </PageSectionContent>

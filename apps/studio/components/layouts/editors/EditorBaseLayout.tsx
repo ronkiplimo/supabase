@@ -35,28 +35,31 @@ export const EditorBaseLayout = ({
     pathname === `/project/${ref}/editor` || pathname === `/project/${ref}/sql` || hasNoOpenTabs
 
   const activeEditorTab = tabs.activeTab ? tabs.tabsMap[tabs.activeTab] : undefined
+  // Prefer the live tab label so browser titles update immediately after a rename,
+  // even when persisted tab metadata is still catching up.
+  const activeEditorTabLabel = activeEditorTab?.label ?? activeEditorTab?.metadata?.name
   const activeEditorTabEntity =
     activeEditorTab === undefined
       ? undefined
       : editor === 'sql'
         ? activeEditorTab.type === 'sql'
-          ? activeEditorTab.metadata?.name || activeEditorTab.label
+          ? activeEditorTabLabel
           : undefined
         : editor === 'table'
           ? activeEditorTab.type !== 'sql'
-            ? activeEditorTab.metadata?.name || activeEditorTab.label
+            ? activeEditorTabLabel
             : undefined
           : undefined
 
   const mergedBrowserTitle = {
     ...browserTitle,
+    section: title ?? browserTitle?.section,
     entity: browserTitle?.entity ?? activeEditorTabEntity,
   }
 
   return (
     <ProjectLayoutWithAuth
       resizableSidebar
-      title={title}
       product={product}
       browserTitle={mergedBrowserTitle}
       productMenuClassName={productMenuClassName}

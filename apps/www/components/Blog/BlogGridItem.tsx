@@ -3,6 +3,11 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import authors from '@/lib/authors.json'
+import {
+  BLOG_GRID_IMAGE_SIZES,
+  BLOG_PLACEHOLDER_IMAGE,
+  getBlogThumbnailImage,
+} from '@/lib/blog-images'
 import type Author from '@/types/author'
 import type PostTypes from '@/types/post'
 import AuthorAvatars from './AuthorAvatars'
@@ -25,15 +30,7 @@ const BlogGridItem = ({ post }: Props) => {
     }
   }
 
-  const resolveImagePath = (img: string | undefined): string | null => {
-    if (!img) return null
-    return img.startsWith('/') || img.startsWith('http') ? img : `/images/blog/${img}`
-  }
-
-  const imageUrl =
-    resolveImagePath(post.imgThumb) ||
-    resolveImagePath(post.imgSocial) ||
-    '/images/blog/blog-placeholder.png'
+  const imageUrl = getBlogThumbnailImage(post) ?? BLOG_PLACEHOLDER_IMAGE
 
   return (
     <Link

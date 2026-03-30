@@ -2,6 +2,11 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 import authors from '@/lib/authors.json'
+import {
+  BLOG_FEATURED_IMAGE_SIZES,
+  BLOG_PLACEHOLDER_IMAGE,
+  getBlogThumbnailImage,
+} from '@/lib/blog-images'
 import type PostTypes from '@/types/post'
 import AuthorAvatars from './AuthorAvatars'
 
@@ -22,15 +27,7 @@ function FeaturedThumb(blog: PostTypes) {
 }
 
 function renderFeaturedThumb(blog: PostTypes, author: any[]) {
-  const resolveImagePath = (img: string | undefined): string | null => {
-    if (!img) return null
-    return img.startsWith('/') || img.startsWith('http') ? img : `/images/blog/${img}`
-  }
-
-  const imageUrl =
-    resolveImagePath(blog.imgThumb) ||
-    resolveImagePath(blog.imgSocial) ||
-    '/images/blog/blog-placeholder.png'
+  const imageUrl = getBlogThumbnailImage(blog) ?? BLOG_PLACEHOLDER_IMAGE
 
   return (
     <div key={blog.slug} className="w-full grid lg:grid-cols-12 gap-8">
@@ -44,8 +41,7 @@ function renderFeaturedThumb(blog: PostTypes, author: any[]) {
           <Image
             src={imageUrl}
             fill
-            sizes="100%"
-            quality={100}
+            sizes={BLOG_FEATURED_IMAGE_SIZES}
             priority
             className="object-cover bg-alternative group-hover:scale-[1.02] transition-transform duration-300"
             alt="blog thumbnail"
@@ -66,7 +62,7 @@ function renderFeaturedThumb(blog: PostTypes, author: any[]) {
           <AuthorAvatars authors={author} size="md" />
           <div className="text-foreground-lighter flex space-x-2 text-sm">
             <span>{blog.formattedDate}</span>
-            <span>•</span>
+            <span>·</span>
             <span>{blog.readingTime}</span>
           </div>
         </div>

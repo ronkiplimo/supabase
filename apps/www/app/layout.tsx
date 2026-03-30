@@ -1,4 +1,4 @@
-import '@code-hike/mdx/styles'
+import '@code-hike/mdx/styles.css'
 import 'config/code-hike.scss'
 import '../styles/index.css'
 

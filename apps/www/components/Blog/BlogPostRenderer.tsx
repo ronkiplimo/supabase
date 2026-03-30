@@ -12,6 +12,7 @@ import type { ComponentType } from 'react'
 import type { PostReturnType, ProcessedBlogData, StaticAuthor, Tag } from 'types/post'
 import { Badge } from 'ui'
 
+import { BLOG_POST_HERO_IMAGE_SIZES, getBlogThumbnailImage } from '@/lib/blog-images'
 import mdxComponents from '@/lib/mdx/mdxComponents'
 
 const ShareArticleActions = dynamic(() => import('@/components/Blog/ShareArticleActions'))
@@ -132,11 +133,9 @@ const BlogPostRenderer = ({
     </div>
   )
 
-  const imageUrl = blogMetaData.imgThumb
-    ? blogMetaData.imgThumb.startsWith('/') || blogMetaData.imgThumb.startsWith('http')
-      ? blogMetaData.imgThumb
-      : `/images/blog/${blogMetaData.imgThumb}`
-    : ''
+  const imageUrl = getBlogThumbnailImage(blogMetaData, {
+    fallbackToPlaceholder: false,
+  })
 
   return (
     <>
@@ -180,7 +179,7 @@ const BlogPostRenderer = ({
                 <div className="flex items-center gap-2">
                   <div className="text-foreground-lighter flex space-x-3 text-sm">
                     <p>{dayjs(blogMetaData.date).format('DD MMM YYYY')}</p>
-                    <p>•</p>
+                    <p>·</p>
                     <p>{(blogMetaData as any).readingTime}</p>
                   </div>
                 </div>

@@ -52,7 +52,7 @@ export const CreateQueueSheet = ({ visible, onClose }: CreateQueueSheetProps) =>
         ? {
             name: '',
             enableRls: true,
-            values: { type: 'partitioned', partitionInterval: 0, retentionInterval: 0 },
+            values: { type: 'partitioned', partitionInterval: 10000, retentionInterval: 100000 },
           }
         : { name: '', enableRls: true, values: { type: 'basic' } },
     [pgPartmanInstalled]

@@ -37,7 +37,7 @@ import {
   REPLICA_STATUS,
   ReplicaNodeData,
 } from './InstanceConfiguration.constants'
-import { formatSeconds } from './InstanceConfiguration.utils'
+import { formatSeconds, getMetricColorClass } from './InstanceConfiguration.utils'
 import { useDatabaseSelectorStateSnapshot } from '@/state/database-selector'
 
 export const LoadBalancerNode = ({ data }: NodeProps) => {
@@ -80,12 +80,6 @@ export const LoadBalancerNode = ({ data }: NodeProps) => {
       <Handle type="source" position={Position.Bottom} style={{ background: 'transparent' }} />
     </>
   )
-}
-
-function getMetricColorClass(value: number): string {
-  if (value >= 90) return 'text-destructive'
-  if (value >= 70) return 'text-warning'
-  return 'text-foreground-light'
 }
 
 export const PrimaryNode = ({ data }: NodeProps) => {
@@ -136,7 +130,7 @@ export const PrimaryNode = ({ data }: NodeProps) => {
             src={`${BASE_PATH}/img/regions/${region.region}.svg`}
           />
         </div>
-        {infraMetrics !== null && (
+        {infraMetrics != null && (
           <div className="flex items-center gap-3 border-t px-3 py-2">
             {[
               { label: 'CPU', value: infraMetrics.cpu.current },

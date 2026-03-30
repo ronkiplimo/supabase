@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import { generateNodes } from './InstanceConfiguration.utils'
+import { generateNodes, getMetricColorClass } from './InstanceConfiguration.utils'
 
-// minimal mock data
+// minimal mock data — cast to any because the full DatabaseDetailResponse type is a generated
+// API schema with many optional fields; we only need the fields actually used by generateNodes
 const mockPrimary = {
   identifier: 'test-ref',
   region: 'ap-southeast-1',
@@ -44,5 +45,25 @@ describe('generateNodes', () => {
     })
     const primaryNode = nodes.find((n) => n.type === 'PRIMARY')
     expect(primaryNode?.data.infraMetrics).toEqual(metrics)
+  })
+})
+
+describe('getMetricColorClass', () => {
+  it('returns text-foreground-light for values below 70', () => {
+    expect(getMetricColorClass(0)).toBe('text-foreground-light')
+    expect(getMetricColorClass(50)).toBe('text-foreground-light')
+    expect(getMetricColorClass(69.9)).toBe('text-foreground-light')
+  })
+
+  it('returns text-warning for values between 70 and 89', () => {
+    expect(getMetricColorClass(70)).toBe('text-warning')
+    expect(getMetricColorClass(80)).toBe('text-warning')
+    expect(getMetricColorClass(89.9)).toBe('text-warning')
+  })
+
+  it('returns text-destructive for values at or above 90', () => {
+    expect(getMetricColorClass(90)).toBe('text-destructive')
+    expect(getMetricColorClass(95)).toBe('text-destructive')
+    expect(getMetricColorClass(100)).toBe('text-destructive')
   })
 })

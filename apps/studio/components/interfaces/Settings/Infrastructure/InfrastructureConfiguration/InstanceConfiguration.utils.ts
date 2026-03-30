@@ -205,3 +205,9 @@ export const formatSeconds = (value: number) => {
 
   return `${hours > 0 ? `${hours}h` : ''} ${minutes > 0 ? `${minutes}m` : ''} ${seconds > 0 ? `${seconds}s` : ''}`.trim()
 }
+
+export function getMetricColorClass(value: number): string {
+  if (value >= 90) return 'text-destructive'
+  if (value >= 70) return 'text-warning'
+  return 'text-foreground-light'
+}

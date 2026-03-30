@@ -8,8 +8,8 @@ const normalQueueSchema = z.object({
 
 const partitionedQueueSchema = z.object({
   type: z.literal('partitioned'),
-  partitionInterval: z.coerce.number(),
-  retentionInterval: z.coerce.number(),
+  partitionInterval: z.coerce.number().int().positive(),
+  retentionInterval: z.coerce.number().int().positive(),
 })
 
 const unloggedQueueSchema = z.object({

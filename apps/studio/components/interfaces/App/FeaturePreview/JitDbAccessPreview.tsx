@@ -8,14 +8,14 @@ export const JitDbAccessPreview = () => {
   return (
     <div className="space-y-4">
       <p className="text-sm text-foreground-light">
-        Grant project members temporary database role access through Just-in-Time (JIT) controls in{' '}
+        Grant project members temporary database role access through Ephemeral tokens, controls in{' '}
         <InlineLink href={`/project/${ref}/database/settings`}>Database Settings</InlineLink>.
       </p>
       <div className="space-y-2">
         <p className="text-sm">Enabling this preview will:</p>
         <ul className="list-disc pl-6 text-sm text-foreground-light space-y-1">
-          <li>Show JIT database access controls in Database Settings</li>
-          <li>Allow configuring role grants and member-level JIT rules</li>
+          <li>Show Ephemeral token-based database access controls in Database Settings</li>
+          <li>Allow configuring role grants and member-level ephemeral access rules</li>
         </ul>
       </div>
       <p className="text-sm text-foreground-light">

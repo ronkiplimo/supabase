@@ -31,16 +31,16 @@ export function JitDbAccessDeleteDialog({
     <AlertDialog open={!!user} onOpenChange={(open) => !open && !isDeleting && onClose()}>
       <AlertDialogContent size="medium">
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete JIT access rule</AlertDialogTitle>
+          <AlertDialogTitle>Delete Ephemeral token-based access rule</AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="space-y-2 text-sm">
               <p>
-                Remove the JIT access rule for{' '}
+                Remove the Ephemeral token-based access rule for{' '}
                 <strong className="text-foreground">{userDisplayName}</strong>?
               </p>
               <p>
-                This revokes any assigned database roles for this member and removes their JIT
-                access configuration.
+                This revokes any assigned database roles for this member and removes their Ephemeral
+                token-based access configuration.
               </p>
             </div>
           </AlertDialogDescription>

@@ -1,16 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { SubmitHandler, useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import z from 'zod'
-
+import { EnableExtensionModal } from 'components/interfaces/Database/Extensions/EnableExtensionModal'
 import { Markdown } from 'components/interfaces/Markdown'
-import { useDatabaseExtensionsQuery } from 'data/database-extensions/database-extensions-query'
+import { DiscardChangesConfirmationDialog } from 'components/ui-patterns/Dialogs/DiscardChangesConfirmationDialog'
 import { useDatabaseQueueCreateMutation } from 'data/database-queues/database-queues-create-mutation'
 import { useQueuesExposePostgrestStatusQuery } from 'data/database-queues/database-queues-expose-postgrest-status-query'
 import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
 import { useConfirmOnClose } from 'hooks/ui/useConfirmOnClose'
 import { useRouter } from 'next/router'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { SubmitHandler, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import {
   Badge,
   Button,
@@ -31,10 +30,12 @@ import {
   SheetTitle,
 } from 'ui'
 import { Admonition } from 'ui-patterns'
-import { DiscardChangesConfirmationDialog } from 'components/ui-patterns/Dialogs/DiscardChangesConfirmationDialog'
 import { FormItemLayout } from 'ui-patterns/form/FormItemLayout/FormItemLayout'
+import z from 'zod'
+
 import { QUEUE_TYPES } from './Queues.constants'
 import { QueryNameSchema } from './Queues.utils'
+import { usePgPartmanStatus } from './usePgPartmanStatus'
 
 export interface CreateQueueSheetProps {
   visible: boolean
@@ -47,8 +48,8 @@ const normalQueueSchema = z.object({
 
 const partitionedQueueSchema = z.object({
   type: z.literal('partitioned'),
-  partitionInterval: z.number(),
-  retentionInterval: z.number(),
+  partitionInterval: z.coerce.number(),
+  retentionInterval: z.coerce.number(),
 })
 
 const unloggedQueueSchema = z.object({
@@ -81,21 +82,32 @@ export const CreateQueueSheet = ({ visible, onClose }: CreateQueueSheetProps) =>
 
   const { mutate: createQueue, isPending } = useDatabaseQueueCreateMutation()
 
+  const {
+    pgPartmanExtension,
+    isAvailable: pgPartmanAvailable,
+    isInstalled: pgPartmanInstalled,
+  } = usePgPartmanStatus()
+
+  const defaultValues: CreateQueueForm = pgPartmanInstalled
+    ? {
+        name: '',
+        enableRls: true,
+        values: { type: 'partitioned', partitionInterval: 0, retentionInterval: 0 },
+      }
+    : { name: '', enableRls: true, values: { type: 'basic' } }
+
   const form = useForm<CreateQueueForm>({
     resolver: zodResolver(FormSchema),
-    defaultValues: {
-      name: '',
-      enableRls: true,
-      values: { type: 'basic' },
-    },
+    defaultValues,
   })
 
   useEffect(() => {
     if (visible) {
-      form.reset()
+      form.reset(defaultValues)
     }
   }, [
     form,
+    pgPartmanInstalled,
     // end of stable references
     visible,
   ])
@@ -133,13 +145,7 @@ export const CreateQueueSheet = ({ visible, onClose }: CreateQueueSheetProps) =>
     )
   }
 
-  const { data } = useDatabaseExtensionsQuery({
-    projectRef: project?.ref,
-    connectionString: project?.connectionString,
-  })
-
-  const pgPartmanExtension = (data ?? []).find((ext) => ext.name === 'pg_partman')
-  const pgPartmanExtensionInstalled = pgPartmanExtension?.installed_version != undefined
+  const [showEnableExtensionModal, setShowEnableExtensionModal] = useState(false)
 
   const queueType = form.watch('values.type')
 
@@ -189,40 +195,63 @@ export const CreateQueueSheet = ({ visible, onClose }: CreateQueueSheetProps) =>
                             disabled={field.disabled}
                             onValueChange={field.onChange}
                           >
-                            {QUEUE_TYPES.map((definition) => (
-                              <RadioGroupStackedItem
-                                key={definition.value}
-                                id={definition.value}
-                                value={definition.value}
-                                label=""
-                                disabled={
-                                  !pgPartmanExtensionInstalled && definition.value === 'partitioned'
-                                }
-                                showIndicator={false}
-                              >
-                                <div className="flex items-start gap-x-5">
-                                  <div className="text-foreground">{definition.icon}</div>
-                                  <div className="flex flex-col gap-y-1">
-                                    <div className="flex items-center gap-x-2">
-                                      <p className="text-foreground text-left">
-                                        {definition.label}
+                            {QUEUE_TYPES.filter(
+                              (definition) =>
+                                definition.value !== 'partitioned' || pgPartmanInstalled
+                            ).map((definition) => {
+                              const isPartitioned = definition.value === 'partitioned'
+
+                              return (
+                                <RadioGroupStackedItem
+                                  key={definition.value}
+                                  id={definition.value}
+                                  value={definition.value}
+                                  label=""
+                                  showIndicator={false}
+                                >
+                                  <div className="flex items-start gap-x-5">
+                                    <div className="text-foreground">{definition.icon}</div>
+                                    <div className="flex flex-col gap-y-1">
+                                      <div className="flex items-center gap-x-2">
+                                        <p className="text-foreground text-left">
+                                          {definition.label}
+                                        </p>
+                                        {isPartitioned && (
+                                          <Badge variant="success">Recommended</Badge>
+                                        )}
+                                      </div>
+                                      <p className="text-foreground-lighter text-left">
+                                        {isPartitioned
+                                          ? 'Automatically manages data retention and improves performance for high-volume queues via pg_partman.'
+                                          : definition.description}
                                       </p>
-                                      {definition.value === 'partitioned' && (
-                                        <Badge>Coming soon</Badge>
-                                      )}
                                     </div>
-                                    <p className="text-foreground-lighter text-left">
-                                      {definition.description}
-                                    </p>
                                   </div>
-                                </div>
-                              </RadioGroupStackedItem>
-                            ))}
+                                </RadioGroupStackedItem>
+                              )
+                            })}
                           </RadioGroupStacked>
                         </FormControl_Shadcn_>
                       </FormItemLayout>
                     )}
                   />
+                  {pgPartmanAvailable && !pgPartmanInstalled && (
+                    <Admonition
+                      className="my-4"
+                      type="default"
+                      title="Partitioned queues require the pg_partman extension"
+                      description="Enable pg_partman to unlock partitioned queues, which automatically manage data retention and improve performance for high-volume queues."
+                    >
+                      <Button
+                        type="default"
+                        size="tiny"
+                        className="mt-2"
+                        onClick={() => setShowEnableExtensionModal(true)}
+                      >
+                        Enable pg_partman
+                      </Button>
+                    </Admonition>
+                  )}
                 </SheetSection>
                 <Separator />
                 {queueType === 'partitioned' && (
@@ -323,6 +352,13 @@ export const CreateQueueSheet = ({ visible, onClose }: CreateQueueSheetProps) =>
           </SheetFooter>
         </div>
         <DiscardChangesConfirmationDialog {...modalProps} />
+        {pgPartmanExtension && !pgPartmanInstalled && (
+          <EnableExtensionModal
+            visible={showEnableExtensionModal}
+            extension={pgPartmanExtension}
+            onCancel={() => setShowEnableExtensionModal(false)}
+          />
+        )}
       </SheetContent>
     </Sheet>
   )

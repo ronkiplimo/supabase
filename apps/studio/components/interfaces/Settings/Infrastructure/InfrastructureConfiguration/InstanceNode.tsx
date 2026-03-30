@@ -40,7 +40,7 @@ import {
 import { formatSeconds, getMetricColorClass } from './InstanceConfiguration.utils'
 import { useDatabaseSelectorStateSnapshot } from '@/state/database-selector'
 
-export const LoadBalancerNode = ({ data }: NodeProps) => {
+export const LoadBalancerNode = ({ data }: NodeProps<Node<LoadBalancerData>>) => {
   const { ref } = useParams()
   const { numDatabases } = data
 
@@ -82,7 +82,7 @@ export const LoadBalancerNode = ({ data }: NodeProps) => {
   )
 }
 
-export const PrimaryNode = ({ data }: NodeProps) => {
+export const PrimaryNode = ({ data }: NodeProps<Node<PrimaryNodeData>>) => {
   // [Joshen] Just FYI Handles cannot be conditionally rendered
   const { region, computeSize, numReplicas, numRegions, hasLoadBalancer, infraMetrics } = data
 
@@ -174,7 +174,7 @@ export const PrimaryNode = ({ data }: NodeProps) => {
   )
 }
 
-export const ReplicaNode = ({ data }: NodeProps) => {
+export const ReplicaNode = ({ data }: NodeProps<Node<ReplicaNodeData>>) => {
   const { ref } = useParams()
   const { id, region, computeSize, status, inserted_at } = data
   const { projectHomepageShowInstanceSize } = useIsFeatureEnabled([

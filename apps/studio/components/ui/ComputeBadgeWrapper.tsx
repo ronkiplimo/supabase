@@ -105,8 +105,7 @@ export const ComputeBadgeWrapper = ({
   const isFreeOnNano = !!data && data.plan.id === 'free' && computeSize === 'nano'
   const isEligibleForFreeUpgrade = !!data && data.plan.id !== 'free' && computeSize === 'nano'
   const isLoading = isLoadingAddons || isLoadingSubscriptions
-  const isComputeNearExhaustion =
-    !!resourceWarnings?.cpu_exhaustion || !!resourceWarnings?.memory_and_swap_exhaustion
+  const isComputeNearExhaustion = true
   const hasUpgradeAvailable = (isFreeOnNano || isEligibleForFreeUpgrade) && isComputeNearExhaustion
 
   if (!computeSize) return null
@@ -114,25 +113,16 @@ export const ComputeBadgeWrapper = ({
   return (
     <HoverCard onOpenChange={() => setOpenState(!open)} openDelay={280}>
       <HoverCardTrigger asChild className="group" onClick={(e) => e.stopPropagation()}>
-        <div className={cn('flex items-center', hasUpgradeAvailable && 'animate-badge-pulse')}>
-          <div
+        <div className="flex items-center">
+          <ComputeBadge
+            infraComputeSize={computeSize}
+            icon={hasUpgradeAvailable && <ChevronsUpAnimated />}
             className={cn(
-              'flex',
-              hasUpgradeAvailable && 'relative inline-flex overflow-hidden rounded'
+              hasUpgradeAvailable &&
+                'animate-pulse gap-1 border-brand-500 bg-brand/10 text-brand-600',
+              badgeClassName
             )}
-          >
-            <ComputeBadge
-              infraComputeSize={computeSize}
-              icon={hasUpgradeAvailable && <ChevronsUpAnimated />}
-              className={cn(
-                hasUpgradeAvailable && 'text-brand-600 border-brand-500 bg-brand/10 gap-1',
-                badgeClassName
-              )}
-            />
-            {hasUpgradeAvailable && (
-              <span className="animate-badge-shimmer pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-brand/20 to-transparent" />
-            )}
-          </div>
+          />
         </div>
       </HoverCardTrigger>
       <HoverCardContent

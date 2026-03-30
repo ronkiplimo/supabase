@@ -4,7 +4,7 @@ import { getMockBookingInfo, shouldUseMock } from '../mock'
 
 const HUBSPOT_BASE = 'https://api.hubspot.com/scheduler/v3/meetings/meeting-links/book'
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+export async function GET(request: NextRequest, { params }: { params: Promise }) {
   const { searchParams } = new URL(request.url)
   const timezone = searchParams.get('timezone') || 'America/New_York'
   const monthOffset = parseInt(searchParams.get('monthOffset') || '0', 10)
@@ -26,8 +26,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   })
 
   if (!res.ok) {
-    const text = await res.text()
-    return NextResponse.json({ error: 'HubSpot API error', detail: text }, { status: res.status })
+    console.error('HubSpot meetings API error', { status: res.status, slug, monthOffset })
+    return NextResponse.json({ error: 'HubSpot API error' }, { status: res.status })
   }
 
   const data = await res.json()
@@ -41,12 +41,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   // HubSpot returns: { linkAvailabilityByDuration: { "1800000": { availabilities: [...] } } }
   // We need:         { "1800000": [...] }
   if (data.linkAvailability?.linkAvailabilityByDuration) {
-    const flat: Record<string, Array<{ startMillisUtc: number; endMillisUtc: number }>> = {}
+    const flat: Record = {}
     for (const [duration, value] of Object.entries(
-      data.linkAvailability.linkAvailabilityByDuration as Record<
-        string,
-        { availabilities?: Array<{ startMillisUtc: number; endMillisUtc: number }> }
-      >
+      data.linkAvailability.linkAvailabilityByDuration as Record
     )) {
       flat[duration] = value.availabilities ?? []
     }

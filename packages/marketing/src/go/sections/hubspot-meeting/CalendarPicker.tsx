@@ -5,7 +5,7 @@ interface CalendarPickerProps {
   monthOffset: number
   availableMonthOffsets: number[]
   timezone: string
-  availableDates: Set<string>
+  availableDates: Set
   selectedDate: string | null
   onSelectDate: (date: string) => void
   onChangeMonth: (offset: number) => void
@@ -23,15 +23,18 @@ export default function CalendarPicker({
   onChangeMonth,
 }: CalendarPickerProps) {
   const { year, month, days, monthLabel } = useMemo(() => {
-    const now = new Date()
-    const target = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1)
+    // Derive current year/month from "now" in the selected timezone
+    // so that month boundaries align with the timezone, not the browser's local time
+    const nowInTz = new Date().toLocaleDateString('en-CA', { timeZone: timezone })
+    const [tzYear, tzMonth] = nowInTz.split('-').map(Number)
+    const target = new Date(tzYear, tzMonth - 1 + monthOffset, 1)
     const y = target.getFullYear()
     const m = target.getMonth()
 
     const firstDay = new Date(y, m, 1).getDay()
     const daysInMonth = new Date(y, m + 1, 0).getDate()
 
-    const daysList: Array<{ day: number; dateStr: string } | null> = []
+    const daysList: Array = []
 
     // Leading empty cells
     for (let i = 0; i < firstDay; i++) {

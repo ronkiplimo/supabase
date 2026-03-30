@@ -51,7 +51,7 @@ export function useScheduler(slug: string, enabled = true) {
   }, [])
 
   /** Cached booking info keyed by month offset */
-  const [monthCache, setMonthCache] = useState<Record<number, BookingInfo>>({})
+  const [monthCache, setMonthCache] = useState<Record>({})
 
   const [state, setState] = useState<SchedulerState>({
     step: 'loading',
@@ -74,7 +74,7 @@ export function useScheduler(slug: string, enabled = true) {
           Array.from({ length: MONTHS_TO_FETCH }, (_, i) => fetchBookingInfo(slug, effectiveTz, i))
         )
 
-        const cache: Record<number, BookingInfo> = {}
+        const cache: Record = {}
         for (let i = 0; i < results.length; i++) {
           cache[i] = results[i]
         }
@@ -232,6 +232,12 @@ export function useScheduler(slug: string, enabled = true) {
 
   /** Auto-navigate to first month with availability */
   const hasSetInitialMonth = useRef(false)
+
+  // Reset when timezone changes so auto-jump runs again after reload
+  useEffect(() => {
+    hasSetInitialMonth.current = false
+  }, [timezone])
+
   useEffect(() => {
     if (hasSetInitialMonth.current) return
     if (availableMonthOffsets.length > 0 && state.step === 'date-select') {

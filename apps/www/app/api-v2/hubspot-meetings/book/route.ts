@@ -46,8 +46,7 @@ export async function POST(request: NextRequest) {
   })
 
   if (!res.ok) {
-    const text = await res.text()
-    console.error('[HubSpot booking error]', { status: res.status, body: text })
+    console.error('HubSpot booking API error', { status: res.status, slug: body.slug })
     return NextResponse.json(
       { error: 'Booking failed. Please try again or contact support.' },
       { status: res.status }

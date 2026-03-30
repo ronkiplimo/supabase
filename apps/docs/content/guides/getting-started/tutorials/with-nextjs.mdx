@@ -10,7 +10,7 @@ description: 'Learn how to use Supabase in your Next.js App.'
 
 <Admonition type="note">
 
-If you get stuck while working through this guide, refer to the [full example on GitHub](https://github.com/supabase/supabase/tree/master/examples/user-management/nextjs-user-management).
+If you get stuck while working through this guide, you can find the [full example on GitHub](https://github.com/supabase/supabase/tree/master/examples/user-management/nextjs-user-management).
 
 </Admonition>
 
@@ -128,9 +128,9 @@ meta="name=lib/supabase/proxy.ts"
 
 </$CodeTabs>
 
-## Set up a login page
+### Set up a login page
 
-### Login and signup form
+#### Login and signup form
 
 In order to add login/signup page for your application:
 
@@ -178,7 +178,7 @@ meta="name=app/error/page.tsx"
 
 </$CodeTabs>
 
-### Email template
+#### Email template
 
 Before proceeding, change the email template to support support a server-side authentication flow that sends a token hash:
 
@@ -192,7 +192,7 @@ You can also customize other emails sent out to new users, including the email's
 
 </Admonition>
 
-### Confirmation endpoint
+#### Confirmation endpoint
 
 As you are working in a server-side rendering (SSR) environment, you need to create a server endpoint responsible for exchanging the `token_hash` for a session.
 
@@ -208,7 +208,7 @@ lines={[[1, -1]]}
 meta="name=app/auth/confirm/route.ts"
 />
 
-### Account page
+#### Account page
 
 After a user signs in, allow them to edit their profile details and manage their account.
 
@@ -228,7 +228,7 @@ lines={[[1, -1]]}
 meta="name=app/account/page.tsx"
 />
 
-### Sign out
+#### Sign out
 
 Create a route handler to handle the sign out from the server side, making sure to check if the user is logged in first.
 
@@ -238,9 +238,23 @@ lines={[[1, -1]]}
 meta="name=app/auth/signout/route.ts"
 />
 
+## Profile photos
+
+Next, add a way for users to upload a profile photo. Supabase configures every project with [Storage](/docs/guides/storage) for managing large files like photos and videos.
+
+### Create an upload widget
+
+Start by creating a new component:
+
+<$CodeSample
+path="/user-management/nextjs-user-management/app/account/avatar.tsx"
+lines={[[1, -1]]}
+meta="name=app/account/avatar.tsx"
+/>
+
 ### Launch
 
-Now you have all the pages, route handlers, and components in place, run the following in a terminal window:
+With all the pages, route handlers, and components in place, run the following in a terminal window:
 
 ```bash
 npm run dev
@@ -249,31 +263,6 @@ npm run dev
 And then open the browser to [localhost:3000/login](http://localhost:3000/login) and you should see the completed app.
 
 When you enter your email and password, you will receive an email with the title **Confirm Your Signup**. Congrats 🎉!!!
-
-## Bonus: Profile photos
-
-Every Supabase project is configured with [Storage](/docs/guides/storage) for managing large files like
-photos and videos.
-
-### Create an upload widget
-
-Create an avatar widget for the user so that they can upload a profile photo. Start by creating a new component:
-
-<$CodeSample
-path="/user-management/nextjs-user-management/app/account/avatar.tsx"
-lines={[[1, -1]]}
-meta="name=app/account/avatar.tsx"
-/>
-
-### Add the new widget
-
-Then add the widget to the `AccountForm` component:
-
-<$CodeSample
-path="/user-management/nextjs-user-management/app/account/account-form.tsx"
-lines={[[5, 5], [77, 87], [137, -1]]}
-meta="name=app/account/account-form.tsx"
-/>
 
 At this stage you have a fully functional application!
 

@@ -9,7 +9,7 @@ description: 'Learn how to use Supabase in your Svelte App.'
 
 <Admonition type="note">
 
-If you get stuck while working through this guide, refer to the [full example on GitHub](https://github.com/supabase/supabase/tree/master/examples/user-management/svelte-user-management).
+If you get stuck while working through this guide, you can find the [full example on GitHub](https://github.com/supabase/supabase/tree/master/examples/user-management/svelte-user-management).
 
 </Admonition>
 
@@ -79,9 +79,22 @@ lines={[[1, 4], [7, 11], [14, 33], [34,53], [55,73], [75,-1]]}
 meta="src/lib/Account.svelte"
 />
 
+## Profile photos
+
+Next, add a way for users to upload a profile photo. Supabase configures every project with [Storage](/docs/guides/storage) for managing large files like photos and videos.
+
+### Create an upload widget
+
+Start by creating a new component:
+
+<$CodeSample
+path="user-management/svelte-user-management/src/lib/Avatar.svelte"
+meta="name=src/lib/Avatar.svelte"
+/>
+
 ### Launch!
 
-Now that you have all the components in place, update `App.svelte`:
+With all the components in place, update `App.svelte`:
 
 <$CodeSample
 path="user-management/svelte-user-management/src/App.svelte"
@@ -103,28 +116,5 @@ Svelte uses Vite and the default port is `5173`, Supabase uses `port 3000`. To c
 </Admonition>
 
 ![Supabase Svelte](/docs/img/supabase-svelte-demo.png)
-
-## Bonus: Profile photos
-
-Every Supabase project is configured with [Storage](/docs/guides/storage) for managing large files like photos and videos.
-
-### Create an upload widget
-
-Create an avatar for the user so that they can upload a profile photo. Start by creating a new component:
-
-<$CodeSample
-path="user-management/svelte-user-management/src/lib/Avatar.svelte"
-meta="name=src/lib/Avatar.svelte"
-/>
-
-### Add the new widget
-
-And then you can add the widget to the Account page:
-
-<$CodeSample
-path="/user-management/svelte-user-management/src/lib/Account.svelte"
-lines={[[1,1], [5,5], [71,73], [74,74], [92,-1]]}
-meta="src/lib/Account.svelte"
-/>
 
 At this stage you have a fully functional application!

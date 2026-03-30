@@ -21,7 +21,12 @@ export function PartitionConfigFields({ form }: { form: UseFormReturn<CreateQueu
               description="Number of messages per partition"
               className="gap-1"
             >
-              <Input {...rest} type="number" placeholder="10000" actions={<p className="text-foreground-light pr-2">messages</p>} />
+              <Input
+                {...rest}
+                type="number"
+                placeholder="10000"
+                actions={<p className="text-foreground-light pr-2">messages</p>}
+              />
             </FormItemLayout>
           )}
         />
@@ -34,7 +39,12 @@ export function PartitionConfigFields({ form }: { form: UseFormReturn<CreateQueu
               description="Partitions older than this many messages behind the latest will be dropped"
               className="gap-1"
             >
-              <Input {...rest} type="number" placeholder="100000" actions={<p className="text-foreground-light pr-2">messages</p>} />
+              <Input
+                {...rest}
+                type="number"
+                placeholder="100000"
+                actions={<p className="text-foreground-light pr-2">messages</p>}
+              />
             </FormItemLayout>
           )}
         />

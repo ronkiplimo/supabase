@@ -77,9 +77,14 @@ export const CreateQueueSheet = ({ visible, onClose }: CreateQueueSheetProps) =>
   })
 
   const onSubmit: SubmitHandler<CreateQueueForm> = async ({ name, enableRls, values }) => {
+    if (!project?.ref) {
+      toast.error('Project not found')
+      return
+    }
+
     createQueue(
       {
-        projectRef: project!.ref,
+        projectRef: project.ref,
         connectionString: project?.connectionString,
         name,
         enableRls,
@@ -137,7 +142,14 @@ export const CreateQueueSheet = ({ visible, onClose }: CreateQueueSheetProps) =>
             >
               Cancel
             </Button>
-            <Button size="tiny" type="primary" form={FORM_ID} htmlType="submit" loading={isPending}>
+            <Button
+              size="tiny"
+              type="primary"
+              form={FORM_ID}
+              htmlType="submit"
+              loading={isPending}
+              disabled={!project?.ref}
+            >
               Create queue
             </Button>
           </SheetFooter>

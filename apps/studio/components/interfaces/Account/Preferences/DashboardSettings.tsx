@@ -65,7 +65,7 @@ export const DashboardSettings = () => {
     <PageSection>
       <PageSectionMeta>
         <PageSectionSummary>
-          <PageSectionTitle id="inline-editor">Dashboard</PageSectionTitle>
+          <PageSectionTitle id="dashboard">Dashboard</PageSectionTitle>
           <PageSectionDescription>
             Customize your dashboard editing experience.
           </PageSectionDescription>
@@ -86,6 +86,7 @@ export const DashboardSettings = () => {
               name="queueOperationsEnabled"
               label="Queue table operations"
               description="When enabled, table edits in the Table Editor are queued for review before saving to your database, allowing you to batch multiple changes and commit them together."
+              discussionsUrl="https://github.com/orgs/supabase/discussions/42460"
               onToggle={handleQueueOperationsToggle}
               isLast
             />

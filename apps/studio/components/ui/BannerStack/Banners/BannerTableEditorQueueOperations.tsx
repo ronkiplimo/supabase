@@ -60,7 +60,7 @@ export const BannerTableEditorQueueOperations = () => {
           </p>
         </div>
         <Button asChild type="default" className="w-min">
-          <Link href="/account/me#inline-editor">
+          <Link href="/account/me#dashboard">
             {isQueueOperationsEnabled ? 'View' : 'Enable in'} account preferences
           </Link>
         </Button>

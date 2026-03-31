@@ -3,7 +3,7 @@ import { ProjectDetail } from 'data/projects/project-detail-query'
 import { useOrgSubscriptionQuery } from 'data/subscriptions/org-subscription-query'
 import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
 import { ProjectAddonVariantMeta } from 'data/subscriptions/types'
-import { useCheckEntitlements } from 'hooks/misc/useCheckEntitlements'
+import { ResourceWarning } from 'data/usage/resource-warnings-query'
 import { getCloudProviderArchitecture } from 'lib/cloudprovider-utils'
 import { INSTANCE_MICRO_SPECS } from 'lib/constants'
 import { useTrack } from 'lib/telemetry/track'
@@ -53,6 +53,7 @@ interface ComputeBadgeWrapperProps {
   projectRef?: string
   cloudProvider?: string
   computeSize?: ProjectDetail['infra_compute_size']
+  resourceWarnings?: ResourceWarning
   badgeClassName?: string
 }
 
@@ -61,6 +62,7 @@ export const ComputeBadgeWrapper = ({
   projectRef,
   cloudProvider,
   computeSize,
+  resourceWarnings,
   badgeClassName,
 }: ComputeBadgeWrapperProps) => {
   // handles the state of the hover card
@@ -103,10 +105,9 @@ export const ComputeBadgeWrapper = ({
   const isFreeOnNano = !!data && data.plan.id === 'free' && computeSize === 'nano'
   const isEligibleForFreeUpgrade = !!data && data.plan.id !== 'free' && computeSize === 'nano'
   const isLoading = isLoadingAddons || isLoadingSubscriptions
-  const { hasAccess: entitledUpdateCompute } = useCheckEntitlements(
-    'instances.compute_update_available_sizes'
-  )
-  const hasUpgradeAvailable = entitledUpdateCompute && computeSize === 'nano'
+  const isComputeNearExhaustion =
+    !!resourceWarnings?.cpu_exhaustion || !!resourceWarnings?.memory_and_swap_exhaustion
+  const hasUpgradeAvailable = (isFreeOnNano || isEligibleForFreeUpgrade) && isComputeNearExhaustion
 
   if (!computeSize) return null
 

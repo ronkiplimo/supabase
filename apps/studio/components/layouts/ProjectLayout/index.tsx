@@ -45,6 +45,7 @@ import { useCustomContent } from '@/hooks/custom-content/useCustomContent'
 import { useCheckEntitlements } from '@/hooks/misc/useCheckEntitlements'
 import { useLocalStorageQuery } from '@/hooks/misc/useLocalStorage'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
+import { useResourceWarningsQuery } from 'data/usage/resource-warnings-query'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
 import { withAuth } from '@/hooks/misc/withAuth'
 import { LOCAL_STORAGE_KEYS } from 'common'
@@ -119,8 +120,17 @@ export const ProjectLayout = forwardRef<HTMLDivElement, PropsWithChildren<Projec
     const { hasAccess: entitledUpdateCompute } = useCheckEntitlements(
       'instances.compute_update_available_sizes'
     )
+    const { data: resourceWarnings } = useResourceWarningsQuery({ ref: selectedProject?.ref })
+    const projectResourceWarnings = resourceWarnings?.find(
+      (w) => w.project === selectedProject?.ref
+    )
+    const isComputeNearExhaustion =
+      !!projectResourceWarnings?.cpu_exhaustion ||
+      !!projectResourceWarnings?.memory_and_swap_exhaustion
     const isEligibleForFreeUpgrade =
-      entitledUpdateCompute && selectedProject?.infra_compute_size === 'nano'
+      entitledUpdateCompute &&
+      selectedProject?.infra_compute_size === 'nano' &&
+      isComputeNearExhaustion
     const [isFreeMicroUpgradeBannerDismissed] = useLocalStorageQuery(
       LOCAL_STORAGE_KEYS.FREE_MICRO_UPGRADE_BANNER_DISMISSED(selectedProject?.ref ?? ''),
       false

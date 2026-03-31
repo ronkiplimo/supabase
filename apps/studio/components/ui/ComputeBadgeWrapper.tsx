@@ -106,30 +106,32 @@ export const ComputeBadgeWrapper = ({
   const isEligibleForFreeUpgrade = !!data && data.plan.id !== 'free' && computeSize === 'nano'
   const isLoading = isLoadingAddons || isLoadingSubscriptions
   const isComputeNearExhaustion =
-    !!resourceWarnings?.cpu_exhaustion || !!resourceWarnings?.memory_and_swap_exhaustion
-  const hasUpgradeAvailable = (isFreeOnNano || isEligibleForFreeUpgrade) && isComputeNearExhaustion
+    !!resourceWarnings?.cpu_exhaustion ||
+    !!resourceWarnings?.memory_and_swap_exhaustion ||
+    !!resourceWarnings?.disk_space_exhaustion
+  const showUpgradeGlow = isEligibleForFreeUpgrade && isComputeNearExhaustion
 
   if (!computeSize) return null
 
   return (
     <HoverCard onOpenChange={() => setOpenState(!open)} openDelay={280}>
       <HoverCardTrigger asChild className="group" onClick={(e) => e.stopPropagation()}>
-        <div className={cn('flex items-center', hasUpgradeAvailable && 'animate-badge-pulse')}>
+        <div className={cn('flex items-center', showUpgradeGlow && 'animate-badge-pulse')}>
           <div
             className={cn(
               'flex',
-              hasUpgradeAvailable && 'relative inline-flex overflow-hidden rounded'
+              showUpgradeGlow && 'relative inline-flex overflow-hidden rounded'
             )}
           >
             <ComputeBadge
               infraComputeSize={computeSize}
-              icon={hasUpgradeAvailable && <ChevronsUpAnimated />}
+              icon={showUpgradeGlow && <ChevronsUpAnimated />}
               className={cn(
-                hasUpgradeAvailable && 'text-brand-600 border-brand-500 bg-brand/10 gap-1',
+                showUpgradeGlow && 'text-brand-600 border-brand-500 bg-brand/10 gap-1',
                 badgeClassName
               )}
             />
-            {hasUpgradeAvailable && (
+            {showUpgradeGlow && (
               <span className="animate-badge-shimmer pointer-events-none absolute inset-0 bg-gradient-to-br from-transparent via-brand/20 to-transparent blur-md" />
             )}
           </div>
@@ -186,16 +188,20 @@ export const ComputeBadgeWrapper = ({
                 <p className="text-foreground">
                   {isFreeOnNano
                     ? 'Double your memory for free'
-                    : isEligibleForFreeUpgrade
-                      ? 'Free upgrade to Micro available'
-                      : 'Unlock more compute'}
+                    : isEligibleForFreeUpgrade && isComputeNearExhaustion
+                      ? 'Your project is running low on resources'
+                      : isEligibleForFreeUpgrade
+                        ? 'Free upgrade to Micro available'
+                        : 'Unlock more compute'}
                 </p>
                 <p className="text-foreground-light">
                   {isFreeOnNano
                     ? 'Upgrade to Pro and get a free Micro compute upgrade — double the memory at no extra cost.'
-                    : isEligibleForFreeUpgrade
-                      ? 'Your Pro plan includes a free upgrade from Nano to Micro compute.'
-                      : 'Scale your project up to 64 cores and 256 GB RAM.'}
+                    : isEligibleForFreeUpgrade && isComputeNearExhaustion
+                      ? 'Your Nano compute is approaching its limits. Your Pro plan includes a free upgrade to Micro — double the memory at no extra cost.'
+                      : isEligibleForFreeUpgrade
+                        ? 'Your Pro plan includes a free upgrade from Nano to Micro compute.'
+                        : 'Scale your project up to 64 cores and 256 GB RAM.'}
                 </p>
               </div>
               <div>

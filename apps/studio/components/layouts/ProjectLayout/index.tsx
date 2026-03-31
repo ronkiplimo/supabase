@@ -1,4 +1,5 @@
-import { mergeRefs, useParams } from 'common'
+import { LOCAL_STORAGE_KEYS, mergeRefs, useParams } from 'common'
+import { useResourceWarningsQuery } from 'data/usage/resource-warnings-query'
 import { AnimatePresence, motion } from 'framer-motion'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
@@ -45,10 +46,8 @@ import { useCustomContent } from '@/hooks/custom-content/useCustomContent'
 import { useCheckEntitlements } from '@/hooks/misc/useCheckEntitlements'
 import { useLocalStorageQuery } from '@/hooks/misc/useLocalStorage'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
-import { useResourceWarningsQuery } from 'data/usage/resource-warnings-query'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
 import { withAuth } from '@/hooks/misc/withAuth'
-import { LOCAL_STORAGE_KEYS } from 'common'
 import { PROJECT_STATUS } from '@/lib/constants'
 import { buildStudioPageTitle } from '@/lib/page-title'
 import { getPathnameWithoutQuery } from '@/lib/pathname.utils'
@@ -126,11 +125,11 @@ export const ProjectLayout = forwardRef<HTMLDivElement, PropsWithChildren<Projec
     )
     const isComputeNearExhaustion =
       !!projectResourceWarnings?.cpu_exhaustion ||
-      !!projectResourceWarnings?.memory_and_swap_exhaustion
+      !!projectResourceWarnings?.memory_and_swap_exhaustion ||
+      !!projectResourceWarnings?.disk_space_exhaustion
     const isEligibleForFreeUpgrade =
-      entitledUpdateCompute &&
-      selectedProject?.infra_compute_size === 'nano' &&
-      isComputeNearExhaustion
+      entitledUpdateCompute && selectedProject?.infra_compute_size === 'nano'
+    const showUpgradeBanner = isEligibleForFreeUpgrade && isComputeNearExhaustion
     const [isFreeMicroUpgradeBannerDismissed] = useLocalStorageQuery(
       LOCAL_STORAGE_KEYS.FREE_MICRO_UPGRADE_BANNER_DISMISSED(selectedProject?.ref ?? ''),
       false
@@ -180,7 +179,7 @@ export const ProjectLayout = forwardRef<HTMLDivElement, PropsWithChildren<Projec
 
     useEffect(() => {
       if (!selectedProject?.ref) return
-      if (isEligibleForFreeUpgrade && !isFreeMicroUpgradeBannerDismissed) {
+      if (showUpgradeBanner && !isFreeMicroUpgradeBannerDismissed) {
         addBanner({
           id: BANNER_ID.FREE_MICRO_UPGRADE,
           isDismissed: false,
@@ -192,7 +191,7 @@ export const ProjectLayout = forwardRef<HTMLDivElement, PropsWithChildren<Projec
       }
     }, [
       selectedProject?.ref,
-      isEligibleForFreeUpgrade,
+      showUpgradeBanner,
       isFreeMicroUpgradeBannerDismissed,
       addBanner,
       dismissBanner,

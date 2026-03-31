@@ -41,10 +41,10 @@ export const BannerFreeMicroUpgrade = () => {
           </div>
         </div>
         <div className="flex flex-col gap-y-1 mb-2">
-          <p className="text-sm font-medium">Free upgrade to Micro available</p>
+          <p className="text-sm font-medium">Your project is running low on resources</p>
           <p className="text-xs text-foreground-lighter text-balance">
-            Your Pro plan includes a free upgrade from Nano to Micro — double the memory at no extra
-            cost.
+            Your Nano compute is approaching its limits. Upgrade to Micro for free — it's included
+            in your Pro plan.
           </p>
         </div>
         <div className="flex gap-2">

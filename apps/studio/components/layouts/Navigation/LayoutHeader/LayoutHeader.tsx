@@ -1,4 +1,4 @@
-import { LOCAL_STORAGE_KEYS, useParams } from 'common'
+import { LOCAL_STORAGE_KEYS, useFlag, useParams } from 'common'
 import {
   useIsBranching2Enabled,
   useIsFloatingMobileToolbarEnabled,
@@ -30,6 +30,8 @@ import { ReactNode, useMemo } from 'react'
 import { Badge, cn } from 'ui'
 import { CommandMenuTriggerInput } from 'ui-patterns'
 
+import { OrgSelector } from '../NavigationBar/OrgSelector'
+import { ProjectBranchSelector } from '../NavigationBar/ProjectBranchSelector'
 import { BreadcrumbsView } from './BreadcrumbsView'
 import { FeedbackDropdown } from './FeedbackDropdown/FeedbackDropdown'
 import { HomeIcon } from './HomeIcon'
@@ -68,6 +70,7 @@ export const LayoutHeader = ({
   headerTitle,
   backToDashboardURL,
 }: LayoutHeaderProps) => {
+  const showUnifiedOrgProjectSelector = useFlag('enableUnifiedOrgprojectbranchSelector')
   const router = useRouter()
   const { ref: projectRef, slug } = useParams()
   const { data: selectedProject } = useSelectedProjectQuery()
@@ -101,6 +104,7 @@ export const LayoutHeader = ({
 
   // show org selection if we are on a project page or on a explicit org route
   const showOrgSelection = slug || (selectedOrganization && projectRef)
+  const isProjectScope = projectRef
 
   return (
     <>
@@ -147,14 +151,21 @@ export const LayoutHeader = ({
           <div className="hidden md:flex items-center text-sm">
             <HomeIcon />
             <div className="flex items-center md:pl-2">
-              {showOrgSelection && IS_PLATFORM ? (
+              {showOrgSelection && IS_PLATFORM && !showUnifiedOrgProjectSelector ? (
                 <>
                   <LayoutHeaderDivider className="hidden md:block" />
                   <OrganizationDropdown />
                 </>
               ) : null}
               <AnimatePresence>
-                {projectRef && (
+                {IS_PLATFORM &&
+                  showUnifiedOrgProjectSelector &&
+                  (isProjectScope ? (
+                    <ProjectBranchSelector />
+                  ) : showOrgSelection ? (
+                    <OrgSelector />
+                  ) : null)}
+                {projectRef && !showUnifiedOrgProjectSelector && (
                   <motion.div
                     className="flex items-center"
                     initial={{ opacity: 0, x: -20 }}

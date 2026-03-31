@@ -39,6 +39,7 @@ export const BranchDropdown = ({
   } = useBranchesQuery({ projectRef }, { enabled: Boolean(projectDetails) })
 
   const isBranchingEnabled = projectDetails?.is_branch_enabled === true
+
   const selectedBranch = branches?.find((branch) => branch.project_ref === ref)
 
   const defaultMainBranch = {

@@ -76,7 +76,7 @@ export function OrgSelector() {
       </div>
       <ChevronsUpDown
         strokeWidth={1}
-        className="ml-auto text-foreground-light md:hidden md:group-hover:block !w-4 !h-4"
+        className="ml-auto text-foreground-light md:opacity-0 md:group-hover:opacity-100 transition-opacity !w-4 !h-4"
       />
     </SidebarMenuButton>
   )

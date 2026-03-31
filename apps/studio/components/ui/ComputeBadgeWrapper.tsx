@@ -15,7 +15,7 @@ import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
 import { UpgradePlanButton } from './UpgradePlanButton'
 
-const ChevronsUpAnimated = () => (
+export const ChevronsUpAnimated = () => (
   <svg
     width={10}
     height={10}
@@ -129,7 +129,7 @@ export const ComputeBadgeWrapper = ({
               )}
             />
             {hasUpgradeAvailable && (
-              <span className="animate-badge-shimmer pointer-events-none absolute inset-0 bg-gradient-to-br p-3 from-transparent via-brand/20 to-transparent blur-md" />
+              <span className="animate-badge-shimmer pointer-events-none absolute inset-0 bg-gradient-to-br from-transparent via-brand/20 to-transparent blur-md" />
             )}
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { LOCAL_STORAGE_KEYS } from 'common'
 import { useParams } from 'common/hooks'
+import { ChevronsUpAnimated } from 'components/ui/ComputeBadgeWrapper'
 import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
 import { useTrack } from 'lib/telemetry/track'
 import Link from 'next/link'
@@ -7,31 +8,7 @@ import { Button } from 'ui'
 import { ComputeBadge } from 'ui-patterns/ComputeBadge'
 
 import { BannerCard } from '../BannerCard'
-import { useBannerStack } from '../BannerStackProvider'
-
-const ChevronsUpAnimated = () => (
-  <svg
-    width={10}
-    height={10}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline
-      points="17 18 12 13 7 18"
-      className="animate-chevron-up"
-      style={{ animationDelay: '0s' }}
-    />
-    <polyline
-      points="17 11 12 6 7 11"
-      className="animate-chevron-up"
-      style={{ animationDelay: '0.3s' }}
-    />
-  </svg>
-)
+import { BANNER_ID, useBannerStack } from '../BannerStackProvider'
 
 export const BannerFreeMicroUpgrade = () => {
   const { ref } = useParams()
@@ -46,7 +23,7 @@ export const BannerFreeMicroUpgrade = () => {
     <BannerCard
       onDismiss={() => {
         setIsDismissed(true)
-        dismissBanner('free-micro-upgrade-banner')
+        dismissBanner(BANNER_ID.FREE_MICRO_UPGRADE)
         track('free_micro_upgrade_banner_dismissed')
       }}
     >
@@ -77,7 +54,7 @@ export const BannerFreeMicroUpgrade = () => {
             asChild
             onClick={() => {
               setIsDismissed(true)
-              dismissBanner('free-micro-upgrade-banner')
+              dismissBanner(BANNER_ID.FREE_MICRO_UPGRADE)
               track('free_micro_upgrade_banner_cta_clicked')
             }}
           >

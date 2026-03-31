@@ -39,7 +39,7 @@ import { UpgradingState } from './UpgradingState'
 import { CreateBranchModal } from '@/components/interfaces/BranchManagement/CreateBranchModal'
 import { ProjectAPIDocs } from '@/components/interfaces/ProjectAPIDocs/ProjectAPIDocs'
 import { BannerFreeMicroUpgrade } from '@/components/ui/BannerStack/Banners/BannerFreeMicroUpgrade'
-import { useBannerStack } from '@/components/ui/BannerStack/BannerStackProvider'
+import { BANNER_ID, useBannerStack } from '@/components/ui/BannerStack/BannerStackProvider'
 import { ResourceExhaustionWarningBanner } from '@/components/ui/ResourceExhaustionWarningBanner/ResourceExhaustionWarningBanner'
 import { useCustomContent } from '@/hooks/custom-content/useCustomContent'
 import { useCheckEntitlements } from '@/hooks/misc/useCheckEntitlements'
@@ -169,17 +169,24 @@ export const ProjectLayout = forwardRef<HTMLDivElement, PropsWithChildren<Projec
     const showPausedState = isPaused && !ignorePausedState
 
     useEffect(() => {
+      if (!selectedProject?.ref) return
       if (isEligibleForFreeUpgrade && !isFreeMicroUpgradeBannerDismissed) {
         addBanner({
-          id: 'free-micro-upgrade-banner',
+          id: BANNER_ID.FREE_MICRO_UPGRADE,
           isDismissed: false,
           content: <BannerFreeMicroUpgrade />,
           priority: 2,
         })
       } else {
-        dismissBanner('free-micro-upgrade-banner')
+        dismissBanner(BANNER_ID.FREE_MICRO_UPGRADE)
       }
-    }, [isEligibleForFreeUpgrade, isFreeMicroUpgradeBannerDismissed, addBanner, dismissBanner])
+    }, [
+      selectedProject?.ref,
+      isEligibleForFreeUpgrade,
+      isFreeMicroUpgradeBannerDismissed,
+      addBanner,
+      dismissBanner,
+    ])
 
     useLayoutEffect(() => {
       const unregister = registerOpenMenu(() => {

@@ -29,6 +29,7 @@ const HOSTED_SUPPORTED_API_URLS = [
   '/status-override',
   '/api/integrations/stripe-sync',
   '/content/graphql',
+  '/install', // /project/[ref]/integrations/[id]/install
 ]
 
 export function proxy(request: NextRequest) {

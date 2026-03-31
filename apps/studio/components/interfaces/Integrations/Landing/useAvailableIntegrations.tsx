@@ -36,6 +36,7 @@ export const useAvailableIntegrations = () => {
   const marketplaceIntegrations: IntegrationDefinition[] = (data ?? [])?.map((integration) => {
     const {
       id,
+      slug,
       type,
       categories,
       title: name,
@@ -44,6 +45,8 @@ export const useAvailableIntegrations = () => {
       url: siteUrl,
       content,
       files,
+      initiation_action_url: initiationActionUrl,
+      initiation_action_method: initiationActionMethod,
     } = integration
 
     const status = undefined
@@ -51,6 +54,7 @@ export const useAvailableIntegrations = () => {
 
     return {
       id: id.toString(),
+      slug,
       name,
       status,
       type,
@@ -60,6 +64,8 @@ export const useAvailableIntegrations = () => {
       description,
       docsUrl,
       siteUrl,
+      initiationActionUrl,
+      initiationActionMethod,
       author,
       requiredExtensions: [],
       icon: ({ className, ...props } = {}) => (

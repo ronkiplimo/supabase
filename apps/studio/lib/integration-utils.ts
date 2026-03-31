@@ -102,6 +102,23 @@ export async function getInitialMigrationSQLFromGitHubRepo(
   return `${migrations};${migrationsTableSql};${seed}`
 }
 
+/**
+ * Builds the canonical install URL for a marketplace listing.
+ * The API route at `/api/integrations/marketplace/[slug]/install` handles
+ * GET vs POST initiation transparently (including JWT signing for POST).
+ */
+export function buildMarketplaceInstallUrl(
+  slug: string,
+  organizationSlug: string | undefined,
+  projectRef: string | undefined
+): string {
+  const params = new URLSearchParams()
+  if (organizationSlug) params.set('organization_slug', organizationSlug)
+  if (projectRef) params.set('project_id', projectRef)
+  const qs = params.toString()
+  return `/api/integrations/marketplace/${encodeURIComponent(slug)}/install${qs ? `?${qs}` : ''}`
+}
+
 type VercelIntegration = Extract<Integration, { integration: { name: 'Vercel' } }>
 type GitHubIntegration = Extract<Integration, { integration: { name: 'GitHub' } }>
 

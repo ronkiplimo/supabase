@@ -88,6 +88,44 @@ export type Database = {
           },
         ]
       }
+      listing_initiation_configs: {
+        Row: {
+          listing_id: number
+          signing_key_pem: string
+          key_id: string
+          audience: string
+          issuer: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          listing_id: number
+          signing_key_pem: string
+          key_id: string
+          audience: string
+          issuer: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          listing_id?: number
+          signing_key_pem?: string
+          key_id?: string
+          audience?: string
+          issuer?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'listing_initiation_configs_listing_id_fkey'
+            columns: ['listing_id']
+            isOneToOne: true
+            referencedRelation: 'listings'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       listing_reviews: {
         Row: {
           created_at: string

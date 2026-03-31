@@ -4,6 +4,7 @@ import { useInstalledIntegrations } from 'components/interfaces/Integrations/Lan
 import { DefaultLayout } from 'components/layouts/DefaultLayout'
 import { UnknownInterface } from 'components/ui/UnknownInterface'
 import { useIsFeatureEnabled } from 'hooks/misc/useIsFeatureEnabled'
+import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
 import { IS_PLATFORM } from 'lib/constants'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -37,6 +38,7 @@ import ShimmeringLoader, { GenericSkeletonLoader } from 'ui-patterns/ShimmeringL
 
 import { useAvailableIntegrations } from '@/components/interfaces/Integrations/Landing/useAvailableIntegrations'
 import { ProjectIntegrationsLayout } from '@/components/layouts/ProjectIntegrationsLayout'
+import { buildMarketplaceInstallUrl } from '@/lib/integration-utils'
 
 type NavigationItem = { label: string; href: string; active?: boolean }
 
@@ -44,6 +46,7 @@ const IntegrationPage: NextPageWithLayout = () => {
   const router = useRouter()
   const { ref, id, pageId, childId } = useParams()
   const { integrationsWrappers } = useIsFeatureEnabled(['integrations:wrappers'])
+  const { data: org } = useSelectedOrganizationQuery()
 
   const { data: allIntegrations, isPending: isAvailableIntegrationsLoading } =
     useAvailableIntegrations()
@@ -191,7 +194,18 @@ const IntegrationPage: NextPageWithLayout = () => {
               <PageHeaderDescription className="truncate">{pageSubTitle}</PageHeaderDescription>
             </PageHeaderSummary>
 
-            {integration?.type === 'oauth' && (
+            {integration?.initiationActionUrl && integration.slug && (
+              <Button asChild type="primary" className="shrink-0">
+                <a
+                  target="_blank"
+                  rel="noreferrer"
+                  href={buildMarketplaceInstallUrl(integration.slug, org?.slug, ref)}
+                >
+                  Install integration
+                </a>
+              </Button>
+            )}
+            {integration?.type === 'oauth' && !integration.initiationActionUrl && (
               <Button asChild type="primary" className="shrink-0">
                 <a target="_blank" rel="noreferrer" href={integration.siteUrl ?? '/'}>
                   Install integration

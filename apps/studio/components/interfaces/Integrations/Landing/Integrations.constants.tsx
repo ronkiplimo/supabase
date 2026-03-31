@@ -26,6 +26,8 @@ export const Loading = () => (
 
 export type IntegrationDefinition = {
   id: string
+  /** Marketplace listing slug — used to build the canonical install URL */
+  slug?: string
   name: string
   status?: 'alpha' | 'beta'
   categories?: string[]
@@ -35,6 +37,10 @@ export type IntegrationDefinition = {
   files?: string[]
   docsUrl: string | null
   siteUrl?: string | null
+  /** URL to call when the user clicks "Install" */
+  initiationActionUrl?: string | null
+  /** HTTP method for the initiation URL (GET = redirect, POST = JWT-signed call) */
+  initiationActionMethod?: 'POST' | 'GET' | null
   author: {
     name: string
     websiteUrl: string

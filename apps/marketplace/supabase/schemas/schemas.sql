@@ -111,6 +111,21 @@ create table public.listing_reviews (
 );
 
 
+-- Per-listing configuration for POST-based initiation flows (e.g., JWT-signed partner APIs).
+-- Stores sensitive signing keys — only service_role (which bypasses RLS) can access.
+create table public.listing_initiation_configs (
+  listing_id bigint primary key references public.listings (id) on delete cascade,
+  signing_key_pem text not null,  -- PEM-encoded EC P-256 private key
+  key_id text not null,           -- kid for JWT protected header
+  audience text not null,         -- aud claim (partner's expected audience URL)
+  issuer text not null,           -- iss claim (our partner slug with the partner)
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.listing_initiation_configs enable row level security;
+-- No RLS policies — only service_role can read/write this table for now.
+
 -- Helper predicates for RLS
 create function public.is_admin_member()
 returns boolean

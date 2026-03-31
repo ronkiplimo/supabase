@@ -1,10 +1,12 @@
 import { useParams } from 'common'
 import { Markdown } from 'components/interfaces/Markdown'
-import { cn } from 'ui'
+import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
+import { Button, cn } from 'ui'
 
 import { useAvailableIntegrations } from '../../Landing/useAvailableIntegrations'
 import { FilesViewer } from './FilesViewer'
 import { InlineLinkClassName } from '@/components/ui/InlineLink'
+import { buildMarketplaceInstallUrl } from '@/lib/integration-utils'
 
 const getSiteUrlLabel = (url: string | undefined | null) => {
   if (!url) return undefined
@@ -30,7 +32,8 @@ const isGithubHost = (url: string | undefined | null) => {
  * [Joshen] This will serve as the overview tab for remotely fetched integrations
  */
 export const IntegrationOverviewTabV2 = () => {
-  const { id } = useParams()
+  const { id, ref } = useParams()
+  const { data: org } = useSelectedOrganizationQuery()
 
   const { data: allIntegrations } = useAvailableIntegrations()
   const integration = allIntegrations.find((i) => i.id === id)
@@ -39,7 +42,7 @@ export const IntegrationOverviewTabV2 = () => {
     return <div>Unsupported integration type</div>
   }
 
-  const { type, content, docsUrl, siteUrl, files = [] } = integration
+  const { type, content, docsUrl, siteUrl, files = [], initiationActionUrl, slug } = integration
 
   const docsUrlLabel = docsUrl?.includes('supabase.com/docs')
     ? 'Supabase Docs'

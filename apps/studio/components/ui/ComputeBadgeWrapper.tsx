@@ -102,7 +102,7 @@ export const ComputeBadgeWrapper = ({
     { enabled: !!slug }
   )
 
-  if (projectRef === 'ycoebkljnczjekhxymal') console.log('resourceWarnings', resourceWarnings)
+  if (projectRef === 'gxffuiogsitiacfocxrt') console.log('resourceWarnings', resourceWarnings)
   const isFreeOnNano = !!data && data.plan.id === 'free' && computeSize === 'nano'
   const isEligibleForFreeUpgrade = !!data && data.plan.id !== 'free' && computeSize === 'nano'
   const isLoading = isLoadingAddons || isLoadingSubscriptions

@@ -56,7 +56,7 @@ The default `.env.example` and `docker-compose.yml` include commented-out placeh
 2. Set the **authorized redirect URL**, e.g., `https://<your-domain>/auth/v1/callback`
 3. Copy the **client ID** and **client secret** into your `.env` file.
 
-### Step 2: Configure variables in the `.env` file
+### Step 2: Configure environment variables
 
 Uncomment the lines for your provider in `.env` and add your client ID and secret, e.g., for Google:
 
@@ -66,15 +66,20 @@ GOOGLE_CLIENT_ID=your-client-id
 GOOGLE_SECRET=your-client-secret
 ```
 
-### Step 3: Enable the matching lines in `docker-compose.yml`
+{/* supa-mdx-lint-disable-next-line Rule001HeadingCase */}
+
+### Step 3: Enable the matching lines in Docker Compose configuration
 
 Uncomment the corresponding `GOTRUE_EXTERNAL_` lines in the `auth` service's `environment`:
 
-```
-GOTRUE_EXTERNAL_GOOGLE_ENABLED: ${GOOGLE_ENABLED}
-GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-GOTRUE_EXTERNAL_GOOGLE_SECRET: ${GOOGLE_SECRET}
-GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: ${API_EXTERNAL_URL}/auth/v1/callback
+```yaml
+auth:
+  environment:
+    # ... existing variables ...
+    GOTRUE_EXTERNAL_GOOGLE_ENABLED: ${GOOGLE_ENABLED}
+    GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+    GOTRUE_EXTERNAL_GOOGLE_SECRET: ${GOOGLE_SECRET}
+    GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: ${API_EXTERNAL_URL}/auth/v1/callback
 ```
 
 <Admonition type="note">
@@ -94,7 +99,7 @@ docker compose up -d --force-recreate --no-deps auth
 Check that the provider is enabled:
 
 ```sh
-curl https://<your-domain>/auth/v1/settings
+curl -H 'apikey: your-anon-key' https://<your-domain>/auth/v1/settings
 ```
 
 The response should include your provider under `external`:
@@ -141,11 +146,14 @@ GOOGLE_SECRET=your-google-client-secret
 
 **`docker-compose.yml`:**
 
-```
-GOTRUE_EXTERNAL_GOOGLE_ENABLED: ${GOOGLE_ENABLED}
-GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-GOTRUE_EXTERNAL_GOOGLE_SECRET: ${GOOGLE_SECRET}
-GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: ${API_EXTERNAL_URL}/auth/v1/callback
+```yaml
+auth:
+  environment:
+    # ... existing variables ...
+    GOTRUE_EXTERNAL_GOOGLE_ENABLED: ${GOOGLE_ENABLED}
+    GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+    GOTRUE_EXTERNAL_GOOGLE_SECRET: ${GOOGLE_SECRET}
+    GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: ${API_EXTERNAL_URL}/auth/v1/callback
 ```
 
 </TabPanel>
@@ -171,11 +179,14 @@ GITHUB_SECRET=your-github-client-secret
 
 **`docker-compose.yml`:**
 
-```
-GOTRUE_EXTERNAL_GITHUB_ENABLED: ${GITHUB_ENABLED}
-GOTRUE_EXTERNAL_GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
-GOTRUE_EXTERNAL_GITHUB_SECRET: ${GITHUB_SECRET}
-GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI: ${API_EXTERNAL_URL}/auth/v1/callback
+```yaml
+auth:
+  environment:
+    # ... existing variables ...
+    GOTRUE_EXTERNAL_GITHUB_ENABLED: ${GITHUB_ENABLED}
+    GOTRUE_EXTERNAL_GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+    GOTRUE_EXTERNAL_GITHUB_SECRET: ${GITHUB_SECRET}
+    GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI: ${API_EXTERNAL_URL}/auth/v1/callback
 ```
 
 </TabPanel>
@@ -207,13 +218,16 @@ AZURE_SECRET=your-azure-client-secret
 
 **`docker-compose.yml`:**
 
-```
-GOTRUE_EXTERNAL_AZURE_ENABLED: ${AZURE_ENABLED}
-GOTRUE_EXTERNAL_AZURE_CLIENT_ID: ${AZURE_CLIENT_ID}
-GOTRUE_EXTERNAL_AZURE_SECRET: ${AZURE_SECRET}
-GOTRUE_EXTERNAL_AZURE_REDIRECT_URI: ${API_EXTERNAL_URL}/auth/v1/callback
-## Optional: uncomment for tenant-specific Azure login
-# GOTRUE_EXTERNAL_AZURE_URL: ${AZURE_URL}
+```yaml
+auth:
+  environment:
+    # ... existing variables ...
+    GOTRUE_EXTERNAL_AZURE_ENABLED: ${AZURE_ENABLED}
+    GOTRUE_EXTERNAL_AZURE_CLIENT_ID: ${AZURE_CLIENT_ID}
+    GOTRUE_EXTERNAL_AZURE_SECRET: ${AZURE_SECRET}
+    GOTRUE_EXTERNAL_AZURE_REDIRECT_URI: ${API_EXTERNAL_URL}/auth/v1/callback
+    ## Optional: uncomment for tenant-specific Azure login
+    # GOTRUE_EXTERNAL_AZURE_URL: ${AZURE_URL}
 ```
 
 </TabPanel>
@@ -236,11 +250,14 @@ APPLE_SECRET=your-generated-jwt-client-secret
 
 **`docker-compose.yml`:**
 
-```
-GOTRUE_EXTERNAL_APPLE_ENABLED: ${APPLE_ENABLED}
-GOTRUE_EXTERNAL_APPLE_CLIENT_ID: ${APPLE_CLIENT_ID}
-GOTRUE_EXTERNAL_APPLE_SECRET: ${APPLE_SECRET}
-GOTRUE_EXTERNAL_APPLE_REDIRECT_URI: ${API_EXTERNAL_URL}/auth/v1/callback
+```yaml
+auth:
+  environment:
+    # ... existing variables ...
+    GOTRUE_EXTERNAL_APPLE_ENABLED: ${APPLE_ENABLED}
+    GOTRUE_EXTERNAL_APPLE_CLIENT_ID: ${APPLE_CLIENT_ID}
+    GOTRUE_EXTERNAL_APPLE_SECRET: ${APPLE_SECRET}
+    GOTRUE_EXTERNAL_APPLE_REDIRECT_URI: ${API_EXTERNAL_URL}/auth/v1/callback
 ```
 
 <Admonition type="note">
@@ -276,12 +293,15 @@ KEYCLOAK_URL=https://keycloak.example.com/realms/myrealm
 
 **`docker-compose.yml` passthrough:**
 
-```
-GOTRUE_EXTERNAL_KEYCLOAK_ENABLED: ${KEYCLOAK_ENABLED}
-GOTRUE_EXTERNAL_KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
-GOTRUE_EXTERNAL_KEYCLOAK_SECRET: ${KEYCLOAK_SECRET}
-GOTRUE_EXTERNAL_KEYCLOAK_REDIRECT_URI: ${API_EXTERNAL_URL}/auth/v1/callback
-GOTRUE_EXTERNAL_KEYCLOAK_URL: ${KEYCLOAK_URL}
+```yaml
+auth:
+  environment:
+    # ... existing variables ...
+    GOTRUE_EXTERNAL_KEYCLOAK_ENABLED: ${KEYCLOAK_ENABLED}
+    GOTRUE_EXTERNAL_KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+    GOTRUE_EXTERNAL_KEYCLOAK_SECRET: ${KEYCLOAK_SECRET}
+    GOTRUE_EXTERNAL_KEYCLOAK_REDIRECT_URI: ${API_EXTERNAL_URL}/auth/v1/callback
+    GOTRUE_EXTERNAL_KEYCLOAK_URL: ${KEYCLOAK_URL}
 ```
 
 <Admonition type="danger">
@@ -331,7 +351,12 @@ For each provider, you need at minimum `ENABLED`, `CLIENT_ID`, `SECRET`, and `RE
 
 ## Test the login flow
 
-You can test OAuth with the following minimal `index.html` served, e.g., via `python -m http.server 3000`:
+You can test OAuth with the following minimal HTML page:
+
+- Save the code below to `index.html`
+- Start `python -m http.server 3000` in the same directory
+- Make sure `SITE_URL` is set to `http://localhost:3000` in your self-hosted Supabase `.env` configuration
+- Open your browser and go to `http://localhost:3000`
 
 ```html
 <!doctype html>
@@ -373,22 +398,16 @@ You can test OAuth with the following minimal `index.html` served, e.g., via `py
 </html>
 ```
 
-<Admonition type="tip">
-
-Make sure `SITE_URL` or `ADDITIONAL_REDIRECT_URLS` includes the URL where you open this test page. Otherwise the Auth service will reject the redirect after login.
-
-</Admonition>
-
 For detailed client-side integration, see [Social Login](/docs/guides/auth/social-login).
 
 ## Troubleshooting
 
-### "Provider not enabled" or provider shows `false` in `/auth/v1/settings`
+### "Provider not enabled" or provider seen as false in settings
 
 - Check that `GOTRUE_EXTERNAL_*_ENABLED` is set to `true` in `docker-compose.yml`
 - Verify the `.env` variable is not empty, e.g., check with `docker compose exec auth env | grep GOOGLE`
 
-### Variables added to `.env` but provider still not working
+### Variables added to the environment but provider still not working
 
 Configuration variables from `.env` are **not** automatically available inside the container unless there's a matching passthrough definition in `docker-compose.yml`. Check, e.g., for:
 
@@ -398,7 +417,7 @@ GOTRUE_EXTERNAL_GOOGLE_ENABLED: ${GOOGLE_ENABLED}
 
 Run `docker compose exec auth env | grep GOTRUE_EXTERNAL` to verify the variables are reaching the container.
 
-### `SITE_URL` or redirect URL errors after login
+### Site URL or redirect URL errors after login
 
 After a successful OAuth login, the Auth service redirects to `SITE_URL` or a URL from `ADDITIONAL_REDIRECT_URLS`. Ensure:
 

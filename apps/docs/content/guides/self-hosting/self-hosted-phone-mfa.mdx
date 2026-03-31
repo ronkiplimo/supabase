@@ -23,7 +23,7 @@ The default `.env.example` and `docker-compose.yml` include commented-out SMS pr
 
 To enable SMS delivery:
 
-### Step 1: Uncomment and configure the settings in `.env`
+### Step 1: Uncomment and configure the environment variables
 
 ```
 SMS_PROVIDER=twilio
@@ -38,19 +38,24 @@ SMS_TWILIO_AUTH_TOKEN=your-auth-token
 SMS_TWILIO_MESSAGE_SERVICE_SID=your-message-service-sid
 ```
 
-### Step 2: Uncomment the matching lines in `docker-compose.yml`
+{/* supa-mdx-lint-disable-next-line Rule001HeadingCase */}
+
+### Step 2: Uncomment the matching lines in Docker Compose configuration
 
 Uncomment the `GOTRUE_SMS_*` lines in the `auth` service's `environment` block:
 
-```
-GOTRUE_SMS_PROVIDER: ${SMS_PROVIDER}
-GOTRUE_SMS_OTP_EXP: ${SMS_OTP_EXP}
-GOTRUE_SMS_OTP_LENGTH: ${SMS_OTP_LENGTH}
-GOTRUE_SMS_MAX_FREQUENCY: ${SMS_MAX_FREQUENCY}
-GOTRUE_SMS_TEMPLATE: ${SMS_TEMPLATE}
-GOTRUE_SMS_TWILIO_ACCOUNT_SID: ${SMS_TWILIO_ACCOUNT_SID}
-GOTRUE_SMS_TWILIO_AUTH_TOKEN: ${SMS_TWILIO_AUTH_TOKEN}
-GOTRUE_SMS_TWILIO_MESSAGE_SERVICE_SID: ${SMS_TWILIO_MESSAGE_SERVICE_SID}
+```yaml
+auth:
+  environment:
+    # ... existing variables ...
+    GOTRUE_SMS_PROVIDER: ${SMS_PROVIDER}
+    GOTRUE_SMS_OTP_EXP: ${SMS_OTP_EXP}
+    GOTRUE_SMS_OTP_LENGTH: ${SMS_OTP_LENGTH}
+    GOTRUE_SMS_MAX_FREQUENCY: ${SMS_MAX_FREQUENCY}
+    GOTRUE_SMS_TEMPLATE: ${SMS_TEMPLATE}
+    GOTRUE_SMS_TWILIO_ACCOUNT_SID: ${SMS_TWILIO_ACCOUNT_SID}
+    GOTRUE_SMS_TWILIO_AUTH_TOKEN: ${SMS_TWILIO_AUTH_TOKEN}
+    GOTRUE_SMS_TWILIO_MESSAGE_SERVICE_SID: ${SMS_TWILIO_MESSAGE_SERVICE_SID}
 ```
 
 ### Step 3: Restart the auth service
@@ -197,7 +202,7 @@ Common causes:
 - Provider credentials are wrong
 - Phone number format is wrong (use E.164 format: `+1234567890`)
 
-### Variables are configured in `.env` but not working
+### Variables added to the environment but not working
 
 Configuration variables from `.env` are **not** automatically available inside the container unless there's a matching passthrough definition in `docker-compose.yml`. Check, e.g., for:
 

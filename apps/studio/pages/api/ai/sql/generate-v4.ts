@@ -60,6 +60,7 @@ const requestBodySchema = z.object({
   table: z.string().optional(),
   chatId: z.string().optional(),
   chatName: z.string().optional(),
+  supportMode: z.boolean().optional(),
   orgSlug: z.string().optional(),
   model: z.string().optional(),
 })
@@ -89,6 +90,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, claims?: Jw
     chatId,
     chatName,
     model: rawRequestedModel,
+    supportMode,
   } = data
 
   const requestedModel: AssistantModelId | undefined =
@@ -175,6 +177,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, claims?: Jw
       aiOptInLevel,
       accessToken,
       baseUrl: getURL(),
+      supportMode,
     })
 
     // Get a list of all schemas to add to context
@@ -210,6 +213,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, claims?: Jw
       projectRef,
       chatId,
       chatName,
+      supportMode,
       isHipaaEnabled,
       userId,
       orgId,

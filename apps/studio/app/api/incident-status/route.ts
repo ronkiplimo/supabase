@@ -16,6 +16,10 @@ async function fetchIncidentCache(incidentIds: Array<string>): Promise<Map<strin
 
   if (incidentIds.length === 0) return cacheMap
 
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.LIVE_SUPABASE_SECRET_KEY) {
+    return cacheMap
+  }
+
   const supabase = createAdminClient()
 
   try {

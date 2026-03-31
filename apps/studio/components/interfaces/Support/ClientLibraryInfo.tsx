@@ -41,7 +41,11 @@ export function ClientLibraryInfo({ form, category, library }: ClientLibraryInfo
         render={({ field }) => (
           <FormItemLayout layout="vertical" label="Which library are you having issues with">
             <FormControl_Shadcn_>
-              <Select_Shadcn_ {...field} defaultValue={field.value} onValueChange={field.onChange}>
+              <Select_Shadcn_
+                name={field.name}
+                value={field.value ?? ''}
+                onValueChange={field.onChange}
+              >
                 <SelectTrigger_Shadcn_ className="w-full" aria-label="Select a library">
                   <SelectValue_Shadcn_ placeholder="Select a library" />
                 </SelectTrigger_Shadcn_>

@@ -6,6 +6,7 @@ import { useStateTransition } from 'hooks/misc/useStateTransition'
 import { BASE_PATH, DOCS_URL } from 'lib/constants'
 import { Loader2, Wrench } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { type Dispatch, type PropsWithChildren, useCallback, useReducer } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
 import SVG from 'react-inlinesvg'
@@ -14,6 +15,7 @@ import { Button, Tooltip, TooltipContent, TooltipTrigger, cn } from 'ui'
 import { Admonition } from 'ui-patterns/admonition'
 
 import { AIAssistantOption } from './AIAssistantOption'
+import { AiSupportChatSuccess } from './AiSupportChatSuccess'
 import { DiscordCTACard } from './DiscordCTACard'
 import { IncidentAdmonition } from './IncidentAdmonition'
 import { Success } from './Success'
@@ -63,6 +65,22 @@ export function SupportFormPage() {
 function SupportFormPageContent() {
   const [state, dispatch] = useReducer(supportFormReducer, undefined, createInitialSupportFormState)
   const { form, initialError, projectRef, orgSlug } = useSupportForm(dispatch)
+  const router = useRouter()
+
+  const aiSupportStatusRaw = router.query.ai_support_status
+  const ticketRefRaw = router.query.ticket_ref
+  const projectRefRaw = router.query.project_ref
+
+  const aiSupportStatus =
+    aiSupportStatusRaw === 'escalated' ||
+    aiSupportStatusRaw === 'user_resolved' ||
+    aiSupportStatusRaw === 'bot_resolved'
+      ? aiSupportStatusRaw
+      : null
+  const ticketRef = typeof ticketRefRaw === 'string' ? ticketRefRaw : null
+  const redirectedProjectRef = typeof projectRefRaw === 'string' ? projectRefRaw : undefined
+
+  const isAiSupportRedirectSuccess = !!aiSupportStatus && !!ticketRef
 
   const {
     data: allStatusPageEvents,
@@ -89,7 +107,7 @@ function SupportFormPageContent() {
     dispatch({ type: 'RETURN_TO_EDITING' })
   })
 
-  const isSuccess = state.type === 'success'
+  const isSuccess = state.type === 'success' || isAiSupportRedirectSuccess
 
   return (
     <SupportFormWrapper>
@@ -105,13 +123,28 @@ function SupportFormPageContent() {
         </div>
       )}
 
-      <SupportFormBody
-        form={form}
-        state={state}
-        dispatch={dispatch}
-        initialError={initialError}
-        selectedProjectRef={projectRef}
-      />
+      {isAiSupportRedirectSuccess ? (
+        <div
+          className={cn(
+            'min-w-full w-full space-y-12 rounded border bg-panel-body-light shadow-md pt-8',
+            'border-default'
+          )}
+        >
+          <AiSupportChatSuccess
+            status={aiSupportStatus}
+            ticketRef={ticketRef}
+            projectRef={redirectedProjectRef}
+          />
+        </div>
+      ) : (
+        <SupportFormBody
+          form={form}
+          state={state}
+          dispatch={dispatch}
+          initialError={initialError}
+          selectedProjectRef={projectRef}
+        />
+      )}
       {!isSuccess && <SupportFormDirectEmailInfo projectRef={projectRef} />}
     </SupportFormWrapper>
   )

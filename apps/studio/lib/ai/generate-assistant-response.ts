@@ -37,6 +37,7 @@ export async function generateAssistantResponse({
   projectRef,
   chatId,
   chatName,
+  supportMode,
   isHipaaEnabled,
   userId,
   orgId,
@@ -55,6 +56,7 @@ export async function generateAssistantResponse({
   projectRef?: string
   chatId?: string
   chatName?: string
+  supportMode?: boolean
   isHipaaEnabled?: boolean
   userId?: string
   orgId?: number
@@ -119,6 +121,9 @@ export async function generateAssistantResponse({
     const assistantContent = hasProjectContext
       ? `The user's current project is ${projectRef || 'unknown'}. Their available schemas are: ${schemasString}. The current chat name is: ${chatName || 'unnamed'}.`
       : undefined
+    const supportAssistantContent = supportMode
+      ? `This is an active support chat. Help the user while they wait for a human agent. Keep guidance practical and concise. If the user asks for a human, or if the issue cannot be safely resolved, call escalate_to_human with a short reason. If the issue is resolved, call resolve_support_conversation with a short summary.`
+      : undefined
 
     const coreMessages: ModelMessage[] = [
       {
@@ -134,6 +139,14 @@ export async function generateAssistantResponse({
               role: 'assistant' as const,
               // Add any dynamic context here
               content: assistantContent,
+            },
+          ]
+        : []),
+      ...(supportAssistantContent
+        ? [
+            {
+              role: 'assistant' as const,
+              content: supportAssistantContent,
             },
           ]
         : []),

@@ -5,14 +5,18 @@ import { CLIENT_LIBRARIES } from 'common/constants'
 import { getProjectAuthConfig } from 'data/auth/auth-config-query'
 import { useSendSupportTicketMutation } from 'data/feedback/support-ticket-send'
 import { type OrganizationPlanID } from 'data/organizations/organization-query'
+import { useOrganizationUpdateMutation } from 'data/organizations/organization-update-mutation'
 import { useOrganizationsQuery } from 'data/organizations/organizations-query'
 import { useGenerateAttachmentURLsMutation } from 'data/support/generate-attachment-urls-mutation'
 import { useDeploymentCommitQuery } from 'data/utils/deployment-commit-query'
 import { useIsFeatureEnabled } from 'hooks/misc/useIsFeatureEnabled'
+import { getAiOptInLevel } from 'hooks/misc/useOrgOptedIntoAi'
 import { detectBrowser } from 'lib/helpers'
+import { OPT_IN_TAGS } from 'lib/constants'
 import { useProfile } from 'lib/profile'
 import { type Dispatch, type MouseEventHandler } from 'react'
 import type { SubmitHandler, UseFormReturn } from 'react-hook-form'
+import { useAiAssistantState } from 'state/ai-assistant-state'
 import { DialogSectionSeparator, Form_Shadcn_ } from 'ui'
 
 import {
@@ -22,6 +26,11 @@ import {
 import { AttachmentUploadDisplay, useAttachmentUpload } from './AttachmentUpload'
 import { CategoryAndSeverityInfo } from './CategoryAndSeverityInfo'
 import { ClientLibraryInfo } from './ClientLibraryInfo'
+import {
+  DASHBOARD_LOG_CATEGORIES,
+  getSanitizedBreadcrumbs,
+  uploadDashboardLog,
+} from './dashboard-logs'
 import { DashboardLogsToggle } from './DashboardLogsToggle'
 import { MessageField } from './MessageField'
 import { OrganizationSelector } from './OrganizationSelector'
@@ -32,17 +41,12 @@ import { DISABLE_SUPPORT_ACCESS_CATEGORIES, SupportAccessToggle } from './Suppor
 import type { SupportFormValues } from './SupportForm.schema'
 import type { SupportFormActions, SupportFormState } from './SupportForm.state'
 import {
-  NO_ORG_MARKER,
-  NO_PROJECT_MARKER,
   formatMessage,
   formatStudioVersion,
   getOrgSubscriptionPlan,
+  NO_ORG_MARKER,
+  NO_PROJECT_MARKER,
 } from './SupportForm.utils'
-import {
-  DASHBOARD_LOG_CATEGORIES,
-  getSanitizedBreadcrumbs,
-  uploadDashboardLog,
-} from './dashboard-logs'
 
 const useIsSimplifiedForm = (slug: string, subscriptionPlanId?: OrganizationPlanID) => {
   const simplifiedSupportForm = useFlag('simplifiedSupportForm')
@@ -68,6 +72,7 @@ interface SupportFormV2Props {
 
 export const SupportFormV2 = ({ form, initialError, state, dispatch }: SupportFormV2Props) => {
   const { profile } = useProfile()
+  const aiAssistantState = useAiAssistantState()
   const respondToEmail = profile?.primary_email ?? 'your email'
 
   const { organizationSlug, projectRef, category, severity, subject, library } = form.watch()
@@ -79,6 +84,9 @@ export const SupportFormV2 = ({ form, initialError, state, dispatch }: SupportFo
   const subscriptionPlanId = getOrgSubscriptionPlan(organizations, selectedOrgSlug)
   const simplifiedSupportForm = useIsSimplifiedForm(organizationSlug, subscriptionPlanId)
   const showClientLibraries = useIsFeatureEnabled('support:show_client_libraries')
+  const aiSupportChatFlag = useFlag('aiSupportChat')
+  const aiSupportChatEnabled = process.env.NODE_ENV === 'development' || aiSupportChatFlag
+  const { mutateAsync: updateOrganization } = useOrganizationUpdateMutation()
 
   const attachmentUpload = useAttachmentUpload()
   const { mutateAsync: uploadDashboardLogFn } = useGenerateAttachmentURLsMutation()
@@ -185,6 +193,64 @@ export const SupportFormV2 = ({ form, initialError, state, dispatch }: SupportFo
       } catch {
         // [Joshen] No error handler required as fetching these info are nice to haves, not necessary
       }
+    }
+
+    if (aiSupportChatEnabled) {
+      // If allowSupportAccess is enabled and the org's AI opt-in level is disabled,
+      // update it to 'schema' so the AI assistant can access project metadata
+      if (payload.allowSupportAccess && selectedOrgSlug) {
+        const selectedOrg = organizations?.find((org) => org.slug === selectedOrgSlug)
+        const currentOptInLevel = getAiOptInLevel(selectedOrg?.opt_in_tags)
+
+        if (currentOptInLevel === 'disabled') {
+          const existingTags = selectedOrg?.opt_in_tags ?? []
+          const updatedTags = [...new Set([...existingTags, OPT_IN_TAGS.AI_SQL])]
+          // Fire-and-forget: don't block the redirect if this fails
+          updateOrganization({ slug: selectedOrgSlug, opt_in_tags: updatedTags }).catch(() => {})
+        }
+      }
+
+      // Open AI assistant chat with support form context instead of creating a ticket directly
+      const initialMessage = [
+        `**Support Request**`,
+        `**Subject:** ${payload.subject}`,
+        `**Category:** ${payload.category}`,
+        payload.severity ? `**Severity:** ${payload.severity}` : '',
+        selectedProjectRef ? `**Project:** ${selectedProjectRef}` : '',
+        '',
+        payload.message,
+      ]
+        .filter(Boolean)
+        .join('\n')
+
+      aiAssistantState.newSupportChat({
+        name: payload.subject || 'Support Request',
+        initialMessage,
+        supportMetadata: {
+          subject: payload.subject,
+          category: payload.category,
+          severity: payload.severity,
+          organizationSlug: selectedOrgSlug ?? undefined,
+          projectRef: selectedProjectRef ?? undefined,
+          library: payload.library || undefined,
+          affectedServices: payload.affectedServices || undefined,
+          allowSupportAccess: payload.allowSupportAccess,
+          browserInformation: payload.browserInformation,
+        },
+      })
+
+      // Navigate to project page with AI assistant sidebar open.
+      // Use window.location for cross-router reliability (pages/app runtime differences).
+      const projectPath = selectedProjectRef ?? '_'
+      const slugParam = selectedOrgSlug ? `&slug=${selectedOrgSlug}` : ''
+      const targetPath = `/project/${projectPath}?sidebar=ai-assistant${slugParam}`
+
+      if (typeof window !== 'undefined') {
+        window.location.assign(targetPath)
+      } else {
+        dispatch({ type: 'ERROR', message: 'Failed to navigate to AI assistant.' })
+      }
+      return
     }
 
     submitSupportTicket(payload)

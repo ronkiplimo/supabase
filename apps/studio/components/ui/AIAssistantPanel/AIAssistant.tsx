@@ -1,11 +1,6 @@
 import type { UIMessage as MessageType } from '@ai-sdk/react'
 import { useChat } from '@ai-sdk/react'
 import { lastAssistantMessageIsCompleteWithToolCalls } from 'ai'
-import { AnimatePresence, motion } from 'framer-motion'
-import { Eraser, Pencil, X } from 'lucide-react'
-import { useRouter } from 'next/router'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
 import { LOCAL_STORAGE_KEYS, useFlag } from 'common'
 import { useParams, useSearchParamsShallow } from 'common/hooks'
 import { Markdown } from 'components/interfaces/Markdown'
@@ -13,7 +8,7 @@ import { SIDEBAR_KEYS } from 'components/layouts/ProjectLayout/LayoutSidebar/Lay
 import { useCheckOpenAIKeyQuery } from 'data/ai/check-api-key-query'
 import { useRateMessageMutation } from 'data/ai/rate-message-mutation'
 import { useTablesQuery } from 'data/tables/tables-query'
-import { useTrack } from 'lib/telemetry/track'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
 import { useOrgAiOptInLevel } from 'hooks/misc/useOrgOptedIntoAi'
 import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
@@ -27,6 +22,10 @@ import {
 } from 'lib/ai/model.utils'
 import { IS_PLATFORM } from 'lib/constants'
 import { uuidv4 } from 'lib/helpers'
+import { useTrack } from 'lib/telemetry/track'
+import { Eraser, Pencil, X } from 'lucide-react'
+import { useRouter } from 'next/router'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { AssistantModel } from 'state/ai-assistant-state'
 import { useAiAssistantState, useAiAssistantStateSnapshot } from 'state/ai-assistant-state'
 import { useSidebarManagerSnapshot } from 'state/sidebar-manager-state'
@@ -34,8 +33,10 @@ import { useSqlEditorV2StateSnapshot } from 'state/sql-editor-v2'
 import { Button, cn, KeyboardShortcut } from 'ui'
 import { Admonition } from 'ui-patterns'
 
+import AlertError from '../AlertError'
 import { ButtonTooltip } from '../ButtonTooltip'
 import { ErrorBoundary } from '../ErrorBoundary/ErrorBoundary'
+import { ASSISTANT_ERRORS } from './AiAssistant.constants'
 import type { SqlSnippet } from './AIAssistant.types'
 import { onErrorChat } from './AIAssistant.utils'
 import { AIAssistantHeader } from './AIAssistantHeader'
@@ -47,8 +48,6 @@ import {
   ConversationScrollButton,
 } from './elements/Conversation'
 import { Message } from './Message'
-import AlertError from '../AlertError'
-import { ASSISTANT_ERRORS } from './AiAssistant.constants'
 import { useCheckEntitlements } from '@/hooks/misc/useCheckEntitlements'
 
 interface AIAssistantProps {
@@ -58,7 +57,7 @@ interface AIAssistantProps {
 
 export const AIAssistant = ({ className }: AIAssistantProps) => {
   const router = useRouter()
-  const { ref, id: entityId } = useParams()
+  const { id: entityId } = useParams()
   const { data: project } = useSelectedProjectQuery()
   const searchParams = useSearchParamsShallow()
 
@@ -109,12 +108,6 @@ export const AIAssistant = ({ className }: AIAssistantProps) => {
   // Add a ref to store the last user message
   const lastUserMessageRef = useRef<MessageType | null>(null)
 
-  // Keep latest selected organization to avoid stale values in useChat transport
-  const selectedOrganizationRef = useRef(selectedOrganization)
-  useEffect(() => {
-    selectedOrganizationRef.current = selectedOrganization
-  }, [selectedOrganization])
-
   const [value, setValue] = useState<string>(snap.initialInput || '')
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null)
   const [isResubmitting, setIsResubmitting] = useState(false)
@@ -145,10 +138,10 @@ export const AIAssistant = ({ className }: AIAssistantProps) => {
   useEffect(() => {
     state.setContext({
       projectRef: project?.ref,
-      orgSlug: selectedOrganizationRef.current?.slug,
+      orgSlug: selectedOrganization?.slug,
       connectionString: project?.connectionString ?? '',
     })
-  }, [project?.ref, project?.connectionString, selectedOrganizationRef.current?.slug, state])
+  }, [project?.ref, project?.connectionString, selectedOrganization?.slug, state])
 
   const track = useTrack()
 
@@ -171,6 +164,24 @@ export const AIAssistant = ({ className }: AIAssistantProps) => {
   })
 
   const isChatLoading = chatStatus === 'submitted' || chatStatus === 'streaming'
+  const supportMetadata = snap.activeChat?.supportMetadata
+  const isSupportChat = !!supportMetadata?.isSupportChat
+  const isSupportChatClosed = isSupportChat && supportMetadata.lifecycleStatus !== 'bot_active'
+  const activeChatId = snap.activeChatId
+  const supportConversationId = supportMetadata?.frontConversationId
+
+  const aiAccessLevelCopy = useMemo(() => {
+    switch (aiOptInLevel) {
+      case 'schema_and_log_and_data':
+        return 'Schema, Logs, and Data'
+      case 'schema_and_log':
+        return 'Schema and Logs'
+      case 'schema':
+        return 'Schema'
+      default:
+        return 'Basic'
+    }
+  }, [aiOptInLevel])
 
   const deleteMessageFromHere = useCallback(
     (messageId: string) => {
@@ -216,13 +227,13 @@ export const AIAssistant = ({ className }: AIAssistantProps) => {
         }
       }, 100)
     },
-    [chatMessages, setValue]
+    [chatMessages]
   )
 
   const cancelEdit = useCallback(() => {
     setEditingMessageId(null)
     setValue('')
-  }, [setValue])
+  }, [])
 
   const handleRateMessage = useCallback(
     async (messageId: string, rating: 'positive' | 'negative', reason?: string) => {
@@ -365,13 +376,47 @@ export const AIAssistant = ({ className }: AIAssistantProps) => {
     }
   }, [snap.initialInput])
 
+  // Auto-send pending initial message for support chats after page navigation
+  useEffect(() => {
+    const activeChat = snap.activeChat
+    const pendingMessage = activeChat?.supportMetadata?.pendingInitialMessage
+    if (pendingMessage && chatStatus === 'ready') {
+      // Clear the pending message first to prevent re-sending
+      state.updateSupportMetadata(activeChat.id, { pendingInitialMessage: undefined })
+      sendMessage({ text: pendingMessage })
+    }
+  }, [snap.activeChat, chatStatus, state, sendMessage])
+
+  useEffect(() => {
+    if (!isSupportChatClosed) return
+    const status = supportMetadata?.lifecycleStatus
+    if (!status) return
+
+    // Route back to the main Support screen (like the non-assistant support flow)
+    // and include a ticket reference for the user (Front conversation id).
+    const ticketRef = supportConversationId ?? snap.activeChatId ?? ''
+    const projectRef = supportMetadata?.projectRef ?? ''
+    const url = `/support/new?ai_support_status=${encodeURIComponent(status)}&ticket_ref=${encodeURIComponent(ticketRef)}${projectRef ? `&project_ref=${encodeURIComponent(projectRef)}` : ''}`
+
+    closeSidebar(SIDEBAR_KEYS.AI_ASSISTANT)
+    if (typeof window !== 'undefined') {
+      window.location.assign(url)
+    }
+  }, [
+    isSupportChatClosed,
+    supportMetadata?.lifecycleStatus,
+    supportMetadata?.projectRef,
+    supportConversationId,
+    snap.activeChatId,
+    closeSidebar,
+  ])
+
   useEffect(() => {
     const isOpen = activeSidebar?.id === SIDEBAR_KEYS.AI_ASSISTANT
     if (isOpen && isInSQLEditor && !!snippetContent) {
       snap.setSqlSnippets([{ label: 'Current Query', content: snippetContent }])
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSidebar?.id, isInSQLEditor, snippetContent])
+  }, [activeSidebar?.id, isInSQLEditor, snippetContent, snap])
 
   return (
     <ErrorBoundary
@@ -402,6 +447,14 @@ export const AIAssistant = ({ className }: AIAssistantProps) => {
           isHipaaProjectDisallowed={isHipaaProjectDisallowed}
           aiOptInLevel={aiOptInLevel}
         />
+        {isSupportChat && (
+          <div className="px-4 py-2 border-b bg-surface-100">
+            <p className="text-xs text-foreground-light">
+              AI assistant access level:{' '}
+              <span className="text-foreground">{aiAccessLevelCopy}</span>
+            </p>
+          </div>
+        )}
         {hasMessages ? (
           <Conversation className={cn('flex-1')}>
             <ConversationContent className="w-full px-7 py-8 mb-10">
@@ -523,6 +576,33 @@ export const AIAssistant = ({ className }: AIAssistantProps) => {
         </AnimatePresence>
 
         <div className="px-3 pb-3 z-20 relative">
+          {isSupportChat && !isSupportChatClosed && (
+            <div className="mb-3">
+              <div className="mb-3 border-t" />
+              <div className="flex items-center gap-2">
+                <Button
+                  type="outline"
+                  size="tiny"
+                  disabled={!activeChatId || !supportConversationId}
+                  onClick={() =>
+                    activeChatId && state.setSupportLifecycleStatus(activeChatId, 'escalated')
+                  }
+                >
+                  Escalate to human
+                </Button>
+                <Button
+                  type="outline"
+                  size="tiny"
+                  disabled={!activeChatId || !supportConversationId}
+                  onClick={() =>
+                    activeChatId && state.setSupportLifecycleStatus(activeChatId, 'user_resolved')
+                  }
+                >
+                  Resolve
+                </Button>
+              </div>
+            </div>
+          )}
           {disablePrompts && (
             <Admonition
               showIcon={false}
@@ -553,13 +633,19 @@ export const AIAssistant = ({ className }: AIAssistantProps) => {
             )}
             loading={isChatLoading}
             isEditing={!!editingMessageId}
-            disabled={!isApiKeySet || disablePrompts || isLoadingOrganization}
+            disabled={
+              !isApiKeySet || disablePrompts || isLoadingOrganization || isSupportChatClosed
+            }
             placeholder={
               hasMessages
-                ? 'Ask a follow up question...'
+                ? isSupportChat
+                  ? 'Share details so the assistant can help with your support request...'
+                  : 'Ask a follow up question...'
                 : (snap.sqlSnippets ?? [])?.length > 0
                   ? 'Ask a question or make a change...'
-                  : 'Chat to Postgres...'
+                  : isSupportChat
+                    ? 'Describe your support issue...'
+                    : 'Chat to Postgres...'
             }
             value={value}
             onValueChange={(e) => setValue(e.target.value)}

@@ -7,6 +7,7 @@ import { getIncidentTools } from './incident-tools'
 import { getMcpTools } from './mcp-tools'
 import { getSchemaTools } from './schema-tools'
 import { getRenderingTools } from './rendering-tools'
+import { getSupportLifecycleTools } from './support-tools'
 
 export const getTools = async ({
   projectRef,
@@ -15,6 +16,7 @@ export const getTools = async ({
   aiOptInLevel,
   accessToken,
   baseUrl,
+  supportMode,
 }: {
   projectRef: string
   connectionString: string
@@ -22,6 +24,7 @@ export const getTools = async ({
   aiOptInLevel: AiOptInLevel
   accessToken?: string
   baseUrl?: string
+  supportMode?: boolean
 }) => {
   // Always include rendering tools
   let tools: ToolSet = getRenderingTools()
@@ -58,7 +61,8 @@ export const getTools = async ({
   }
 
   // Filter all tools based on the (potentially modified) AI opt-in level
-  const filteredTools: ToolSet = filterToolsByOptInLevel(tools, aiOptInLevel)
+  const toolsWithSupport = supportMode ? { ...tools, ...getSupportLifecycleTools() } : tools
+  const filteredTools: ToolSet = filterToolsByOptInLevel(toolsWithSupport, aiOptInLevel)
 
   return filteredTools
 }

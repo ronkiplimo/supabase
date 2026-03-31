@@ -58,7 +58,7 @@ export const FileExplorer = ({
 
       {isLoading ? (
         <FileExplorerColumn
-          column={{ id: '', name: '', items: [], status: STORAGE_ROW_STATUS.LOADING }}
+          column={{ id: '', name: '', path: '', items: [], status: STORAGE_ROW_STATUS.LOADING }}
         />
       ) : snap.view === STORAGE_VIEWS.COLUMNS ? (
         <div className="flex h-full min-h-0 min-w-0">

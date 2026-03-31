@@ -36,6 +36,17 @@ Our CI pipeline already validates the following. **Never comment on these topics
 - **No self-contradictions.** If you suggest a change, do not then flag a problem with your own suggestion.
 - **Do not comment on individual commits.** Review the final state of the PR diff only.
 
+### Fix Prompt
+
+At the end of every review comment, append a ready-to-paste prompt the author can drop into their AI assistant to fix the issue:
+
+> **Fix:** `<file>:<line>` — <one-sentence problem>. <one-sentence proposed fix>.
+
+Keep it on one line. Include the exact file path and line number. No preamble.
+
+Example:
+> **Fix:** `apps/studio/components/Auth.tsx:42` — `session` may be null before hydration completes. Add `if (!session) return null` before the JSX block.
+
 ## Repo Context
 
 This is a TypeScript/Next.js/React monorepo:

@@ -24,7 +24,7 @@ const INTERVAL_DURATION = 6000 // ms per tab
 export function IntegratesSectionClient({ useCases }: { useCases: UseCase[] }) {
   const [activeIdx, setActiveIdx] = useState(0)
   const [progress, setProgress] = useState(0)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const intervalRef = useRef<ReturnType | null>(null)
   const { ref: inViewRef, inView } = useInView({ threshold: 0.3 })
   const active = useCases[activeIdx]
 
@@ -82,63 +82,34 @@ export function IntegratesSectionClient({ useCases }: { useCases: UseCase[] }) {
 
       {/* Content */}
       <div className="mx-auto max-w-[var(--container-max-w,75rem)] px-6 w-full">
-        <div className="border border-border rounded-md overflow-clip">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
-            {/* Left: vertical tabs */}
-            <div className="flex flex-col">
-              {useCases.map((useCase, index) => {
-                const isActive = index === activeIdx
-                return (
-                  <button
-                    key={useCase.label}
-                    onClick={() => handleTabClick(index)}
-                    className={cn(
-                      'relative text-left flex flex-col gap-1 px-6 py-5 transition-colors',
-                      isActive
-                        ? 'bg-surface-75 text-foreground'
-                        : 'text-foreground-muted hover:text-foreground-light hover:bg-surface-75/50'
-                    )}
-                  >
-                    <h4 className="text-sm font-medium flex items-center gap-2">
-                      {(() => {
-                        const Icon = ICONS[useCase.icon]
-                        return <Icon size={14} strokeWidth={2} />
-                      })()}
-                      {useCase.label}
-                    </h4>
-                    <p
-                      className={cn(
-                        'text-sm transition-colors',
-                        isActive ? 'text-foreground-lighter' : 'text-foreground-muted'
-                      )}
-                    >
-                      {useCase.paragraph}
-                    </p>
-                    {/* Progress bar — hide on last item to avoid doubling with section border */}
-                    <div
-                      className={cn(
-                        'absolute bottom-0 left-0 right-0 h-[1px] bg-border-strong overflow-hidden',
-                        index === useCases.length - 1 && 'hidden'
-                      )}
-                    >
-                      {isActive && (
-                        <motion.div
-                          className={cn(
-                            'absolute inset-0 w-full right-full bg-foreground-muted h-full transition-opacity',
-                            progress > 99.5 ? 'opacity-0' : 'opacity-100'
-                          )}
-                          style={{ x: `${progress - 100}%` }}
-                        />
-                      )}
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Left: tab cards */}
+          <div className="flex flex-col gap-1 items-start justify-end">
+            {useCases.map((useCase, index) => {
+              const isActive = index === activeIdx
+              const Icon = ICONS[useCase.icon]
+              return (
+                <button
+                  key={useCase.label}
+                  onClick={() => handleTabClick(index)}
+                  className={cn(
+                    'text-left flex items-center gap-3 py-2 text-2xl transition-colors',
+                    isActive
+                      ? 'text-foreground'
+                      : 'text-foreground-muted hover:text-foreground-light'
+                  )}
+                >
+                  <Icon size={22} strokeWidth={1.5} />
+                  {useCase.label}
+                </button>
+              )
+            })}
+          </div>
 
-            {/* Right: code area */}
-            <div className="relative min-h-[440px] overflow-auto lg:border-l border-border">
-              <AnimatePresence mode="wait">
+          {/* Right: code area */}
+          <div className="flex flex-col border border-border rounded-md overflow-clip">
+            <div className="relative h-[440px] shrink-0 overflow-auto">
+              <AnimatePresence mode="popLayout">
                 <motion.div
                   key={active.label}
                   initial={{ opacity: 0 }}
@@ -157,9 +128,31 @@ export function IntegratesSectionClient({ useCases }: { useCases: UseCase[] }) {
                   />
                 </motion.div>
               </AnimatePresence>
+            </div>
+
+            {/* Footer: active tab info */}
+            <div className="border-t border-border px-6 py-4 flex items-center gap-8 justify-between bg-surface-75">
+              <AnimatePresence mode="popLayout">
+                <motion.div
+                  key={active.label}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1, transition: { duration: 0.15, delay: 0.05 } }}
+                  exit={{ opacity: 0, transition: { duration: 0.05 } }}
+                  className="flex flex-col gap-1"
+                >
+                  <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
+                    {(() => {
+                      const Icon = ICONS[active.icon]
+                      return <Icon size={14} strokeWidth={2} />
+                    })()}
+                    {active.label}
+                  </h4>
+                  <p className="text-sm text-foreground-lighter">{active.paragraph}</p>
+                </motion.div>
+              </AnimatePresence>
               <Link
                 href="/docs/guides/functions"
-                className="absolute bottom-4 right-4 flex items-center gap-1.5 rounded-full bg-surface-100 border border-border px-3 py-1.5 text-xs text-foreground-light hover:text-foreground hover:bg-surface-200 transition-colors whitespace-nowrap"
+                className="flex items-center gap-1.5 rounded-full bg-surface-100 border border-border px-3 py-1.5 text-xs text-foreground-light hover:text-foreground hover:bg-surface-200 transition-colors whitespace-nowrap shrink-0"
               >
                 Documentation
                 <svg

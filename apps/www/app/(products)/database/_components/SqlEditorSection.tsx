@@ -1,118 +1,140 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
+import { Code, FileDown, Heart, MousePointerClick } from 'lucide-react'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useInView } from 'react-intersection-observer'
 import { cn } from 'ui'
+
+const ICONS = { Code, MousePointerClick, Heart, FileDown } as const
+
+type IconName = keyof typeof ICONS
 
 const TABS = [
   {
-    label: 'SQL Editor built in',
-    title: 'Full SQL',
+    icon: 'Code' as IconName,
+    label: 'Full SQL',
     description:
       'Create tables, functions, join tables — a full SQL editor built into the dashboard.',
     image: '/images/product/database/sql-view/sql-editor.png',
   },
   {
+    icon: 'MousePointerClick' as IconName,
     label: 'Monaco editor',
-    title: 'Monaco editor',
     description: 'Built-in Monaco editor, with rich validation and autocomplete.',
     image: '/images/product/database/sql-view/manaco-editor.png',
   },
   {
+    icon: 'Heart' as IconName,
     label: 'Favorite queries',
-    title: 'Favorite queries',
     description: 'Save your favorite queries to use again and again.',
     image: '/images/product/database/sql-view/favorites.png',
   },
   {
-    label: 'Select and Export',
-    title: 'Export to CSV',
+    icon: 'FileDown' as IconName,
+    label: 'Export to CSV',
     description: 'Any output can be exported into a CSV.',
     image: '/images/product/database/sql-view/export.png',
   },
 ]
 
+const INTERVAL_DURATION = 8000
+
 export function SqlEditorSection() {
   const [activeIdx, setActiveIdx] = useState(0)
+  const [progress, setProgress] = useState(0)
+  const intervalRef = useRef<ReturnType | null>(null)
+  const { ref: inViewRef, inView } = useInView({ threshold: 0.3 })
   const active = TABS[activeIdx]
 
+  const clearTimer = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
+  }, [])
+
+  const startTimer = useCallback(() => {
+    clearTimer()
+    setProgress(0)
+    const updateFrequency = 30
+    const increment = (100 / INTERVAL_DURATION) * updateFrequency
+    intervalRef.current = setInterval(() => {
+      setProgress((prev) => {
+        const next = prev + increment
+        if (next >= 100) return 100
+        return next
+      })
+    }, updateFrequency)
+  }, [clearTimer])
+
+  useEffect(() => {
+    if (progress >= 100) {
+      setActiveIdx((prev) => (prev + 1) % TABS.length)
+    }
+  }, [progress])
+
+  useEffect(() => {
+    if (inView) {
+      startTimer()
+    } else {
+      clearTimer()
+    }
+    return clearTimer
+  }, [inView, activeIdx, startTimer, clearTimer])
+
+  const handleTabClick = (index: number) => {
+    setActiveIdx(index)
+    startTimer()
+  }
+
   return (
-    <div className="py-24 flex flex-col gap-16">
+    <div ref={inViewRef} className="py-24 flex flex-col gap-16">
       {/* Header */}
       <div className="mx-auto max-w-[var(--container-max-w,75rem)] px-6 w-full">
-        <h3 className="text-2xl md:text-4xl text-foreground-lighter max-w-xl">
-          The power of
-          <br />
-          <span className="text-foreground">SQL Editor</span>
-        </h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-end">
+          <h3 className="text-2xl md:text-4xl text-foreground-lighter max-w-xl">
+            Write and run queries with a
+            <br />
+            <span className="text-foreground">full SQL Editor</span>
+          </h3>
+          <p className="text-foreground-lighter text-sm lg:text-base">
+            Write, run, and save SQL queries directly from the dashboard with full autocomplete and
+            syntax highlighting.
+          </p>
+        </div>
       </div>
 
+      {/* Content */}
       <div className="mx-auto max-w-[var(--container-max-w,75rem)] px-6 w-full">
-        <div className="border border-border rounded-md overflow-clip">
-          <div className="grid grid-cols-1 lg:grid-cols-2">
-            {/* Left: tabs + content */}
-            <div className="flex flex-col border-b lg:border-b-0 lg:border-r border-border">
-              {/* Tab row */}
-              <div className="flex border-b border-border">
-                {TABS.map((tab, index) => (
-                  <button
-                    key={tab.label}
-                    onClick={() => setActiveIdx(index)}
-                    className={cn(
-                      'flex-1 flex items-center justify-center text-xs px-3 py-4 border-r border-border last:border-r-0 transition-colors whitespace-nowrap',
-                      index === activeIdx
-                        ? 'bg-surface-75 text-foreground'
-                        : 'text-foreground-muted hover:text-foreground-light hover:bg-surface-75/50'
-                    )}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Left: tabs */}
+          <div className="flex flex-col gap-1 items-start justify-end">
+            {TABS.map((tab, index) => {
+              const isActive = index === activeIdx
+              const Icon = ICONS[tab.icon]
+              return (
+                <button
+                  key={tab.label}
+                  onClick={() => handleTabClick(index)}
+                  className={cn(
+                    'text-left flex items-center gap-3 py-2 text-2xl font-medium transition-colors',
+                    isActive
+                      ? 'text-foreground'
+                      : 'text-foreground-muted hover:text-foreground-light'
+                  )}
+                >
+                  <Icon size={22} strokeWidth={1.5} />
+                  {tab.label}
+                </button>
+              )
+            })}
+          </div>
 
-              {/* Tab content + tweet */}
-              <div className="flex-1 flex flex-col justify-between">
-                {/* Active tab content */}
-                <div className="relative h-[160px] px-6 flex items-center">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={active.label}
-                      initial={{ opacity: 0, filter: 'blur(2px)' }}
-                      animate={{ opacity: 1, filter: 'blur(0px)', transition: { duration: 0.2 } }}
-                      exit={{ opacity: 0, filter: 'blur(2px)', transition: { duration: 0.1 } }}
-                      className="absolute inset-x-6 flex flex-col gap-3"
-                    >
-                      <h4 className="text-foreground text-lg font-medium">{active.title}</h4>
-                      <p className="text-foreground-lighter text-sm max-w-md">
-                        {active.description}
-                      </p>
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-
-                {/* Tweet card */}
-                <div className="border-t border-border px-6 py-4 bg-surface-200">
-                  <div className="flex items-start gap-3">
-                    <img
-                      src="/images/twitter-profiles/rLgwUZSB_400x400.jpg"
-                      alt="@jim_bisenius"
-                      className="w-12 h-12 rounded-full object-cover shrink-0"
-                    />
-                    <div className="flex flex-col gap-1">
-                      <span className="text-foreground text-sm font-medium">@jim_bisenius</span>
-                      <p className="text-foreground-lighter text-sm">
-                        @MongoDB or @MySQL?!?! Please, let me introduce you to @supabase and the
-                        wonderful world of @Postgres before it&apos;s too late!!
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: visual */}
-            <div className="relative h-[480px] flex items-center justify-center overflow-hidden">
+          {/* Right: image + footer */}
+          <div className="flex flex-col border border-border rounded-md overflow-clip">
+            <div className="relative h-[400px] shrink-0 overflow-hidden flex items-end justify-center">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={active.label}
@@ -123,11 +145,33 @@ export function SqlEditorSection() {
                 >
                   <Image
                     src={active.image}
-                    alt={active.title}
+                    alt={active.label}
                     width={600}
                     height={400}
-                    className="rounded-lg border border-border shadow-sm object-contain -mb-4"
+                    className="rounded-lg object-contain -mb-4"
                   />
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Footer: active tab info */}
+            <div className="border-t border-border px-6 py-4 flex items-center gap-8 justify-between bg-surface-100">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={active.label}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1, transition: { duration: 0.15, delay: 0.05 } }}
+                  exit={{ opacity: 0, transition: { duration: 0.05 } }}
+                  className="flex flex-col gap-1"
+                >
+                  <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
+                    {(() => {
+                      const Icon = ICONS[active.icon]
+                      return <Icon size={14} strokeWidth={2} />
+                    })()}
+                    {active.label}
+                  </h4>
+                  <p className="text-sm text-foreground-lighter">{active.description}</p>
                 </motion.div>
               </AnimatePresence>
             </div>

@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { createHighlighter, type ThemeRegistration } from 'shiki'
 import { IntegratesSectionClient } from './IntegratesSectionClient'
 
@@ -100,17 +99,7 @@ execute function "supabase_functions"."http_request"(
   {
     icon: 'Shield' as const,
     label: 'Works with Supabase Auth',
-    paragraph: (
-      <>
-        Edge Functions work seamlessly with{' '}
-        <Link
-          href="https://supabase.com/docs/guides/functions/auth"
-          className="underline hover:text-foreground-light transition-colors"
-        >
-          Supabase Auth
-        </Link>
-      </>
-    ),
+    paragraph: 'Verify users and enforce permissions directly inside your Edge Functions',
     lang: 'javascript' as const,
     code: `import { createClient } from 'jsr:@supabase/supabase-js@2'
 
@@ -134,17 +123,7 @@ Deno.serve(async (req: Request) => {
   {
     icon: 'HardDrive' as const,
     label: 'Works with Supabase Storage',
-    paragraph: (
-      <>
-        Edge Functions work seamlessly with{' '}
-        <Link
-          href="https://supabase.com/docs/guides/functions/storage-caching"
-          className="underline hover:text-foreground-light transition-colors"
-        >
-          Supabase Storage
-        </Link>
-      </>
-    ),
+    paragraph: 'Upload, transform, and serve files with built-in caching from your Edge Functions',
     lang: 'javascript' as const,
     code: `import { createClient } from 'jsr:@supabase/supabase-js@2'
 

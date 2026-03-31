@@ -3,7 +3,7 @@ import { ProjectDetail } from 'data/projects/project-detail-query'
 import { useOrgSubscriptionQuery } from 'data/subscriptions/org-subscription-query'
 import { useProjectAddonsQuery } from 'data/subscriptions/project-addons-query'
 import { ProjectAddonVariantMeta } from 'data/subscriptions/types'
-import { ResourceWarning } from 'data/usage/resource-warnings-query'
+import { useCheckEntitlements } from 'hooks/misc/useCheckEntitlements'
 import { getCloudProviderArchitecture } from 'lib/cloudprovider-utils'
 import { INSTANCE_MICRO_SPECS } from 'lib/constants'
 import { useTrack } from 'lib/telemetry/track'
@@ -53,7 +53,6 @@ interface ComputeBadgeWrapperProps {
   projectRef?: string
   cloudProvider?: string
   computeSize?: ProjectDetail['infra_compute_size']
-  resourceWarnings?: ResourceWarning
   badgeClassName?: string
 }
 
@@ -62,7 +61,6 @@ export const ComputeBadgeWrapper = ({
   projectRef,
   cloudProvider,
   computeSize,
-  resourceWarnings,
   badgeClassName,
 }: ComputeBadgeWrapperProps) => {
   // handles the state of the hover card
@@ -102,13 +100,13 @@ export const ComputeBadgeWrapper = ({
     { enabled: !!slug }
   )
 
-  if (projectRef === 'gxffuiogsitiacfocxrt') console.log('resourceWarnings', resourceWarnings)
   const isFreeOnNano = !!data && data.plan.id === 'free' && computeSize === 'nano'
   const isEligibleForFreeUpgrade = !!data && data.plan.id !== 'free' && computeSize === 'nano'
   const isLoading = isLoadingAddons || isLoadingSubscriptions
-  const isComputeNearExhaustion =
-    !!resourceWarnings?.cpu_exhaustion || !!resourceWarnings?.memory_and_swap_exhaustion
-  const hasUpgradeAvailable = (isFreeOnNano || isEligibleForFreeUpgrade) && isComputeNearExhaustion
+  const { hasAccess: entitledUpdateCompute } = useCheckEntitlements(
+    'instances.compute_update_available_sizes'
+  )
+  const hasUpgradeAvailable = entitledUpdateCompute && computeSize === 'nano'
 
   if (!computeSize) return null
 
@@ -131,7 +129,7 @@ export const ComputeBadgeWrapper = ({
               )}
             />
             {hasUpgradeAvailable && (
-              <span className="animate-badge-shimmer pointer-events-none absolute inset-0 bg-gradient-to-br from-transparent via-brand/20 to-transparent" />
+              <span className="animate-badge-shimmer pointer-events-none absolute inset-0 bg-gradient-to-br p-3 from-transparent via-brand/20 to-transparent blur-md" />
             )}
           </div>
         </div>

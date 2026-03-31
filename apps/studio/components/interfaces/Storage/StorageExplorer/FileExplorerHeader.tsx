@@ -20,12 +20,12 @@ import {
   X,
 } from 'lucide-react'
 import {
-  type ChangeEvent,
-  type ChangeEventHandler,
-  type SyntheticEvent,
   useEffect,
   useRef,
   useState,
+  type ChangeEvent,
+  type ChangeEventHandler,
+  type SyntheticEvent,
 } from 'react'
 import { useStorageExplorerStateSnapshot } from 'state/storage-explorer'
 import {
@@ -397,151 +397,157 @@ export const FileExplorerHeader = ({
                 Reload
               </Button>
 
-             {isPicker && forceListView ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button type="text" icon={<List size={16} strokeWidth={2} />}>
-                  Sort
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44 min-w-0">
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>Sort by</DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="w-44">
-                    {SORT_BY_OPTIONS.map((option) => (
-                      <DropdownMenuItem key={option.key} onClick={() => setSortBy(option.key)}>
+              {isPicker && forceListView ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button type="text" icon={<List size={16} strokeWidth={2} />}>
+                      Sort
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44 min-w-0">
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>Sort by</DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent className="w-44">
+                        {SORT_BY_OPTIONS.map((option) => (
+                          <DropdownMenuItem key={option.key} onClick={() => setSortBy(option.key)}>
+                            <div className="flex items-center justify-between w-full">
+                              <p>{option.name}</p>
+                              {sortBy === option.key && (
+                                <Check size={16} className="text-brand" strokeWidth={2} />
+                              )}
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>Sort order</DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        {SORT_ORDER_OPTIONS.map((option) => (
+                          <DropdownMenuItem
+                            key={option.key}
+                            onClick={() => setSortByOrder(option.key)}
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <p>{option.name}</p>
+                              {sortByOrder === option.key && (
+                                <Check size={16} className="text-brand" strokeWidth={2} />
+                              )}
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="text"
+                      icon={
+                        snap.view === 'LIST' ? (
+                          <List size={16} strokeWidth={2} />
+                        ) : (
+                          <Columns size={16} strokeWidth={2} />
+                        )
+                      }
+                    >
+                      View
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-40 min-w-0">
+                    {VIEW_OPTIONS.map((option) => (
+                      <DropdownMenuItem key={option.key} onClick={() => snap.setView(option.key)}>
                         <div className="flex items-center justify-between w-full">
                           <p>{option.name}</p>
-                          {sortBy === option.key && (
+                          {snap.view === option.key && (
                             <Check size={16} className="text-brand" strokeWidth={2} />
                           )}
                         </div>
                       </DropdownMenuItem>
                     ))}
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>Sort order</DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    {SORT_ORDER_OPTIONS.map((option) => (
-                      <DropdownMenuItem key={option.key} onClick={() => setSortByOrder(option.key)}>
-                        <div className="flex items-center justify-between w-full">
-                          <p>{option.name}</p>
-                          {sortByOrder === option.key && (
-                            <Check size={16} className="text-brand" strokeWidth={2} />
-                          )}
-                        </div>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="text"
-                  icon={
-                    snap.view === 'LIST' ? (
-                      <List size={16} strokeWidth={2} />
-                    ) : (
-                      <Columns size={16} strokeWidth={2} />
-                    )
-                  }
-                >
-                  View
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40 min-w-0">
-                {VIEW_OPTIONS.map((option) => (
-                  <DropdownMenuItem key={option.key} onClick={() => snap.setView(option.key)}>
-                    <div className="flex items-center justify-between w-full">
-                      <p>{option.name}</p>
-                      {snap.view === option.key && (
-                        <Check size={16} className="text-brand" strokeWidth={2} />
-                      )}
-                    </div>
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>Sort by</DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="w-44">
-                    {SORT_BY_OPTIONS.map((option) => (
-                      <DropdownMenuItem key={option.key} onClick={() => setSortBy(option.key)}>
-                        <div className="flex items-center justify-between w-full">
-                          <p>{option.name}</p>
-                          {sortBy === option.key && (
-                            <Check size={16} className="text-brand" strokeWidth={2} />
-                          )}
-                        </div>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>Sort order</DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    {SORT_ORDER_OPTIONS.map((option) => (
-                      <DropdownMenuItem key={option.key} onClick={() => setSortByOrder(option.key)}>
-                        <div className="flex items-center justify-between w-full">
-                          <p>{option.name}</p>
-                          {sortByOrder === option.key && (
-                            <Check size={16} className="text-brand" strokeWidth={2} />
-                          )}
-                        </div>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
-
-        {!isPicker && (
-          <>
-            <div className="h-6 border-r border-control" />
-            <div className="flex items-center space-x-1 px-2">
-              <div className="hidden">
-                <input ref={uploadButtonRef} type="file" multiple onChange={onFilesUpload} />
-              </div>
-              <ButtonTooltip
-                icon={<Upload size={16} strokeWidth={2} />}
-                type="text"
-                disabled={!canUpdateStorage || breadcrumbs.length === 0}
-                onClick={onSelectUpload}
-                tooltip={{
-                  content: {
-                    side: 'bottom',
-                    text: !canUpdateStorage
-                      ? 'You need additional permissions to upload files'
-                      : undefined,
-                  },
-                }}
-              >
-                Upload files
-              </ButtonTooltip>
-              <ButtonTooltip
-                icon={<FolderPlus size={16} strokeWidth={2} />}
-                type="text"
-                disabled={!canUpdateStorage || breadcrumbs.length === 0}
-                onClick={() => addNewFolderPlaceholder(-1)}
-                tooltip={{
-                  content: {
-                    side: 'bottom',
-                    text: !canUpdateStorage
-                      ? 'You need additional permissions to create folders'
-                      : undefined,
-                  },
-                }}
-              >
-                Create folder
-              </ButtonTooltip>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>Sort by</DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent className="w-44">
+                        {SORT_BY_OPTIONS.map((option) => (
+                          <DropdownMenuItem key={option.key} onClick={() => setSortBy(option.key)}>
+                            <div className="flex items-center justify-between w-full">
+                              <p>{option.name}</p>
+                              {sortBy === option.key && (
+                                <Check size={16} className="text-brand" strokeWidth={2} />
+                              )}
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>Sort order</DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        {SORT_ORDER_OPTIONS.map((option) => (
+                          <DropdownMenuItem
+                            key={option.key}
+                            onClick={() => setSortByOrder(option.key)}
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <p>{option.name}</p>
+                              {sortByOrder === option.key && (
+                                <Check size={16} className="text-brand" strokeWidth={2} />
+                              )}
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
-          </>
-        )}
+
+            {!isPicker && (
+              <>
+                <div className="h-6 border-r border-control" />
+                <div className="flex items-center space-x-1 px-2">
+                  <div className="hidden">
+                    <input ref={uploadButtonRef} type="file" multiple onChange={onFilesUpload} />
+                  </div>
+                  <ButtonTooltip
+                    icon={<Upload size={16} strokeWidth={2} />}
+                    type="text"
+                    disabled={!canUpdateStorage || breadcrumbs.length === 0}
+                    onClick={onSelectUpload}
+                    tooltip={{
+                      content: {
+                        side: 'bottom',
+                        text: !canUpdateStorage
+                          ? 'You need additional permissions to upload files'
+                          : undefined,
+                      },
+                    }}
+                  >
+                    Upload files
+                  </ButtonTooltip>
+                  <ButtonTooltip
+                    icon={<FolderPlus size={16} strokeWidth={2} />}
+                    type="text"
+                    disabled={!canUpdateStorage || breadcrumbs.length === 0}
+                    onClick={() => addNewFolderPlaceholder(-1)}
+                    tooltip={{
+                      content: {
+                        side: 'bottom',
+                        text: !canUpdateStorage
+                          ? 'You need additional permissions to create folders'
+                          : undefined,
+                      },
+                    }}
+                  >
+                    Create folder
+                  </ButtonTooltip>
+                </div>
+              </>
+            )}
 
             <div className="h-6 shrink-0 border-r border-control" />
             <div className="flex shrink-0 items-center px-2">
@@ -571,38 +577,16 @@ export const FileExplorerHeader = ({
                   icon={<Search />}
                   size="tiny"
                   type="text"
-                  icon={<X />}
-                  onClick={toggleSearch}
                   className="py-0 px-1 h-5 w-5"
-                />,
-              ]}
-              placeholder="Search for a file or folder"
-              type="text"
-              value={itemSearchString}
-              onChange={(event) => setItemSearchString(event.target.value)}
-            />
-          ) : (
-            <Button
-              icon={<Search />}
-              size="tiny"
-              type="text"
-              className="px-1"
-              onClick={toggleSearch}
-            />
-          )}
-        </div>
-
-        {isNewAPIDocsEnabled && !isPicker && (
-          <>
-            <div className="h-6 border-r border-control" />
-            <div className="mx-2">
-              <APIDocsButton section={['storage', selectedBucket.name]} source="storage" />
+                  onClick={toggleSearch}
+                />
+              )}
             </div>
 
-            {isNewAPIDocsEnabled && (
+            {isNewAPIDocsEnabled && !isPicker && (
               <>
-                <div className="h-6 shrink-0 border-r border-control" />
-                <div className="mx-2 shrink-0">
+                <div className="h-6 border-r border-control" />
+                <div className="mx-2">
                   <APIDocsButton section={['storage', selectedBucket.name]} source="storage" />
                 </div>
               </>

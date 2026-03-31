@@ -1,9 +1,8 @@
-import { UseFormReturn } from 'react-hook-form'
-
 import { useParams } from 'common'
 import { InlineLink } from 'components/ui/InlineLink'
 import { useDiskAttributesQuery } from 'data/config/disk-attributes-query'
 import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
+import { UseFormReturn } from 'react-hook-form'
 import {
   Badge,
   buttonVariants,
@@ -21,6 +20,7 @@ import {
   TooltipTrigger,
 } from 'ui'
 import { FormItemLayout } from 'ui-patterns/form/FormItemLayout/FormItemLayout'
+
 import { IO2_AVAILABLE_REGIONS } from '../DiskManagement.constants'
 import { DiskStorageSchemaType } from '../DiskManagement.schema'
 import { DISK_LIMITS, DISK_TYPE_OPTIONS, DiskType } from '../ui/DiskManagement.constants'
@@ -86,7 +86,7 @@ export function StorageTypeField({ form, disableInput }: StorageTypeFieldProps) 
               <Skeleton
                 className={cn(
                   buttonVariants({ size: 'small' }),
-                  'h-14 min-w-[420px] duration-[2s]'
+                  'h-14 min-w-[420px] duration-[2000ms]'
                 )}
               />
             ) : (

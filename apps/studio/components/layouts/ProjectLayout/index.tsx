@@ -38,11 +38,16 @@ import { RestoringState } from './RestoringState'
 import { UpgradingState } from './UpgradingState'
 import { CreateBranchModal } from '@/components/interfaces/BranchManagement/CreateBranchModal'
 import { ProjectAPIDocs } from '@/components/interfaces/ProjectAPIDocs/ProjectAPIDocs'
+import { BannerFreeMicroUpgrade } from '@/components/ui/BannerStack/Banners/BannerFreeMicroUpgrade'
+import { useBannerStack } from '@/components/ui/BannerStack/BannerStackProvider'
 import { ResourceExhaustionWarningBanner } from '@/components/ui/ResourceExhaustionWarningBanner/ResourceExhaustionWarningBanner'
 import { useCustomContent } from '@/hooks/custom-content/useCustomContent'
+import { useCheckEntitlements } from '@/hooks/misc/useCheckEntitlements'
+import { useLocalStorageQuery } from '@/hooks/misc/useLocalStorage'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
 import { withAuth } from '@/hooks/misc/withAuth'
+import { LOCAL_STORAGE_KEYS } from 'common'
 import { PROJECT_STATUS } from '@/lib/constants'
 import { buildStudioPageTitle } from '@/lib/page-title'
 import { getPathnameWithoutQuery } from '@/lib/pathname.utils'
@@ -110,6 +115,16 @@ export const ProjectLayout = forwardRef<HTMLDivElement, PropsWithChildren<Projec
     const router = useRouter()
     const { data: selectedOrganization } = useSelectedOrganizationQuery()
     const { data: selectedProject } = useSelectedProjectQuery()
+    const { addBanner, dismissBanner } = useBannerStack()
+    const { hasAccess: entitledUpdateCompute } = useCheckEntitlements(
+      'instances.compute_update_available_sizes'
+    )
+    const isEligibleForFreeUpgrade =
+      entitledUpdateCompute && selectedProject?.infra_compute_size === 'nano'
+    const [isFreeMicroUpgradeBannerDismissed] = useLocalStorageQuery(
+      LOCAL_STORAGE_KEYS.FREE_MICRO_UPGRADE_BANNER_DISMISSED(selectedProject?.ref ?? ''),
+      false
+    )
     const { showSidebar } = useAppStateSnapshot()
     const { setContent: setMobileSheetContent, registerOpenMenu } = useMobileSheet()
 
@@ -152,6 +167,19 @@ export const ProjectLayout = forwardRef<HTMLDivElement, PropsWithChildren<Projec
       router.pathname.includes('/project/[ref]/functions') ||
       router.pathname.includes('/project/[ref]/logs')
     const showPausedState = isPaused && !ignorePausedState
+
+    useEffect(() => {
+      if (isEligibleForFreeUpgrade && !isFreeMicroUpgradeBannerDismissed) {
+        addBanner({
+          id: 'free-micro-upgrade-banner',
+          isDismissed: false,
+          content: <BannerFreeMicroUpgrade />,
+          priority: 2,
+        })
+      } else {
+        dismissBanner('free-micro-upgrade-banner')
+      }
+    }, [isEligibleForFreeUpgrade, isFreeMicroUpgradeBannerDismissed, addBanner, dismissBanner])
 
     useLayoutEffect(() => {
       const unregister = registerOpenMenu(() => {

@@ -238,6 +238,7 @@ export const CreateOrUpdateOAuthAppSheet = ({
           onOpenChange={setStoragePickerOpen}
           projectRef={projectRef}
           returnValue="publicUrl"
+          publicBucketsOnly
           acceptedFileExtensions={['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg']}
           title="Choose logo from Storage"
           onSelect={handlePickLogoFromStorage}
@@ -290,7 +291,7 @@ export const CreateOrUpdateOAuthAppSheet = ({
                       render={({ field }) => (
                         <FormItemLayout
                           label="Logo"
-                          description={`Paste an absolute image URL/path or select one from File Storage buckets. Note: Use a public bucket for a stable logo URL.`}
+                          description={`Paste an absolute image URL/path or select one from a public File Storage bucket.`}
                         >
                           <FormControl_Shadcn_>
                             <div className="flex w-full flex-col gap-3">

@@ -31,6 +31,8 @@ export type StorageFilePickerProps = {
   returnValue?: StoragePickerReturnValue
   acceptedFileExtensions?: string[]
   hideUnsupportedFiles?: boolean
+  /** When true, only public buckets can be selected in the picker. */
+  publicBucketsOnly?: boolean
   onSelect: (value: string) => void
   title?: string
 }
@@ -93,10 +95,12 @@ function StorageFilePickerBucketsStep({
   projectRef,
   onSelectBucket,
   onCreateBucket,
+  publicBucketsOnly = false,
 }: {
   projectRef: string
   onSelectBucket: (bucket: Bucket) => void
   onCreateBucket: () => void
+  publicBucketsOnly?: boolean
 }) {
   return (
     <BucketsListPanel
@@ -106,6 +110,7 @@ function StorageFilePickerBucketsStep({
       onSelectBucket={onSelectBucket}
       wrapperClassName="flex h-full min-h-0 w-full flex-1 flex-col gap-3"
       tableClassName="min-h-0 flex-1 overflow-hidden"
+      publicBucketsOnly={publicBucketsOnly}
     />
   )
 }
@@ -117,6 +122,7 @@ export function StorageFilePicker({
   returnValue = 'objectPath',
   acceptedFileExtensions,
   hideUnsupportedFiles = false,
+  publicBucketsOnly = false,
   onSelect,
   title = 'Choose a file',
 }: StorageFilePickerProps) {
@@ -169,6 +175,7 @@ export function StorageFilePicker({
       projectRef={projectRef}
       onSelectBucket={setSelectedBucket}
       onCreateBucket={() => setShowCreateBucketModal(true)}
+      publicBucketsOnly={publicBucketsOnly}
     />
   )
 

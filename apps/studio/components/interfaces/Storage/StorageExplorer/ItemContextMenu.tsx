@@ -4,7 +4,6 @@ import { Item, Menu, Separator, Submenu } from 'react-contexify'
 
 import 'react-contexify/dist/ReactContexify.css'
 
-import { useParams } from 'common'
 import { useAsyncCheckPermissions } from 'hooks/misc/useCheckPermissions'
 import { useStorageExplorerStateSnapshot } from 'state/storage-explorer'
 
@@ -17,34 +16,44 @@ interface ItemContextMenuProps {
 }
 
 export const ItemContextMenu = ({ id = '' }: ItemContextMenuProps) => {
-  const snap = useStorageExplorerStateSnapshot()
-  const { setSelectedFileCustomExpiry } = snap
-
   const {
     selectedBucket,
     setSelectedItemsToDelete,
     setSelectedItemToRename,
     setSelectedItemsToMove,
+    setSelectedFileCustomExpiry,
     downloadFile,
   } = useStorageExplorerStateSnapshot()
   const { onCopyUrl } = useCopyUrl()
   const isPublic = selectedBucket.public
   const { can: canUpdateFiles } = useAsyncCheckPermissions(PermissionAction.STORAGE_WRITE, '*')
 
-  const onHandleClick = async (event: any, item: StorageItemWithColumn, expiresIn?: number) => {
+  const onHandleClick = async (
+    event: 'copy' | 'rename' | 'move' | 'download',
+    item: StorageItemWithColumn,
+    expiresIn?: number
+  ) => {
     if (item.isCorrupted) return
-    switch (event) {
-      case 'copy':
-        if (expiresIn !== undefined && expiresIn < 0) return setSelectedFileCustomExpiry(item)
-        if (item.path) return onCopyUrl(item.path, expiresIn)
-      case 'rename':
-        return setSelectedItemToRename(item)
-      case 'move':
-        return setSelectedItemsToMove([item])
-      case 'download':
-        return await downloadFile(item)
-      default:
-        break
+    if (event === 'copy') {
+      if (expiresIn !== undefined && expiresIn < 0) {
+        setSelectedFileCustomExpiry(item)
+        return
+      }
+      if (item.path) {
+        onCopyUrl(item.path, expiresIn)
+      }
+      return
+    }
+    if (event === 'rename') {
+      setSelectedItemToRename(item)
+      return
+    }
+    if (event === 'move') {
+      setSelectedItemsToMove([item])
+      return
+    }
+    if (event === 'download') {
+      await downloadFile(item)
     }
   }
 

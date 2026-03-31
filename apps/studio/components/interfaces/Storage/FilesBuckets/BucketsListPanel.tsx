@@ -33,6 +33,8 @@ type BucketsListPanelProps = {
   onSortBucketChange?: (value: STORAGE_BUCKET_SORT) => void
   onCreateBucket?: () => void
   onSelectBucket?: (bucket: Bucket) => void
+  /** Picker mode: when true, non-public buckets are disabled and not selectable. */
+  publicBucketsOnly?: boolean
   wrapperClassName?: string
   tableClassName?: string
 }
@@ -44,6 +46,7 @@ export const BucketsListPanel = ({
   onSortBucketChange,
   onCreateBucket,
   onSelectBucket,
+  publicBucketsOnly = false,
   wrapperClassName,
   tableClassName,
 }: BucketsListPanelProps) => {
@@ -176,6 +179,7 @@ export const BucketsListPanel = ({
                     onLoadMore: handleLoadMoreBuckets,
                   }}
                   onSelectBucket={onSelectBucket}
+                  publicBucketsOnly={publicBucketsOnly}
                 />
               </Card>
             </>

@@ -248,82 +248,86 @@ export const PreviewPane = () => {
           </div>
 
           {/* Actions */}
-          <div className="flex space-x-2 border-b border-overlay pb-4">
-            <Button
-              type="default"
-              icon={<Download />}
-              disabled={file.isCorrupted}
-              onClick={() => downloadFile(file)}
-            >
-              Download
-            </Button>
-            {selectedBucket.public ? (
-              <Button
-                type="outline"
-                icon={<Copy />}
-                onClick={() => onCopyUrl(file.path!)}
-                disabled={file.isCorrupted}
-              >
-                Get URL
-              </Button>
-            ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+          {!picker && (
+            <>
+              <div className="flex space-x-2 border-b border-overlay pb-4">
+                <Button
+                  type="default"
+                  icon={<Download />}
+                  disabled={file.isCorrupted}
+                  onClick={() => downloadFile(file)}
+                >
+                  Download
+                </Button>
+                {selectedBucket.public ? (
                   <Button
                     type="outline"
                     icon={<Copy />}
-                    iconRight={<ChevronDown />}
+                    onClick={() => onCopyUrl(file.path!)}
                     disabled={file.isCorrupted}
                   >
                     Get URL
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent side="bottom" align="center">
-                  <DropdownMenuItem
-                    key="expires-one-week"
-                    onClick={() => onCopyUrl(file.path!, URL_EXPIRY_DURATION.WEEK)}
-                  >
-                    Expire in 1 week
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    key="expires-one-month"
-                    onClick={() => onCopyUrl(file.path!, URL_EXPIRY_DURATION.MONTH)}
-                  >
-                    Expire in 1 month
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    key="expires-one-year"
-                    onClick={() => onCopyUrl(file.path!, URL_EXPIRY_DURATION.YEAR)}
-                  >
-                    Expire in 1 year
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    key="custom-expiry"
-                    onClick={() => setSelectedFileCustomExpiry(file)}
-                  >
-                    Custom expiry
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-          <ButtonTooltip
-            type="outline"
-            disabled={!canUpdateFiles}
-            size="tiny"
-            icon={<Trash2 strokeWidth={2} />}
-            onClick={() => setSelectedItemsToDelete([file])}
-            tooltip={{
-              content: {
-                side: 'bottom',
-                text: !canUpdateFiles
-                  ? 'You need additional permissions to delete this file'
-                  : undefined,
-              },
-            }}
-          >
-            Delete file
-          </ButtonTooltip>
+                ) : (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="outline"
+                        icon={<Copy />}
+                        iconRight={<ChevronDown />}
+                        disabled={file.isCorrupted}
+                      >
+                        Get URL
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent side="bottom" align="center">
+                      <DropdownMenuItem
+                        key="expires-one-week"
+                        onClick={() => onCopyUrl(file.path!, URL_EXPIRY_DURATION.WEEK)}
+                      >
+                        Expire in 1 week
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        key="expires-one-month"
+                        onClick={() => onCopyUrl(file.path!, URL_EXPIRY_DURATION.MONTH)}
+                      >
+                        Expire in 1 month
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        key="expires-one-year"
+                        onClick={() => onCopyUrl(file.path!, URL_EXPIRY_DURATION.YEAR)}
+                      >
+                        Expire in 1 year
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        key="custom-expiry"
+                        onClick={() => setSelectedFileCustomExpiry(file)}
+                      >
+                        Custom expiry
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+              <ButtonTooltip
+                type="outline"
+                disabled={!canUpdateFiles}
+                size="tiny"
+                icon={<Trash2 strokeWidth={2} />}
+                onClick={() => setSelectedItemsToDelete([file])}
+                tooltip={{
+                  content: {
+                    side: 'bottom',
+                    text: !canUpdateFiles
+                      ? 'You need additional permissions to delete this file'
+                      : undefined,
+                  },
+                }}
+              >
+                Delete file
+              </ButtonTooltip>
+            </>
+          )}
         </div>
       </div>
     </Transition>

@@ -2,17 +2,19 @@
 
 import { keepPreviousData, useQueryClient } from '@tanstack/react-query'
 import { useTableFilter } from 'components/grid/hooks/useTableFilter'
+import { useTableRowOperations } from 'components/grid/hooks/useTableRowOperations'
 import { useTableSort } from 'components/grid/hooks/useTableSort'
 import { validateMsSqlSorting } from 'components/grid/MsSqlValidation'
 import { reapplyOptimisticUpdates } from 'components/grid/utils/queueOperationUtils'
 import { useIsQueueOperationsEnabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
-import { isMsSqlForeignTable } from 'data/table-editor/table-editor-types'
-import { useTableRowsQuery } from 'data/table-rows/table-rows-query'
-import { tableRowKeys } from 'data/table-rows/keys'
 import { useProjectDetailQuery } from 'data/projects/project-detail-query'
+import { isMsSqlForeignTable } from 'data/table-editor/table-editor-types'
+import { tableRowKeys } from 'data/table-rows/keys'
+import { useTableRowsQuery } from 'data/table-rows/table-rows-query'
 import type { RoleImpersonationState } from 'lib/role-impersonation'
 import { EMPTY_ARR } from 'lib/void'
-import { useEffect, useMemo } from 'react'
+import { Edit, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useRoleImpersonationStateSnapshot } from 'state/role-impersonation-state'
 import { useTableEditorStateSnapshot } from 'state/table-editor'
 import type { QueuedOperation } from 'state/table-editor-operation-queue.types'
@@ -47,13 +49,11 @@ export function V2TableDataGrid({
     ? validateMsSqlSorting({ filters, sorts, table: snap.originalTable })
     : { warning: null }
   const tableQueriesEnabled = msSqlWarning.warning === null
+  const { deleteRows } = useTableRowOperations()
 
   const rowsQueryEnabled =
     Boolean(
-      projectRef &&
-        project?.connectionString &&
-        tableId !== undefined &&
-        !Number.isNaN(tableId)
+      projectRef && project?.connectionString && tableId !== undefined && !Number.isNaN(tableId)
     ) && tableQueriesEnabled
 
   const {
@@ -136,6 +136,20 @@ export function V2TableDataGrid({
         : new Error(typeof error === 'string' ? error : 'Failed to load rows')
       : null
 
+  const hasRetriedOnceRef = useRef(false)
+
+  // For transient connection acquisition errors after row edits/deletes, automatically retry once.
+  useEffect(() => {
+    if (!isError || !error || hasRetriedOnceRef.current) return
+    const message =
+      error instanceof Error ? error.message : typeof error === 'string' ? error : ''
+    if (!message.toLowerCase().includes('acquire connection')) return
+    hasRetriedOnceRef.current = true
+    void queryClient.invalidateQueries({
+      queryKey: tableRowKeys.tableRowsAndCount(projectRef, tableId),
+    })
+  }, [isError, error, projectRef, tableId, queryClient])
+
   return (
     <>
       {msSqlWarning.warning !== null && <msSqlWarning.Component />}
@@ -151,6 +165,36 @@ export function V2TableDataGrid({
           title: 'No rows',
           description: 'This page returned no rows for the current filters and sort.',
         }}
+        rowActions={[
+          {
+            id: 'edit-row',
+            label: 'Edit row',
+            icon: <Edit className="h-3.5 w-3.5" />,
+            disabled: () => !snap.editable,
+            onClick: (row) => {
+              // Rows from V2 grid always include a stable `idx` key from table-rows-query.
+              // Pass the raw row object to the table editor state so the legacy RowEditor
+              // side panel can be reused.
+              // biome-ignore lint/suspicious/noExplicitAny: table editor rows are untyped dictionaries
+              tableEditorSnap.onEditRow(row as any)
+            },
+          },
+          {
+            id: 'delete-row',
+            label: 'Delete row',
+            icon: <Trash2 className="h-3.5 w-3.5" />,
+            disabled: () => !snap.editable,
+            onClick: (row) => {
+              // V2 rows share the same shape as SupaRow in the legacy grid,
+              // including the synthetic `idx` used for identification.
+              deleteRows({
+                rows: [row as any],
+                table: snap.originalTable,
+                allRowsSelected: false,
+              })
+            },
+          },
+        ]}
         onRetry={() => {
           void queryClient.invalidateQueries({
             queryKey: tableRowKeys.tableRowsAndCount(projectRef, tableId),

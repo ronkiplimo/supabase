@@ -101,14 +101,15 @@ function SortableDataTab({
     >
       <TypeBadge domain={tab.domain} type={tab.type} />
       <span className="flex-1 min-w-0 truncate text-xs">{tab.label}</span>
-      <button
-        type="button"
+      <span
+        role="button"
+        tabIndex={-1}
         onClick={(e) => onClose(e)}
         className="-ml-0.5 opacity-0 group-hover:opacity-100 p-0.5 rounded hover:!bg-sidebar-accent text-foreground-lighter hover:text-foreground shrink-0"
         aria-label={`Close ${tab.label}`}
       >
         <X className="h-3 w-3" />
-      </button>
+      </span>
     </button>
   )
 }
@@ -204,7 +205,7 @@ export function DataTabBar() {
 
     const rest = pathname.slice(base.length)
     const [category, detailKey] = rest.split('/')
-    if (!category || category === 'tables') return
+    if (!category) return
     if (!(category in CATEGORY_LABELS)) return
 
     if (category === 'edge-functions' && detailKey) {

@@ -3,7 +3,7 @@
 import { useProjectDetailQuery } from 'data/projects/project-detail-query'
 import { useTableEditorQuery } from 'data/table-editor/table-editor-query'
 import { useParams } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
 import { useV2Params } from '@/app/v2/V2ParamsContext'
@@ -27,6 +27,7 @@ export function V2TableDetailView({ subTab }: { subTab: string }) {
     data: table,
     isLoading: isTableLoading,
     isError,
+    refetch,
   } = useTableEditorQuery(
     { projectRef, connectionString, id },
     {
@@ -44,6 +45,16 @@ export function V2TableDetailView({ subTab }: { subTab: string }) {
     Boolean(projectRef) && Boolean(connectionString) && typeof id === 'number' && !Number.isNaN(id)
   const isPending = isProjectLoading || (shouldFetchTable && isTableLoading)
 
+  const hasRetriedRef = useRef(false)
+
+  // For transient SQL / network errors, automatically retry once per mount before showing a hard failure.
+  useEffect(() => {
+    if (!isError) return
+    if (hasRetriedRef.current) return
+    hasRetriedRef.current = true
+    void refetch()
+  }, [isError, refetch])
+
   // Register this detail tab once we know the table name
   useEffect(() => {
     if (!table || !projectRef || !tableId) return
@@ -58,7 +69,20 @@ export function V2TableDetailView({ subTab }: { subTab: string }) {
   }, [table, projectRef, tableId, openDataTab])
 
   if (isError) {
-    return <div className="p-4 text-destructive text-sm">Failed to load table.</div>
+    return (
+      <div className="p-4 text-sm flex items-center gap-3 text-destructive">
+        <span>Failed to load table.</span>
+        <button
+          type="button"
+          className="text-xs rounded border px-2 py-1 border-destructive/40 hover:border-destructive hover:bg-destructive/5"
+          onClick={() => {
+            void refetch()
+          }}
+        >
+          Retry
+        </button>
+      </div>
+    )
   }
   if (isPending) {
     return <ShimmeringLoader className="m-4 h-8 rounded" />

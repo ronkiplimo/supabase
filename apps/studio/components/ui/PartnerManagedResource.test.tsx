@@ -41,13 +41,13 @@ describe('PartnerManagedResource', () => {
   it('renders Stripe connected copy and never shows CTA even when cta prop exists', () => {
     render(
       <PartnerManagedResource
-        managedBy={MANAGED_BY.STRIPE_FABRIC}
+        managedBy={MANAGED_BY.STRIPE_PROJECTS}
         resource="Payment Methods"
         cta={{ installationId: 'vercel-installation-id', organizationSlug: 'aws-org' }}
       />
     )
 
-    expect(screen.getByText('Payment Methods are connected to Stripe Fabric.')).toBeInTheDocument()
+    expect(screen.getByText('Payment Methods are connected to Stripe.')).toBeInTheDocument()
     expect(screen.queryByRole('link')).toBeNull()
     expect(mockUseVercelRedirectQuery).toHaveBeenCalledWith(
       { installationId: 'vercel-installation-id' },

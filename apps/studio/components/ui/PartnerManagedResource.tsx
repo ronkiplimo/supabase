@@ -21,7 +21,7 @@ interface PartnerManagedResourceProps {
 export const PARTNER_TO_NAME = {
   [MANAGED_BY.VERCEL_MARKETPLACE]: 'Vercel Marketplace',
   [MANAGED_BY.AWS_MARKETPLACE]: 'AWS Marketplace',
-  [MANAGED_BY.STRIPE_FABRIC]: 'Stripe Fabric',
+  [MANAGED_BY.STRIPE_PROJECTS]: 'Stripe Projects',
   [MANAGED_BY.SUPABASE]: 'Supabase',
 } as const
 
@@ -63,8 +63,8 @@ function PartnerManagedResource({ managedBy, resource, cta }: PartnerManagedReso
     cta?.overrideUrl ?? (redirectBaseUrl ? `${redirectBaseUrl}${cta?.path ?? ''}` : undefined)
   const showCta = ctaEnabled && supportsRedirectCta && Boolean(ctaUrl)
   const partnerHeading =
-    managedBy === MANAGED_BY.STRIPE_FABRIC
-      ? `${resource} are connected to Stripe Fabric.`
+    managedBy === MANAGED_BY.STRIPE_PROJECTS
+      ? `${resource} are connected to Stripe.`
       : `${resource} are managed by ${PARTNER_TO_NAME[managedBy]}.`
 
   return (

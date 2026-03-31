@@ -11,7 +11,7 @@ export function getManagedByFromOrganizationPartner(partner: OrganizationPartner
     case 'aws_marketplace':
       return MANAGED_BY.AWS_MARKETPLACE
     case 'stripe_projects':
-      return MANAGED_BY.STRIPE_FABRIC
+      return MANAGED_BY.STRIPE_PROJECTS
     default:
       return MANAGED_BY.SUPABASE
   }

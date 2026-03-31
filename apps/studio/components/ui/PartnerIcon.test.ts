@@ -13,9 +13,7 @@ describe('PartnerIcon tooltip copy', () => {
     expect(getDefaultPartnerTooltipText(MANAGED_BY.AWS_MARKETPLACE)).toBe(
       'Billed via AWS Marketplace'
     )
-    expect(getDefaultPartnerTooltipText(MANAGED_BY.STRIPE_FABRIC)).toBe(
-      'Connected to Stripe Fabric'
-    )
+    expect(getDefaultPartnerTooltipText(MANAGED_BY.STRIPE_PROJECTS)).toBe('Connected to Stripe')
   })
 
   it('uses custom tooltip text when provided', () => {
@@ -37,7 +35,7 @@ describe('PartnerIcon tooltip copy', () => {
 
   it('renders an icon element for Stripe organizations', () => {
     const organization = {
-      managed_by: MANAGED_BY.STRIPE_FABRIC,
+      managed_by: MANAGED_BY.STRIPE_PROJECTS,
     } as Pick<Organization, 'managed_by'>
 
     const { container } = render(

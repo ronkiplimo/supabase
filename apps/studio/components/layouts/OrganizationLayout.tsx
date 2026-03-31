@@ -35,7 +35,7 @@ type MarketplaceBannerConfig = {
 const MARKETPLACE_BANNER_CONFIG: Record<
   | typeof MANAGED_BY.VERCEL_MARKETPLACE
   | typeof MANAGED_BY.AWS_MARKETPLACE
-  | typeof MANAGED_BY.STRIPE_FABRIC,
+  | typeof MANAGED_BY.STRIPE_PROJECTS,
   MarketplaceBannerConfig
 > = {
   [MANAGED_BY.VERCEL_MARKETPLACE]: {
@@ -48,8 +48,8 @@ const MARKETPLACE_BANNER_CONFIG: Record<
     description: 'Changes to billing and payment details must be made in AWS.',
     redirectSource: 'aws',
   },
-  [MANAGED_BY.STRIPE_FABRIC]: {
-    title: 'This organization is connected to Stripe Fabric',
+  [MANAGED_BY.STRIPE_PROJECTS]: {
+    title: 'This organization is connected to Stripe',
     description: 'Changes here will be reflected in your connected Stripe account.',
   },
 }
@@ -75,8 +75,8 @@ function getMarketplaceBannerConfig(managedBy?: string): MarketplaceBannerConfig
       return MARKETPLACE_BANNER_CONFIG[MANAGED_BY.VERCEL_MARKETPLACE]
     case MANAGED_BY.AWS_MARKETPLACE:
       return MARKETPLACE_BANNER_CONFIG[MANAGED_BY.AWS_MARKETPLACE]
-    case MANAGED_BY.STRIPE_FABRIC:
-      return MARKETPLACE_BANNER_CONFIG[MANAGED_BY.STRIPE_FABRIC]
+    case MANAGED_BY.STRIPE_PROJECTS:
+      return MARKETPLACE_BANNER_CONFIG[MANAGED_BY.STRIPE_PROJECTS]
     default:
       return undefined
   }

@@ -19,8 +19,8 @@ export function getDefaultPartnerTooltipText(
       return 'Managed via Vercel Marketplace'
     case MANAGED_BY.AWS_MARKETPLACE:
       return 'Billed via AWS Marketplace'
-    case MANAGED_BY.STRIPE_FABRIC:
-      return 'Connected to Stripe Fabric'
+    case MANAGED_BY.STRIPE_PROJECTS:
+      return 'Connected to Stripe'
     default:
       return `Managed by ${PARTNER_TO_NAME[managedBy]}`
   }
@@ -85,7 +85,7 @@ function getPartnerIcon(
           </g>
         </svg>
       )
-    case MANAGED_BY.STRIPE_FABRIC:
+    case MANAGED_BY.STRIPE_PROJECTS:
       return (
         <svg
           className={cn(
@@ -121,7 +121,7 @@ function PartnerIcon({
   if (
     organization.managed_by === MANAGED_BY.VERCEL_MARKETPLACE ||
     organization.managed_by === MANAGED_BY.AWS_MARKETPLACE ||
-    organization.managed_by === MANAGED_BY.STRIPE_FABRIC
+    organization.managed_by === MANAGED_BY.STRIPE_PROJECTS
   ) {
     const icon = getPartnerIcon(organization, size)
 

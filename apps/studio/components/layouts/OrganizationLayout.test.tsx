@@ -206,13 +206,13 @@ describe('OrganizationLayout', () => {
   it('renders Stripe connected copy with no Manage button', () => {
     mockUseSelectedOrganizationQuery.mockReturnValue({
       data: createMockOrganization({
-        managed_by: MANAGED_BY.STRIPE_FABRIC,
+        managed_by: MANAGED_BY.STRIPE_PROJECTS,
       }),
     })
 
     renderLayout()
 
-    expect(screen.getByText('This organization is connected to Stripe Fabric')).toBeTruthy()
+    expect(screen.getByText('This organization is connected to Stripe')).toBeTruthy()
     expect(
       screen.getByText('Changes here will be reflected in your connected Stripe account.')
     ).toBeTruthy()
@@ -224,7 +224,7 @@ describe('OrganizationLayout', () => {
     expect(mockUseLocalStorageQuery).toHaveBeenCalledWith(
       LOCAL_STORAGE_KEYS.ORGANIZATION_MARKETPLACE_BANNER_DISMISSED(
         'abcdefghijklmnopqrst',
-        MANAGED_BY.STRIPE_FABRIC
+        MANAGED_BY.STRIPE_PROJECTS
       ),
       false
     )

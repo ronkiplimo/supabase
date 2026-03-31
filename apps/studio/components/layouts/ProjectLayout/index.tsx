@@ -115,7 +115,7 @@ export const ProjectLayout = forwardRef<HTMLDivElement, PropsWithChildren<Projec
     const { data: selectedOrganization } = useSelectedOrganizationQuery()
     const { data: selectedProject } = useSelectedProjectQuery()
     const { addBanner, dismissBanner } = useBannerStack()
-const { data: resourceWarnings } = useResourceWarningsQuery({ ref: selectedProject?.ref })
+    const { data: resourceWarnings } = useResourceWarningsQuery({ ref: selectedProject?.ref })
     const projectResourceWarnings = resourceWarnings?.find(
       (w) => w.project === selectedProject?.ref
     )
@@ -173,7 +173,7 @@ const { data: resourceWarnings } = useResourceWarningsQuery({ ref: selectedProje
     const showPausedState = isPaused && !ignorePausedState
 
     useEffect(() => {
-if (!selectedProject?.ref) return
+      if (!selectedProject?.ref) return
       if (showUpgradeBanner && !isFreeMicroUpgradeBannerDismissed) {
         addBanner({
           id: BANNER_ID.FREE_MICRO_UPGRADE,

@@ -29,13 +29,13 @@ export function GlobalPresenceSection() {
   return (
     <div className="mx-auto max-w-[75rem] px-6 py-16 md:py-32">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16">
-        <p className="text-xl sm:text-2xl max-w-lg text-foreground-lighter">
+        <h3 className="text-2xl md:text-4xl text-foreground-lighter max-w-xl">
           Edge Functions run{' '}
           <span className="text-foreground">
             server-side logic geographically close to users
           </span>
           , offering low latency and great performance.
-        </p>
+        </h3>
         <div className="flex flex-col gap-6">
           {features.map((feature) => (
             <div

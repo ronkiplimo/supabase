@@ -24,7 +24,7 @@ function TerminalAnimation() {
 
   useEffect(() => {
     if (!inView) return
-    const timeouts: ReturnType<typeof setTimeout>[] = []
+    const timeouts: ReturnType[] = []
     TERMINAL_LINES.forEach((line, i) => {
       timeouts.push(setTimeout(() => setVisibleCount(i + 1), line.delay * 1000))
     })
@@ -41,7 +41,7 @@ function TerminalAnimation() {
         <span className="ml-2 text-xs text-foreground-muted font-mono uppercase">Terminal</span>
       </div>
       {/* Lines */}
-      <div className="px-4 md:px-6 font-mono text-xs md:text-sm leading-relaxed h-[280px] flex flex-col justify-center">
+      <div className="px-4 md:px-6 font-mono text-xs md:text-sm leading-relaxed h-[280px] flex flex-col justify-start items-start text-left pt-4">
         <AnimatePresence>
           {TERMINAL_LINES.slice(0, visibleCount).map((line, i) => (
             <motion.div
@@ -50,7 +50,7 @@ function TerminalAnimation() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
               className={
-                line.accent ? 'text-brand' : line.dim ? 'text-foreground-muted' : 'text-foreground'
+                line.accent ? 'text-brand' : line.dim ? 'text-foreground-light' : 'text-foreground'
               }
             >
               {line.text || '\u00A0'}

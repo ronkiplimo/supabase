@@ -76,7 +76,7 @@ const highlights = [
   },
   {
     title: 'Node.js Support',
-    paragraph: 'Easily migrate existing workloads with support for more than 1 million NPM modules',
+    paragraph: 'Migrate existing workloads with support for 1M+ NPM modules',
     icon: (
       <svg
         className="w-5 h-5"

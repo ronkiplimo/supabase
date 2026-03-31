@@ -75,9 +75,15 @@ export function IntegratesSectionClient({ useCases }: { useCases: UseCase[] }) {
     <div ref={inViewRef} className="py-24 flex flex-col gap-16">
       {/* Header */}
       <div className="mx-auto max-w-[var(--container-max-w,75rem)] px-6 w-full">
-        <h3 className="text-2xl md:text-4xl text-foreground-lighter max-w-xl">
-          Integrates with the <span className="text-foreground">Supabase ecosystem</span>
-        </h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-end">
+          <h3 className="text-2xl md:text-4xl text-foreground-lighter max-w-xl">
+            Integrates with the <span className="text-foreground">Supabase ecosystem</span>
+          </h3>
+          <p className="text-foreground-lighter text-sm lg:text-base">
+            Access your database, auth, storage, and webhooks directly from Edge Functions with zero
+            configuration.
+          </p>
+        </div>
       </div>
 
       {/* Content */}
@@ -109,7 +115,7 @@ export function IntegratesSectionClient({ useCases }: { useCases: UseCase[] }) {
           {/* Right: code area */}
           <div className="flex flex-col border border-border rounded-md overflow-clip">
             <div className="relative h-[440px] shrink-0 overflow-auto">
-              <AnimatePresence mode="popLayout">
+              <AnimatePresence mode="wait">
                 <motion.div
                   key={active.label}
                   initial={{ opacity: 0 }}
@@ -132,7 +138,7 @@ export function IntegratesSectionClient({ useCases }: { useCases: UseCase[] }) {
 
             {/* Footer: active tab info */}
             <div className="border-t border-border px-6 py-4 flex items-center gap-8 justify-between bg-surface-75">
-              <AnimatePresence mode="popLayout">
+              <AnimatePresence mode="wait">
                 <motion.div
                   key={active.label}
                   initial={{ opacity: 0 }}

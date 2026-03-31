@@ -5,24 +5,21 @@ import Auth from './Auth'
 import Account from './Account'
 
 function App() {
-  const [user, setUser] = useState(null)
+  const [claims, setClaims] = useState(null)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user)
-    })
+    const { data: { claims } } = supabase.auth.getClaims()
+    setClaims(claims)
 
-    supabase.auth.onAuthStateChange(async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      setUser(user)
+    supabase.auth.onAuthStateChange(() => {
+      const { data: { claims } } = supabase.auth.getClaims()
+      setClaims(claims)
     })
   }, [])
 
   return (
     <div className="container" style={{ padding: '50px 0 100px 0' }}>
-      {!user ? <Auth /> : <Account key={user.id} user={user} />}
+      {!claims ? <Auth /> : <Account key={claims.sub} claims={claims} />}
     </div>
   )
 }

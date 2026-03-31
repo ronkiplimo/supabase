@@ -58,7 +58,13 @@ Optionally, update `src/styles.css` to style the app. You can find the full cont
 
 ### Set up a login component
 
-Next, you need an Angular component to manage logins and sign ups. The component uses [Magic Links](/docs/guides/auth/auth-email-passwordless#with-magic-link), so users can sign in with their email without using passwords.
+You need an Angular component to manage logins and sign ups. The component uses [Magic Links](/docs/guides/auth/auth-email-passwordless#with-magic-link), so users can sign in with their email without using passwords.
+
+<Admonition type="tip" label="Did you know?">
+
+You can customize other emails sent out to new users, including the email's looks, content, and query parameters from [the **Authentication > Email**](/dashboard/project/_/auth/templates) section of the Dashboard.
+
+</Admonition>
 
 Create an `AuthComponent` with the `ng g c auth` Angular CLI command and add the following code.
 
@@ -80,8 +86,7 @@ meta="name=src/app/auth/auth.component.html"
 
 ### Account page
 
-Users also need a way to edit their profile details and manage their accounts after signing in.
-Create an `AccountComponent` with the `ng g c account` Angular CLI command and add the following code.
+Users also need a way to edit their profile details and manage their accounts after signing in. Create an `AccountComponent` with the `ng g c account` Angular CLI command and add the following code.
 
 <$CodeTabs>
 
@@ -101,7 +106,7 @@ meta="name=src/app/account/account.component.html"
 
 ## Profile photos
 
-Next, add a way for users to upload a profile photo. Supabase configures every project with [Storage](/docs/guides/storage) for managing large files like photos and videos.
+Add a way for users to upload a profile photo. Supabase configures every project with [Storage](/docs/guides/storage) for managing large files like photos and videos.
 
 ### Create an upload widget
 
@@ -125,7 +130,7 @@ meta="name=src/app/avatar/avatar.component.html"
 
 ### Launch!
 
-With all the components in place, update `AppComponent`:
+With all the components in place, change the contents of `AppComponent` to include the new components and Auth logic:
 
 <$CodeTabs>
 
@@ -142,6 +147,8 @@ meta="name=src/app/app.component.html"
 />
 
 </$CodeTabs>
+
+<$Partial path="auth_methods.mdx" />
 
 You also need to change `app.module.ts` to include the `ReactiveFormsModule` from the `@angular/forms` package.
 

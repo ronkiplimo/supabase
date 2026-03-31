@@ -127,10 +127,6 @@ vi.mock('@/hooks/custom-content/useCustomContent', () => ({
   useCustomContent: () => ({ appTitle: 'Supabase' }),
 }))
 
-vi.mock('@/hooks/misc/useCheckEntitlements', () => ({
-  useCheckEntitlements: () => ({ hasAccess: false, isLoading: false }),
-}))
-
 vi.mock('@/hooks/misc/useLocalStorage', () => ({
   useLocalStorageQuery: () => [false, vi.fn()],
 }))

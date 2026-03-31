@@ -6,14 +6,11 @@ import { ProjectAddonVariantMeta } from 'data/subscriptions/types'
 import { ResourceWarning } from 'data/usage/resource-warnings-query'
 import { getCloudProviderArchitecture } from 'lib/cloudprovider-utils'
 import { INSTANCE_MICRO_SPECS } from 'lib/constants'
-import { useTrack } from 'lib/telemetry/track'
 import Link from 'next/link'
 import { useState } from 'react'
 import { Button, cn, HoverCard, HoverCardContent, HoverCardTrigger, Separator } from 'ui'
 import { ComputeBadge } from 'ui-patterns/ComputeBadge'
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
-
-import { UpgradePlanButton } from './UpgradePlanButton'
 
 export const ChevronsUpAnimated = () => (
   <svg
@@ -68,7 +65,6 @@ export const ComputeBadgeWrapper = ({
   // handles the state of the hover card
   // once open it will fetch the addons
   const [open, setOpenState] = useState(false)
-  const track = useTrack()
 
   // returns hardcoded values for infra
   const cpuArchitecture = getCloudProviderArchitecture(cloudProvider)
@@ -99,17 +95,17 @@ export const ComputeBadgeWrapper = ({
 
   const { data, isPending: isLoadingSubscriptions } = useOrgSubscriptionQuery(
     { orgSlug: slug },
-    { enabled: !!slug }
+    { enabled: open }
   )
 
-  const isFreeOnNano = !!data && data.plan.id === 'free' && computeSize === 'nano'
-  const isEligibleForFreeUpgrade = !!data && data.plan.id !== 'free' && computeSize === 'nano'
-  const isLoading = isLoadingAddons || isLoadingSubscriptions
+  const isEligibleForFreeUpgrade = data?.plan.id !== 'free' && computeSize === 'nano'
   const isComputeNearExhaustion =
     !!resourceWarnings?.cpu_exhaustion ||
     !!resourceWarnings?.memory_and_swap_exhaustion ||
     !!resourceWarnings?.disk_space_exhaustion
   const showUpgradeGlow = isEligibleForFreeUpgrade && isComputeNearExhaustion
+
+  const isLoading = isLoadingAddons || isLoadingSubscriptions
 
   if (!computeSize) return null
 
@@ -180,79 +176,28 @@ export const ComputeBadgeWrapper = ({
             )}
           </div>
         </div>
-        {(isFreeOnNano || isEligibleForFreeUpgrade || !isHighestCompute) && (
+        {(!isHighestCompute || isEligibleForFreeUpgrade) && (
           <>
             <Separator />
             <div className="p-3 px-5 text-sm flex flex-col gap-2 bg-studio">
               <div className="flex flex-col gap-0">
                 <p className="text-foreground">
-                  {isFreeOnNano
-                    ? 'Double your memory for free'
-                    : isEligibleForFreeUpgrade && isComputeNearExhaustion
-                      ? 'Your project is running low on resources'
-                      : isEligibleForFreeUpgrade
-                        ? 'Free upgrade to Micro available'
-                        : 'Unlock more compute'}
+                  {isEligibleForFreeUpgrade
+                    ? 'Free upgrade to Micro available'
+                    : 'Unlock more compute'}
                 </p>
                 <p className="text-foreground-light">
-                  {isFreeOnNano
-                    ? 'Upgrade to Pro and get a free Micro compute upgrade — double the memory at no extra cost.'
-                    : isEligibleForFreeUpgrade && isComputeNearExhaustion
-                      ? 'Your Nano compute is approaching its limits. Your Pro plan includes a free upgrade to Micro — double the memory at no extra cost.'
-                      : isEligibleForFreeUpgrade
-                        ? 'Your Pro plan includes a free upgrade from Nano to Micro compute.'
-                        : 'Scale your project up to 64 cores and 256 GB RAM.'}
+                  {isEligibleForFreeUpgrade
+                    ? 'Paid plans include a free upgrade to Micro compute.'
+                    : 'Scale your project up to 64 cores and 256 GB RAM.'}
                 </p>
               </div>
               <div>
-                {isFreeOnNano ? (
-                  <UpgradePlanButton
-                    source="compute_badge"
-                    plan="Pro"
-                    slug={slug}
-                    onClick={() =>
-                      track('compute_badge_upgrade_clicked', {
-                        computeSize: computeSize ?? '',
-                        planId: data?.plan.id ?? '',
-                        upgradeType: 'pro_upgrade',
-                      })
-                    }
-                  >
-                    Upgrade to Pro
-                  </UpgradePlanButton>
-                ) : isEligibleForFreeUpgrade ? (
-                  <Button
-                    asChild
-                    type="primary"
-                    onClick={() =>
-                      track('compute_badge_upgrade_clicked', {
-                        computeSize: computeSize ?? '',
-                        planId: data?.plan.id ?? '',
-                        upgradeType: 'free_micro_upgrade',
-                      })
-                    }
-                  >
-                    <Link href={`/project/${projectRef}/settings/compute-and-disk?upgrade=micro`}>
-                      Upgrade for free
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button
-                    asChild
-                    type="primary"
-                    onClick={() =>
-                      track('compute_badge_upgrade_clicked', {
-                        computeSize: computeSize ?? '',
-                        planId: data?.plan.id ?? '',
-                        upgradeType: 'compute_upgrade',
-                      })
-                    }
-                  >
-                    <Link href={`/project/${projectRef}/settings/compute-and-disk`}>
-                      Upgrade compute
-                    </Link>
-                  </Button>
-                )}
+                <Button asChild type="default" htmlType="button" role="button">
+                  <Link href={`/project/${projectRef}/settings/compute-and-disk`}>
+                    Upgrade compute
+                  </Link>
+                </Button>
               </div>
             </div>
           </>

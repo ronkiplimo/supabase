@@ -43,7 +43,6 @@ import { BannerFreeMicroUpgrade } from '@/components/ui/BannerStack/Banners/Bann
 import { BANNER_ID, useBannerStack } from '@/components/ui/BannerStack/BannerStackProvider'
 import { ResourceExhaustionWarningBanner } from '@/components/ui/ResourceExhaustionWarningBanner/ResourceExhaustionWarningBanner'
 import { useCustomContent } from '@/hooks/custom-content/useCustomContent'
-import { useCheckEntitlements } from '@/hooks/misc/useCheckEntitlements'
 import { useLocalStorageQuery } from '@/hooks/misc/useLocalStorage'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
@@ -116,10 +115,7 @@ export const ProjectLayout = forwardRef<HTMLDivElement, PropsWithChildren<Projec
     const { data: selectedOrganization } = useSelectedOrganizationQuery()
     const { data: selectedProject } = useSelectedProjectQuery()
     const { addBanner, dismissBanner } = useBannerStack()
-    const { hasAccess: entitledUpdateCompute } = useCheckEntitlements(
-      'instances.compute_update_available_sizes'
-    )
-    const { data: resourceWarnings } = useResourceWarningsQuery({ ref: selectedProject?.ref })
+const { data: resourceWarnings } = useResourceWarningsQuery({ ref: selectedProject?.ref })
     const projectResourceWarnings = resourceWarnings?.find(
       (w) => w.project === selectedProject?.ref
     )
@@ -127,9 +123,8 @@ export const ProjectLayout = forwardRef<HTMLDivElement, PropsWithChildren<Projec
       !!projectResourceWarnings?.cpu_exhaustion ||
       !!projectResourceWarnings?.memory_and_swap_exhaustion ||
       !!projectResourceWarnings?.disk_space_exhaustion
-    const isEligibleForFreeUpgrade =
-      entitledUpdateCompute && selectedProject?.infra_compute_size === 'nano'
-    const showUpgradeBanner = isEligibleForFreeUpgrade && isComputeNearExhaustion
+    const isNanoCompute = selectedProject?.infra_compute_size === 'nano'
+    const showUpgradeBanner = isNanoCompute && isComputeNearExhaustion
     const [isFreeMicroUpgradeBannerDismissed] = useLocalStorageQuery(
       LOCAL_STORAGE_KEYS.FREE_MICRO_UPGRADE_BANNER_DISMISSED(selectedProject?.ref ?? ''),
       false
@@ -178,7 +173,7 @@ export const ProjectLayout = forwardRef<HTMLDivElement, PropsWithChildren<Projec
     const showPausedState = isPaused && !ignorePausedState
 
     useEffect(() => {
-      if (!selectedProject?.ref) return
+if (!selectedProject?.ref) return
       if (showUpgradeBanner && !isFreeMicroUpgradeBannerDismissed) {
         addBanner({
           id: BANNER_ID.FREE_MICRO_UPGRADE,

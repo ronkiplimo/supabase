@@ -232,6 +232,13 @@ export const LayoutHeader = ({
                 </motion.div>
               )}
             </AnimatePresence>
+            {showUnifiedOrgProjectSelector && exceedingLimits && (
+              <div className="ml-2">
+                <Link href={`/org/${selectedOrganization?.slug}/usage`}>
+                  <Badge variant="destructive">Exceeding usage limits</Badge>
+                </Link>
+              </div>
+            )}
             <BreadcrumbsView defaultValue={breadcrumbs} />
           </div>
           <div className="flex items-center gap-x-2">

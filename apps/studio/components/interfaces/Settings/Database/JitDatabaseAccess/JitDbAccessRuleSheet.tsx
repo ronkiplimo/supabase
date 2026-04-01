@@ -38,7 +38,7 @@ import {
   createDraft,
   draftFromRule,
   getAssignableJitRoleOptions,
-  getInvalidCidrs,
+  getInvalidIpRangeRows,
   mapJitMembersToUserRules,
   serializeDraftRolesForGrantMutation,
 } from './JitDbAccess.utils'
@@ -58,7 +58,7 @@ const grantSchema = z.object({
   hasExpiry: z.boolean(),
   expiry: z.string(),
   hasIpRestriction: z.boolean(),
-  ipRanges: z.string(),
+  ipRanges: z.array(z.object({ value: z.string() })),
 })
 
 function createJitRuleSchema(mode: SheetMode, membersWithRules: Set<string>) {
@@ -77,8 +77,8 @@ function createJitRuleSchema(mode: SheetMode, membersWithRules: Set<string>) {
         })
       }
 
-      const enabledGrants = data.grants.filter((g) => g.enabled)
-      if (enabledGrants.length === 0) {
+      const enabledGrantCount = data.grants.filter((g) => g.enabled).length
+      if (enabledGrantCount === 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['grants'],
@@ -87,19 +87,22 @@ function createJitRuleSchema(mode: SheetMode, membersWithRules: Set<string>) {
         return
       }
 
-      for (const grant of enabledGrants) {
-        const invalidCidrs = getInvalidCidrs(grant.ipRanges)
-        if (invalidCidrs.length > 0) {
-          const preview = invalidCidrs.slice(0, 3).join(', ')
-          const overflow = invalidCidrs.length > 3
+      data.grants.forEach((grant, grantIndex) => {
+        if (!grant.enabled) return
+
+        const invalidCidrs = new Set(getInvalidIpRangeRows(grant.ipRanges))
+
+        grant.ipRanges.forEach((ipRange, ipRangeIndex) => {
+          const value = ipRange.value.trim()
+          if (value.length === 0 || !invalidCidrs.has(value)) return
+
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            path: ['grants'],
-            message: `Invalid CIDR range${invalidCidrs.length > 1 ? 's' : ''} for role "${grant.roleId}": ${preview}${overflow ? ', ...' : ''}`,
+            path: ['grants', grantIndex, 'ipRanges', ipRangeIndex, 'value'],
+            message: 'Please enter a valid CIDR range',
           })
-          break
-        }
-      }
+        })
+      })
     })
 }
 
@@ -313,6 +316,8 @@ export function JitDbAccessRuleSheet({
                           {grants.map((grant, index) => (
                             <div key={grant.roleId} className={index > 0 ? 'border-t' : ''}>
                               <JitDbAccessRoleGrantFields
+                                control={form.control}
+                                grantIndex={index}
                                 role={{ id: grant.roleId, label: grant.roleId }}
                                 grant={grant}
                                 onChange={(next) => updateGrant(grant.roleId, () => next)}

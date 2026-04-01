@@ -2,10 +2,10 @@ import { DatePicker } from 'components/ui/DatePicker'
 import { InlineLink } from 'components/ui/InlineLink'
 import dayjs from 'dayjs'
 import { DOCS_URL } from 'lib/constants'
+import type { Control } from 'react-hook-form'
 import {
   Checkbox_Shadcn_,
   cn,
-  Input_Shadcn_,
   Select_Shadcn_,
   SelectContent_Shadcn_,
   SelectItem_Shadcn_,
@@ -15,18 +15,23 @@ import {
 } from 'ui'
 import { TimestampInfo } from 'ui-patterns'
 import { Admonition } from 'ui-patterns/admonition'
+import { SingleValueFieldArray } from 'ui-patterns/form/SingleValueFieldArray/SingleValueFieldArray'
 
 import { JIT_EXPIRY_MODE_OPTIONS, JIT_MAX_CUSTOM_EXPIRY_YEARS } from './JitDbAccess.constants'
-import type { JitRoleGrantDraft, JitRoleOption } from './JitDbAccess.types'
-import { getRelativeDatetimeByMode } from './JitDbAccess.utils'
+import type { JitRoleGrantDraft, JitRoleOption, JitUserRuleDraft } from './JitDbAccess.types'
+import { createEmptyIpRange, getRelativeDatetimeByMode } from './JitDbAccess.utils'
 
 interface JitDbAccessRoleGrantFieldsProps {
+  control: Control<JitUserRuleDraft>
+  grantIndex: number
   role: JitRoleOption
   grant: JitRoleGrantDraft
   onChange: (next: JitRoleGrantDraft) => void
 }
 
 export function JitDbAccessRoleGrantFields({
+  control,
+  grantIndex,
   role,
   grant,
   onChange,
@@ -218,18 +223,20 @@ export function JitDbAccessRoleGrantFields({
                 Restricted IP addresses{' '}
                 <span className="font-normal text-foreground-lighter">(optional)</span>
               </p>
-              <Input_Shadcn_
-                value={grant.ipRanges}
-                onChange={(event) =>
-                  onChange({
-                    ...grant,
-                    hasIpRestriction: event.target.value.trim().length > 0,
-                    ipRanges: event.target.value,
-                  })
-                }
-                placeholder="e.g. 192.168.0.0/24, 203.0.113.4/32"
+              <SingleValueFieldArray
+                control={control}
+                name={`grants.${grantIndex}.ipRanges` as const}
+                valueFieldName="value"
+                createEmptyRow={createEmptyIpRange}
+                placeholder="192.168.0.0/24"
+                addLabel="Add IP restriction"
+                removeLabel="Remove IP restriction"
+                minimumRows={1}
+                inputAutoComplete="off"
+                rowsClassName="space-y-2"
+                addButtonClassName="w-min"
               />
-              <p className="text-xs text-foreground-lighter">Comma-separated CIDR ranges</p>
+              <p className="text-xs text-foreground-lighter">One CIDR range per row</p>
             </div>
           </div>
         </div>

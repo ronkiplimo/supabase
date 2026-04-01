@@ -1,12 +1,11 @@
-import { DocsButton } from 'components/ui/DocsButton'
-import type { Branch } from 'data/branches/branches-query'
-import { GitHubConnectionsData } from 'data/integrations/github-connections-query'
-import { DOCS_URL } from 'lib/constants'
 import { Github } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from 'ui'
 
 import { BranchSelector } from './BranchSelector'
+import { DocsButton } from '@/components/ui/DocsButton'
+import type { Branch } from '@/data/branches/branches-query'
+import { DOCS_URL } from '@/lib/constants'
 
 const EMPTY_STATE_CONTAINER = 'flex items-center flex-col gap-0.5 justify-center w-full py-10 px-4'
 

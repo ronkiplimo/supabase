@@ -31,7 +31,6 @@ describe('jitDbAccess.utils', () => {
       enabled: true,
       hasExpiry: true,
       expiry: dayjs().add(1, 'day').toISOString(),
-      hasIpRestriction: true,
       ipRanges: [{ value: '192.0.2.0/24' }],
     }
 
@@ -40,7 +39,6 @@ describe('jitDbAccess.utils', () => {
       enabled: true,
       hasExpiry: true,
       expiry: dayjs().subtract(1, 'day').toISOString(),
-      hasIpRestriction: true,
       ipRanges: [{ value: '203.0.113.0/24' }],
     }
 
@@ -93,7 +91,6 @@ describe('serializeDraftRolesForGrantMutation', () => {
           hasExpiry: true,
           expiryMode: 'custom',
           expiry,
-          hasIpRestriction: true,
           ipRanges: [{ value: '192.0.2.0/24' }, { value: '   ' }, { value: '2001:db8::/64' }],
         },
         {

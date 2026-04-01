@@ -37,7 +37,6 @@ export function createEmptyGrant(roleId: string): JitRoleGrantDraft {
     expiryMode: '1h',
     hasExpiry: true,
     expiry: getRelativeDatetimeByMode('1h'),
-    hasIpRestriction: false,
     ipRanges: [createEmptyIpRange()],
   }
 }
@@ -186,10 +185,6 @@ function isValidCidr(value: string) {
   }
 }
 
-export function getInvalidCidrs(value: string) {
-  return parseCommaSeparatedCidrs(value).filter((cidr) => !isValidCidr(cidr))
-}
-
 export function getInvalidIpRangeRows(value: JitIpRangeDraft[]) {
   return parseIpRangeRows(value).filter((cidr) => !isValidCidr(cidr))
 }
@@ -282,7 +277,6 @@ export function mapJitMembersToUserRules(
         hasExpiry,
         expiryMode: hasExpiry ? 'custom' : 'never',
         expiry: hasExpiry ? new Date(expiresAt * 1000).toISOString() : '',
-        hasIpRestriction: allowedNetworks.length > 0,
         ipRanges:
           allowedNetworks.length > 0
             ? allowedNetworks.map((cidr) => ({ value: cidr }))

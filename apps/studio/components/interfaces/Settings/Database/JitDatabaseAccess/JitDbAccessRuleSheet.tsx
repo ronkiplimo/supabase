@@ -57,7 +57,6 @@ const grantSchema = z.object({
   expiryMode: z.custom<JitExpiryMode>(),
   hasExpiry: z.boolean(),
   expiry: z.string(),
-  hasIpRestriction: z.boolean(),
   ipRanges: z.array(z.object({ value: z.string() })),
 })
 

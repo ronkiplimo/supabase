@@ -33,7 +33,6 @@ export type JitRoleGrantDraft = {
   expiryMode: JitExpiryMode
   hasExpiry: boolean
   expiry: string
-  hasIpRestriction: boolean
   ipRanges: JitIpRangeDraft[]
 }
 

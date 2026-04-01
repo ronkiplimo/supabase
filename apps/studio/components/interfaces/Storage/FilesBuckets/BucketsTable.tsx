@@ -13,6 +13,8 @@ type BucketsTableProps = {
   filterString: string
   formattedGlobalUploadLimit: string
   pagination: BucketsTablePaginationProps
+  // TODO: Add action to navigate to RLS policy editor for storage.objects
+  isPublicBucketListable?: (bucketId: string) => boolean
 }
 
 export const BucketsTable = (props: BucketsTableProps) => {
@@ -30,6 +32,7 @@ const BucketsTableUnvirtualized = ({
   filterString,
   formattedGlobalUploadLimit,
   pagination: { hasMore = false, isLoadingMore = false, onLoadMore },
+  isPublicBucketListable,
 }: BucketsTableProps) => {
   const showSearchEmptyState = buckets.length === 0 && filterString.length > 0
 
@@ -52,6 +55,7 @@ const BucketsTableUnvirtualized = ({
               bucket={bucket}
               projectRef={projectRef}
               formattedGlobalUploadLimit={formattedGlobalUploadLimit}
+              isListable={isPublicBucketListable?.(bucket.id)}
             />
           ))
         )}
@@ -73,6 +77,7 @@ const BucketsTableVirtualized = ({
   filterString,
   formattedGlobalUploadLimit,
   pagination: { hasMore = false, isLoadingMore = false, onLoadMore },
+  isPublicBucketListable,
 }: BucketsTableProps) => {
   const showSearchEmptyState = buckets.length === 0 && filterString.length > 0
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -109,6 +114,7 @@ const BucketsTableVirtualized = ({
             bucket={bucket}
             projectRef={projectRef}
             formattedGlobalUploadLimit={formattedGlobalUploadLimit}
+            isListable={isPublicBucketListable?.(bucket.id)}
           />
         )}
       </VirtualizedTableBody>

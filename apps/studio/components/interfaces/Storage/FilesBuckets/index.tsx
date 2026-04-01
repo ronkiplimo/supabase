@@ -27,6 +27,8 @@ import AlertError from '@/components/ui/AlertError'
 import { InlineLink } from '@/components/ui/InlineLink'
 import { useProjectStorageConfigQuery } from '@/data/config/project-storage-config-query'
 import { usePaginatedBucketsQuery } from '@/data/storage/buckets-query'
+import { usePublicBucketsWithSelectPoliciesQuery } from '@/data/storage/public-buckets-with-select-policies-query'
+import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
 import { IS_PLATFORM } from '@/lib/constants'
 import { formatBytes } from '@/lib/helpers'
 import { useStorageExplorerStateSnapshot } from '@/state/storage-explorer'
@@ -47,7 +49,12 @@ export const FilesBuckets = () => {
     parseAsBoolean.withDefault(false).withOptions({ history: 'push', clearOnDefault: true })
   )
 
+  const { data: project } = useSelectedProjectQuery()
   const { data } = useProjectStorageConfigQuery({ projectRef: ref }, { enabled: IS_PLATFORM })
+  const { isPublicBucketListable } = usePublicBucketsWithSelectPoliciesQuery({
+    projectRef: ref,
+    connectionString: project?.connectionString,
+  })
   const {
     data: bucketsData,
     error: bucketsError,
@@ -147,6 +154,7 @@ export const FilesBuckets = () => {
                         projectRef={ref ?? '_'}
                         filterString={filterString}
                         formattedGlobalUploadLimit={formattedGlobalUploadLimit}
+                        isPublicBucketListable={isPublicBucketListable}
                         pagination={{
                           hasMore: hasNextPage,
                           isLoadingMore: isFetchingBuckets,

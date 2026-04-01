@@ -1,3 +1,4 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'common'
 import { DeleteBucketModal } from 'components/interfaces/Storage/DeleteBucketModal'
 import { EditBucketModal } from 'components/interfaces/Storage/EditBucketModal'
@@ -10,14 +11,23 @@ import { useBucketPolicyCount } from 'components/interfaces/Storage/useBucketPol
 import DefaultLayout from 'components/layouts/DefaultLayout'
 import { PageLayout } from 'components/layouts/PageLayout/PageLayout'
 import StorageLayout from 'components/layouts/StorageLayout/StorageLayout'
+import { executeSql } from 'data/sql/execute-sql-query'
 import { ChevronDown, FolderOpen, Settings, Shield, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { parseAsBoolean, useQueryState } from 'nuqs'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import type { NextPageWithLayout } from 'types'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
   Badge,
   Button,
   DropdownMenu,
@@ -29,7 +39,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from 'ui'
+import { Admonition } from 'ui-patterns'
 
+import { storageKeys } from '@/data/storage/keys'
+import { usePublicBucketsWithSelectPoliciesQuery } from '@/data/storage/public-buckets-with-select-policies-query'
+import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
 import { StorageExplorerStateContextProvider } from '@/state/storage-explorer'
 
 const BucketPage: NextPageWithLayout = () => {
@@ -52,6 +66,34 @@ const BucketPage: NextPageWithLayout = () => {
 
   const { getPolicyCount } = useBucketPolicyCount()
   const policyCount = bucket ? getPolicyCount(bucket.id) : 0
+
+  const { data: project } = useSelectedProjectQuery()
+  const queryClient = useQueryClient()
+  const [showRemovePolicyModal, setShowRemovePolicyModal] = useState(false)
+
+  const { data: listablePoliciesData } = usePublicBucketsWithSelectPoliciesQuery({
+    projectRef: ref,
+    connectionString: project?.connectionString,
+  })
+  const matchingPolicies = listablePoliciesData?.filter((row) => row.bucket_id === bucket?.id) ?? []
+  const policyToRemove = matchingPolicies[0]
+
+  const { mutate: removeSelectPolicy, isPending: isRemovingPolicy } = useMutation({
+    mutationFn: async (policyname: string) => {
+      await executeSql({
+        projectRef: ref!,
+        connectionString: project?.connectionString,
+        sql: `DROP POLICY IF EXISTS "${policyname}" ON storage.objects;`,
+      })
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: storageKeys.publicBucketsWithSelectPolicies(ref),
+      })
+      setShowRemovePolicyModal(false)
+      toast.success('Policy removed successfully')
+    },
+  })
 
   useEffect(() => {
     if (isSuccess && !bucket) {
@@ -150,10 +192,58 @@ const BucketPage: NextPageWithLayout = () => {
           </>
         }
       >
-        <div className="flex-1 min-h-0 px-6 pb-6">
-          <StorageExplorer />
+        <div className="flex-1 min-h-0 px-6 pb-6 flex flex-col gap-4">
+          {policyToRemove && (
+            <Admonition
+              type="warning"
+              layout="horizontal"
+              title="Object listing is enabled on this bucket"
+              description="A SELECT policy on storage.objects makes all objects in this bucket enumerable. Public buckets don't require SELECT policies. This may have been added unintentionally."
+              actions={
+                <Button type="warning" size="tiny" onClick={() => setShowRemovePolicyModal(true)}>
+                  Remove policy
+                </Button>
+              }
+            />
+          )}
+          <div className="flex-1 min-h-0">
+            <StorageExplorer />
+          </div>
         </div>
       </PageLayout>
+
+      {policyToRemove && (
+        <AlertDialog open={showRemovePolicyModal} onOpenChange={setShowRemovePolicyModal}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Remove SELECT policy</AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="flex flex-col gap-3">
+                  <p>
+                    The following policy will be dropped from{' '}
+                    <span className="text-foreground font-mono">storage.objects</span>:
+                  </p>
+                  <p className="font-mono text-foreground">{policyToRemove.policyname}</p>
+                  <p>This will run:</p>
+                  <pre className="bg-surface-200 rounded px-3 py-2 text-xs text-foreground font-mono whitespace-pre-wrap">
+                    {`DROP POLICY IF EXISTS "${policyToRemove.policyname}" ON storage.objects;`}
+                  </pre>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                variant="destructive"
+                disabled={isRemovingPolicy}
+                onClick={() => removeSelectPolicy(policyToRemove.policyname)}
+              >
+                Remove policy
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
 
       {bucket && (
         <>

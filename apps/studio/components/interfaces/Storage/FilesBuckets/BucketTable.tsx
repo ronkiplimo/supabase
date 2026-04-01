@@ -1,5 +1,5 @@
 import { FilesBucket as FilesBucketIcon } from 'icons'
-import { ChevronRight } from 'lucide-react'
+import { AlertTriangle, ChevronRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import {
   Badge,
@@ -84,6 +84,7 @@ type BucketTableRowProps = {
   bucket: Bucket
   projectRef: string
   formattedGlobalUploadLimit: string
+  isListable?: boolean
 }
 
 export const BucketTableRow = ({
@@ -91,6 +92,7 @@ export const BucketTableRow = ({
   bucket,
   projectRef,
   formattedGlobalUploadLimit,
+  isListable = false,
 }: BucketTableRowProps) => {
   const router = useRouter()
   const { getPolicyCount } = useBucketPolicyCount()
@@ -127,6 +129,21 @@ export const BucketTableRow = ({
                 </Badge>
               </TooltipTrigger>
               <TooltipContent side="top">{PUBLIC_BUCKET_TOOLTIP}</TooltipContent>
+            </Tooltip>
+          )}
+          {isListable && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge variant="destructive" className="flex items-center gap-1">
+                  <AlertTriangle size={10} />
+                  Listable
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs">
+                This bucket has a SELECT policy on storage.objects that allows listing all objects.
+                Public buckets don&apos;t require SELECT policies for object access — this may
+                expose your files.
+              </TooltipContent>
             </Tooltip>
           )}
         </div>

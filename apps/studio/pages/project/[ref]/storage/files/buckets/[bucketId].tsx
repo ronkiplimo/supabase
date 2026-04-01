@@ -66,6 +66,7 @@ const BucketPage: NextPageWithLayout = () => {
 
   return (
     <StorageExplorerStateContextProvider key={`storage-explorer-state-${ref}`}>
+      <div>here</div>
       <PageLayout
         size="full"
         isCompact

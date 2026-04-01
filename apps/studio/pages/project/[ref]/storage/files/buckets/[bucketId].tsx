@@ -234,7 +234,7 @@ const BucketPage: NextPageWithLayout = () => {
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                variant="destructive"
+                variant="danger"
                 disabled={isRemovingPolicy}
                 onClick={() => removeSelectPolicy(policyToRemove.policyname)}
               >

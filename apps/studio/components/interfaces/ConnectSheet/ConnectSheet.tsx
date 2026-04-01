@@ -69,7 +69,7 @@ export const ConnectSheet = () => {
       setMode(mappedMode)
     }
 
-    if (mappedMode === 'framework' || connectTab === 'frameworks' || connectTab === 'mobiles') {
+    if (mappedMode === 'framework') {
       if (queryFramework) {
         updateField('framework', queryFramework)
         if (queryUsing) updateField('frameworkVariant', queryUsing)

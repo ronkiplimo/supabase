@@ -1,11 +1,11 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ComponentProps } from 'react'
-import { customRender } from 'tests/lib/custom-render'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { WebhookEndpoint } from './PlatformWebhooks.types'
 import { PlatformWebhooksEndpointSheet } from './PlatformWebhooksEndpointSheet'
+import { customRender } from '@/tests/lib/custom-render'
 
 const { generateWebhookEndpointNameMock } = vi.hoisted(() => ({
   generateWebhookEndpointNameMock: vi.fn(() => 'winged-envelope'),
@@ -208,6 +208,27 @@ describe('PlatformWebhooksEndpointSheet', () => {
         subscribeAll: true,
         eventTypes: PROJECT_EVENT_TYPES,
         url: 'https://hooks.example.com/billing',
+      }),
+      expect.anything()
+    )
+  })
+
+  it('submits custom headers added through the shared header editor', async () => {
+    const user = userEvent.setup()
+    const { onSubmit } = renderEndpointSheet({
+      mode: 'edit',
+      endpoint: createEndpoint(),
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Add header' }))
+    await user.type(screen.getByPlaceholderText('Header name'), 'X-Webhook-Secret')
+    await user.type(screen.getByPlaceholderText('Header value'), 'super-secret')
+    submitForm()
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1))
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        customHeaders: [{ key: 'X-Webhook-Secret', value: 'super-secret' }],
       }),
       expect.anything()
     )

@@ -1,9 +1,5 @@
 import { LOCAL_STORAGE_KEYS, useParams } from 'common'
-import {
-  useIsBranching2Enabled,
-  useIsFloatingMobileToolbarEnabled,
-} from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
-import { Connect } from 'components/interfaces/Connect/Connect'
+import { useIsFloatingMobileToolbarEnabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { ConnectButton } from 'components/interfaces/ConnectButton/ConnectButton'
 import { ConnectSheet } from 'components/interfaces/ConnectSheet/ConnectSheet'
 import { LocalDropdown } from 'components/interfaces/LocalDropdown'

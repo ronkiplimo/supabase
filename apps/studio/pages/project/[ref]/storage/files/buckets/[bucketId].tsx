@@ -20,14 +20,6 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import type { NextPageWithLayout } from 'types'
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
   Badge,
   Button,
   DropdownMenu,
@@ -40,6 +32,8 @@ import {
   TooltipTrigger,
 } from 'ui'
 import { Admonition } from 'ui-patterns'
+import { CodeBlock } from 'ui-patterns/CodeBlock'
+import ConfirmationModal from 'ui-patterns/Dialogs/ConfirmationModal'
 
 import { storageKeys } from '@/data/storage/keys'
 import { usePublicBucketsWithSelectPoliciesQuery } from '@/data/storage/public-buckets-with-select-policies-query'
@@ -213,36 +207,31 @@ const BucketPage: NextPageWithLayout = () => {
       </PageLayout>
 
       {policyToRemove && (
-        <AlertDialog open={showRemovePolicyModal} onOpenChange={setShowRemovePolicyModal}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Remove SELECT policy</AlertDialogTitle>
-              <AlertDialogDescription asChild>
-                <div className="flex flex-col gap-3">
-                  <p>
-                    The following policy will be dropped from{' '}
-                    <span className="text-foreground font-mono">storage.objects</span>:
-                  </p>
-                  <p className="font-mono text-foreground">{policyToRemove.policyname}</p>
-                  <p>This will run:</p>
-                  <pre className="bg-surface-200 rounded px-3 py-2 text-xs text-foreground font-mono whitespace-pre-wrap">
-                    {`DROP POLICY IF EXISTS "${policyToRemove.policyname}" ON storage.objects;`}
-                  </pre>
-                </div>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                variant="danger"
-                disabled={isRemovingPolicy}
-                onClick={() => removeSelectPolicy(policyToRemove.policyname)}
-              >
-                Remove policy
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <ConfirmationModal
+          visible={showRemovePolicyModal}
+          variant="destructive"
+          title="Remove SELECT policy"
+          confirmLabel="Remove policy"
+          loading={isRemovingPolicy}
+          onCancel={() => setShowRemovePolicyModal(false)}
+          onConfirm={() => removeSelectPolicy(policyToRemove.policyname)}
+        >
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-foreground-light">
+              This will drop the SELECT policy that makes this bucket&apos;s contents listable.
+              Object URLs will continue to work.
+            </p>
+            <div className="-mx-4 md:-mx-5 -mb-4 border-t">
+              <CodeBlock
+                hideLineNumbers
+                language="sql"
+                value={`DROP POLICY IF EXISTS "${policyToRemove.policyname}"\n  ON storage.objects;`}
+                wrapperClassName="[&_pre]:px-4 [&_pre]:py-3 [&>pre]:rounded-none [&>pre]:border-0"
+                className="[&_code]:text-foreground"
+              />
+            </div>
+          </div>
+        </ConfirmationModal>
       )}
 
       {bucket && (

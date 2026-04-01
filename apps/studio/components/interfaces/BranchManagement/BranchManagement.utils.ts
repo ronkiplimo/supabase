@@ -1,5 +1,7 @@
 import { DiskAttributesData } from 'data/config/disk-attributes-query'
 import { DesiredInstanceSize, instanceSizeSpecs } from 'data/projects/new-project.constants'
+import { estimateRestoreTimeFromSizeGb } from 'lib/restore-estimate'
+
 import {
   DISK_LIMITS,
   DISK_PRICING,
@@ -61,6 +63,5 @@ export const estimateDiskCost = (disk: DiskAttributesData['attributes']) => {
 }
 
 export const estimateRestoreTime = (disk: DiskAttributesData['attributes']) => {
-  // This is interpolated from real restore time
-  return (720 / 21000) * disk.size_gb + 3
+  return estimateRestoreTimeFromSizeGb(disk.size_gb)
 }

@@ -1,26 +1,34 @@
-import { Circle, Loader } from 'lucide-react'
-import { useEffect, useState } from 'react'
-
 import { SupportCategories } from '@supabase/shared-types/out/constants'
-import { useParams } from 'common'
+import { LOCAL_STORAGE_KEYS, useParams } from 'common'
 import { SupportLink } from 'components/interfaces/Support/SupportLink'
 import { useInvalidateProjectsInfiniteQuery } from 'data/projects/org-projects-infinite-query'
 import { Project, useInvalidateProjectDetailsQuery } from 'data/projects/project-detail-query'
 import { useProjectStatusQuery } from 'data/projects/project-status-query'
 import { PROJECT_STATUS } from 'lib/constants'
+import {
+  clearPersistedTransitionStartTime,
+  FALLBACK_LONG_RUNNING_STATE_THRESHOLD_MINUTES,
+  getPersistedTransitionStartTime,
+  getRemainingTransitionTimeMs,
+  minutesToMilliseconds,
+} from 'lib/project-transition-state'
+import { Circle, Loader } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Badge, Button } from 'ui'
 
-const LONG_RUNNING_STATE_THRESHOLD_MINUTES = 10
-const LONG_RUNNING_STATE_THRESHOLD_MS = LONG_RUNNING_STATE_THRESHOLD_MINUTES * 60 * 1000
+const LONG_RUNNING_STATE_THRESHOLD_MINUTES = FALLBACK_LONG_RUNNING_STATE_THRESHOLD_MINUTES
+const LONG_RUNNING_STATE_THRESHOLD_MS = minutesToMilliseconds(LONG_RUNNING_STATE_THRESHOLD_MINUTES)
 
 export interface PausingStateProps {
   project: Project
+  forceLongRunning?: boolean
 }
 
-export const PausingState = ({ project }: PausingStateProps) => {
+export const PausingState = ({ project, forceLongRunning = false }: PausingStateProps) => {
   const { ref } = useParams()
   const [startPolling, setStartPolling] = useState(false)
   const [isTakingLongerThanExpected, setIsTakingLongerThanExpected] = useState(false)
+  const pauseStateStartStorageKey = ref ? LOCAL_STORAGE_KEYS.PROJECT_PAUSING_STARTED_AT(ref) : null
 
   const { invalidateProjectsQuery } = useInvalidateProjectsInfiniteQuery()
   const { invalidateProjectDetailsQuery } = useInvalidateProjectDetailsQuery()
@@ -31,20 +39,30 @@ export const PausingState = ({ project }: PausingStateProps) => {
       enabled: startPolling,
       refetchInterval: (query) => {
         const data = query.state.data
-        return data?.status === PROJECT_STATUS.INACTIVE ? false : 2000
+        return data?.status === PROJECT_STATUS.INACTIVE ||
+          data?.status === PROJECT_STATUS.PAUSE_FAILED
+          ? false
+          : 2000
       },
     }
   )
 
   useEffect(() => {
     if (!isProjectStatusSuccess) return
-    if (projectStatusData?.status === PROJECT_STATUS.INACTIVE) {
+    if (
+      projectStatusData?.status === PROJECT_STATUS.INACTIVE ||
+      projectStatusData?.status === PROJECT_STATUS.PAUSE_FAILED
+    ) {
+      if (pauseStateStartStorageKey) {
+        clearPersistedTransitionStartTime(pauseStateStartStorageKey)
+      }
       if (ref) invalidateProjectDetailsQuery(ref)
       invalidateProjectsQuery()
     }
   }, [
     isProjectStatusSuccess,
     projectStatusData,
+    pauseStateStartStorageKey,
     ref,
     invalidateProjectDetailsQuery,
     invalidateProjectsQuery,
@@ -56,13 +74,28 @@ export const PausingState = ({ project }: PausingStateProps) => {
   }, [])
 
   useEffect(() => {
-    if (isTakingLongerThanExpected) return
-    const timeoutId = setTimeout(
-      () => setIsTakingLongerThanExpected(true),
-      LONG_RUNNING_STATE_THRESHOLD_MS
-    )
+    if (forceLongRunning) {
+      setIsTakingLongerThanExpected(true)
+      return
+    }
+
+    const startTime = pauseStateStartStorageKey
+      ? getPersistedTransitionStartTime(pauseStateStartStorageKey)
+      : Date.now()
+    const remainingThresholdMs = getRemainingTransitionTimeMs({
+      startTimeMs: startTime,
+      thresholdMs: LONG_RUNNING_STATE_THRESHOLD_MS,
+    })
+
+    if (remainingThresholdMs === 0) {
+      setIsTakingLongerThanExpected(true)
+      return
+    }
+
+    setIsTakingLongerThanExpected(false)
+    const timeoutId = setTimeout(() => setIsTakingLongerThanExpected(true), remainingThresholdMs)
     return () => clearTimeout(timeoutId)
-  }, [isTakingLongerThanExpected])
+  }, [forceLongRunning, pauseStateStartStorageKey])
 
   return (
     <div className="mx-auto my-16 w-full max-w-7xl space-y-16">

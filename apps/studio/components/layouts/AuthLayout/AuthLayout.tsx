@@ -3,7 +3,7 @@ import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePrevi
 import { useRouter } from 'next/router'
 import type { PropsWithChildren } from 'react'
 
-import { ProjectLayoutV2 } from '../NavigationV2/ProjectLayoutV2'
+import { ProjectLayoutV2 } from '../NavigationV2/ProjectLayout'
 import { ProjectLayout } from '../ProjectLayout'
 import { useGenerateAuthMenu } from './AuthLayout.utils'
 import { ProductMenu } from '@/components/ui/ProductMenu'

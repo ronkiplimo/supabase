@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import type { PropsWithChildren } from 'react'
 
-import { ProjectLayoutV2 } from '../NavigationV2/ProjectLayoutV2'
+import { ProjectLayoutV2 } from '../NavigationV2/ProjectLayout'
 import { ProjectLayout } from '../ProjectLayout'
 import { useGenerateSettingsMenu } from './SettingsMenu.utils'
 import { useIsNavigationV2Enabled } from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'

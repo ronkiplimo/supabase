@@ -2,7 +2,7 @@ import { PermissionAction } from '@supabase/shared-types/out/constants'
 import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import type { PropsWithChildren } from 'react'
 
-import { ProjectLayoutV2 } from '../NavigationV2/ProjectLayoutV2'
+import { ProjectLayoutV2 } from '../NavigationV2/ProjectLayout'
 import { ProjectLayout } from '../ProjectLayout'
 import { LogsSidebarMenuV2 } from './LogsSidebarMenuV2'
 import NoPermission from '@/components/ui/NoPermission'

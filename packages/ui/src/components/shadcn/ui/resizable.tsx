@@ -113,4 +113,4 @@ const ResizableHandle = ({
 const useDefaultLayout = ResizablePrimitive.useDefaultLayout
 const usePanelRef = ResizablePrimitive.usePanelRef
 
-export { ResizableHandle, ResizablePanel, ResizablePanelGroup, type, useDefaultLayout, usePanelRef }
+export { ResizableHandle, ResizablePanel, ResizablePanelGroup, useDefaultLayout, usePanelRef }

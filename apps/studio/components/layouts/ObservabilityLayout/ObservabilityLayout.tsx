@@ -3,7 +3,7 @@ import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePrevi
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, type PropsWithChildren } from 'react'
 
-import { ProjectLayoutV2 } from '../NavigationV2/ProjectLayoutV2'
+import { ProjectLayoutV2 } from '../NavigationV2/ProjectLayout'
 import { ProjectLayout } from '../ProjectLayout'
 import ObservabilityMenu from './ObservabilityMenu'
 import { useIndexAdvisorStatus } from '@/components/interfaces/QueryPerformance/hooks/useIsIndexAdvisorStatus'

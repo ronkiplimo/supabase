@@ -3,12 +3,12 @@ import { AppBannerWrapper } from 'components/interfaces/App/AppBannerWrapper'
 import MobileNavigationBar from 'components/layouts/Navigation/NavigationBar/MobileNavigationBar'
 import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
 import { useRouter } from 'next/router'
-import { PropsWithChildren } from 'react'
+import type { PropsWithChildren } from 'react'
 import { useAppStateSnapshot } from 'state/app-state'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from 'ui'
 
 import { DefaultLayoutProviders } from '../DefaultLayoutProviders'
-import { AppSidebarV2 } from './AppSidebarV2'
+import { AppSidebarV2 } from './AppSidebar'
 import { RightRailLayout } from './RightIconRail'
 
 export interface DefaultLayoutV2Props {

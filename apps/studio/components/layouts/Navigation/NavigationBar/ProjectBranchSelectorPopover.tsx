@@ -17,8 +17,6 @@ import { useEffect, useState } from 'react'
 import { useAppStateSnapshot } from 'state/app-state'
 import type { Organization } from 'types'
 import {
-  Button,
-  cn,
   Command_Shadcn_,
   CommandEmpty_Shadcn_,
   CommandGroup_Shadcn_,
@@ -113,6 +111,7 @@ export function ProjectBranchSelectorPopover({ onClose }: ProjectBranchSelectorP
         selectedBranch={selectedBranch}
         isBranchingEnabled={isBranchingEnabled}
         isBranchesLoaded={isBranchesSuccess}
+        projectRef={parentRef ?? ref ?? ''}
         onSelect={(branch) => {
           const sanitizedRoute = sanitizeRoute(router.route, router.query)
           const href =
@@ -238,6 +237,7 @@ function BranchColumn({
   selectedBranch,
   isBranchingEnabled,
   isBranchesLoaded,
+  projectRef,
   onSelect,
   onCreateBranch,
   onManageBranches,
@@ -247,6 +247,7 @@ function BranchColumn({
   selectedBranch?: Branch
   isBranchingEnabled: boolean
   isBranchesLoaded: boolean
+  projectRef: string
   onSelect: (branch: Branch) => void
   onCreateBranch: () => void
   onManageBranches: () => void
@@ -301,6 +302,7 @@ function BranchColumn({
             </>
           )}
         </CommandList_Shadcn_>
+        <CommandSeparator_Shadcn_ />
         <CommandGroup_Shadcn_ className="space-y-0.5">
           <CommandItem_Shadcn_ className="cursor-pointer w-full" onSelect={() => onClose()}>
             <Link

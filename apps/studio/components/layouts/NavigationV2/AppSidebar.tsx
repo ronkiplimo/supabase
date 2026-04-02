@@ -1,4 +1,3 @@
-import { usePHFlag } from 'hooks/ui/useFlag'
 import { IS_PLATFORM } from 'lib/constants'
 import { Plug, Search } from 'lucide-react'
 import { parseAsBoolean, useQueryState } from 'nuqs'
@@ -11,6 +10,7 @@ import { NavGroup } from './NavGroup'
 import { NavUser } from './NavUser'
 import { useAppSidebarNavItems, type AppSidebarScope } from './useAppSidebarNavItems'
 import { ConnectSheet } from '@/components/interfaces/ConnectSheet/ConnectSheet'
+import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
 
 export type { AppSidebarScope }
 
@@ -21,9 +21,7 @@ interface AppSidebarV2Props {
 export function AppSidebarV2({ scope }: AppSidebarV2Props = {}) {
   const setCommandMenuOpen = useSetCommandMenuOpen()
   const [, setShowConnect] = useQueryState('showConnect', parseAsBoolean.withDefault(false))
-  const connectSheetFlag = usePHFlag<string | boolean>('connectSheet')
-  const isFlagResolved = connectSheetFlag !== undefined
-  const isConnectSheetEnabled = connectSheetFlag === true || connectSheetFlag === 'variation'
+  const { data: selectedOrganization } = useSelectedOrganizationQuery()
 
   const {
     isProjectScope,
@@ -78,14 +76,14 @@ export function AppSidebarV2({ scope }: AppSidebarV2Props = {}) {
                 <NavGroup id="observability" label="Observability" items={observabilityItems} />
                 <NavGroup id="integrations" label="Integrations" items={integrationsItems} />
               </>
-            ) : (
+            ) : selectedOrganization ? (
               <NavGroup
                 id="organization"
                 label="Organization"
                 items={organizationItems}
                 isCollapsible={false}
               />
-            )}
+            ) : null}
           </SidebarContent>
           <div
             aria-hidden

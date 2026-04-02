@@ -1,6 +1,6 @@
 import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { useInstalledIntegrations } from 'components/interfaces/Integrations/Landing/useInstalledIntegrations'
-import { ProjectLayoutV2 } from 'components/layouts/NavigationV2/ProjectLayoutV2'
+import { ProjectLayoutV2 } from 'components/layouts/NavigationV2/ProjectLayout'
 import { ProjectLayout } from 'components/layouts/ProjectLayout'
 import AlertError from 'components/ui/AlertError'
 import { ProductMenu } from 'components/ui/ProductMenu'

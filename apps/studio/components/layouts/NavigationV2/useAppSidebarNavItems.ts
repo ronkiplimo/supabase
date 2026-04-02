@@ -21,7 +21,7 @@ import {
   generateDatabaseNavItems,
   generateObservabilityNavItems,
   generatePlatformNavItems,
-} from './NavigationV2.utils'
+} from './Navigation.utils'
 
 export type AppSidebarScope = 'project' | 'organization'
 

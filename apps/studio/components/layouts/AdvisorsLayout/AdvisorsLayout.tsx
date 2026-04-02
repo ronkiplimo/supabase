@@ -2,7 +2,7 @@ import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePrevi
 import { useRouter } from 'next/router'
 import { PropsWithChildren } from 'react'
 
-import { ProjectLayoutV2 } from '../NavigationV2/ProjectLayoutV2'
+import { ProjectLayoutV2 } from '../NavigationV2/ProjectLayout'
 import { ProjectLayout } from '../ProjectLayout'
 import { AdvisorsSidebarMenu } from './AdvisorsSidebarMenu'
 import { withAuth } from '@/hooks/misc/withAuth'

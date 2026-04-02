@@ -1,12 +1,8 @@
-import { useFeaturePreviewModal } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { UserDropdownContent } from 'components/interfaces/UserDropdown'
 import { ProfileImage } from 'components/ui/ProfileImage'
 import { useIsFeatureEnabled } from 'hooks/misc/useIsFeatureEnabled'
 import { useProfileNameAndPicture } from 'lib/profile'
 import { ChevronsUpDown, Loader2 } from 'lucide-react'
-import { useTheme } from 'next-themes'
-import { useRouter } from 'next/router'
-import { useAppStateSnapshot } from 'state/app-state'
 import {
   DropdownMenu,
   DropdownMenuContent,

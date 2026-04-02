@@ -7,6 +7,7 @@ import { useAppSidebarNavItems, type AppSidebarScope } from './useAppSidebarNavI
 import { ConnectSheet } from '@/components/interfaces/ConnectSheet/ConnectSheet'
 import { OrgSelector } from '@/components/layouts/Navigation/NavigationBar/OrgSelector'
 import { ProjectBranchSelector } from '@/components/layouts/Navigation/NavigationBar/ProjectBranchSelector'
+import { useHideSidebar } from '@/hooks/misc/useHideSidebar'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
 import { IS_PLATFORM } from '@/lib/constants'
 
@@ -42,24 +43,29 @@ function AppSidebarNavBody({ scope, variant = 'desktop' }: AppSidebarNavBodyProp
 
   return (
     <>
-      <SidebarHeader className="hidden md:flex gap-2">
-        <div className="space-y-2">
-          {showSelector &&
-            (isProjectScope ? <ProjectBranchSelector /> : selectedOrganization && <OrgSelector />)}
-          <div className="flex items-center px-0.5">
-            <Button
-              type="default"
-              size="small"
-              disabled={!isActiveHealthy}
-              onClick={() => setShowConnect(true)}
-              className="h-7 flex-1 justify-center gap-0 pl-2"
-              icon={<Plug className="rotate-90" strokeWidth={1.5} />}
-            >
-              Connect
-            </Button>
-          </div>
-        </div>
-      </SidebarHeader>
+      {showSelector && (
+        <SidebarHeader className="hidden md:flex flex-col gap-2">
+          {isProjectScope ? (
+            <>
+              <ProjectBranchSelector />
+              <div className="flex items-center px-0.5">
+                <Button
+                  type="default"
+                  size="small"
+                  disabled={!isActiveHealthy}
+                  onClick={() => setShowConnect(true)}
+                  className="h-7 flex-1 justify-center gap-0 pl-2"
+                  icon={<Plug className="rotate-90" strokeWidth={1.5} />}
+                >
+                  Connect
+                </Button>
+              </div>
+            </>
+          ) : (
+            selectedOrganization && <OrgSelector />
+          )}
+        </SidebarHeader>
+      )}
       <div
         className={cn(
           'relative min-h-0 flex-1',
@@ -97,14 +103,18 @@ interface AppSidebarV2Props {
 }
 
 export function AppSidebarV2({ scope }: AppSidebarV2Props = {}) {
+  const hideSidebar = useHideSidebar()
+
   return (
     <>
-      <Sidebar
-        collapsible="none"
-        className="hidden md:flex h-full w-full border-r border-default group"
-      >
-        <AppSidebarNavBody scope={scope} variant="desktop" />
-      </Sidebar>
+      {!hideSidebar && (
+        <Sidebar
+          collapsible="none"
+          className="hidden md:flex h-full w-full border-r border-default group"
+        >
+          <AppSidebarNavBody scope={scope} variant="desktop" />
+        </Sidebar>
+      )}
 
       <ConnectSheet />
     </>

@@ -11,6 +11,7 @@ import { DefaultLayoutProviders } from '../DefaultLayoutProviders'
 import { AppSidebarV2 } from './AppSidebar'
 import { LayoutHeader } from './LayoutHeader'
 import { RightPanelToolbarLayout } from './RightPanelToolbar'
+import { useHideSidebar } from '@/hooks/misc/useHideSidebar'
 
 export interface DefaultLayoutV2Props {
   headerTitle?: string
@@ -35,11 +36,9 @@ export const DefaultLayoutV2 = ({
   const router = useRouter()
   const isMobile = useBreakpoint('md')
   const appSnap = useAppStateSnapshot()
+  const hideSidebar = useHideSidebar()
   const scope = router.pathname.startsWith('/project') ? 'project' : 'organization'
-  const showLeftSidebar =
-    !isMobile &&
-    !router.pathname.startsWith('/account') &&
-    !router.pathname.startsWith('/organizations')
+  const showLeftSidebar = !isMobile && !hideSidebar && !router.pathname.startsWith('/organizations')
 
   const [lastVisitedOrganization] = useLocalStorageQuery(
     LOCAL_STORAGE_KEYS.LAST_VISITED_ORGANIZATION,

@@ -8,7 +8,8 @@ import { useMemo, type ReactNode } from 'react'
 import { Badge, cn } from 'ui'
 import { CommandMenuTriggerInput } from 'ui-patterns'
 
-import { useAppSidebarNavItems, type AppSidebarScope } from './useAppSidebarNavItems'
+import { HomeIcon } from '../Navigation/LayoutHeader/HomeIcon'
+import { type AppSidebarScope } from './useAppSidebarNavItems'
 import { useIsFloatingMobileToolbarEnabled } from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { ConnectSheet } from '@/components/interfaces/ConnectSheet/ConnectSheet'
 import { LocalDropdown } from '@/components/interfaces/LocalDropdown'
@@ -19,6 +20,7 @@ import { LayoutHeaderDivider } from '@/components/layouts/Navigation/LayoutHeade
 import { LocalVersionPopover } from '@/components/layouts/Navigation/LayoutHeader/LocalVersionPopover'
 import { getResourcesExceededLimitsOrg } from '@/components/ui/OveragesBanner/OveragesBanner.utils'
 import { useOrgUsageQuery } from '@/data/usage/org-usage-query'
+import { useHideSidebar } from '@/hooks/misc/useHideSidebar'
 import { useLocalStorageQuery } from '@/hooks/misc/useLocalStorage'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
 import { IS_PLATFORM } from '@/lib/constants'
@@ -39,6 +41,7 @@ export const LayoutHeader = ({
   scope,
 }: LayoutHeaderProps) => {
   const router = useRouter()
+  const hideSidebar = useHideSidebar()
   const { data: selectedOrganization } = useSelectedOrganizationQuery()
 
   const showFloatingMobileToolbar = useIsFloatingMobileToolbarEnabled()
@@ -51,8 +54,6 @@ export const LayoutHeader = ({
     { orgSlug: selectedOrganization?.slug },
     { enabled: selectedOrganization?.usage_billing_enabled === false }
   )
-
-  const { isProjectScope } = useAppSidebarNavItems({ scope })
 
   const exceedingLimits = useMemo(() => {
     if (orgUsage) {
@@ -86,18 +87,7 @@ export const LayoutHeader = ({
           )}
         >
           <div className="hidden md:flex items-center justify-start text-sm gap-x-2">
-            {/* <HomeIcon />
-            <OrgProjectBranchNav /> */}
-            {/* {IS_PLATFORM && (
-              <div>
-                {isProjectScope ? (
-                  <ProjectBranchSelector />
-                ) : (
-                  selectedOrganization && <OrgSelector />
-                )}
-              </div>
-            )} */}
-
+            {hideSidebar && <HomeIcon />}
             <AnimatePresence>
               {headerTitle && (
                 <motion.div
@@ -110,7 +100,6 @@ export const LayoutHeader = ({
                     ease: 'easeOut',
                   }}
                 >
-                  {/* <HomeIcon className="pr-2" /> */}
                   <LayoutHeaderDivider />
                   <span className="text-foreground">{headerTitle}</span>
                 </motion.div>
@@ -127,19 +116,6 @@ export const LayoutHeader = ({
               </div>
             )}
           </div>
-          {/* <div className="flex items-center justify-center gap-x-2">
-            <CommandMenuTriggerInput
-              showShortcut={commandMenuEnabled}
-              placeholder="Search..."
-              className={cn(
-                'flex max-w-32 xl:max-w-40 rounded-full bg-transparent border-strong',
-                '[&_.command-shortcut>div]:border-none',
-                '[&_.command-shortcut>div]:pr-2',
-                '[&_.command-shortcut>div]:bg-transparent',
-                '[&_.command-shortcut>div]:text-foreground-lighter'
-              )}
-            />
-          </div> */}
           <div className="flex items-center justify-end gap-x-2">
             {customHeaderComponents && customHeaderComponents}
             {IS_PLATFORM ? (

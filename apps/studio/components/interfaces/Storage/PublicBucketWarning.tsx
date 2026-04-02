@@ -53,6 +53,10 @@ export function PublicBucketWarning({ projectRef, bucketId }: PublicBucketWarnin
       setShowModal(false)
       toast.success('Policy removed successfully')
     },
+    onError: (error) => {
+      console.error('Failed to remove policy', error)
+      toast.error(`Failed to remove policy: ${error.message}`)
+    },
   })
 
   const [showModal, setShowModal] = useState(false)

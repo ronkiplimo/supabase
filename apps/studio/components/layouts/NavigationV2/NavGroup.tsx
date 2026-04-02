@@ -67,7 +67,7 @@ export function NavGroup({ id, label, items, isCollapsible = true }: NavGroupPro
               <CollapsibleTrigger asChild>
                 <SidebarMenuButton
                   isActive={item.isActive}
-                  className="gap-2 text-foreground-lighter !h-6"
+                  className="gap-2 text-foreground-lighter md:!h-6"
                 >
                   <NavItemIcon icon={item.icon} />
                   <span className="truncate">{item.title}</span>
@@ -86,7 +86,11 @@ export function NavGroup({ id, label, items, isCollapsible = true }: NavGroupPro
                 <SidebarMenuSub className="gap-[2px] ml-3 mr-0 pl-3.5 pr-0">
                   {item.items.map((subItem) => (
                     <SidebarMenuSubItem key={subItem.title}>
-                      <SidebarMenuSubButton asChild isActive={subItem.isActive}>
+                      <SidebarMenuSubButton
+                        asChild
+                        isActive={subItem.isActive}
+                        className="h-7 md:h-6"
+                      >
                         <Link href={subItem.url}>
                           <span className="truncate flex-1 min-w-0">{subItem.title}</span>
                           {subItem.label && (
@@ -112,7 +116,7 @@ export function NavGroup({ id, label, items, isCollapsible = true }: NavGroupPro
             <SidebarMenuButton
               isActive={item.isActive}
               asChild
-              className="gap-2 text-foreground-lighter !h-6"
+              className="gap-2 text-foreground-lighter md:!h-6"
             >
               <Link href={item.url}>
                 <NavItemIcon icon={item.icon} />
@@ -143,7 +147,7 @@ export function NavGroup({ id, label, items, isCollapsible = true }: NavGroupPro
         <SidebarGroup>
           <CollapsibleTrigger asChild>
             <SidebarGroupLabel
-              className={`group/label text-foreground-lighter/70 flex items-center gap-1 !h-6 ${
+              className={`group/label text-foreground-lighter/70 flex items-center gap-1 md:!h-6 ${
                 isCollapsible ? 'cursor-pointer hover:text-foreground-light' : 'pointer-events-none'
               }`}
             >
@@ -151,7 +155,7 @@ export function NavGroup({ id, label, items, isCollapsible = true }: NavGroupPro
               {isCollapsible && (
                 <ChevronRight
                   strokeWidth={1.5}
-                  className="!w-4 !h-4 text-foreground-muted group-hover/label:text-foreground-lighter transition-transform duration-200 group-data-[state=open]/group-collapsible:rotate-90 hidden group-hover:block"
+                  className="!w-4 !h-4 text-foreground-muted group-hover/label:text-foreground-lighter transition-transform duration-200 group-data-[state=open]/group-collapsible:rotate-90 block md:hidden group-hover:block"
                 />
               )}
             </SidebarGroupLabel>
@@ -167,13 +171,8 @@ export function NavGroup({ id, label, items, isCollapsible = true }: NavGroupPro
 
 function NavItemIcon({ icon }: { icon?: LucideIcon | ReactNode }) {
   if (!icon) return null
+  if (isValidElement(icon)) return icon
 
-  // If it's already a rendered React element (e.g. <SomeIcon />), use it as-is
-  if (isValidElement(icon)) {
-    return icon
-  }
-
-  // Otherwise it's a component reference (function or forwardRef) - render it
   const IconComponent = icon as LucideIcon
   return <IconComponent strokeWidth={1.5} className="!w-4 !h-4" />
 }

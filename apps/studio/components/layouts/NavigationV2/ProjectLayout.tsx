@@ -9,11 +9,13 @@ import { withAuth } from 'hooks/misc/withAuth'
 import { PROJECT_STATUS } from 'lib/constants'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import { forwardRef, type PropsWithChildren } from 'react'
+import { forwardRef, useLayoutEffect, type PropsWithChildren } from 'react'
 
 import { useSetMainScrollContainer } from '../MainScrollContainerContext'
+import { useMobileSheet } from '../Navigation/NavigationBar/MobileSheetContext'
 import { ContentWrapper } from '../ProjectLayout'
 import { ProjectPausedState } from '../ProjectLayout/PausedState/ProjectPausedState'
+import { AppSidebarMobileSheetMenu } from './AppSidebar'
 
 export interface ProjectLayoutV2Props {
   title?: string
@@ -50,6 +52,15 @@ export const ProjectLayoutV2 = forwardRef<HTMLDivElement, PropsWithChildren<Proj
       router.pathname.includes('/project/[ref]/settings') ||
       router.pathname.includes('/project/[ref]/functions')
     const showPausedState = isPaused && !ignorePausedState
+
+    const { setContent: setMobileSheetContent, registerOpenMenu } = useMobileSheet()
+
+    useLayoutEffect(() => {
+      const unregister = registerOpenMenu(() => {
+        setMobileSheetContent(<AppSidebarMobileSheetMenu />)
+      })
+      return unregister
+    }, [registerOpenMenu, setMobileSheetContent])
 
     return (
       <>

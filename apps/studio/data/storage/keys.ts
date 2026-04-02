@@ -33,7 +33,7 @@ export const storageKeys = {
     ['projects', projectRef, 'vector-buckets', vectorBucketName, 'indexes'] as const,
   archive: (projectRef: string | undefined) => ['projects', projectRef, 'archive'] as const,
   publicBucketsWithSelectPolicies: (projectRef: string | undefined) =>
-    ['projects', projectRef, 'buckets', 'public-with-select-policies'] as const,
+    ['projects', projectRef, 'public-buckets-with-select-policies'] as const,
   icebergNamespaces: ({ projectRef, warehouse }: { projectRef?: string; warehouse?: string }) =>
     [projectRef, 'warehouse', warehouse, 'namespaces'] as const,
   icebergNamespace: ({

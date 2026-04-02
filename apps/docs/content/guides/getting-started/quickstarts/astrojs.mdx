@@ -141,7 +141,7 @@ hideToc: true
 
       ```astro name=src/pages/instruments.astro
       ---
-      import { createServerClient } from "@/lib/supabase";
+      import { createServerClient } from "../lib/supabase";
 
       const supabase = createServerClient();
       const { data: instruments } = await supabase.from("instruments").select();

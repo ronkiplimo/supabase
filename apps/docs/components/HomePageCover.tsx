@@ -65,7 +65,7 @@ const HomePageCover = (props) => {
     {
       tooltip: 'Astro.js',
       icon: '/docs/img/icons/astro-icon',
-      href: '/guides/getting-started/quickstarts/astro',
+      href: '/guides/getting-started/quickstarts/astrojs',
       hasLightIcon: true,
     },
     {

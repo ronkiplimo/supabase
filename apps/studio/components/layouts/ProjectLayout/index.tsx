@@ -25,6 +25,7 @@ import { useEditorType } from '../editors/EditorsLayout.hooks'
 import { useSetMainScrollContainer } from '../MainScrollContainerContext'
 import { useMobileSheet } from '../Navigation/NavigationBar/MobileSheetContext'
 import ProductMenuBar from '../Navigation/ProductMenuBar'
+import { AppSidebarMobileSheetMenu } from '../NavigationV2/AppSidebar'
 import BuildingState from './BuildingState'
 import ConnectingState from './ConnectingState'
 import { getSectionKeyFromPathname, MobileMenuContent } from './LayoutHeader/MobileMenuContent'
@@ -37,6 +38,7 @@ import RestartingState from './RestartingState'
 import { RestoreFailedState } from './RestoreFailedState'
 import { RestoringState } from './RestoringState'
 import { UpgradingState } from './UpgradingState'
+import { useIsNavigationV2Enabled } from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { CreateBranchModal } from '@/components/interfaces/BranchManagement/CreateBranchModal'
 import { ProjectAPIDocs } from '@/components/interfaces/ProjectAPIDocs/ProjectAPIDocs'
 import { BannerFreeMicroUpgrade } from '@/components/ui/BannerStack/Banners/BannerFreeMicroUpgrade'
@@ -134,6 +136,7 @@ export const ProjectLayout = forwardRef<HTMLDivElement, PropsWithChildren<Projec
     )
     const { showSidebar } = useAppStateSnapshot()
     const { setContent: setMobileSheetContent, registerOpenMenu } = useMobileSheet()
+    const isNavigationV2 = useIsNavigationV2Enabled()
 
     const pathname = getPathnameWithoutQuery(router.asPath, router.pathname)
     const currentSectionKey = getSectionKeyFromPathname(pathname)
@@ -199,17 +202,28 @@ export const ProjectLayout = forwardRef<HTMLDivElement, PropsWithChildren<Projec
 
     useLayoutEffect(() => {
       const unregister = registerOpenMenu(() => {
-        setMobileSheetContent(
-          <MobileMenuContent
-            currentProductMenu={productMenu ?? null}
-            currentProduct={product}
-            currentSectionKey={currentSectionKey}
-            onCloseSheet={() => setMobileSheetContent(null)}
-          />
-        )
+        if (isNavigationV2) {
+          setMobileSheetContent(<AppSidebarMobileSheetMenu />)
+        } else {
+          setMobileSheetContent(
+            <MobileMenuContent
+              currentProductMenu={productMenu ?? null}
+              currentProduct={product}
+              currentSectionKey={currentSectionKey}
+              onCloseSheet={() => setMobileSheetContent(null)}
+            />
+          )
+        }
       })
       return unregister
-    }, [registerOpenMenu, productMenu, product, currentSectionKey, setMobileSheetContent])
+    }, [
+      registerOpenMenu,
+      productMenu,
+      product,
+      currentSectionKey,
+      setMobileSheetContent,
+      isNavigationV2,
+    ])
 
     return (
       <>

@@ -35,6 +35,7 @@ import { Admonition } from 'ui-patterns'
 import { CodeBlock } from 'ui-patterns/CodeBlock'
 import ConfirmationModal from 'ui-patterns/Dialogs/ConfirmationModal'
 
+import { databasePoliciesKeys } from '@/data/database-policies/keys'
 import { storageKeys } from '@/data/storage/keys'
 import { usePublicBucketsWithSelectPoliciesQuery } from '@/data/storage/public-buckets-with-select-policies-query'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
@@ -81,9 +82,14 @@ const BucketPage: NextPageWithLayout = () => {
       })
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: storageKeys.publicBucketsWithSelectPolicies(ref),
-      })
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: storageKeys.publicBucketsWithSelectPolicies(ref),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: databasePoliciesKeys.list(ref, 'storage'),
+        }),
+      ])
       setShowRemovePolicyModal(false)
       toast.success('Policy removed successfully')
     },

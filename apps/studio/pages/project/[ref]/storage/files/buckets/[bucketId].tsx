@@ -75,10 +75,11 @@ const BucketPage: NextPageWithLayout = () => {
 
   const { mutate: removeSelectPolicy, isPending: isRemovingPolicy } = useMutation({
     mutationFn: async (policyname: string) => {
+      const escaped = policyname.replace(/"/g, '""')
       await executeSql({
         projectRef: ref!,
         connectionString: project?.connectionString,
-        sql: `DROP POLICY IF EXISTS "${policyname}" ON storage.objects;`,
+        sql: `DROP POLICY IF EXISTS "${escaped}" ON storage.objects;`,
       })
     },
     onSuccess: async () => {
@@ -231,7 +232,7 @@ const BucketPage: NextPageWithLayout = () => {
               <CodeBlock
                 hideLineNumbers
                 language="sql"
-                value={`DROP POLICY IF EXISTS "${policyToRemove.policyname}"\n  ON storage.objects;`}
+                value={`DROP POLICY IF EXISTS "${policyToRemove.policyname.replace(/"/g, '""')}"\n  ON storage.objects;`}
                 wrapperClassName="[&_pre]:px-4 [&_pre]:py-3 [&>pre]:rounded-none [&>pre]:border-0"
                 className="[&_code]:text-foreground"
               />

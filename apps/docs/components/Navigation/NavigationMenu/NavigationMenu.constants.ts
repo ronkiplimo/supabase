@@ -342,6 +342,10 @@ export const gettingstarted: NavMenuConstant = {
           url: '/guides/getting-started/quickstarts/reactjs',
         },
         {
+          name: 'Astro',
+          url: '/guides/getting-started/quickstarts/astrojs',
+        },
+        {
           name: 'Nuxt',
           url: '/guides/getting-started/quickstarts/nuxtjs',
         },

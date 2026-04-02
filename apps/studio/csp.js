@@ -5,6 +5,15 @@ const SUPABASE_URL = process.env.SUPABASE_URL ? new URL(process.env.SUPABASE_URL
 const GOTRUE_URL = process.env.NEXT_PUBLIC_GOTRUE_URL
   ? new URL(process.env.NEXT_PUBLIC_GOTRUE_URL).origin
   : ''
+const MARKETPLACE_API_URL = process.env.NEXT_PUBLIC_MARKETPLACE_API_URL
+  ? new URL(process.env.NEXT_PUBLIC_MARKETPLACE_API_URL).origin
+  : ''
+
+// Debug: Log marketplace URL in development
+if (process.env.NEXT_PUBLIC_ENVIRONMENT === 'local') {
+  console.log('[CSP] MARKETPLACE_API_URL:', MARKETPLACE_API_URL)
+}
+
 const SUPABASE_PROJECTS_URL = 'https://*.supabase.co https://*.storage.supabase.co'
 const SUPABASE_PROJECTS_URL_WS = 'wss://*.supabase.co'
 
@@ -85,6 +94,7 @@ module.exports.getCSP = function getCSP() {
     API_URL,
     SUPABASE_URL,
     GOTRUE_URL,
+    MARKETPLACE_API_URL,
     SUPABASE_LOCAL_PROJECTS_URL_WS,
     SUPABASE_PROJECTS_URL,
     SUPABASE_PROJECTS_URL_WS,
@@ -151,7 +161,9 @@ module.exports.getCSP = function getCSP() {
       : []),
     PUSHER_URL_WS,
     SENTRY_URL,
-  ].join(' ')
+  ]
+    .filter((url) => url && url.length > 0)
+    .join(' ')
 
   const imgSrcDirective = [
     `img-src 'self'`,

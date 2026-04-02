@@ -6,9 +6,9 @@ import { createMarketplaceClient } from './marketplace-client'
 
 async function getMarketplaceIntegrations() {
   const client = createMarketplaceClient()
-  const { data, error } = await client
-    .from('items')
-    .select('*, categories:category_items(...categories(slug, title))')
+  const { data, error } = await client.from('listings').select('*')
+
+  console.log(`DATAAAAAAAAAAAAAAAAAAAAA: ${JSON.stringify(data)}`)
 
   if (error) handleError(error)
   return data ?? []

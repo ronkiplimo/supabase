@@ -1,322 +1,249 @@
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: '14.4'
-  }
-  graphql_public: {
+  public: {
     Tables: {
       [_ in never]: never
     }
     Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-  public: {
-    Tables: {
       categories: {
         Row: {
-          created_at: string
           description: string | null
-          id: number
-          slug: string
-          title: string
-          updated_at: string
+          name: string | null
+          slug: string | null
         }
         Insert: {
-          created_at?: string
           description?: string | null
-          id?: never
-          slug: string
-          title: string
-          updated_at?: string
+          name?: string | null
+          slug?: string | null
         }
         Update: {
-          created_at?: string
           description?: string | null
-          id?: never
-          slug?: string
-          title?: string
-          updated_at?: string
+          name?: string | null
+          slug?: string | null
         }
         Relationships: []
       }
-      category_items: {
+      listings: {
         Row: {
-          category_id: number
-          created_at: string
-          item_id: number
-        }
-        Insert: {
-          category_id: number
-          created_at?: string
-          item_id: number
-        }
-        Update: {
-          category_id?: number
-          created_at?: string
-          item_id?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'category_items_category_id_fkey'
-            columns: ['category_id']
-            isOneToOne: false
-            referencedRelation: 'categories'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'category_items_item_id_fkey'
-            columns: ['item_id']
-            isOneToOne: false
-            referencedRelation: 'items'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      item_reviews: {
-        Row: {
-          created_at: string
-          featured: boolean
-          item_id: number
-          published_at: string | null
-          review_notes: string | null
-          reviewed_at: string | null
-          reviewed_by: string | null
-          status: Database['public']['Enums']['marketplace_review_status']
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          featured?: boolean
-          item_id: number
-          published_at?: string | null
-          review_notes?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          status?: Database['public']['Enums']['marketplace_review_status']
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          featured?: boolean
-          item_id?: number
-          published_at?: string | null
-          review_notes?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          status?: Database['public']['Enums']['marketplace_review_status']
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'item_reviews_item_id_fkey'
-            columns: ['item_id']
-            isOneToOne: true
-            referencedRelation: 'items'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      items: {
-        Row: {
+          categories: Json | null
           content: string | null
-          created_at: string
+          description: string | null
           documentation_url: string | null
-          files: string[]
-          id: number
-          partner_id: number
-          published: boolean
-          registry_item_url: string | null
-          slug: string
-          submitted_by: string | null
-          summary: string | null
-          title: string
-          type: Database['public']['Enums']['marketplace_item_type']
-          updated_at: string
-          url: string | null
+          featured: boolean | null
+          images: string[] | null
+          installation_url: string | null
+          partner_logo: string | null
+          partner_name: string | null
+          partner_slug: string | null
+          slug: string | null
+          title: string | null
+          website_url: string | null
+          youtube_id: string | null
         }
-        Insert: {
-          content?: string | null
-          created_at?: string
-          documentation_url?: string | null
-          files?: string[]
-          id?: never
-          partner_id: number
-          published?: boolean
-          registry_item_url?: string | null
-          slug: string
-          submitted_by?: string | null
-          summary?: string | null
-          title: string
-          type: Database['public']['Enums']['marketplace_item_type']
-          updated_at?: string
-          url?: string | null
-        }
-        Update: {
-          content?: string | null
-          created_at?: string
-          documentation_url?: string | null
-          files?: string[]
-          id?: never
-          partner_id?: number
-          published?: boolean
-          registry_item_url?: string | null
-          slug?: string
-          submitted_by?: string | null
-          summary?: string | null
-          title?: string
-          type?: Database['public']['Enums']['marketplace_item_type']
-          updated_at?: string
-          url?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'items_partner_id_fkey'
-            columns: ['partner_id']
-            isOneToOne: false
-            referencedRelation: 'partners'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      partner_members: {
-        Row: {
-          created_at: string
-          partner_id: number
-          role: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          partner_id: number
-          role?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          partner_id?: number
-          role?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'partner_members_partner_id_fkey'
-            columns: ['partner_id']
-            isOneToOne: false
-            referencedRelation: 'partners'
-            referencedColumns: ['id']
-          },
-        ]
+        Relationships: []
       }
       partners: {
         Row: {
-          created_at: string
-          created_by: string | null
           description: string | null
-          id: number
-          logo_url: string | null
-          role: Database['public']['Enums']['marketplace_partner_role']
-          slug: string
-          title: string
-          updated_at: string
+          logo: string | null
+          name: string | null
+          slug: string | null
           website: string | null
         }
         Insert: {
-          created_at?: string
-          created_by?: string | null
           description?: string | null
-          id?: never
-          logo_url?: string | null
-          role?: Database['public']['Enums']['marketplace_partner_role']
-          slug: string
-          title: string
-          updated_at?: string
+          logo?: string | null
+          name?: string | null
+          slug?: string | null
           website?: string | null
         }
         Update: {
-          created_at?: string
-          created_by?: string | null
           description?: string | null
-          id?: never
-          logo_url?: string | null
-          role?: Database['public']['Enums']['marketplace_partner_role']
-          slug?: string
-          title?: string
-          updated_at?: string
+          logo?: string | null
+          name?: string | null
+          slug?: string | null
           website?: string | null
         }
         Relationships: []
       }
     }
-    Views: {
-      [_ in never]: never
-    }
     Functions: {
       add_partner_member: {
+        Args: { p_partner_id: string; p_user_id: string }
+        Returns: undefined
+      }
+      approve_and_publish_revision: {
         Args: {
-          target_email: string
-          target_partner_id: number
-          target_role?: string
+          p_listing_id: string
+          p_review_notes?: string
+          p_revision_id: string
         }
+        Returns: undefined
+      }
+      assign_category_to_revision: {
+        Args: { p_category_id: string; p_revision_id: string }
+        Returns: undefined
+      }
+      clear_live_revision: {
+        Args: { p_listing_id: string }
+        Returns: undefined
+      }
+      create_category: {
+        Args: { p_description: string; p_name: string; p_slug: string }
+        Returns: string
+      }
+      create_listing: {
+        Args: { p_featured?: boolean; p_partner_id: string; p_slug: string }
+        Returns: string
+      }
+      create_partner: {
+        Args: {
+          p_description: string
+          p_logo: string
+          p_name: string
+          p_slug: string
+          p_website: string
+        }
+        Returns: string
+      }
+      delete_category: { Args: { p_category_id: string }; Returns: undefined }
+      delete_listing: { Args: { p_listing_id: string }; Returns: undefined }
+      delete_partner: { Args: { p_partner_id: string }; Returns: undefined }
+      delete_revision: { Args: { p_revision_id: string }; Returns: undefined }
+      get_listing_revisions: {
+        Args: { p_listing_id: string }
+        Returns: {
+          content: string
+          created_at: string
+          description: string
+          documentation_url: string
+          revision_id: string
+          title: string
+          website_url: string
+        }[]
+      }
+      get_listing_revisions_reviews: {
+        Args: { p_listing_id: string }
+        Returns: {
+          listing_revision_id: string
+          review_notes: string
+          reviewed_by: string
+          status: string
+        }[]
+      }
+      get_my_memberships: {
+        Args: never
         Returns: {
           created_at: string
-          partner_id: number
-          role: string
+          partner_id: string
           user_id: string
+        }[]
+      }
+      get_revision_categories: {
+        Args: { p_revision_id: string }
+        Returns: {
+          category_id: string
+          category_name: string
+          category_slug: string
+        }[]
+      }
+      get_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          id: string
+          role: string
+        }[]
+      }
+      remove_category_from_revision: {
+        Args: { p_category_id: string; p_revision_id: string }
+        Returns: undefined
+      }
+      remove_partner_member: {
+        Args: { p_partner_id: string; p_user_id: string }
+        Returns: undefined
+      }
+      review_listing_revision: {
+        Args: {
+          p_review_notes?: string
+          p_revision_id: string
+          p_status: "draft" | "pending" | "approved" | "rejected"
         }
-        SetofOptions: {
-          from: '*'
-          to: 'partner_members'
-          isOneToOne: true
-          isSetofReturn: false
+        Returns: undefined
+      }
+      set_live_revision: {
+        Args: { p_listing_id: string; p_revision_id: string }
+        Returns: undefined
+      }
+      submit_revision: {
+        Args: {
+          p_category_ids?: string[]
+          p_content: string
+          p_description: string
+          p_documentation_url: string
+          p_images?: string[]
+          p_installation_url?: string
+          p_listing_id: string
+          p_title: string
+          p_website_url: string
+          p_youtube_id?: string
         }
+        Returns: string
       }
-      before_user_created_hook: { Args: { event: Json }; Returns: Json }
-      is_admin_member: { Args: never; Returns: boolean }
-      is_partner_admin: {
-        Args: { target_partner_id: number }
-        Returns: boolean
+      update_category: {
+        Args: {
+          p_category_id: string
+          p_description?: string
+          p_name?: string
+          p_slug?: string
+        }
+        Returns: undefined
       }
-      is_partner_member: {
-        Args: { target_partner_id: number }
-        Returns: boolean
+      update_listing: {
+        Args: {
+          p_featured?: boolean
+          p_listing_id: string
+          p_partner_id?: string
+          p_slug?: string
+        }
+        Returns: undefined
       }
-      is_review_manager_member: { Args: never; Returns: boolean }
-      is_reviewer_member: { Args: never; Returns: boolean }
-      item_latest_review_is_approved: {
-        Args: { target_item_id: number }
-        Returns: boolean
+      update_partner: {
+        Args: {
+          p_description?: string
+          p_logo?: string
+          p_name?: string
+          p_partner_id: string
+          p_slug?: string
+          p_website?: string
+        }
+        Returns: undefined
       }
-      storage_object_item_id: { Args: { object_name: string }; Returns: number }
-      storage_object_partner_id: {
-        Args: { object_name: string }
-        Returns: number
+      update_revision: {
+        Args: {
+          p_category_ids?: string[]
+          p_content?: string
+          p_description?: string
+          p_documentation_url?: string
+          p_images?: string[]
+          p_installation_url?: string
+          p_revision_id: string
+          p_title?: string
+          p_website_url?: string
+          p_youtube_id?: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
-      marketplace_item_type: 'oauth' | 'template'
-      marketplace_partner_role: 'partner' | 'reviewer' | 'admin'
-      marketplace_review_status: 'draft' | 'pending_review' | 'approved' | 'rejected'
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -324,31 +251,33 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
-    ? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -357,23 +286,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -382,23 +311,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -407,47 +336,41 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema['Enums']
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
-    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema['CompositeTypes']
+    | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
-    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
-  graphql_public: {
+  public: {
     Enums: {},
   },
-  public: {
-    Enums: {
-      marketplace_item_type: ['oauth', 'template'],
-      marketplace_partner_role: ['partner', 'reviewer', 'admin'],
-      marketplace_review_status: ['draft', 'pending_review', 'approved', 'rejected'],
-    },
-  },
 } as const
+

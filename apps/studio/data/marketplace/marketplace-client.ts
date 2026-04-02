@@ -6,6 +6,8 @@ export const createMarketplaceClient = () => {
   const API_URL = process.env.NEXT_PUBLIC_MARKETPLACE_API_URL || ''
   const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_MARKETPLACE_PUBLISHABLE_KEY || ''
 
+  console.log(`API_URL: ${API_URL}, PUBLISHABLE_KEY: ${PUBLISHABLE_KEY}`)
+
   return createClient<Database>(API_URL, PUBLISHABLE_KEY, {
     auth: {
       persistSession: false,

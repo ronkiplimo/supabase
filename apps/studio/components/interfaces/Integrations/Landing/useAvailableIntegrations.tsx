@@ -35,28 +35,28 @@ export const useAvailableIntegrations = () => {
   // Likely that we might need to change, but can look into separately
   const marketplaceIntegrations: IntegrationDefinition[] = (data ?? [])?.map((integration) => {
     const {
-      id,
-      type,
+      slug,
       categories,
-      title: name,
-      summary: description,
+      title,
+      description,
       documentation_url: docsUrl,
-      url: siteUrl,
+      website_url: siteUrl,
       content,
-      files,
     } = integration
 
     const status = undefined
     const author = { name: '', websiteUrl: '' }
 
     return {
-      id: id.toString(),
-      name,
+      id: slug ?? '',
+      name: title ?? '',
       status,
-      type,
-      categories: categories.map((x) => x.slug),
+      type: 'oauth' as const,
+      categories: Array.isArray(categories)
+        ? (categories as Array<{ slug: string }>).map((x) => x.slug)
+        : [],
       content,
-      files,
+      files: [],
       description,
       docsUrl,
       siteUrl,
@@ -122,8 +122,11 @@ export const useAvailableIntegrations = () => {
     [allIntegrations]
   )
 
+  console.log(`MARKETPLACE INTEGRATIONS: ${JSON.stringify(marketplaceIntegrations)}`)
+
   return {
     data: [...marketplaceIntegrations, ...availableIntegrations],
+    // data: [...marketplaceIntegrations],
     error,
     isPending,
     isSuccess,

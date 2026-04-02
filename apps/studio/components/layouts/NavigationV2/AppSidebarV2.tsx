@@ -1,5 +1,3 @@
-import { Connect } from 'components/interfaces/Connect/Connect'
-import { ConnectSheet } from 'components/interfaces/ConnectSheet/ConnectSheet'
 import { usePHFlag } from 'hooks/ui/useFlag'
 import { IS_PLATFORM } from 'lib/constants'
 import { Plug, Search } from 'lucide-react'
@@ -11,7 +9,8 @@ import { OrgSelector } from '../Navigation/NavigationBar/OrgSelector'
 import { ProjectBranchSelector } from '../Navigation/NavigationBar/ProjectBranchSelector'
 import { NavGroup } from './NavGroup'
 import { NavUser } from './NavUser'
-import { type AppSidebarScope, useAppSidebarNavItems } from './useAppSidebarNavItems'
+import { useAppSidebarNavItems, type AppSidebarScope } from './useAppSidebarNavItems'
+import { ConnectSheet } from '@/components/interfaces/ConnectSheet/ConnectSheet'
 
 export type { AppSidebarScope }
 
@@ -100,13 +99,7 @@ export function AppSidebarV2({ scope }: AppSidebarV2Props = {}) {
         <SidebarFooter>{IS_PLATFORM && <NavUser />}</SidebarFooter>
       </Sidebar>
 
-      {isProjectScope && isFlagResolved ? (
-        isConnectSheetEnabled ? (
-          <ConnectSheet />
-        ) : (
-          <Connect />
-        )
-      ) : null}
+      <ConnectSheet />
     </>
   )
 }

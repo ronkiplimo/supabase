@@ -65,14 +65,13 @@ export function NavGroup({ id, label, items, isCollapsible = true }: NavGroupPro
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
                 <SidebarMenuButton
-                  tooltip={item.title}
                   isActive={item.isActive}
-                  className="gap-2 text-foreground-light !py-1.5 !h-7"
+                  className="gap-2 text-foreground-lighter !h-6"
                 >
                   <NavItemIcon icon={item.icon} />
                   <span className="truncate">{item.title}</span>
                   {item.label && (
-                    <Badge className="ml-1 px-1.5 py-0.5 bg-transparent !border-stronger text-[10px] leading-none font-medium">
+                    <Badge className="ml-1 px-1.5 py-0.5 bg-transparent !border-stronger text-[10px] leading-none">
                       {item.label}
                     </Badge>
                   )}
@@ -100,16 +99,15 @@ export function NavGroup({ id, label, items, isCollapsible = true }: NavGroupPro
         ) : (
           <SidebarMenuItem key={item.title}>
             <SidebarMenuButton
-              tooltip={item.title}
               isActive={item.isActive}
               asChild
-              className="gap-2 text-foreground-light !py-1.5 !h-7"
+              className="gap-2 text-foreground-lighter !h-6"
             >
               <Link href={item.url}>
                 <NavItemIcon icon={item.icon} />
                 <span>{item.title}</span>
                 {item.label && (
-                  <Badge className="ml-1 px-1.5 py-0.5 bg-transparent !border-stronger text-[10px] leading-none font-medium">
+                  <Badge className="ml-1 px-1.5 py-0.5 bg-transparent !border-stronger text-[10px] leading-none">
                     {item.label}
                   </Badge>
                 )}
@@ -131,7 +129,7 @@ export function NavGroup({ id, label, items, isCollapsible = true }: NavGroupPro
         <SidebarGroup>
           <CollapsibleTrigger asChild>
             <SidebarGroupLabel
-              className={`group/label text-foreground-lighter flex items-center gap-1 ${
+              className={`group/label text-foreground-lighter/70 flex items-center gap-1 !h-6 ${
                 isCollapsible ? 'cursor-pointer hover:text-foreground-light' : 'pointer-events-none'
               }`}
             >
@@ -139,7 +137,7 @@ export function NavGroup({ id, label, items, isCollapsible = true }: NavGroupPro
               {isCollapsible && (
                 <ChevronRight
                   strokeWidth={1.5}
-                  className="!w-4 !h-4 text-foreground-muted group-hover/label:text-foreground-light transition-transform duration-200 group-data-[state=open]/group-collapsible:rotate-90 hidden group-hover:block"
+                  className="!w-4 !h-4 text-foreground-muted group-hover/label:text-foreground-lighter transition-transform duration-200 group-data-[state=open]/group-collapsible:rotate-90 hidden group-hover:block"
                 />
               )}
             </SidebarGroupLabel>

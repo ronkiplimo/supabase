@@ -1,16 +1,14 @@
-import { IS_PLATFORM } from 'lib/constants'
-import { Plug, Search } from 'lucide-react'
+import { Plug } from 'lucide-react'
 import { parseAsBoolean, useQueryState } from 'nuqs'
-import { Button, Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from 'ui'
-import { useSetCommandMenuOpen } from 'ui-patterns'
+import { Button, Sidebar, SidebarContent, SidebarHeader } from 'ui'
 
-import { OrgSelector } from '../Navigation/NavigationBar/OrgSelector'
-import { ProjectBranchSelector } from '../Navigation/NavigationBar/ProjectBranchSelector'
 import { NavGroup } from './NavGroup'
-import { NavUser } from './NavUser'
 import { useAppSidebarNavItems, type AppSidebarScope } from './useAppSidebarNavItems'
 import { ConnectSheet } from '@/components/interfaces/ConnectSheet/ConnectSheet'
+import { OrgSelector } from '@/components/layouts/Navigation/NavigationBar/OrgSelector'
+import { ProjectBranchSelector } from '@/components/layouts/Navigation/NavigationBar/ProjectBranchSelector'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
+import { IS_PLATFORM } from '@/lib/constants'
 
 export type { AppSidebarScope }
 
@@ -19,7 +17,6 @@ interface AppSidebarV2Props {
 }
 
 export function AppSidebarV2({ scope }: AppSidebarV2Props = {}) {
-  const setCommandMenuOpen = useSetCommandMenuOpen()
   const [, setShowConnect] = useQueryState('showConnect', parseAsBoolean.withDefault(false))
   const { data: selectedOrganization } = useSelectedOrganizationQuery()
 
@@ -34,40 +31,38 @@ export function AppSidebarV2({ scope }: AppSidebarV2Props = {}) {
     organizationItems,
   } = useAppSidebarNavItems({ scope })
 
+  const showSelector = IS_PLATFORM && (isProjectScope || selectedOrganization)
+
   return (
     <>
       <Sidebar
         collapsible="none"
         className="hidden md:flex h-full w-full border-r border-default group"
       >
-        <SidebarHeader className="gap-2 pt-2">
+        <SidebarHeader className="gap-2">
           <div className="space-y-2">
-            {isProjectScope ? <ProjectBranchSelector /> : IS_PLATFORM ? <OrgSelector /> : null}
-            {isProjectScope && (
-              <div className="flex items-center gap-2 px-1.5">
-                <Button
-                  type="outline"
-                  size="small"
-                  onClick={() => setCommandMenuOpen(true)}
-                  className="h-8 min-w-8 !w-8 px-0 justify-center text-foreground-lighter font-normal bg-transparent"
-                  icon={<Search strokeWidth={1.5} />}
-                />
-                <Button
-                  type="default"
-                  size="small"
-                  disabled={!isActiveHealthy}
-                  onClick={() => setShowConnect(true)}
-                  className="h-8 flex-1 justify-center gap-0 pl-2"
-                  icon={<Plug className="rotate-90" strokeWidth={1.5} />}
-                >
-                  <span>Connect</span>
-                </Button>
-              </div>
-            )}
+            {showSelector &&
+              (isProjectScope ? (
+                <ProjectBranchSelector />
+              ) : (
+                selectedOrganization && <OrgSelector />
+              ))}
+            <div className="flex items-center px-0.5">
+              <Button
+                type="default"
+                size="small"
+                disabled={!isActiveHealthy}
+                onClick={() => setShowConnect(true)}
+                className="h-7 flex-1 justify-center gap-0 pl-2"
+                icon={<Plug className="rotate-90" strokeWidth={1.5} />}
+              >
+                Connect
+              </Button>
+            </div>
           </div>
         </SidebarHeader>
         <div className="relative min-h-0 flex-1 overflow-hidden">
-          <SidebarContent className="h-full gap-0">
+          <SidebarContent className="h-full gap-0 pb-8">
             {isProjectScope ? (
               <>
                 <NavGroup id="project" label="Project" items={projectItems} />
@@ -75,26 +70,25 @@ export function AppSidebarV2({ scope }: AppSidebarV2Props = {}) {
                 <NavGroup id="platform" label="Platform" items={platformItems} />
                 <NavGroup id="observability" label="Observability" items={observabilityItems} />
                 <NavGroup id="integrations" label="Integrations" items={integrationsItems} />
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-x-0 top-0 z-10 h-3 bg-gradient-to-b from-sidebar to-transparent"
+                />
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-3 bg-gradient-to-t from-sidebar to-transparent"
+                />
               </>
-            ) : selectedOrganization ? (
+            ) : (
               <NavGroup
                 id="organization"
-                label="Organization"
+                label=""
                 items={organizationItems}
                 isCollapsible={false}
               />
-            ) : null}
+            )}
           </SidebarContent>
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-0 z-10 h-4 bg-gradient-to-b from-sidebar to-transparent"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-4 bg-gradient-to-t from-sidebar to-transparent"
-          />
         </div>
-        <SidebarFooter>{IS_PLATFORM && <NavUser />}</SidebarFooter>
       </Sidebar>
 
       <ConnectSheet />

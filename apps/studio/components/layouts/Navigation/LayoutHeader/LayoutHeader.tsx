@@ -5,8 +5,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { ReactNode, useMemo } from 'react'
-import { Badge, cn } from 'ui'
+import { ReactNode } from 'react'
+import { cn } from 'ui'
 import { CommandMenuTriggerInput } from 'ui-patterns'
 
 import { BreadcrumbsView } from './BreadcrumbsView'
@@ -14,6 +14,7 @@ import { FeedbackDropdown } from './FeedbackDropdown/FeedbackDropdown'
 import { HomeIcon } from './HomeIcon'
 import { LocalVersionPopover } from './LocalVersionPopover'
 import { MergeRequestButton } from './MergeRequestButton'
+import OrgProjectBranchNav from './OrgProjectBranchNav'
 import {
   useIsBranching2Enabled,
   useIsFloatingMobileToolbarEnabled,
@@ -24,15 +25,9 @@ import { LocalDropdown } from '@/components/interfaces/LocalDropdown'
 import { UserDropdown } from '@/components/interfaces/UserDropdown'
 import { AdvisorButton } from '@/components/layouts/AppLayout/AdvisorButton'
 import { AssistantButton } from '@/components/layouts/AppLayout/AssistantButton'
-import { BranchDropdown } from '@/components/layouts/AppLayout/BranchDropdown'
 import { InlineEditorButton } from '@/components/layouts/AppLayout/InlineEditorButton'
-import { OrganizationDropdown } from '@/components/layouts/AppLayout/OrganizationDropdown'
-import { ProjectDropdown } from '@/components/layouts/AppLayout/ProjectDropdown'
 import { HelpButton } from '@/components/ui/HelpPanel/HelpButton'
-import { getResourcesExceededLimitsOrg } from '@/components/ui/OveragesBanner/OveragesBanner.utils'
-import { useOrgUsageQuery } from '@/data/usage/org-usage-query'
 import { useLocalStorageQuery } from '@/hooks/misc/useLocalStorage'
-import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
 import { IS_PLATFORM } from '@/lib/constants'
 
@@ -69,9 +64,8 @@ export const LayoutHeader = ({
   backToDashboardURL,
 }: LayoutHeaderProps) => {
   const router = useRouter()
-  const { ref: projectRef, slug } = useParams()
+  const { ref: projectRef } = useParams()
   const { data: selectedProject } = useSelectedProjectQuery()
-  const { data: selectedOrganization } = useSelectedOrganizationQuery()
   const gitlessBranching = useIsBranching2Enabled()
 
   const showFloatingMobileToolbar = useIsFloatingMobileToolbarEnabled()
@@ -79,28 +73,11 @@ export const LayoutHeader = ({
 
   const isAccountPage = router.pathname.startsWith('/account')
 
-  // We only want to query the org usage and check for possible over-ages for plans without usage billing enabled (free or pro with spend cap)
-  const { data: orgUsage } = useOrgUsageQuery(
-    { orgSlug: selectedOrganization?.slug },
-    { enabled: selectedOrganization?.usage_billing_enabled === false }
-  )
-
-  const exceedingLimits = useMemo(() => {
-    if (orgUsage) {
-      return getResourcesExceededLimitsOrg(orgUsage?.usages || []).length > 0
-    } else {
-      return false
-    }
-  }, [orgUsage])
-
   const isNewProject =
     selectedProject?.inserted_at !== undefined &&
     dayjs(selectedProject.inserted_at).isAfter(dayjs().subtract(5, 'day'))
 
   const connectButtonType = isNewProject ? 'primary' : 'default'
-
-  // show org selection if we are on a project page or on a explicit org route
-  const showOrgSelection = slug || (selectedOrganization && projectRef)
 
   return (
     <>
@@ -146,46 +123,7 @@ export const LayoutHeader = ({
           </div>
           <div className="hidden md:flex items-center text-sm">
             <HomeIcon />
-            <div className="flex items-center md:pl-2">
-              {showOrgSelection && IS_PLATFORM ? (
-                <>
-                  <LayoutHeaderDivider className="hidden md:block" />
-                  <OrganizationDropdown />
-                </>
-              ) : null}
-              <AnimatePresence>
-                {projectRef && (
-                  <motion.div
-                    className="flex items-center"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{
-                      duration: 0.15,
-                      ease: 'easeOut',
-                    }}
-                  >
-                    {IS_PLATFORM && <LayoutHeaderDivider />}
-                    <ProjectDropdown />
-
-                    {exceedingLimits && (
-                      <div className="ml-2">
-                        <Link href={`/org/${selectedOrganization?.slug}/usage`}>
-                          <Badge variant="destructive">Exceeding usage limits</Badge>
-                        </Link>
-                      </div>
-                    )}
-
-                    {selectedProject && IS_PLATFORM && (
-                      <>
-                        <LayoutHeaderDivider />
-                        <BranchDropdown />
-                      </>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            <OrgProjectBranchNav className="ml-2" />
             <AnimatePresence>
               {headerTitle && (
                 <motion.div

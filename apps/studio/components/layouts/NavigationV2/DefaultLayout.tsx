@@ -9,38 +9,37 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from 'ui'
 
 import { DefaultLayoutProviders } from '../DefaultLayoutProviders'
 import { AppSidebarV2 } from './AppSidebar'
-import { RightRailLayout } from './RightIconRail'
+import { LayoutHeader } from './LayoutHeader'
+import { RightPanelToolbarLayout } from './RightPanelToolbar'
 
 export interface DefaultLayoutV2Props {
   headerTitle?: string
   hideMobileMenu?: boolean
 }
 
-const leftSidebarMinSize = 180
+const leftSidebarMinSize = 160
 const leftSidebarMaxSize = 450
-const leftSidebarDefaultSize = '250px'
+const leftSidebarDefaultSize = '230px'
+
+const mainContentClass = 'flex h-full min-h-0 min-w-0 flex-col overflow-hidden'
 
 /**
- * New three-column layout for the dashboard (V2 navigation).
- *
- * Layout structure:
- * 1. Left sidebar - navigation with groups (Database, Platform, Observability, Integrations)
- * 2. Main content area - page content (no secondary nav bar)
- * 3. Right icon rail - AI, SQL, Alerts, Help panels
- *
- * This replaces DefaultLayout + ProjectLayout + feature-specific layouts (AuthLayout, DatabaseLayout, etc.)
- * when the navigation V2 feature flag is enabled. The key difference is that there is no longer a
- * secondary product menu sidebar - all navigation is handled in the primary sidebar with collapsible groups.
+ * V2 navigation shell: mobile bar, then AppSidebar (when shown) + main column. Main column has
+ * LayoutHeader above the row of page content and right panel toolbar.
  */
 export const DefaultLayoutV2 = ({
   children,
+  headerTitle,
   hideMobileMenu,
 }: PropsWithChildren<DefaultLayoutV2Props>) => {
   const router = useRouter()
   const isMobile = useBreakpoint('md')
   const appSnap = useAppStateSnapshot()
   const scope = router.pathname.startsWith('/project') ? 'project' : 'organization'
-  const showLeftSidebar = !isMobile && !router.pathname.startsWith('/account')
+  const showLeftSidebar =
+    !isMobile &&
+    !router.pathname.startsWith('/account') &&
+    !router.pathname.startsWith('/organizations')
 
   const [lastVisitedOrganization] = useLocalStorageQuery(
     LOCAL_STORAGE_KEYS.LAST_VISITED_ORGANIZATION,
@@ -55,17 +54,30 @@ export const DefaultLayoutV2 = ({
         : '/organizations'
     : undefined
 
+  const header = (
+    <LayoutHeader headerTitle={headerTitle} backToDashboardURL={backToDashboardURL} scope={scope} />
+  )
+
+  const contentRow = <RightPanelToolbarLayout>{children}</RightPanelToolbarLayout>
+
+  const mainColumn = (
+    <div className={mainContentClass}>
+      <div className="shrink-0">{header}</div>
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">{contentRow}</div>
+    </div>
+  )
+
   return (
     <DefaultLayoutProviders>
-      <div className="flex flex-col h-screen w-screen">
+      <div className="flex h-screen w-screen flex-col">
         <AppBannerWrapper />
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           <MobileNavigationBar
             hideMobileMenu={hideMobileMenu}
             backToDashboardURL={backToDashboardURL}
           />
         </div>
-        <RightRailLayout>
+        <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
           {showLeftSidebar ? (
             <ResizablePanelGroup
               orientation="horizontal"
@@ -82,17 +94,14 @@ export const DefaultLayoutV2 = ({
                 <AppSidebarV2 scope={scope} />
               </ResizablePanel>
               <ResizableHandle withHandle className="hidden md:flex bg-background" />
-              <ResizablePanel
-                id="panel-v2-main-content"
-                className="h-full min-h-0 min-w-0 overflow-hidden"
-              >
-                <div className="flex h-full min-h-0 flex-1 overflow-hidden">{children}</div>
+              <ResizablePanel id="panel-v2-main-column" className={mainContentClass}>
+                {mainColumn}
               </ResizablePanel>
             </ResizablePanelGroup>
           ) : (
-            <div className="flex h-full min-h-0 flex-1 overflow-hidden">{children}</div>
+            mainColumn
           )}
-        </RightRailLayout>
+        </div>
       </div>
     </DefaultLayoutProviders>
   )

@@ -39,7 +39,7 @@ export function UserDropdown({
       <DropdownMenuTrigger asChild className={cn('border flex-shrink-0 px-3', triggerClassName)}>
         <Button
           type="default"
-          className="[&>span]:flex px-0 py-0 rounded-full overflow-hidden h-8 w-8"
+          className="[&>span]:flex px-0 py-0 rounded-full overflow-hidden w-8 h-8"
         >
           {isLoading ? (
             <div className="w-full h-full flex items-center justify-center">

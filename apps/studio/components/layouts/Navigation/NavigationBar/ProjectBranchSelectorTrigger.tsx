@@ -13,7 +13,7 @@ import type { Organization } from '@/types'
 
 export interface ProjectBranchSelectorTriggerProps {
   displayProjectName: string
-  selectedOrg: Organization
+  selectedOrg: Organization | undefined
   isBranch: boolean
   isProductionBranch: boolean
   branchDisplayName: string

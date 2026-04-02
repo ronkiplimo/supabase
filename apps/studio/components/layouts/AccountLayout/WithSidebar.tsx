@@ -3,9 +3,7 @@ import Link from 'next/link'
 import { PropsWithChildren, ReactNode } from 'react'
 import { cn, Menu } from 'ui'
 
-import { NavUser } from '../NavigationV2/NavUser'
 import type { SidebarSection } from './AccountLayout.types'
-import { useAppStateSnapshot } from '@/state/app-state'
 
 interface WithSidebarProps {
   title: string
@@ -132,9 +130,6 @@ export const SidebarContent = ({
             </Menu>
           </div>
         </div>
-        <footer className="p-2">
-          <NavUser />
-        </footer>
       </div>
     </div>
   )

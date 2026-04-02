@@ -38,7 +38,7 @@ async function getPublicBucketsWithSelectPolicies({
         AND p.tablename = 'objects'
         AND p.cmd = 'SELECT'
       WHERE b.public = true
-        AND p.qual ILIKE '%' || b.id || '%'
+        AND p.qual ~ ('bucket_id\s*=\s*' || quote_literal(b.id))
     `,
   })
 

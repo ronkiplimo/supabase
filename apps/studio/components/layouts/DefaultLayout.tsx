@@ -36,6 +36,15 @@ export const DefaultLayout = ({
   hideMobileMenu,
 }: PropsWithChildren<DefaultLayoutProps>) => {
   const isNavigationV2 = useIsNavigationV2Enabled()
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  // This is required to prevent layout shift when rendering resizable panels (they initially render at 50%, then shift
+  // to whatever is specified).
+  if (!isMounted) return null
 
   if (isNavigationV2) {
     return (
@@ -77,18 +86,6 @@ const DefaultLayoutV1 = ({
 
   const contentMinSizePercentage = 50
   const contentMaxSizePercentage = 70
-
-  const [isMounted, setIsMounted] = useState(false)
-
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
-
-  // This is required to prevent layout shift when rendering resizable panels (they initially render at 50%, then shift
-  // to whatever is specified).
-  if (!isMounted) {
-    return null
-  }
 
   return (
     <DefaultLayoutProviders>

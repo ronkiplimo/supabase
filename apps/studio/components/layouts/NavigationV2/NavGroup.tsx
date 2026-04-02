@@ -30,6 +30,7 @@ export interface NavGroupItem {
     title: string
     url: string
     isActive?: boolean
+    label?: string
   }[]
 }
 
@@ -87,7 +88,17 @@ export function NavGroup({ id, label, items, isCollapsible = true }: NavGroupPro
                     <SidebarMenuSubItem key={subItem.title}>
                       <SidebarMenuSubButton asChild isActive={subItem.isActive}>
                         <Link href={subItem.url}>
-                          <span>{subItem.title}</span>
+                          <span className="truncate flex-1 min-w-0">{subItem.title}</span>
+                          {subItem.label && (
+                            <Badge
+                              className="flex-shrink-0"
+                              variant={
+                                subItem.label.toLowerCase() === 'new' ? 'success' : 'warning'
+                              }
+                            >
+                              {subItem.label}
+                            </Badge>
+                          )}
                         </Link>
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
@@ -105,9 +116,12 @@ export function NavGroup({ id, label, items, isCollapsible = true }: NavGroupPro
             >
               <Link href={item.url}>
                 <NavItemIcon icon={item.icon} />
-                <span>{item.title}</span>
+                <span className="truncate flex-1 min-w-0">{item.title}</span>
                 {item.label && (
-                  <Badge className="ml-1 px-1.5 py-0.5 bg-transparent !border-stronger text-[10px] leading-none">
+                  <Badge
+                    className="flex-shrink-0"
+                    variant={item.label.toLowerCase() === 'new' ? 'success' : 'warning'}
+                  >
                     {item.label}
                   </Badge>
                 )}

@@ -1,3 +1,4 @@
+import { literal } from '@supabase/pg-meta/src/pg-format'
 import { useQuery } from '@tanstack/react-query'
 import { executeSql } from 'data/sql/execute-sql-query'
 import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
@@ -9,7 +10,7 @@ import { storageKeys } from './keys'
 export type PublicBucketsWithSelectPoliciesVariables = {
   projectRef?: string
   connectionString?: string | null
-  bucketId?: string
+  bucketId: string
 }
 
 export type PublicBucketSelectPolicy = {
@@ -31,21 +32,19 @@ async function getPublicBucketsWithSelectPolicies({
   connectionString,
   bucketId,
 }: PublicBucketsWithSelectPoliciesVariables) {
-  const safeBucketId = bucketId!.replace(/'/g, "''")
-
   const { result } = await executeSql<PublicBucketSelectPolicy[]>({
     projectRef,
     connectionString,
     sql: `
-      SELECT DISTINCT b.id AS bucket_id, b.name AS bucket_name, p.policyname
+      SELECT b.id AS bucket_id, b.name AS bucket_name, p.policyname
       FROM storage.buckets b
       JOIN pg_policies p
         ON p.schemaname = 'storage'
         AND p.tablename = 'objects'
         AND p.cmd = 'SELECT'
       WHERE b.public = true
-        AND b.id = '${safeBucketId}'
-        AND p.qual ~ ('bucket_id\\s*=\\s*' || quote_literal(b.id))
+        AND b.id = ${literal(bucketId)}
+        AND p.qual ~* ('bucket_id\\s*=\\s*' || quote_literal(b.id))
     `,
   })
 
@@ -77,8 +76,7 @@ export const usePublicBucketsWithSelectPoliciesQuery = <
     {
       queryKey: storageKeys.publicBucketsWithSelectPolicies(projectRef, bucketId),
       queryFn: () => getPublicBucketsWithSelectPolicies({ projectRef, connectionString, bucketId }),
-      enabled:
-        enabled && typeof projectRef !== 'undefined' && typeof bucketId !== 'undefined' && isActive,
+      enabled: enabled && typeof projectRef !== 'undefined' && isActive,
       staleTime: 5 * 60 * 1000,
       refetchOnWindowFocus: false,
       ...options,

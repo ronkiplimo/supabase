@@ -1,22 +1,9 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'common'
-import { DeleteBucketModal } from 'components/interfaces/Storage/DeleteBucketModal'
-import { EditBucketModal } from 'components/interfaces/Storage/EditBucketModal'
-import { EmptyBucketModal } from 'components/interfaces/Storage/EmptyBucketModal'
-import { useSelectedBucket } from 'components/interfaces/Storage/FilesBuckets/useSelectedBucket'
-import { PUBLIC_BUCKET_TOOLTIP } from 'components/interfaces/Storage/Storage.constants'
-import StorageBucketsError from 'components/interfaces/Storage/StorageBucketsError'
-import { StorageExplorer } from 'components/interfaces/Storage/StorageExplorer/StorageExplorer'
-import { useBucketPolicyCount } from 'components/interfaces/Storage/useBucketPolicyCount'
-import DefaultLayout from 'components/layouts/DefaultLayout'
-import { PageLayout } from 'components/layouts/PageLayout/PageLayout'
-import StorageLayout from 'components/layouts/StorageLayout/StorageLayout'
-import { executeSql } from 'data/sql/execute-sql-query'
 import { ChevronDown, FolderOpen, Settings, Shield, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { parseAsBoolean, useQueryState } from 'nuqs'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { toast } from 'sonner'
 import type { NextPageWithLayout } from 'types'
 import {
@@ -31,14 +18,19 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from 'ui'
-import { Admonition } from 'ui-patterns'
-import { CodeBlock } from 'ui-patterns/CodeBlock'
-import ConfirmationModal from 'ui-patterns/Dialogs/ConfirmationModal'
 
-import { databasePoliciesKeys } from '@/data/database-policies/keys'
-import { storageKeys } from '@/data/storage/keys'
-import { usePublicBucketsWithSelectPoliciesQuery } from '@/data/storage/public-buckets-with-select-policies-query'
-import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
+import { DeleteBucketModal } from '@/components/interfaces/Storage/DeleteBucketModal'
+import { EditBucketModal } from '@/components/interfaces/Storage/EditBucketModal'
+import { EmptyBucketModal } from '@/components/interfaces/Storage/EmptyBucketModal'
+import { useSelectedBucket } from '@/components/interfaces/Storage/FilesBuckets/useSelectedBucket'
+import { PublicBucketWarning } from '@/components/interfaces/Storage/PublicBucketWarning'
+import { PUBLIC_BUCKET_TOOLTIP } from '@/components/interfaces/Storage/Storage.constants'
+import StorageBucketsError from '@/components/interfaces/Storage/StorageBucketsError'
+import { StorageExplorer } from '@/components/interfaces/Storage/StorageExplorer/StorageExplorer'
+import { useBucketPolicyCount } from '@/components/interfaces/Storage/useBucketPolicyCount'
+import DefaultLayout from '@/components/layouts/DefaultLayout'
+import { PageLayout } from '@/components/layouts/PageLayout/PageLayout'
+import StorageLayout from '@/components/layouts/StorageLayout/StorageLayout'
 import { StorageExplorerStateContextProvider } from '@/state/storage-explorer'
 
 const BucketPage: NextPageWithLayout = () => {
@@ -61,40 +53,6 @@ const BucketPage: NextPageWithLayout = () => {
 
   const { getPolicyCount } = useBucketPolicyCount()
   const policyCount = bucket ? getPolicyCount(bucket.id) : 0
-
-  const { data: project } = useSelectedProjectQuery()
-  const queryClient = useQueryClient()
-  const [showRemovePolicyModal, setShowRemovePolicyModal] = useState(false)
-
-  const { data: listablePoliciesData } = usePublicBucketsWithSelectPoliciesQuery({
-    projectRef: ref,
-    connectionString: project?.connectionString,
-    bucketId,
-  })
-  const policyToRemove = listablePoliciesData?.[0]
-
-  const { mutate: removeSelectPolicy, isPending: isRemovingPolicy } = useMutation({
-    mutationFn: async (policyname: string) => {
-      const escaped = policyname.replace(/"/g, '""')
-      await executeSql({
-        projectRef: ref!,
-        connectionString: project?.connectionString,
-        sql: `DROP POLICY IF EXISTS "${escaped}" ON storage.objects;`,
-      })
-    },
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: storageKeys.publicBucketsWithSelectPolicies(ref, bucketId),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: databasePoliciesKeys.list(ref, 'storage'),
-        }),
-      ])
-      setShowRemovePolicyModal(false)
-      toast.success('Policy removed successfully')
-    },
-  })
 
   useEffect(() => {
     if (isSuccess && !bucket) {
@@ -194,52 +152,12 @@ const BucketPage: NextPageWithLayout = () => {
         }
       >
         <div className="flex-1 min-h-0 px-6 pb-6 flex flex-col gap-4">
-          {policyToRemove && (
-            <Admonition
-              type="warning"
-              layout="horizontal"
-              title="Object listing is enabled on this bucket"
-              description="A SELECT policy on storage.objects makes all objects in this bucket enumerable. Public buckets don't require SELECT policies. This may have been added unintentionally."
-              actions={
-                <Button type="warning" size="tiny" onClick={() => setShowRemovePolicyModal(true)}>
-                  Remove policy
-                </Button>
-              }
-            />
-          )}
+          {ref && bucketId && <PublicBucketWarning projectRef={ref} bucketId={bucketId} />}
           <div className="flex-1 min-h-0">
             <StorageExplorer />
           </div>
         </div>
       </PageLayout>
-
-      {policyToRemove && (
-        <ConfirmationModal
-          visible={showRemovePolicyModal}
-          variant="destructive"
-          title="Remove SELECT policy"
-          confirmLabel="Remove policy"
-          loading={isRemovingPolicy}
-          onCancel={() => setShowRemovePolicyModal(false)}
-          onConfirm={() => removeSelectPolicy(policyToRemove.policyname)}
-        >
-          <div className="flex flex-col gap-3">
-            <p className="text-sm text-foreground-light">
-              This will drop the SELECT policy that makes this bucket&apos;s contents listable.
-              Object URLs will continue to work.
-            </p>
-            <div className="-mx-4 md:-mx-5 -mb-4 border-t">
-              <CodeBlock
-                hideLineNumbers
-                language="sql"
-                value={`DROP POLICY IF EXISTS "${policyToRemove.policyname.replace(/"/g, '""')}"\n  ON storage.objects;`}
-                wrapperClassName="[&_pre]:px-4 [&_pre]:py-3 [&>pre]:rounded-none [&>pre]:border-0"
-                className="[&_code]:text-foreground"
-              />
-            </div>
-          </div>
-        </ConfirmationModal>
-      )}
 
       {bucket && (
         <>

@@ -9,25 +9,31 @@ import { storageKeys } from './keys'
 export type PublicBucketsWithSelectPoliciesVariables = {
   projectRef?: string
   connectionString?: string | null
+  bucketId?: string
 }
 
-type PublicBucketWithSelectPolicy = {
+export type PublicBucketSelectPolicy = {
   bucket_id: string
   bucket_name: string
   policyname: string
 }
 
 /**
- * Finds public buckets that have a SELECT policy on storage.objects referencing the bucket ID
- * in the policy's qual expression. This combination means any authenticated or anonymous user
- * can enumerate all objects in the bucket, which is usually unintentional — public buckets
- * don't require SELECT policies for object access by URL.
+ * For the given public bucket, checks whether any SELECT policy on storage.objects
+ * references this bucket's ID in its qual expression. This combination means anyone
+ * can enumerate all objects in the bucket, which is usually unintentional — public
+ * buckets don't require SELECT policies for object access by URL.
+ *
+ * Scoped to a single bucket so the query is a point-lookup rather than a full scan.
  */
 async function getPublicBucketsWithSelectPolicies({
   projectRef,
   connectionString,
+  bucketId,
 }: PublicBucketsWithSelectPoliciesVariables) {
-  const { result } = await executeSql<PublicBucketWithSelectPolicy[]>({
+  const safeBucketId = bucketId!.replace(/'/g, "''")
+
+  const { result } = await executeSql<PublicBucketSelectPolicy[]>({
     projectRef,
     connectionString,
     sql: `
@@ -38,7 +44,8 @@ async function getPublicBucketsWithSelectPolicies({
         AND p.tablename = 'objects'
         AND p.cmd = 'SELECT'
       WHERE b.public = true
-        AND p.qual ~ ('bucket_id\s*=\s*' || quote_literal(b.id))
+        AND b.id = '${safeBucketId}'
+        AND p.qual ~ ('bucket_id\\s*=\\s*' || quote_literal(b.id))
     `,
   })
 
@@ -53,7 +60,7 @@ export type PublicBucketsWithSelectPoliciesError = ResponseError
 export const usePublicBucketsWithSelectPoliciesQuery = <
   TData = PublicBucketsWithSelectPoliciesData,
 >(
-  { projectRef, connectionString }: PublicBucketsWithSelectPoliciesVariables,
+  { projectRef, connectionString, bucketId }: PublicBucketsWithSelectPoliciesVariables,
   {
     enabled = true,
     ...options
@@ -66,23 +73,15 @@ export const usePublicBucketsWithSelectPoliciesQuery = <
   const { data: project } = useSelectedProjectQuery()
   const isActive = project?.status === PROJECT_STATUS.ACTIVE_HEALTHY
 
-  const query = useQuery<
-    PublicBucketsWithSelectPoliciesData,
-    PublicBucketsWithSelectPoliciesError,
-    TData
-  >({
-    queryKey: storageKeys.publicBucketsWithSelectPolicies(projectRef),
-    queryFn: () => getPublicBucketsWithSelectPolicies({ projectRef, connectionString }),
-    enabled: enabled && typeof projectRef !== 'undefined' && isActive,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    ...options,
-  })
-
-  const isPublicBucketListable = (bucketId: string): boolean => {
-    const data = query.data as PublicBucketsWithSelectPoliciesData | undefined
-    return data?.some((row) => row.bucket_id === bucketId) ?? false
-  }
-
-  return { ...query, isPublicBucketListable }
+  return useQuery<PublicBucketsWithSelectPoliciesData, PublicBucketsWithSelectPoliciesError, TData>(
+    {
+      queryKey: storageKeys.publicBucketsWithSelectPolicies(projectRef, bucketId),
+      queryFn: () => getPublicBucketsWithSelectPolicies({ projectRef, connectionString, bucketId }),
+      enabled:
+        enabled && typeof projectRef !== 'undefined' && typeof bucketId !== 'undefined' && isActive,
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      ...options,
+    }
+  )
 }

@@ -69,9 +69,9 @@ const BucketPage: NextPageWithLayout = () => {
   const { data: listablePoliciesData } = usePublicBucketsWithSelectPoliciesQuery({
     projectRef: ref,
     connectionString: project?.connectionString,
+    bucketId,
   })
-  const matchingPolicies = listablePoliciesData?.filter((row) => row.bucket_id === bucket?.id) ?? []
-  const policyToRemove = matchingPolicies[0]
+  const policyToRemove = listablePoliciesData?.[0]
 
   const { mutate: removeSelectPolicy, isPending: isRemovingPolicy } = useMutation({
     mutationFn: async (policyname: string) => {
@@ -85,7 +85,7 @@ const BucketPage: NextPageWithLayout = () => {
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: storageKeys.publicBucketsWithSelectPolicies(ref),
+          queryKey: storageKeys.publicBucketsWithSelectPolicies(ref, bucketId),
         }),
         queryClient.invalidateQueries({
           queryKey: databasePoliciesKeys.list(ref, 'storage'),

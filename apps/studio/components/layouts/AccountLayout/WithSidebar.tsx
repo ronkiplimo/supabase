@@ -4,6 +4,7 @@ import { PropsWithChildren, ReactNode } from 'react'
 import { cn, Menu } from 'ui'
 
 import type { SidebarSection } from './AccountLayout.types'
+import { useAppStateSnapshot } from '@/state/app-state'
 
 interface WithSidebarProps {
   title: string

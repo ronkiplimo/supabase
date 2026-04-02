@@ -1,9 +1,4 @@
 import * as Sentry from '@sentry/nextjs'
-import CopyButton from 'components/ui/CopyButton'
-import { useIncidentStatusQuery } from 'data/platform/incident-status-query'
-import { useSendEventMutation } from 'data/telemetry/send-event-mutation'
-import { useStateTransition } from 'hooks/misc/useStateTransition'
-import { BASE_PATH, DOCS_URL } from 'lib/constants'
 import { Loader2, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { useCallback, useReducer, type Dispatch, type PropsWithChildren } from 'react'
@@ -28,6 +23,11 @@ import {
 import { NO_PROJECT_MARKER } from './SupportForm.utils'
 import { SupportFormV2 } from './SupportFormV2'
 import { useSupportForm } from './useSupportForm'
+import CopyButton from '@/components/ui/CopyButton'
+import { useIncidentStatusQuery } from '@/data/platform/incident-status-query'
+import { useSendEventMutation } from '@/data/telemetry/send-event-mutation'
+import { useStateTransition } from '@/hooks/misc/useStateTransition'
+import { BASE_PATH, DOCS_URL } from '@/lib/constants'
 
 function useSupportFormTelemetry() {
   const { mutate: sendEvent } = useSendEventMutation()

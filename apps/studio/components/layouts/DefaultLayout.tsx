@@ -1,12 +1,7 @@
-import { LOCAL_STORAGE_KEYS, useParams } from 'common'
-import { AppBannerWrapper } from 'components/interfaces/App/AppBannerWrapper'
+import { LOCAL_STORAGE_KEYS } from 'common'
 import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
-import { Sidebar } from 'components/interfaces/Sidebar'
-import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
-import { useCheckLatestDeploy } from 'hooks/use-check-latest-deploy'
 import { useRouter } from 'next/router'
-import { PropsWithChildren, useEffect, useState } from 'react'
-import { useAppStateSnapshot } from 'state/app-state'
+import { useEffect, useState, type PropsWithChildren } from 'react'
 import { ResizablePanel, ResizablePanelGroup } from 'ui'
 
 import { DefaultLayoutProviders } from './DefaultLayoutProviders'
@@ -14,6 +9,11 @@ import { LayoutHeader } from './Navigation/LayoutHeader/LayoutHeader'
 import MobileNavigationBar from './Navigation/NavigationBar/MobileNavigationBar'
 import { DefaultLayoutV2 } from './NavigationV2/DefaultLayoutV2'
 import { LayoutSidebar } from './ProjectLayout/LayoutSidebar'
+import { AppBannerWrapper } from '@/components/interfaces/App/AppBannerWrapper'
+import { Sidebar } from '@/components/interfaces/Sidebar'
+import { useLocalStorageQuery } from '@/hooks/misc/useLocalStorage'
+import { useCheckLatestDeploy } from '@/hooks/use-check-latest-deploy'
+import { useAppStateSnapshot } from '@/state/app-state'
 
 export interface DefaultLayoutProps {
   headerTitle?: string

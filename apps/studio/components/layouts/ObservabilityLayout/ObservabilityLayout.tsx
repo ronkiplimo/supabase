@@ -1,19 +1,19 @@
 import { IS_PLATFORM, LOCAL_STORAGE_KEYS, useParams } from 'common'
 import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
-import { useIndexAdvisorStatus } from 'components/interfaces/QueryPerformance/hooks/useIsIndexAdvisorStatus'
-import { BannerIndexAdvisor } from 'components/ui/BannerStack/Banners/BannerIndexAdvisor'
-import { BannerMetricsAPI } from 'components/ui/BannerStack/Banners/BannerMetricsAPI'
-import { useBannerStack } from 'components/ui/BannerStack/BannerStackProvider'
-import { UnknownInterface } from 'components/ui/UnknownInterface'
-import { useIsFeatureEnabled } from 'hooks/misc/useIsFeatureEnabled'
-import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
-import { withAuth } from 'hooks/misc/withAuth'
 import { usePathname } from 'next/navigation'
-import { PropsWithChildren, useEffect, useRef } from 'react'
+import { useEffect, useRef, type PropsWithChildren } from 'react'
 
 import { ProjectLayoutV2 } from '../NavigationV2/ProjectLayoutV2'
 import { ProjectLayout } from '../ProjectLayout'
 import ObservabilityMenu from './ObservabilityMenu'
+import { useIndexAdvisorStatus } from '@/components/interfaces/QueryPerformance/hooks/useIsIndexAdvisorStatus'
+import { BannerIndexAdvisor } from '@/components/ui/BannerStack/Banners/BannerIndexAdvisor'
+import { BannerMetricsAPI } from '@/components/ui/BannerStack/Banners/BannerMetricsAPI'
+import { useBannerStack } from '@/components/ui/BannerStack/BannerStackProvider'
+import { UnknownInterface } from '@/components/ui/UnknownInterface'
+import { useIsFeatureEnabled } from '@/hooks/misc/useIsFeatureEnabled'
+import { useLocalStorageQuery } from '@/hooks/misc/useLocalStorage'
+import { withAuth } from '@/hooks/misc/withAuth'
 
 interface ObservabilityLayoutProps {
   title: string

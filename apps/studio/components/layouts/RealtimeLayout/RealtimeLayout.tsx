@@ -1,13 +1,13 @@
 import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
-import { ProductMenu } from 'components/ui/ProductMenu'
-import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
-import { withAuth } from 'hooks/misc/withAuth'
 import { useRouter } from 'next/router'
 import type { PropsWithChildren } from 'react'
 
 import { ProjectLayoutV2 } from '../NavigationV2/ProjectLayoutV2'
 import { ProjectLayout } from '../ProjectLayout'
 import { generateRealtimeMenu } from './RealtimeMenu.utils'
+import { ProductMenu } from '@/components/ui/ProductMenu'
+import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
+import { withAuth } from '@/hooks/misc/withAuth'
 
 /**
  * Menu-only component for the Realtime section. Used by the desktop sidebar and by the

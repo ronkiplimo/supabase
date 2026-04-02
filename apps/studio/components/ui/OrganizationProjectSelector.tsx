@@ -1,8 +1,5 @@
 import { keepPreviousData } from '@tanstack/react-query'
 import { useDebounce, useIntersectionObserver } from '@uidotdev/usehooks'
-import { useOrgProjectsInfiniteQuery } from 'data/projects/org-projects-infinite-query'
-import type { OrgProject } from 'data/projects/org-projects-infinite-query'
-import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
 import { ChevronsUpDown, HelpCircle } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
@@ -25,6 +22,11 @@ import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
 import { EmbeddedProjectList } from './OrganizationProjectSelector/EmbeddedProjectList'
 import { ProjectCommandItem } from './OrganizationProjectSelector/ProjectCommandItem'
+import {
+  OrgProject,
+  useOrgProjectsInfiniteQuery,
+} from '@/data/projects/org-projects-infinite-query'
+import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
 
 interface OrganizationProjectSelectorSelectorProps {
   slug?: string

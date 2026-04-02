@@ -1,12 +1,12 @@
-import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
-import { ProductMenu } from 'components/ui/ProductMenu'
-import { withAuth } from 'hooks/misc/withAuth'
 import { useRouter } from 'next/router'
 import type { PropsWithChildren } from 'react'
 
 import { ProjectLayoutV2 } from '../NavigationV2/ProjectLayoutV2'
 import { ProjectLayout } from '../ProjectLayout'
 import { useGenerateSettingsMenu } from './SettingsMenu.utils'
+import { useIsNavigationV2Enabled } from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'
+import { ProductMenu } from '@/components/ui/ProductMenu'
+import { withAuth } from '@/hooks/misc/withAuth'
 
 /**
  * Menu-only component for the settings section. Used by the desktop sidebar and by the

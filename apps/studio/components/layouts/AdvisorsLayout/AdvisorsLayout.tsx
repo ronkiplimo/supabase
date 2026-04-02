@@ -1,11 +1,11 @@
+import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { useRouter } from 'next/router'
 import { PropsWithChildren } from 'react'
 
-import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
-import { withAuth } from 'hooks/misc/withAuth'
 import { ProjectLayoutV2 } from '../NavigationV2/ProjectLayoutV2'
 import { ProjectLayout } from '../ProjectLayout'
 import { AdvisorsSidebarMenu } from './AdvisorsSidebarMenu'
+import { withAuth } from '@/hooks/misc/withAuth'
 
 export interface AdvisorsLayoutProps {
   title?: string

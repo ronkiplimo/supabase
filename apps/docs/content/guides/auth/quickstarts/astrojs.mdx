@@ -170,7 +170,7 @@ hideToc: true
       ```ts name=src/actions/index.ts
       import { defineAction } from "astro:actions";
       import { z } from "astro/zod";
-      import { createClient } from "@/lib/supabase";
+      import { createClient } from "../lib/supabase";
 
       export const server = {
         signUp: defineAction({
@@ -289,7 +289,7 @@ hideToc: true
 
       ```astro name=src/pages/auth/callback.astro
       ---
-      import { createClient } from "@/lib/supabase";
+      import { createClient } from "../lib/supabase";
 
       const supabase = createClient({
         request: Astro.request,
@@ -331,7 +331,7 @@ hideToc: true
 
       ```astro name=src/pages/auth/signup.astro
       ---
-      import { createClient } from "@/lib/supabase";
+      import { createClient } from "../../lib/supabase";
 
       const supabase = createClient({
         request: Astro.request,
@@ -437,7 +437,7 @@ hideToc: true
 
       ```astro name=src/pages/auth/signin.astro
       ---
-      import { createClient } from "@/lib/supabase";
+      import { createClient } from "../../lib/supabase";
 
       const supabase = createClient({
         request: Astro.request,
@@ -542,7 +542,7 @@ hideToc: true
 
       ```astro name=src/pages/dashboard.astro
       ---
-      import { createClient } from "@/lib/supabase";
+      import { createClient } from "../lib/supabase";
 
       const supabase = createClient({
         request: Astro.request,

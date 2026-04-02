@@ -693,6 +693,10 @@ export const auth: NavMenuConstant = {
           name: 'Next.js',
           url: '/guides/auth/quickstarts/nextjs' as `/${string}`,
         },
+        {
+          name: 'Astro',
+          url: '/guides/auth/quickstarts/astrojs',
+        },
         { name: 'React', url: '/guides/auth/quickstarts/react', items: [] },
         {
           name: 'React Native',

@@ -9,7 +9,7 @@ import { Badge, cn } from 'ui'
 import { CommandMenuTriggerInput } from 'ui-patterns'
 
 import { HomeIcon } from '../Navigation/LayoutHeader/HomeIcon'
-import { type AppSidebarScope } from './useAppSidebarNavItems'
+import type { AppSidebarScope } from './app-sidebar.types'
 import { useIsFloatingMobileToolbarEnabled } from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { ConnectSheet } from '@/components/interfaces/ConnectSheet/ConnectSheet'
 import { LocalDropdown } from '@/components/interfaces/LocalDropdown'

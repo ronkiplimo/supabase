@@ -2,12 +2,12 @@ import { useParams } from 'common'
 import { Plug } from 'lucide-react'
 import { useRouter } from 'next/router'
 import { parseAsBoolean, useQueryState } from 'nuqs'
-import { Button, cn, Sidebar, SidebarContent, SidebarHeader } from 'ui'
+import { Button, cn, Sidebar, SidebarHeader } from 'ui'
 import { ShimmeringLoader } from 'ui-patterns'
 
-import { NavGroup } from './NavGroup'
-import { useAppSidebarNavItems, type AppSidebarScope } from './useAppSidebarNavItems'
+import type { AppSidebarScope } from './app-sidebar.types'
 import { ConnectSheet } from '@/components/interfaces/ConnectSheet/ConnectSheet'
+import { SidebarContent as StudioSidebarNav } from '@/components/interfaces/Sidebar'
 import { OrgSelector } from '@/components/layouts/Navigation/NavigationBar/OrgSelector'
 import { ProjectBranchSelector } from '@/components/layouts/Navigation/NavigationBar/ProjectBranchSelector'
 import { useOrganizationsQuery } from '@/data/organizations/organizations-query'
@@ -15,9 +15,9 @@ import { useProjectDetailQuery } from '@/data/projects/project-detail-query'
 import { useHideSidebar } from '@/hooks/misc/useHideSidebar'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
-import { IS_PLATFORM } from '@/lib/constants'
+import { IS_PLATFORM, PROJECT_STATUS } from '@/lib/constants'
 
-export type { AppSidebarScope }
+export type { AppSidebarScope } from './app-sidebar.types'
 
 type AppSidebarNavBodyVariant = 'desktop' | 'mobile-sheet'
 
@@ -27,25 +27,20 @@ interface AppSidebarNavBodyProps {
 }
 
 /**
- * Shared nav chrome (branch/org selector, Connect, NavGroups) for desktop sidebar and mobile sheet.
+ * Shared nav chrome (selectors, Connect) + V1 `SidebarContent` link tree for desktop and mobile sheet.
  */
 function AppSidebarNavBody({ scope, variant = 'desktop' }: AppSidebarNavBodyProps) {
   const [, setShowConnect] = useQueryState('showConnect', parseAsBoolean.withDefault(false))
+  const router = useRouter()
   const { slug: orgRouteSlug } = useParams()
   const { data: selectedOrganization } = useSelectedOrganizationQuery()
   const { isPending: isLoadingOrganizations } = useOrganizationsQuery()
   const { data: project, isPending: isLoadingProject } = useSelectedProjectQuery()
 
-  const {
-    isProjectScope,
-    isActiveHealthy,
-    projectItems,
-    databaseItems,
-    platformItems,
-    observabilityItems,
-    integrationsItems,
-    organizationItems,
-  } = useAppSidebarNavItems({ scope })
+  const resolvedScope: AppSidebarScope =
+    scope ?? (router.pathname.startsWith('/project') ? 'project' : 'organization')
+  const isProjectScope = resolvedScope === 'project'
+  const isActiveHealthy = project?.status === PROJECT_STATUS.ACTIVE_HEALTHY
 
   const isBranch = project != null && project.parentRef !== project.ref
   const { data: parentProject, isPending: isLoadingParentProject } = useProjectDetailQuery(
@@ -101,33 +96,10 @@ function AppSidebarNavBody({ scope, variant = 'desktop' }: AppSidebarNavBodyProp
           </>
         )}
       </SidebarHeader>
-      <div
-        className={cn(
-          'relative min-h-0 flex-1',
-          isMobileSheet ? 'overflow-y-auto' : 'overflow-hidden'
-        )}
-      >
-        <SidebarContent className={cn('relative gap-0 pb-8', !isMobileSheet && 'h-full')}>
-          {isProjectScope ? (
-            <>
-              <NavGroup id="project" label="Project" items={projectItems} />
-              <NavGroup id="database" label="Database" items={databaseItems} />
-              <NavGroup id="platform" label="Platform" items={platformItems} />
-              <NavGroup id="observability" label="Observability" items={observabilityItems} />
-              <NavGroup id="integrations" label="Integrations" items={integrationsItems} />
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-x-0 top-0 z-10 h-3 bg-gradient-to-b from-sidebar to-transparent"
-              />
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-3 bg-gradient-to-t from-sidebar to-transparent"
-              />
-            </>
-          ) : (
-            <NavGroup id="organization" label="" items={organizationItems} isCollapsible={false} />
-          )}
-        </SidebarContent>
+      <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto">
+          <StudioSidebarNav />
+        </div>
       </div>
     </>
   )

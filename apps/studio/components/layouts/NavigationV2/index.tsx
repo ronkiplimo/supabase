@@ -1,6 +1,5 @@
+export type { AppSidebarScope } from './app-sidebar.types'
+export { AppSidebarV2 } from './AppSidebar'
 export { DefaultLayoutV2 } from './DefaultLayout'
 export { ProjectLayoutV2, ProjectLayoutV2WithAuth } from './ProjectLayout'
-export { AppSidebarV2 } from './AppSidebar'
-export { NavGroup } from './NavGroup'
-export type { NavGroupItem, NavGroupProps } from './NavGroup'
 export { RightPanelToolbarLayout } from './RightPanelToolbar'

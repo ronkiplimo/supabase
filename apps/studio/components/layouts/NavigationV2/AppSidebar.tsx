@@ -1,3 +1,4 @@
+import { useParams } from 'common'
 import { Plug } from 'lucide-react'
 import { parseAsBoolean, useQueryState } from 'nuqs'
 import { Button, cn, Sidebar, SidebarContent, SidebarHeader } from 'ui'
@@ -25,6 +26,7 @@ interface AppSidebarNavBodyProps {
  */
 function AppSidebarNavBody({ scope, variant = 'desktop' }: AppSidebarNavBodyProps) {
   const [, setShowConnect] = useQueryState('showConnect', parseAsBoolean.withDefault(false))
+  const { slug: orgRouteSlug } = useParams()
   const { data: selectedOrganization } = useSelectedOrganizationQuery()
 
   const {
@@ -38,34 +40,34 @@ function AppSidebarNavBody({ scope, variant = 'desktop' }: AppSidebarNavBodyProp
     organizationItems,
   } = useAppSidebarNavItems({ scope })
 
-  const showSelector = IS_PLATFORM && (isProjectScope || selectedOrganization)
   const isMobileSheet = variant === 'mobile-sheet'
+  const selectorHeaderClass = cn('flex-col gap-2', isMobileSheet ? 'flex' : 'hidden md:flex')
+
+  const shouldShowOrgSelector =
+    !isProjectScope && IS_PLATFORM && (Boolean(orgRouteSlug) || Boolean(selectedOrganization))
 
   return (
     <>
-      {showSelector && (
-        <SidebarHeader className="hidden md:flex flex-col gap-2">
-          {isProjectScope ? (
-            <>
-              <ProjectBranchSelector />
-              <div className="flex items-center px-0.5">
-                <Button
-                  type="default"
-                  size="small"
-                  disabled={!isActiveHealthy}
-                  onClick={() => setShowConnect(true)}
-                  className="h-7 flex-1 justify-center gap-0 pl-2"
-                  icon={<Plug className="rotate-90" strokeWidth={1.5} />}
-                >
-                  Connect
-                </Button>
-              </div>
-            </>
-          ) : (
-            selectedOrganization && <OrgSelector />
-          )}
-        </SidebarHeader>
-      )}
+      <SidebarHeader className={selectorHeaderClass}>
+        {shouldShowOrgSelector && <OrgSelector />}
+        {isProjectScope && (
+          <>
+            <ProjectBranchSelector />
+            <div className="flex items-center px-0.5">
+              <Button
+                type="default"
+                size="small"
+                disabled={!isActiveHealthy}
+                onClick={() => setShowConnect(true)}
+                className="h-7 flex-1 justify-center gap-0 pl-2"
+                icon={<Plug className="rotate-90" strokeWidth={1.5} />}
+              >
+                Connect
+              </Button>
+            </div>
+          </>
+        )}
+      </SidebarHeader>
       <div
         className={cn(
           'relative min-h-0 flex-1',

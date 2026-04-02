@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
 import {
+  cn,
   Command_Shadcn_,
   CommandEmpty_Shadcn_,
   CommandGroup_Shadcn_,
@@ -22,6 +23,7 @@ import {
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
 import { OrgSelectorSheet } from './OrgSelectorSheet'
+import { useIsNavigationV2Enabled } from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { OrgCommandItem } from '@/components/layouts/AppLayout/OrgCommandItem'
 import { useOrganizationsQuery } from '@/data/organizations/organizations-query'
 import { useOrgProjectsInfiniteQuery } from '@/data/projects/org-projects-infinite-query'
@@ -34,11 +36,11 @@ export function OrgSelector() {
   const { data: selectedOrganization } = useSelectedOrganizationQuery()
   const { data: organizations, isPending: isLoadingOrganizations } = useOrganizationsQuery()
   const organizationCreationEnabled = useIsFeatureEnabled('organizations:create')
+  const isNavigationV2 = useIsNavigationV2Enabled()
 
   const [open, setOpen] = useState(false)
 
   const slug = selectedOrganization?.slug
-  const selectedOrgInitial = selectedOrganization?.name?.trim().charAt(0).toUpperCase() || 'O'
   const { data: projects } = useOrgProjectsInfiniteQuery(
     { slug, limit: 1 },
     { enabled: Boolean(slug) }
@@ -52,7 +54,12 @@ export function OrgSelector() {
 
   const isMobile = useBreakpoint('md')
 
-  if (isLoadingOrganizations) return <ShimmeringLoader className="ml-1 w-[120px]" />
+  if (isLoadingOrganizations)
+    return (
+      <ShimmeringLoader
+        className={cn('ml-1 w-[120px]', isNavigationV2 && 'ml-0 w-full h-10 rounded-md')}
+      />
+    )
 
   const triggerButton = (
     <SidebarMenuButton

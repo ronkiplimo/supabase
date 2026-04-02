@@ -2,6 +2,7 @@ import { useBreakpoint, useParams } from 'common'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
 import {
+  cn,
   Popover_Shadcn_,
   PopoverContent_Shadcn_,
   PopoverTrigger_Shadcn_,
@@ -15,6 +16,7 @@ import { getProjectBranchSelectorState } from './ProjectBranchSelector.utils'
 import { ProjectBranchSelectorPopover } from './ProjectBranchSelectorPopover'
 import { ProjectBranchSelectorSheet } from './ProjectBranchSelectorSheet'
 import { ProjectBranchSelectorTrigger } from './ProjectBranchSelectorTrigger'
+import { useIsNavigationV2Enabled } from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { useBranchesQuery } from '@/data/branches/branches-query'
 import { useProjectDetailQuery } from '@/data/projects/project-detail-query'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
@@ -26,6 +28,7 @@ export function ProjectBranchSelector() {
   const { ref } = useParams()
   const { data: selectedOrganization } = useSelectedOrganizationQuery()
   const { data: project, isPending: isLoadingProject } = useSelectedProjectQuery()
+  const isNavigationV2 = useIsNavigationV2Enabled()
 
   const isBranch = project?.parentRef !== project?.ref
   const isProductionBranch = !isBranch
@@ -58,7 +61,11 @@ export function ProjectBranchSelector() {
   const isMobile = useBreakpoint('md')
 
   if (isLoadingProject || !displayProject)
-    return <ShimmeringLoader className="w-[120px] ml-1 md:py-3" />
+    return (
+      <ShimmeringLoader
+        className={cn('w-[120px] ml-1 md:py-3', isNavigationV2 && 'ml-0 w-full h-10 rounded-md')}
+      />
+    )
 
   if (!IS_PLATFORM) {
     return (

@@ -19,7 +19,7 @@ export interface DefaultLayoutV2Props {
 }
 
 const leftSidebarMinSize = 160
-const leftSidebarMaxSize = 450
+const leftSidebarMaxSize = 300
 const leftSidebarDefaultSize = '230px'
 
 const mainContentClass = 'flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden'

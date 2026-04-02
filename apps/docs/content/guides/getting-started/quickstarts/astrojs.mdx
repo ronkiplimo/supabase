@@ -93,7 +93,7 @@ hideToc: true
 
         ```text name=.env.local
         SUPABASE_URL=<SUBSTITUTE_SUPABASE_URL>
-        SUPABASE_ANON_KEY=<SUBSTITUTE_SUPABASE_ANON_KEY>
+        SUPABASE_PUBLISHABLE_KEY=<SUBSTITUTE_SUPABASE_PUBLISHABLE_KEY>
         ```
 
       </$CodeTabs>
@@ -119,7 +119,7 @@ hideToc: true
       export function createServerClient() {
         return createClient(
           import.meta.env.SUPABASE_URL,
-          import.meta.env.SUPABASE_ANON_KEY
+          import.meta.env.SUPABASE_PUBLISHABLE_KEY
         );
       }
       ```

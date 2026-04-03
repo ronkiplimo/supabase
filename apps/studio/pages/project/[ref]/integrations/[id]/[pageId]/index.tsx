@@ -209,7 +209,7 @@ const IntegrationPage: NextPageWithLayout = () => {
 
             {integration?.type === 'oauth' ? (
               <Button asChild type="primary" className="shrink-0">
-                <a target="_blank" rel="noreferrer" href={integration.siteUrl ?? '/'}>
+                <a target="_blank" rel="noreferrer" href={integration.installUrl ?? '/'}>
                   Install integration
                 </a>
               </Button>

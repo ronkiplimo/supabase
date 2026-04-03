@@ -39,6 +39,7 @@ export type IntegrationDefinition = {
   files?: string[]
   docsUrl: string | null
   siteUrl?: string | null
+  installUrl?: string | null
   author: {
     name: string
     websiteUrl: string

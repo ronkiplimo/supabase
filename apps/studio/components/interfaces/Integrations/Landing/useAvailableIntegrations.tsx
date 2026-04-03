@@ -9,9 +9,9 @@ import { marketplaceIntegrationsQueryOptions } from '@/data/marketplace/integrat
 import { useCLIReleaseVersionQuery } from '@/data/misc/cli-release-version-query'
 import { useIsFeatureEnabled } from '@/hooks/misc/useIsFeatureEnabled'
 
-const getIconUrl = (partnerSlug: string, partnerLogo: string) => {
+const fullImageUrl = (imagePath: string) => {
   const API_URL = process.env.NEXT_PUBLIC_MARKETPLACE_API_URL || ''
-  return `${API_URL}/storage/v1/object/public/images/partners/${partnerSlug}/${partnerLogo}`
+  return `${API_URL}${imagePath}`
 }
 
 /**
@@ -45,9 +45,10 @@ export const useAvailableIntegrations = () => {
       description,
       documentation_url: docsUrl,
       website_url: siteUrl,
+      installation_url: installUrl,
+      images,
       content,
       partner_name: authorName,
-      partner_slug: partnerSlug,
       partner_logo: partnerLogo,
     } = integration
 
@@ -63,19 +64,15 @@ export const useAvailableIntegrations = () => {
         ? (categories as Array<{ slug: string }>).map((x) => x.slug)
         : [],
       content,
-      files: [],
+      files: images?.map((image) => fullImageUrl(image)),
       description,
       docsUrl,
       siteUrl,
+      installUrl,
       author,
       requiredExtensions: [],
       icon: ({ className, ...props } = {}) => (
-        <Image
-          src={getIconUrl(partnerSlug ?? '', partnerLogo ?? '')}
-          alt=""
-          width={24}
-          height={24}
-        />
+        <Image src={fullImageUrl(partnerLogo ?? '')} alt="" width={22} height={22} />
       ),
       navigation: [
         {

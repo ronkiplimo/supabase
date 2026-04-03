@@ -25,7 +25,6 @@ import { useEditorType } from '../editors/EditorsLayout.hooks'
 import { useSetMainScrollContainer } from '../MainScrollContainerContext'
 import { useMobileSheet } from '../Navigation/NavigationBar/MobileSheetContext'
 import ProductMenuBar from '../Navigation/ProductMenuBar'
-import { AppSidebarMobileSheetMenu } from '../NavigationV2/AppSidebar'
 import BuildingState from './BuildingState'
 import ConnectingState from './ConnectingState'
 import { getSectionKeyFromPathname, MobileMenuContent } from './LayoutHeader/MobileMenuContent'
@@ -41,6 +40,7 @@ import { UpgradingState } from './UpgradingState'
 import { useIsNavigationV2Enabled } from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { CreateBranchModal } from '@/components/interfaces/BranchManagement/CreateBranchModal'
 import { ProjectAPIDocs } from '@/components/interfaces/ProjectAPIDocs/ProjectAPIDocs'
+import { SidebarMobileSheetMenu } from '@/components/interfaces/Sidebar'
 import { BannerFreeMicroUpgrade } from '@/components/ui/BannerStack/Banners/BannerFreeMicroUpgrade'
 import { BANNER_ID, useBannerStack } from '@/components/ui/BannerStack/BannerStackProvider'
 import { ResourceExhaustionWarningBanner } from '@/components/ui/ResourceExhaustionWarningBanner/ResourceExhaustionWarningBanner'
@@ -203,7 +203,7 @@ export const ProjectLayout = forwardRef<HTMLDivElement, PropsWithChildren<Projec
     useLayoutEffect(() => {
       const unregister = registerOpenMenu(() => {
         if (isNavigationV2) {
-          setMobileSheetContent(<AppSidebarMobileSheetMenu />)
+          setMobileSheetContent(<SidebarMobileSheetMenu />)
         } else {
           setMobileSheetContent(
             <MobileMenuContent

@@ -191,15 +191,15 @@ function CustomApp({ Component, pageProps }: AppPropsWithLayout) {
                               <MonacoThemeProvider />
                             </CommandProvider>
                           </AiAssistantStateContextProvider>
-                          <DevToolbar />
+                          {/* <DevToolbar /> */}
                         </DevToolbarProvider>
                       </ThemeProvider>
                     </RouteValidationWrapper>
                   </TooltipProvider>
                   <Telemetry />
-                  {!isTestEnv && (
+                  {/* {!isTestEnv && (
                     <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
-                  )}
+                  )} */}
                 </ProfileProvider>
               </FeatureFlagProviderWithOrgContext>
             </AuthProvider>

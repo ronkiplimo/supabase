@@ -30,7 +30,7 @@ import { useOrgProjectsInfiniteQuery } from '@/data/projects/org-projects-infini
 import { useIsFeatureEnabled } from '@/hooks/misc/useIsFeatureEnabled'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
 
-export function OrgSelector() {
+export function OrgSelector({ isCollapsed = false }: { isCollapsed?: boolean }) {
   const router = useRouter()
   const { slug: routeSlug } = useParams()
   const { data: selectedOrganization } = useSelectedOrganizationQuery()
@@ -57,31 +57,78 @@ export function OrgSelector() {
   if (isLoadingOrganizations)
     return (
       <ShimmeringLoader
-        className={cn('ml-1 w-[120px]', isNavigationV2 && 'ml-0 w-full h-10 rounded-md')}
+        className={cn(
+          'ml-1 w-[120px]',
+          isNavigationV2 && 'ml-0 h-10 w-full rounded-md',
+          isCollapsed && 'min-w-0 max-w-full'
+        )}
       />
     )
+
+  const collapsedTooltipContent = isCollapsed ? (
+    <div className="max-w-[280px] text-left text-sm">
+      <div className="flex min-w-0 flex-1 flex-col pl-0.5 pr-1 text-left">
+        <div className="truncate font-medium leading-tight text-foreground-light group-hover:text-foreground">
+          {selectedOrganization?.name ?? 'Select organization'}
+        </div>
+        {selectedOrganization && (
+          <div className="flex items-center gap-1 truncate text-xs leading-tight text-foreground-lighter group-hover:text-foreground-light">
+            <Boxes className="size-3 shrink-0" strokeWidth={1.5} />
+            <span className="min-w-0 truncate">{projectsLabel}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  ) : null
 
   const triggerButton = (
     <SidebarMenuButton
       size="lg"
-      className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground gap-2 h-10 text-left group px-1.5 py-1 touch-manipulation"
+      hasIcon={!isCollapsed}
+      tooltip={
+        isCollapsed
+          ? {
+              children: collapsedTooltipContent,
+              className: 'p-1',
+            }
+          : undefined
+      }
+      className={cn(
+        'group/org-selector touch-manipulation text-left data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-transparent',
+        isCollapsed
+          ? 'h-9 gap-1 !bg-transparent !px-0.5 !py-0.5 overflow-visible'
+          : 'h-9 gap-2 px-1.5 py-1'
+      )}
       onClick={isMobile ? () => setOpen(true) : undefined}
     >
-      <div className="flex min-w-0 flex-1 flex-col text-left pl-0.5">
-        <div className="truncate text-foreground font-medium leading-tight min-w-[100px] max-w-[250px]">
-          {selectedOrganization?.name ?? 'Select organization'}
-        </div>
-        {selectedOrganization && (
-          <div className="flex items-center gap-1 truncate text-foreground-light leading-tight text-xs">
-            <Boxes className="shrink-0 size-3" strokeWidth={1.5} />
-            <span>{projectsLabel}</span>
+      {!isCollapsed ? (
+        <>
+          <div className="flex min-w-0 flex-1 flex-col pl-0.5 text-left">
+            <div className="min-w-[100px] max-w-[250px] truncate font-medium leading-tight text-foreground-light group-hover/org-selector:text-foreground">
+              {selectedOrganization?.name ?? 'Select organization'}
+            </div>
+            {selectedOrganization && (
+              <div className="flex items-center gap-1 truncate text-xs leading-tight text-foreground-lighter group-hover/org-selector:text-foreground-light">
+                <Boxes className="size-3 shrink-0" strokeWidth={1.5} />
+                <span className="min-w-0 truncate">{projectsLabel}</span>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-      <ChevronsUpDown
-        strokeWidth={1}
-        className="ml-auto text-foreground-light md:hidden md:group-hover:block !w-4 !h-4"
-      />
+          <div className="p-1 rounded-md group-hover/org-selector:bg-surface-200 hover:!bg-selection group-hover/org-selector:text-foreground">
+            <ChevronsUpDown
+              strokeWidth={1.5}
+              className={cn(
+                'ml-auto !h-4 !w-4 text-foreground-lighter group-hover:text-foreground-light',
+                isCollapsed && 'hidden'
+              )}
+            />
+          </div>
+        </>
+      ) : (
+        <div className="relative flex h-8 aspect-square shrink-0 items-center bg-background-muted group-hover:border-stronger justify-center rounded border border-strong text-xs">
+          <ChevronsUpDown strokeWidth={1.5} className="!h-4 !w-4 text-foreground-lighter" />
+        </div>
+      )}
     </SidebarMenuButton>
   )
 
@@ -108,7 +155,11 @@ export function OrgSelector() {
       <SidebarMenuItem>
         <Popover_Shadcn_ open={open} onOpenChange={setOpen} modal={false}>
           <PopoverTrigger_Shadcn_ asChild>{triggerButton}</PopoverTrigger_Shadcn_>
-          <PopoverContent_Shadcn_ className="p-0" side="bottom" align="start">
+          <PopoverContent_Shadcn_
+            className="p-0"
+            side="bottom"
+            align={isCollapsed ? 'center' : 'start'}
+          >
             <Command_Shadcn_>
               <CommandInput_Shadcn_ placeholder="Find organization..." />
               <CommandList_Shadcn_>

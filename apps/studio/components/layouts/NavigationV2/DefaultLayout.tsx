@@ -5,12 +5,12 @@ import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
 import { useRouter } from 'next/router'
 import type { PropsWithChildren } from 'react'
 import { useAppStateSnapshot } from 'state/app-state'
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from 'ui'
+import { cn } from 'ui'
 
 import { DefaultLayoutProviders } from '../DefaultLayoutProviders'
-import { AppSidebarV2 } from './AppSidebar'
 import { LayoutHeader } from './LayoutHeader'
 import { RightPanelToolbarLayout } from './RightPanelToolbar'
+import { Sidebar } from '@/components/interfaces/Sidebar'
 import { useHideSidebar } from '@/hooks/misc/useHideSidebar'
 
 export interface DefaultLayoutV2Props {
@@ -18,14 +18,10 @@ export interface DefaultLayoutV2Props {
   hideMobileMenu?: boolean
 }
 
-const leftSidebarMinSize = 160
-const leftSidebarMaxSize = 300
-const leftSidebarDefaultSize = '230px'
-
 const mainContentClass = 'flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden'
 
 /**
- * V2 navigation shell: mobile bar, then AppSidebar (when shown) + main column. Main column has
+ * V2 navigation shell: mobile bar, then primary `Sidebar` (when shown) + main column. Main column has
  * LayoutHeader above the row of page content and right panel toolbar.
  */
 export const DefaultLayoutV2 = ({
@@ -60,7 +56,7 @@ export const DefaultLayoutV2 = ({
   const contentRow = <RightPanelToolbarLayout>{children}</RightPanelToolbarLayout>
 
   const mainColumn = (
-    <div className={mainContentClass}>
+    <div className={cn(mainContentClass, 'min-w-0 flex-1')}>
       <div className="shrink-0">{header}</div>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">{contentRow}</div>
     </div>
@@ -77,29 +73,8 @@ export const DefaultLayoutV2 = ({
           />
         </div>
         <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
-          {showLeftSidebar ? (
-            <ResizablePanelGroup
-              orientation="horizontal"
-              autoSaveId="default-layout-v2-left-sidebar"
-              className="h-full w-full overflow-hidden"
-            >
-              <ResizablePanel
-                id="panel-v2-left-sidebar"
-                minSize={leftSidebarMinSize}
-                maxSize={leftSidebarMaxSize}
-                defaultSize={leftSidebarDefaultSize}
-                className="h-full min-h-0 overflow-hidden"
-              >
-                <AppSidebarV2 scope={scope} />
-              </ResizablePanel>
-              <ResizableHandle withHandle className="hidden md:flex bg-background" />
-              <ResizablePanel id="panel-v2-main-column" className={mainContentClass}>
-                {mainColumn}
-              </ResizablePanel>
-            </ResizablePanelGroup>
-          ) : (
-            mainColumn
-          )}
+          {showLeftSidebar && <Sidebar className="h-full min-h-0 border-r border-default" />}
+          {mainColumn}
         </div>
       </div>
     </DefaultLayoutProviders>

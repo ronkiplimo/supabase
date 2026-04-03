@@ -23,7 +23,7 @@ import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganizati
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
 import { IS_PLATFORM } from '@/lib/constants'
 
-export function ProjectBranchSelector() {
+export function ProjectBranchSelector({ isCollapsed = false }: { isCollapsed?: boolean }) {
   const router = useRouter()
   const { ref } = useParams()
   const { data: selectedOrganization } = useSelectedOrganizationQuery()
@@ -63,7 +63,11 @@ export function ProjectBranchSelector() {
   if (isLoadingProject || !displayProject)
     return (
       <ShimmeringLoader
-        className={cn('w-[120px] ml-1 md:py-3', isNavigationV2 && 'ml-0 w-full h-10 rounded-md')}
+        className={cn(
+          'ml-1 w-[120px] md:py-3',
+          isNavigationV2 && 'ml-0 h-10 w-full rounded-md',
+          isCollapsed && 'min-w-0 max-w-full'
+        )}
       />
     )
 
@@ -86,6 +90,7 @@ export function ProjectBranchSelector() {
     isProductionBranch,
     branchDisplayName,
     onGoToOrganization: goToOrganization,
+    isCollapsed,
   }
 
   if (isMobile) {
@@ -113,7 +118,7 @@ export function ProjectBranchSelector() {
           <PopoverTrigger_Shadcn_ asChild>
             <ProjectBranchSelectorTrigger {...triggerProps} />
           </PopoverTrigger_Shadcn_>
-          <PopoverContent_Shadcn_ className="p-0 w-[780px]" side="bottom" align="start">
+          <PopoverContent_Shadcn_ className="w-[780px] p-0" side="bottom" align="start">
             <ProjectBranchSelectorPopover onClose={() => setOpen(false)} />
           </PopoverContent_Shadcn_>
         </Popover_Shadcn_>

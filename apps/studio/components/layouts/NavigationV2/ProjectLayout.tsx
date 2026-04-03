@@ -15,7 +15,7 @@ import { useSetMainScrollContainer } from '../MainScrollContainerContext'
 import { useMobileSheet } from '../Navigation/NavigationBar/MobileSheetContext'
 import { ContentWrapper } from '../ProjectLayout'
 import { ProjectPausedState } from '../ProjectLayout/PausedState/ProjectPausedState'
-import { AppSidebarMobileSheetMenu } from './AppSidebar'
+import { SidebarMobileSheetMenu } from '@/components/interfaces/Sidebar'
 
 export interface ProjectLayoutV2Props {
   title?: string
@@ -27,7 +27,7 @@ export interface ProjectLayoutV2Props {
 
 /**
  * V2 Project layout - renders content directly without a secondary product menu sidebar.
- * In V2, all navigation is in the primary sidebar (AppSidebar), so this layout
+ * In V2, all navigation is in the primary `Sidebar`, so this layout
  * only handles title, loading states, and content wrapping.
  */
 export const ProjectLayoutV2 = forwardRef<HTMLDivElement, PropsWithChildren<ProjectLayoutV2Props>>(
@@ -57,7 +57,7 @@ export const ProjectLayoutV2 = forwardRef<HTMLDivElement, PropsWithChildren<Proj
 
     useLayoutEffect(() => {
       const unregister = registerOpenMenu(() => {
-        setMobileSheetContent(<AppSidebarMobileSheetMenu />)
+        setMobileSheetContent(<SidebarMobileSheetMenu />)
       })
       return unregister
     }, [registerOpenMenu, setMobileSheetContent])

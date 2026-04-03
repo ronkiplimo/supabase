@@ -131,20 +131,20 @@ export const Sidebar = ({ className, ...props }: SidebarProps) => {
           </SidebarMotion>
         )}
       </AnimatePresence>
-      {isNavigationV2 && <ConnectSheet />}
     </>
   )
 }
 
 export function SidebarMobileSheetMenu() {
   const router = useRouter()
+  const isNavigationV2 = useIsNavigationV2Enabled()
   const sheetScope = router.pathname.startsWith('/project') ? 'project' : 'organization'
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-sidebar text-foreground">
       <SidebarHeader variant="mobile-sheet" scope={sheetScope} />
       <SidebarContent />
-      <ConnectSheet />
+      {!isNavigationV2 && <ConnectSheet />}
     </div>
   )
 }

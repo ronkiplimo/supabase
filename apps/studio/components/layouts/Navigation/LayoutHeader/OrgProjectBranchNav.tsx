@@ -1,6 +1,6 @@
 import { IS_PLATFORM, useParams } from 'common'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Link } from 'lucide-react'
+import Link from 'next/link'
 import { Badge, cn } from 'ui'
 
 import { LayoutHeaderDivider } from './LayoutHeader'

@@ -27,6 +27,7 @@ import {
   useSidebar,
 } from 'ui'
 
+import { ActiveDot } from '../ui/ActiveDot'
 import { Route } from '../ui/ui.types'
 import {
   useIsAPIDocsSidePanelEnabled,
@@ -228,17 +229,6 @@ export function SideBarNavLink({
   )
 }
 
-const ActiveDot = ({ hasErrors, hasWarnings }: { hasErrors: boolean; hasWarnings: boolean }) => {
-  return (
-    <div
-      className={cn(
-        'absolute pointer-events-none flex h-2 w-2 left-[18px] top-2 z-10 rounded-full',
-        hasErrors ? 'bg-destructive-600' : hasWarnings ? 'bg-warning-600' : 'bg-transparent'
-      )}
-    />
-  )
-}
-
 const ProjectLinks = () => {
   const router = useRouter()
   const { ref } = useParams()
@@ -359,6 +349,7 @@ const ProjectLinks = () => {
                   <ActiveDot
                     hasErrors={errorLints.length > 0}
                     hasWarnings={securityLints.length > 0}
+                    className="left-[18px] top-2"
                   />
                 )}
                 <SideBarNavLink key={route.key} route={route} active={activeRoute === route.key} />

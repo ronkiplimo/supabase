@@ -132,7 +132,9 @@ export const useIsTableFilterBarEnabled = () => {
 
 export const useIsNavigationV2Enabled = () => {
   const { flags } = useFeaturePreviewContext()
-  return flags[LOCAL_STORAGE_KEYS.UI_PREVIEW_NAVIGATION_V2]
+  const showNavigationV2 = useFlag('studioNavLayoutV2')
+
+  return showNavigationV2 && flags[LOCAL_STORAGE_KEYS.UI_PREVIEW_NAVIGATION_V2]
 }
 
 export const useIsFloatingMobileToolbarEnabled = () => {

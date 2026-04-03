@@ -98,7 +98,7 @@ export const LayoutHeader = ({
               </div>
             )}
           </div>
-          <div className="flex items-center justify-end gap-x-2">
+          <div className="flex items-center justify-end gap-x-1">
             {customHeaderComponents && customHeaderComponents}
             {IS_PLATFORM ? (
               <>
@@ -108,7 +108,7 @@ export const LayoutHeader = ({
                   showShortcut={commandMenuEnabled}
                   placeholder="Search..."
                   className={cn(
-                    'flex max-w-32 xl:max-w-12 w-auto rounded-full bg-transparent border-strong',
+                    'flex !min-w-40 w-full rounded-full bg-transparent border-strong',
                     '[&_.command-shortcut>div]:border-none',
                     '[&_.command-shortcut>div]:pr-2',
                     '[&_.command-shortcut>div]:bg-transparent',

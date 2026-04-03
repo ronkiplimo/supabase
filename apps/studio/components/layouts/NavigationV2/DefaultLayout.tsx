@@ -66,5 +66,3 @@ export const DefaultLayoutV2 = ({
     </DefaultLayoutProviders>
   )
 }
-
-export default DefaultLayoutV2

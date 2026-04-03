@@ -11,7 +11,7 @@ import { useOrgUsageExceedingLimits } from '@/hooks/misc/useOrgUsageExceedingLim
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
 
-const OrgProjectBranchNav = ({ className }: { className?: string }) => {
+export const OrgProjectBranchNav = ({ className }: { className?: string }) => {
   const { ref: projectRef, slug } = useParams()
   const { data: selectedProject } = useSelectedProjectQuery()
   const { data: selectedOrganization } = useSelectedOrganizationQuery()
@@ -62,5 +62,3 @@ const OrgProjectBranchNav = ({ className }: { className?: string }) => {
     </div>
   )
 }
-
-export default OrgProjectBranchNav

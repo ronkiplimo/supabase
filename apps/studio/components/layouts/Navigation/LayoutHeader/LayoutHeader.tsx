@@ -14,7 +14,7 @@ import { FeedbackDropdown } from './FeedbackDropdown/FeedbackDropdown'
 import { HomeIcon } from './HomeIcon'
 import { LocalVersionPopover } from './LocalVersionPopover'
 import { MergeRequestButton } from './MergeRequestButton'
-import OrgProjectBranchNav from './OrgProjectBranchNav'
+import { OrgProjectBranchNav } from './OrgProjectBranchNav'
 import {
   useIsBranching2Enabled,
   useIsFloatingMobileToolbarEnabled,

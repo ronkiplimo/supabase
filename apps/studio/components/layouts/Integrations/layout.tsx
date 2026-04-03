@@ -92,7 +92,7 @@ const IntegrationsProductMenu = () => {
 /**
  * Layout component for the Integrations section
  */
-const IntegrationsLayout = ({ children }: PropsWithChildren) => {
+function IntegrationsLayoutView({ children }: PropsWithChildren) {
   const isNavigationV2 = useIsNavigationV2Enabled()
 
   if (isNavigationV2) {
@@ -115,8 +115,7 @@ const IntegrationsLayout = ({ children }: PropsWithChildren) => {
   )
 }
 
-// Wrap component with authentication HOC before exporting
-export default withAuth(IntegrationsLayout)
+export const IntegrationsLayout = withAuth(IntegrationsLayoutView)
 
 const generateIntegrationsMenu = ({
   projectRef,

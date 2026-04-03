@@ -30,5 +30,3 @@ export const DefaultLayoutProviders = ({ children }: PropsWithChildren) => {
     </SidebarProvider>
   )
 }
-
-export default DefaultLayoutProviders

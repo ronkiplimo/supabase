@@ -11,7 +11,6 @@ import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization
 import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
 import { IS_PLATFORM } from 'lib/constants'
 import { Check, ListTree, MessageCircle, Plus, Shield } from 'lucide-react'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import { useAppStateSnapshot } from 'state/app-state'
@@ -111,7 +110,6 @@ export function ProjectBranchSelectorPopover({ onClose }: ProjectBranchSelectorP
         selectedBranch={selectedBranch}
         isBranchingEnabled={isBranchingEnabled}
         isBranchesLoaded={isBranchesSuccess}
-        projectRef={parentRef ?? ref ?? ''}
         onSelect={(branch) => {
           const sanitizedRoute = sanitizeRoute(router.route, router.query)
           const href =
@@ -215,14 +213,10 @@ function ProjectColumn({
                   router.push(`/new/${organizationSlug}`)
                 }}
               >
-                <Link
-                  href={`/new/${organizationSlug}`}
-                  onClick={onClose}
-                  className="w-full flex items-center gap-2"
-                >
+                <span className="flex w-full items-center gap-2">
                   <Plus size={14} strokeWidth={1.5} />
                   <p>New project</p>
-                </Link>
+                </span>
               </CommandItem_Shadcn_>
             </CommandGroup_Shadcn_>
           ) : null
@@ -237,7 +231,6 @@ function BranchColumn({
   selectedBranch,
   isBranchingEnabled,
   isBranchesLoaded,
-  projectRef,
   onSelect,
   onCreateBranch,
   onManageBranches,
@@ -247,7 +240,6 @@ function BranchColumn({
   selectedBranch?: Branch
   isBranchingEnabled: boolean
   isBranchesLoaded: boolean
-  projectRef: string
   onSelect: (branch: Branch) => void
   onCreateBranch: () => void
   onManageBranches: () => void
@@ -304,40 +296,37 @@ function BranchColumn({
         </CommandList_Shadcn_>
         <CommandSeparator_Shadcn_ />
         <CommandGroup_Shadcn_ className="space-y-0.5">
-          <CommandItem_Shadcn_ className="cursor-pointer w-full" onSelect={() => onClose()}>
-            <Link
-              href={BRANCHING_GITHUB_DISCUSSION_LINK}
-              target="_blank"
-              className="flex items-center gap-2 w-full"
-            >
+          <CommandItem_Shadcn_
+            className="cursor-pointer w-full"
+            onSelect={() => {
+              onClose()
+              window.open(BRANCHING_GITHUB_DISCUSSION_LINK, '_blank', 'noopener,noreferrer')
+            }}
+          >
+            <span className="flex w-full items-center gap-2">
               <MessageCircle size={14} strokeWidth={1.5} />
               <p>Branching feedback</p>
-            </Link>
+            </span>
           </CommandItem_Shadcn_>
         </CommandGroup_Shadcn_>
         <CommandSeparator_Shadcn_ />
         <CommandGroup_Shadcn_ className=" space-y-0.5">
           {isBranchingEnabled && (
-            <CommandItem_Shadcn_ className="cursor-pointer w-full" onSelect={() => onClose()}>
-              <button
-                onClick={onManageBranches}
-                type="button"
-                className="flex items-center gap-2 w-full"
-              >
+            <CommandItem_Shadcn_
+              className="cursor-pointer w-full"
+              onSelect={() => onManageBranches()}
+            >
+              <span className="flex w-full items-center gap-2">
                 <ListTree size={14} strokeWidth={1.5} />
                 <p>Manage branches</p>
-              </button>
+              </span>
             </CommandItem_Shadcn_>
           )}
-          <CommandItem_Shadcn_ className="cursor-pointer w-full" onSelect={() => onClose()}>
-            <button
-              onClick={onCreateBranch}
-              type="button"
-              className="flex items-center gap-2 w-full"
-            >
+          <CommandItem_Shadcn_ className="cursor-pointer w-full" onSelect={() => onCreateBranch()}>
+            <span className="flex w-full items-center gap-2">
               <Plus size={14} strokeWidth={1.5} />
               <p>Create branch</p>
-            </button>
+            </span>
           </CommandItem_Shadcn_>
         </CommandGroup_Shadcn_>
       </Command_Shadcn_>

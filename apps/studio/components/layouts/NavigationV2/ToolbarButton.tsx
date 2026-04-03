@@ -48,6 +48,7 @@ export const ToolbarButton = ({
         type={isOpen ? 'secondary' : 'outline'}
         size="tiny"
         id={id}
+        aria-label={tooltipText}
         className={cn(
           'group flex h-8 w-8 shrink-0 items-center justify-center rounded-full p-0',
           !isOpen &&

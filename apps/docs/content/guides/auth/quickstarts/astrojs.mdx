@@ -279,9 +279,32 @@ hideToc: true
   </StepHikeCompact.Step>
 
   <StepHikeCompact.Step step={8}>
+    <StepHikeCompact.Details title="Customize email template">
+
+    Before users can confirm their email, update the Supabase email template to send the token hash to your callback URL.
+
+    In your [Supabase project dashboard](/dashboard/project/_/auth/templates):
+    - Go to **Auth** > **Email Templates**
+    - Select the **Confirm signup** template
+    - Change `{{ .ConfirmationURL }}` to `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email`.
+    - Change your [Site URL](/dashboard/project/_/auth/url-configuration) to `https://localhost:4321`
+
+    </StepHikeCompact.Details>
+
+    <StepHikeCompact.Code>
+
+      ```html name=Email\ Template
+      {{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email
+      ```
+
+    </StepHikeCompact.Code>
+
+  </StepHikeCompact.Step>
+
+  <StepHikeCompact.Step step={9}>
     <StepHikeCompact.Details title="Create an auth callback page">
 
-    Create a new file at `src/pages/auth/callback.astro` to handle the email confirmation callback. The Supabase SSR library automatically processes the confirmation token:
+    Create a new file at `src/pages/auth/callback.astro` to handle the email confirmation callback. Extract the token from the URL and verify it with Supabase:
 
     </StepHikeCompact.Details>
 
@@ -289,20 +312,30 @@ hideToc: true
 
       ```astro name=src/pages/auth/callback.astro
       ---
-      import { createClient } from "../lib/supabase";
+      import { createClient } from "../../lib/supabase";
+      import type { EmailOtpType } from "@supabase/supabase-js";
 
       const supabase = createClient({
         request: Astro.request,
         cookies: Astro.cookies,
       });
 
-      // Check if user is authenticated
-      const { data } = await supabase.auth.getUser();
+      const requestUrl = new URL(Astro.request.url);
+      const token_hash = requestUrl.searchParams.get('token_hash');
+      const type = requestUrl.searchParams.get('type') as EmailOtpType | null;
 
-      if (data?.user) {
-        // User is authenticated, redirect to dashboard
-        return Astro.redirect("/dashboard");
+      if (token_hash && type) {
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash,
+          type,
+        });
+
+        if (!error) {
+          return Astro.redirect("/dashboard");
+        }
       }
+
+      return Astro.redirect("/auth/signin");
       ---
 
       <html>
@@ -311,7 +344,6 @@ hideToc: true
         </head>
         <body>
           <p>Confirming your email...</p>
-          <p>If you are not redirected, <a href="/auth/signin">sign in here</a></p>
         </body>
       </html>
       ```
@@ -320,7 +352,7 @@ hideToc: true
 
   </StepHikeCompact.Step>
 
-  <StepHikeCompact.Step step={9}>
+  <StepHikeCompact.Step step={10}>
     <StepHikeCompact.Details title="Create a sign-up page">
 
     Create a new file at `src/pages/auth/signup.astro` with a sign-up form. Use a client-side event listener to handle form submission:
@@ -426,7 +458,7 @@ hideToc: true
 
   </StepHikeCompact.Step>
 
-  <StepHikeCompact.Step step={10}>
+  <StepHikeCompact.Step step={11}>
     <StepHikeCompact.Details title="Create a sign-in page">
 
     Create a new file at `src/pages/auth/signin.astro` with a sign-in form. Use a client-side event listener to handle form submission:
@@ -531,7 +563,7 @@ hideToc: true
 
   </StepHikeCompact.Step>
 
-  <StepHikeCompact.Step step={11}>
+  <StepHikeCompact.Step step={12}>
     <StepHikeCompact.Details title="Create a dashboard page">
 
     Create a new file at `src/pages/dashboard.astro` to display the authenticated user's information. Use a client-side event listener for the sign-out button:
@@ -605,7 +637,7 @@ hideToc: true
 
   </StepHikeCompact.Step>
 
-  <StepHikeCompact.Step step={12}>
+  <StepHikeCompact.Step step={13}>
     <StepHikeCompact.Details title="Start the app">
 
     Start the development server, then navigate to http://localhost:4321/auth/signup to test the authentication.

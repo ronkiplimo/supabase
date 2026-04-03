@@ -9,11 +9,6 @@ const MARKETPLACE_API_URL = process.env.NEXT_PUBLIC_MARKETPLACE_API_URL
   ? new URL(process.env.NEXT_PUBLIC_MARKETPLACE_API_URL).origin
   : ''
 
-// Debug: Log marketplace URL in development
-if (process.env.NEXT_PUBLIC_ENVIRONMENT === 'local') {
-  console.log('[CSP] MARKETPLACE_API_URL:', MARKETPLACE_API_URL)
-}
-
 const SUPABASE_PROJECTS_URL = 'https://*.supabase.co https://*.storage.supabase.co'
 const SUPABASE_PROJECTS_URL_WS = 'wss://*.supabase.co'
 
@@ -171,7 +166,7 @@ module.exports.getCSP = function getCSP() {
     `data:`,
     ...IMG_SRC_URLS,
     ...(isDevOrStaging
-      ? [SUPABASE_STAGING_PROJECTS_URL, NIMBUS_STAGING_PROJECTS_URL, VERCEL_URL]
+      ? [SUPABASE_STAGING_PROJECTS_URL, NIMBUS_STAGING_PROJECTS_URL, VERCEL_URL, MARKETPLACE_API_URL]
       : []),
   ].join(' ')
 

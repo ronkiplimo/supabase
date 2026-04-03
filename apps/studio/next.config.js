@@ -572,6 +572,17 @@ const nextConfig = {
         port: '',
         pathname: '**',
       },
+      // Only allow localhost images in local development
+      ...(process.env.NEXT_PUBLIC_ENVIRONMENT === 'local'
+        ? [
+            {
+              protocol: 'http',
+              hostname: '127.0.0.1',
+              port: '54321',
+              pathname: '**',
+            },
+          ]
+        : []),
     ],
   },
   transpilePackages: [

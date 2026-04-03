@@ -1,14 +1,18 @@
 import { useQuery } from '@tanstack/react-query'
 import { FeatureFlagContext, IS_PLATFORM, useFlag } from 'common'
-import { Boxes } from 'lucide-react'
 import dynamic from 'next/dynamic'
+import Image from 'next/image'
 import { useContext, useMemo } from 'react'
-import { cn } from 'ui'
 
 import { INTEGRATIONS, Loading, type IntegrationDefinition } from './Integrations.constants'
 import { marketplaceIntegrationsQueryOptions } from '@/data/marketplace/integrations-query'
 import { useCLIReleaseVersionQuery } from '@/data/misc/cli-release-version-query'
 import { useIsFeatureEnabled } from '@/hooks/misc/useIsFeatureEnabled'
+
+const getIconUrl = (partnerSlug: string, partnerLogo: string) => {
+  const API_URL = process.env.NEXT_PUBLIC_MARKETPLACE_API_URL || ''
+  return `${API_URL}/storage/v1/object/public/images/partners/${partnerSlug}/${partnerLogo}`
+}
 
 /**
  * [Joshen] Returns a combination of
@@ -43,6 +47,8 @@ export const useAvailableIntegrations = () => {
       website_url: siteUrl,
       content,
       partner_name: authorName,
+      partner_slug: partnerSlug,
+      partner_logo: partnerLogo,
     } = integration
 
     const status = undefined
@@ -64,7 +70,12 @@ export const useAvailableIntegrations = () => {
       author,
       requiredExtensions: [],
       icon: ({ className, ...props } = {}) => (
-        <Boxes className={cn('inset-0 p-2 text-black w-full h-full', className)} {...props} />
+        <Image
+          src={getIconUrl(partnerSlug ?? '', partnerLogo ?? '')}
+          alt=""
+          width={24}
+          height={24}
+        />
       ),
       navigation: [
         {

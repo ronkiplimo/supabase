@@ -5,7 +5,6 @@ import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
 import { useRouter } from 'next/router'
 import type { PropsWithChildren } from 'react'
 import { useAppStateSnapshot } from 'state/app-state'
-import { cn } from 'ui'
 
 import { DefaultLayoutProviders } from '../DefaultLayoutProviders'
 import { LayoutHeader } from './LayoutHeader'
@@ -18,12 +17,6 @@ export interface DefaultLayoutV2Props {
   hideMobileMenu?: boolean
 }
 
-const mainContentClass = 'flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden'
-
-/**
- * V2 navigation shell: mobile bar, then primary `Sidebar` (when shown) + main column. Main column has
- * LayoutHeader above the row of page content and right panel toolbar.
- */
 export const DefaultLayoutV2 = ({
   children,
   headerTitle,
@@ -33,7 +26,6 @@ export const DefaultLayoutV2 = ({
   const isMobile = useBreakpoint('md')
   const appSnap = useAppStateSnapshot()
   const hideSidebar = useHideSidebar()
-  const scope = router.pathname.startsWith('/project') ? 'project' : 'organization'
   const showLeftSidebar = !isMobile && !hideSidebar && !router.pathname.startsWith('/organizations')
 
   const [lastVisitedOrganization] = useLocalStorageQuery(
@@ -49,19 +41,6 @@ export const DefaultLayoutV2 = ({
         : '/organizations'
     : undefined
 
-  const header = (
-    <LayoutHeader headerTitle={headerTitle} backToDashboardURL={backToDashboardURL} scope={scope} />
-  )
-
-  const contentRow = <RightPanelToolbarLayout>{children}</RightPanelToolbarLayout>
-
-  const mainColumn = (
-    <div className={cn(mainContentClass, 'min-w-0 flex-1')}>
-      <div className="shrink-0">{header}</div>
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">{contentRow}</div>
-    </div>
-  )
-
   return (
     <DefaultLayoutProviders>
       <div className="flex h-screen w-screen flex-col">
@@ -74,7 +53,14 @@ export const DefaultLayoutV2 = ({
         </div>
         <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
           {showLeftSidebar && <Sidebar className="h-full min-h-0 border-r border-default" />}
-          {mainColumn}
+          <div className="flex flex-1 h-full w-full min-h-0 min-w-0 flex-col overflow-hidden">
+            <div className="shrink-0">
+              <LayoutHeader headerTitle={headerTitle} backToDashboardURL={backToDashboardURL} />
+            </div>
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+              <RightPanelToolbarLayout>{children}</RightPanelToolbarLayout>
+            </div>
+          </div>
         </div>
       </div>
     </DefaultLayoutProviders>

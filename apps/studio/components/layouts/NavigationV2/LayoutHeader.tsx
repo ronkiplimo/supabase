@@ -4,12 +4,11 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useMemo, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Badge, cn } from 'ui'
 import { CommandMenuTriggerInput } from 'ui-patterns'
 
 import { HomeIcon } from '../Navigation/LayoutHeader/HomeIcon'
-import type { AppSidebarScope } from './app-sidebar.types'
 import { useIsFloatingMobileToolbarEnabled } from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { ConnectSheet } from '@/components/interfaces/ConnectSheet/ConnectSheet'
 import { LocalDropdown } from '@/components/interfaces/LocalDropdown'
@@ -18,10 +17,9 @@ import { BreadcrumbsView } from '@/components/layouts/Navigation/LayoutHeader/Br
 import { FeedbackDropdown } from '@/components/layouts/Navigation/LayoutHeader/FeedbackDropdown/FeedbackDropdown'
 import { LayoutHeaderDivider } from '@/components/layouts/Navigation/LayoutHeader/LayoutHeader'
 import { LocalVersionPopover } from '@/components/layouts/Navigation/LayoutHeader/LocalVersionPopover'
-import { getResourcesExceededLimitsOrg } from '@/components/ui/OveragesBanner/OveragesBanner.utils'
-import { useOrgUsageQuery } from '@/data/usage/org-usage-query'
 import { useHideSidebar } from '@/hooks/misc/useHideSidebar'
 import { useLocalStorageQuery } from '@/hooks/misc/useLocalStorage'
+import { useOrgUsageExceedingLimits } from '@/hooks/misc/useOrgUsageExceedingLimits'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
 import { IS_PLATFORM } from '@/lib/constants'
 
@@ -30,7 +28,6 @@ interface LayoutHeaderProps {
   breadcrumbs?: unknown[]
   headerTitle?: string
   backToDashboardURL?: string
-  scope?: AppSidebarScope
 }
 
 export const LayoutHeader = ({
@@ -38,30 +35,15 @@ export const LayoutHeader = ({
   breadcrumbs = [],
   headerTitle,
   backToDashboardURL,
-  scope,
 }: LayoutHeaderProps) => {
   const router = useRouter()
   const hideSidebar = useHideSidebar()
   const { data: selectedOrganization } = useSelectedOrganizationQuery()
-
   const showFloatingMobileToolbar = useIsFloatingMobileToolbarEnabled()
   const [commandMenuEnabled] = useLocalStorageQuery(LOCAL_STORAGE_KEYS.HOTKEY_COMMAND_MENU, true)
+  const { exceedingLimits } = useOrgUsageExceedingLimits(selectedOrganization)
 
   const isAccountPage = router.pathname.startsWith('/account')
-
-  // We only want to query the org usage and check for possible over-ages for plans without usage billing enabled (free or pro with spend cap)
-  const { data: orgUsage } = useOrgUsageQuery(
-    { orgSlug: selectedOrganization?.slug },
-    { enabled: selectedOrganization?.usage_billing_enabled === false }
-  )
-
-  const exceedingLimits = useMemo(() => {
-    if (orgUsage) {
-      return getResourcesExceededLimitsOrg(orgUsage?.usages || []).length > 0
-    } else {
-      return false
-    }
-  }, [orgUsage])
 
   return (
     <>

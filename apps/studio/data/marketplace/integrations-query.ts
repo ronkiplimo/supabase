@@ -8,7 +8,6 @@ async function getMarketplaceIntegrations() {
   const client = createMarketplaceClient()
   const { data, error } = await client.from('listings').select('*')
 
-  console.log(`DATAAAAAAAAAAAAAAAAAAAAA: ${JSON.stringify(data)}`)
 
   if (error) handleError(error)
   return data ?? []

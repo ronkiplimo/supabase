@@ -42,16 +42,17 @@ export const useAvailableIntegrations = () => {
       documentation_url: docsUrl,
       website_url: siteUrl,
       content,
+      partner_name: authorName,
     } = integration
 
     const status = undefined
-    const author = { name: '', websiteUrl: '' }
+    const author = { name: authorName ?? '', websiteUrl: '' }
 
     return {
       id: slug ?? '',
       name: title ?? '',
       status,
-      type: 'oauth' as const,
+      type: 'oauth' as const, // Currently marketplace only supports oauth apps
       categories: Array.isArray(categories)
         ? (categories as Array<{ slug: string }>).map((x) => x.slug)
         : [],

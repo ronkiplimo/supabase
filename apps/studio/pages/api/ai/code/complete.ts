@@ -1,5 +1,5 @@
-import pgMeta from '@supabase/pg-meta'
-import { generateText, ModelMessage, stepCountIs } from 'ai'
+import pgMeta, { getEntityDefinitionsSql } from '@supabase/pg-meta'
+import { generateText, ModelMessage, stepCountIs, tool } from 'ai'
 import { IS_PLATFORM } from 'common'
 import { source } from 'common-tags'
 import { executeSql } from 'data/sql/execute-sql-query'
@@ -8,14 +8,11 @@ import { getModel } from 'lib/ai/model'
 import { DEFAULT_COMPLETION_MODEL } from 'lib/ai/model.utils'
 import { getOrgAIDetails } from 'lib/ai/org-ai-details'
 import {
+  COMPLETION_PROMPT,
   EDGE_FUNCTION_PROMPT,
-  GENERAL_PROMPT,
-  OUTPUT_ONLY_PROMPT,
   PG_BEST_PRACTICES,
-  RLS_PROMPT,
   SECURITY_PROMPT,
 } from 'lib/ai/prompts'
-import { getTools } from 'lib/ai/tools'
 import apiWrapper from 'lib/api/apiWrapper'
 import { executeQuery } from 'lib/api/self-hosted/query'
 import { NextApiRequest, NextApiResponse } from 'next'
@@ -25,13 +22,7 @@ export const maxDuration = 60
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
-    return new Response(
-      JSON.stringify({ data: null, error: { message: `Method ${req.method} Not Allowed` } }),
-      {
-        status: 405,
-        headers: { 'Content-Type': 'application/json', Allow: 'POST' },
-      }
-    )
+    return res.status(405).json({ error: `Method ${req.method} Not Allowed` })
   }
 
   try {
@@ -39,32 +30,22 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const { textBeforeCursor, textAfterCursor, prompt, selection } = completionMetadata
 
     if (!projectRef) {
-      return res.status(400).json({
-        error: 'Missing project_ref in request body',
-      })
+      return res.status(400).json({ error: 'Missing project_ref in request body' })
     }
 
     const authorization = req.headers.authorization
-    const accessToken = authorization?.replace('Bearer ', '')
 
-    let aiOptInLevel: AiOptInLevel = 'disabled'
-
-    if (!IS_PLATFORM) {
-      aiOptInLevel = 'schema'
-    }
+    let aiOptInLevel: AiOptInLevel = IS_PLATFORM ? 'disabled' : 'schema'
 
     if (IS_PLATFORM && orgSlug && authorization && projectRef) {
-      // Get organizations and compute opt in level server-side
       const { aiOptInLevel: orgAIOptInLevel } = await getOrgAIDetails({
         orgSlug,
         authorization,
         projectRef,
       })
-
       aiOptInLevel = orgAIOptInLevel
     }
 
-    // For code completion, we always use the limited model
     const {
       modelParams,
       error: modelError,
@@ -78,38 +59,50 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(500).json({ error: modelError.message })
     }
 
-    // Get a list of all schemas to add to context
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(authorization && { Authorization: authorization }),
+    }
+
+    const includeSchema = aiOptInLevel !== 'disabled'
+
     const pgMetaSchemasList = pgMeta.schemas.list()
     type Schemas = z.infer<(typeof pgMetaSchemasList)['zod']>
 
-    const { result: schemas } =
-      aiOptInLevel !== 'disabled'
-        ? await executeSql<Schemas>(
+    type EntityDefinitionRow = { data: { definitions: Array<{ id: number; sql: string }> } }
+
+    const [{ result: schemas }, { result: publicDefs }] = await (includeSchema
+      ? Promise.all([
+          executeSql<Schemas>(
+            { projectRef, connectionString, sql: pgMetaSchemasList.sql },
+            undefined,
+            headers,
+            IS_PLATFORM ? undefined : executeQuery
+          ),
+          executeSql<EntityDefinitionRow[]>(
             {
               projectRef,
               connectionString,
-              sql: pgMetaSchemasList.sql,
+              sql: getEntityDefinitionsSql({ schemas: ['public'] }),
             },
             undefined,
-            {
-              'Content-Type': 'application/json',
-              ...(authorization && { Authorization: authorization }),
-            },
+            headers,
             IS_PLATFORM ? undefined : executeQuery
-          )
-        : { result: [] }
+          ),
+        ])
+      : Promise.resolve([{ result: [] as Schemas }, { result: [] as EntityDefinitionRow[] }]))
 
-    const schemasString =
-      schemas?.length > 0
-        ? `The available database schema names are: ${JSON.stringify(schemas)}`
-        : "You don't have access to any schemas."
+    const publicSchemaDDL = publicDefs?.[0]?.data?.definitions?.map((d) => d.sql).join('\n\n')
+
+    const otherSchemaNames = schemas
+      ?.map((s) => s.name)
+      .filter((name) => name !== 'public')
+      .join(', ')
 
     // Important: do not use dynamic content in the system prompt or Bedrock will not cache it
     const system = source`
-      ${GENERAL_PROMPT}
-      ${OUTPUT_ONLY_PROMPT}
+      ${COMPLETION_PROMPT}
       ${language === 'sql' ? PG_BEST_PRACTICES : EDGE_FUNCTION_PROMPT}
-      ${language === 'sql' && RLS_PROMPT}
       ${SECURITY_PROMPT}
     `
 
@@ -122,51 +115,64 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         ...(promptProviderOptions && { providerOptions: promptProviderOptions }),
       },
       {
-        role: 'assistant',
-        // Add any dynamic context here
-        content: `
-        You are helping me edit some code.
-             Here is the context:
-             ${textBeforeCursor}<selection>${selection}</selection>${textAfterCursor}
+        role: 'user',
+        content: source`
+          You are helping me edit some code.
+          Here is the context:
+          ${textBeforeCursor}<selection>${selection}</selection>${textAfterCursor}
 
-            The available database schema names are: ${schemasString}
+          ${publicSchemaDDL ? `Public schema:\n${publicSchemaDDL}` : ''}
+          ${otherSchemaNames ? `Other available schemas (use getSchemaDefinitions to look them up): ${otherSchemaNames}` : ''}
 
-             Instructions:
-             1. Only modify the selected text based on this prompt: ${prompt}
-             2. Your response should be ONLY the modified selection text, nothing else. Remove selected text if needed.
-             3. Do not wrap in code blocks or markdown
-             4. You can respond with one word or multiple words
-             5. Ensure the modified text flows naturally within the current line
-             6. Avoid duplicating code when considering the full statement
-             7. If there is no surrounding context (before or after), make sure your response is a complete valid SQL statement that can be run and resolves the prompt.
-             
-             Modify the selected text now:
+          Instructions:
+          1. Only modify the selected text based on this prompt: ${prompt}
+          2. Your response should be ONLY the modified selection text, nothing else. Remove selected text if needed.
+          3. Do not wrap in code blocks or markdown
+          4. You can respond with one word or multiple words
+          5. Ensure the modified text flows naturally within the current line
+          6. Avoid duplicating code when considering the full statement
+          7. If there is no surrounding context (before or after), make sure your response is a complete valid SQL statement that can be run and resolves the prompt.
+
+          Modify the selected text now:
         `,
       },
     ]
-
-    // Get tools
-    const tools = await getTools({
-      projectRef,
-      connectionString,
-      authorization,
-      aiOptInLevel,
-      accessToken,
-    })
 
     const { text } = await generateText({
       ...modelParams,
       stopWhen: stepCountIs(5),
       messages: coreMessages,
-      tools,
+      tools: includeSchema
+        ? {
+            getSchemaDefinitions: tool({
+              description: 'Get table and column definitions for one or more schemas',
+              inputSchema: z.object({
+                schemas: z
+                  .array(z.string())
+                  .describe('The schema names to get the definitions for'),
+              }),
+              execute: async ({ schemas: schemaNames }) => {
+                const { result } = await executeSql(
+                  {
+                    projectRef,
+                    connectionString,
+                    sql: getEntityDefinitionsSql({ schemas: schemaNames }),
+                  },
+                  undefined,
+                  headers,
+                  IS_PLATFORM ? undefined : executeQuery
+                )
+                return result
+              },
+            }),
+          }
+        : undefined,
     })
 
     return res.status(200).json(text)
   } catch (error) {
     console.error('Completion error:', error)
-    return res.status(500).json({
-      error: 'Failed to generate completion',
-    })
+    return res.status(500).json({ error: 'Failed to generate completion' })
   }
 }
 

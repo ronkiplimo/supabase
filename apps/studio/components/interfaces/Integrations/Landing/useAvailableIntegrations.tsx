@@ -39,6 +39,7 @@ export const useAvailableIntegrations = () => {
   // Likely that we might need to change, but can look into separately
   const marketplaceIntegrations: IntegrationDefinition[] = (data ?? [])?.map((integration) => {
     const {
+      id: listingId,
       slug,
       categories,
       title,
@@ -46,6 +47,7 @@ export const useAvailableIntegrations = () => {
       documentation_url: docsUrl,
       website_url: siteUrl,
       installation_url: installUrl,
+      installation_url_type: installUrlType,
       images,
       content,
       partner_name: authorName,
@@ -69,6 +71,8 @@ export const useAvailableIntegrations = () => {
       docsUrl,
       siteUrl,
       installUrl,
+      installUrlType: installUrlType ?? undefined,
+      listingId: listingId ?? undefined,
       author,
       requiredExtensions: [],
       icon: ({ className, ...props } = {}) => (

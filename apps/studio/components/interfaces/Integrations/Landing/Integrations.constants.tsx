@@ -1,4 +1,5 @@
 import { getEnableWebhooksSQL } from '@supabase/pg-meta'
+import { InstallUrlType } from 'data/marketplace/marketplace.types'
 import { Clock5, Code2, Layers, Timer, Vault, Webhook } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
@@ -40,6 +41,9 @@ export type IntegrationDefinition = {
   docsUrl: string | null
   siteUrl?: string | null
   installUrl?: string | null
+  installUrlType?: InstallUrlType
+  /** UUID of the marketplace listing, used for API calls (id is the slug used for routing) */
+  listingId?: string
   author: {
     name: string
     websiteUrl: string

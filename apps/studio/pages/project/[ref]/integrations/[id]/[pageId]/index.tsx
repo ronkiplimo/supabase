@@ -3,11 +3,14 @@ import { useInstalledIntegrations } from 'components/interfaces/Integrations/Lan
 import { DefaultLayout } from 'components/layouts/DefaultLayout'
 import { UnknownInterface } from 'components/ui/UnknownInterface'
 import { useDatabaseExtensionsQuery } from 'data/database-extensions/database-extensions-query'
+import { fetchPost } from 'data/fetchers'
 import { useIsFeatureEnabled } from 'hooks/misc/useIsFeatureEnabled'
 import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
+import { API_URL } from 'lib/constants'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { toast } from 'sonner'
 import type { NextPageWithLayout } from 'types'
 import {
   BreadcrumbItem_Shadcn_ as BreadcrumbItem,
@@ -114,6 +117,33 @@ const IntegrationPage: NextPageWithLayout = () => {
     }
   }, [isInstalled, isInstalledIntegrationsLoading, pageId, router, ref, id])
 
+  const [isInstalling, setIsInstalling] = useState(false)
+
+  const handleInstallClick = useCallback(async () => {
+    if (!integration || !ref) return
+
+    if (integration.installUrlType === 'post') {
+      setIsInstalling(true)
+      try {
+        const response = await fetchPost<{ redirectUrl: string }>(
+          `${API_URL}/integrations/partner-oauth/${ref}/${integration.listingId}`,
+          {}
+        )
+        if ('redirectUrl' in response) {
+          window.location.href = response.redirectUrl
+        } else {
+          toast.error('Failed to start integration installation')
+        }
+      } catch {
+        toast.error('Failed to start integration installation')
+      } finally {
+        setIsInstalling(false)
+      }
+    } else {
+      window.location.href = integration.installUrl ?? '/'
+    }
+  }, [integration, ref])
+
   // Determine page title, icon, and subtitle based on state
   const pageTitle = integration?.name || 'Integration not found'
 
@@ -208,10 +238,13 @@ const IntegrationPage: NextPageWithLayout = () => {
             </PageHeaderSummary>
 
             {integration?.type === 'oauth' ? (
-              <Button asChild type="primary" className="shrink-0">
-                <a target="_blank" rel="noreferrer" href={integration.installUrl ?? '/'}>
-                  Install integration
-                </a>
+              <Button
+                type="primary"
+                className="shrink-0"
+                loading={isInstalling}
+                onClick={handleInstallClick}
+              >
+                Install integration
               </Button>
             ) : isMarketplaceEnabled && !!integration && !isInstalled ? (
               <InstallIntegrationSheet integration={integration} />

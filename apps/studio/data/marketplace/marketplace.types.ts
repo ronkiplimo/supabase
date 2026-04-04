@@ -1,5 +1,7 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
+export type InstallUrlType = 'get' | 'post'
+
 export type Database = {
   public: {
     Tables: {
@@ -25,6 +27,7 @@ export type Database = {
           website_url: string
           documentation_url: string
           installation_url: string | null
+          installation_url_type: InstallUrlType | null
           youtube_id: string | null
           featured: boolean
           partner_slug: string

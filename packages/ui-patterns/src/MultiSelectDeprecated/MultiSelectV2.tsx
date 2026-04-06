@@ -12,6 +12,7 @@ import {
   Popover_Shadcn_,
   PopoverContent_Shadcn_,
   PopoverTrigger_Shadcn_,
+  ScrollArea,
 } from 'ui'
 
 import { BadgeDisabled, BadgeSelected } from './Badges'
@@ -117,13 +118,18 @@ export const MultiSelectV2 = ({
             </div>
           </div>
         </PopoverTrigger_Shadcn_>
-        <PopoverContent_Shadcn_ className="p-0 w-96 border-strong" side="bottom" align="start">
+        <PopoverContent_Shadcn_
+          className="p-0 w-96 border-strong pointer-events-auto"
+          side="bottom"
+          align="start"
+        >
           <Command_Shadcn_>
             <CommandInput_Shadcn_ placeholder={searchPlaceholder} />
-            <CommandList_Shadcn_ className={formattedOptions.length > 7 ? 'max-h-[210px]' : ''}>
+            <CommandList_Shadcn_>
               <CommandEmpty_Shadcn_>No options found</CommandEmpty_Shadcn_>
               <CommandGroup_Shadcn_>
-                {formattedOptions?.map((option) => {
+                <ScrollArea className={cn(formattedOptions.length > 7 ? 'h-[210px]' : '')}>
+                  {formattedOptions?.map((option) => {
                   const active =
                     selectedOptions &&
                     selectedOptions.find((selected) => {
@@ -146,6 +152,7 @@ export const MultiSelectV2 = ({
                     </CommandItem_Shadcn_>
                   )
                 })}
+                </ScrollArea>
               </CommandGroup_Shadcn_>
             </CommandList_Shadcn_>
           </Command_Shadcn_>

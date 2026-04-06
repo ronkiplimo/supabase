@@ -58,3 +58,18 @@ test('shows empty state when no rows provided', () => {
   render(<Results rows={[]} />)
   expect(screen.getByText('Success. No rows returned')).toBeTruthy()
 })
+
+test('renders NULL text for null cell values', () => {
+  render(<Results rows={[{ id: null }]} />)
+  expect(screen.getByText('NULL')).toBeTruthy()
+})
+
+test('renders string cell values as-is', () => {
+  render(<Results rows={[{ name: 'hello world' }]} />)
+  expect(screen.getByText('hello world')).toBeTruthy()
+})
+
+test('renders object cell values as JSON', () => {
+  render(<Results rows={[{ data: { key: 'val' } }]} />)
+  expect(screen.getByText('{"key":"val"}')).toBeTruthy()
+})

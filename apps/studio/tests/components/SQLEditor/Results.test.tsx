@@ -3,7 +3,6 @@ import Results from 'components/interfaces/SQLEditor/UtilityPanel/Results'
 import { customRender as render } from 'tests/lib/custom-render'
 import { expect, test, vi } from 'vitest'
 
-// Track how many times ContextMenu is mounted to detect per-cell instances
 let contextMenuMountCount = 0
 
 vi.mock('ui', async () => {
@@ -52,9 +51,6 @@ test('renders a single context menu regardless of row count', () => {
   const rows = generateRows(100)
   render(<Results rows={rows} />)
 
-  // There should be exactly 1 ContextMenu instance (shared), not 1 per cell.
-  // Previously each cell rendered its own ContextMenu, causing thousands of
-  // document-level event listeners and freezing the browser on keystrokes.
   expect(contextMenuMountCount).toBe(1)
 })
 

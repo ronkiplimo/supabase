@@ -100,33 +100,57 @@ const DocsSearchPage = () => {
   )
 
   async function openLink(pageType: PageType, link: string) {
+    // A simple way to achieve opening links in new tab but room for improvement including support for middle clicks
+    const openInNewTab = window.event?.metaKey || window.event?.ctrlKey;
+
     switch (pageType) {
       case PageType.Markdown:
       case PageType.Reference:
       case PageType.Troubleshooting:
         if (BASE_PATH === '/docs') {
-          router.push(link)
-          setIsOpen(false)
+          if(openInNewTab){
+            window.open(`/docs${link}`, '_blank', 'noreferrer,noopener')
+          }
+          else{
+            router.push(link)
+            setIsOpen(false)
+          }
         } else if (!BASE_PATH) {
-          router.push(`/docs${link}`)
-          setIsOpen(false)
+          if(openInNewTab){
+            window.open(`/docs${link}`, '_blank', 'noreferrer,noopener')
+          }
+          else{
+            router.push(`/docs${link}`)
+            setIsOpen(false)
+          }
         } else {
           window.open(`https://supabase.com/docs${link}`, '_blank', 'noreferrer,noopener')
-          setIsOpen(false)
+          if(!openInNewTab){
+            setIsOpen(false)
+          }
         }
         break
       case PageType.Integration:
         if (!BASE_PATH) {
-          router.push(link)
-          setIsOpen(false)
+          if(openInNewTab){
+            window.open(link, '_blank', 'noreferrer,noopener')
+          }
+          else{
+            router.push(link)
+            setIsOpen(false)
+          }
         } else {
           window.open(`https://supabase.com${link}`, '_blank', 'noreferrer,noopener')
-          setIsOpen(false)
+          if(!openInNewTab){
+            setIsOpen(false)
+          }
         }
         break
       case PageType.GithubDiscussion:
         window.open(link, '_blank', 'noreferrer,noopener')
-        setIsOpen(false)
+          if(!openInNewTab){
+            setIsOpen(false)
+          }
         break
       default:
         throw new Error(`Unknown page type '${pageType}'`)

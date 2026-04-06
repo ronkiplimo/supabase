@@ -120,34 +120,32 @@ export const MultiSelectV2 = ({
         <PopoverContent_Shadcn_ className="p-0 w-96 border-strong" side="bottom" align="start">
           <Command_Shadcn_>
             <CommandInput_Shadcn_ placeholder={searchPlaceholder} />
-            <CommandList_Shadcn_
-              className={formattedOptions.length > 7 ? 'max-h-[210px]' : ''}
-            >
+            <CommandList_Shadcn_ className={formattedOptions.length > 7 ? 'max-h-[210px]' : ''}>
               <CommandEmpty_Shadcn_>No options found</CommandEmpty_Shadcn_>
               <CommandGroup_Shadcn_>
-                  {formattedOptions?.map((option) => {
-                    const active =
-                      selectedOptions &&
-                      selectedOptions.find((selected) => {
-                        return selected === option.value
-                      })
-                        ? true
-                        : false
-                    return (
-                      <CommandItem_Shadcn_
-                        key={option.id}
-                        value={option.value}
-                        className="cursor-pointer w-full"
-                        onClick={() => handleChange(option)}
-                        onSelect={() => handleChange(option)}
-                      >
-                        <div className="w-full flex items-center justify-between">
-                          {option.name}
-                          {active && <Check size={14} />}
-                        </div>
-                      </CommandItem_Shadcn_>
-                    )
-                  })}
+                {formattedOptions?.map((option) => {
+                  const active =
+                    selectedOptions &&
+                    selectedOptions.find((selected) => {
+                      return selected === option.value
+                    })
+                      ? true
+                      : false
+                  return (
+                    <CommandItem_Shadcn_
+                      key={option.id}
+                      value={option.value}
+                      className="cursor-pointer w-full"
+                      onClick={() => handleChange(option)}
+                      onSelect={() => handleChange(option)}
+                    >
+                      <div className="w-full flex items-center justify-between">
+                        {option.name}
+                        {active && <Check size={14} />}
+                      </div>
+                    </CommandItem_Shadcn_>
+                  )
+                })}
               </CommandGroup_Shadcn_>
             </CommandList_Shadcn_>
           </Command_Shadcn_>

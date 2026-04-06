@@ -333,7 +333,10 @@ const goPageBaseSchema = z.object({
   sections: z.array(goSectionSchema).optional(),
   publishedAt: z.string().optional(),
   /** ISO 8601 date (YYYY-MM-DD) after which the page should return a 404. */
-  expiresAt: z.string().optional(),
+  expiresAt: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'expiresAt must be YYYY-MM-DD')
+    .optional(),
 })
 
 export const leadGenPageSchema = goPageBaseSchema.extend({

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import { useParams } from 'common'
+import { LogicalBackupCliInstructions } from 'components/layouts/ProjectLayout/LogicalBackupCliInstructions'
 import { DropdownMenuItemTooltip } from 'components/ui/DropdownMenuItemTooltip'
 import { InlineLink } from 'components/ui/InlineLink'
 import { useBackupDownloadMutation } from 'data/database/backup-download-mutation'
@@ -164,6 +165,9 @@ export const PauseDisabledState = () => {
           </ul>
         </div>
       </Admonition>
+      <div className="border-t px-6 py-4">
+        <LogicalBackupCliInstructions />
+      </div>
       <div className="border-t flex justify-between items-center px-6 py-4 bg-alternative">
         <div>
           <p className="text-sm">Export your data</p>

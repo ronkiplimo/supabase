@@ -47,6 +47,7 @@ import {
 import { TimestampInfo } from 'ui-patterns'
 import ConfirmationModal from 'ui-patterns/Dialogs/ConfirmationModal'
 import { GenericSkeletonLoader } from 'ui-patterns/ShimmeringLoader'
+import { LogicalBackupCliInstructions } from '../LogicalBackupCliInstructions'
 import { PauseDisabledState } from './PauseDisabledState'
 
 export interface ProjectPausedStateProps {
@@ -225,6 +226,12 @@ export const ProjectPausedState = ({ product }: ProjectPausedStateProps) => {
             </div>
           </div>
         </CardContent>
+
+        {isPauseStatusSuccess && !isRestoreDisabled && (
+          <div className="border-t px-6 py-4">
+            <LogicalBackupCliInstructions />
+          </div>
+        )}
 
         {isError && (
           <AlertError

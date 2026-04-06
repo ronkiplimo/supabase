@@ -1,7 +1,6 @@
 import AwesomeDebouncePromise from 'awesome-debounce-promise'
 import type { Filter, SavedState, SupaRow } from 'components/grid/types'
 import { Entity, isTableLike } from 'data/table-editor/table-editor-types'
-import { BASE_PATH } from 'lib/constants'
 import { compact } from 'lodash'
 import { useSearchParams } from 'next/navigation'
 import { parseAsNativeArrayOf, parseAsString, useQueryStates } from 'nuqs'
@@ -159,7 +158,7 @@ export function buildTableEditorUrl({
   tableId: number
   schema?: string
 }) {
-  const url = new URL(`${BASE_PATH}/project/${projectRef}/editor/${tableId}`, location.origin)
+  const url = new URL(`/project/${projectRef}/editor/${tableId}`, location.origin)
 
   // If the schema is provided, add it to the URL so that the left sidebar is opened to the correct schema
   if (schema) {
@@ -173,7 +172,7 @@ export function buildTableEditorUrl({
   if (savedState?.filters && savedState.filters.length > 0) {
     savedState.filters?.forEach((filter) => url.searchParams.append('filter', filter))
   }
-  return url.toString()
+  return url.pathname + url.search
 }
 
 export function saveTableEditorStateToLocalStorage({

@@ -130,28 +130,28 @@ export const MultiSelectV2 = ({
               <CommandGroup_Shadcn_>
                 <ScrollArea className={cn(formattedOptions.length > 7 ? 'h-[210px]' : '')}>
                   {formattedOptions?.map((option) => {
-                  const active =
-                    selectedOptions &&
-                    selectedOptions.find((selected) => {
-                      return selected === option.value
-                    })
-                      ? true
-                      : false
-                  return (
-                    <CommandItem_Shadcn_
-                      key={option.id}
-                      value={option.value}
-                      className="cursor-pointer w-full"
-                      onClick={() => handleChange(option)}
-                      onSelect={() => handleChange(option)}
-                    >
-                      <div className="w-full flex items-center justify-between">
-                        {option.name}
-                        {active && <Check size={14} />}
-                      </div>
-                    </CommandItem_Shadcn_>
-                  )
-                })}
+                    const active =
+                      selectedOptions &&
+                      selectedOptions.find((selected) => {
+                        return selected === option.value
+                      })
+                        ? true
+                        : false
+                    return (
+                      <CommandItem_Shadcn_
+                        key={option.id}
+                        value={option.value}
+                        className="cursor-pointer w-full"
+                        onClick={() => handleChange(option)}
+                        onSelect={() => handleChange(option)}
+                      >
+                        <div className="w-full flex items-center justify-between">
+                          {option.name}
+                          {active && <Check size={14} />}
+                        </div>
+                      </CommandItem_Shadcn_>
+                    )
+                  })}
                 </ScrollArea>
               </CommandGroup_Shadcn_>
             </CommandList_Shadcn_>

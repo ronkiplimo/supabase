@@ -11,21 +11,8 @@ import {
 } from 'ui'
 
 import { CellDetailPanel } from './CellDetailPanel'
+import { formatCellValue, formatClipboardValue } from './Results.utils'
 import { handleCopyCell } from '@/components/grid/SupabaseGrid.utils'
-
-function formatClipboardValue(value: any) {
-  if (value === null) return ''
-  if (typeof value == 'object' || Array.isArray(value)) {
-    return JSON.stringify(value)
-  }
-  return value
-}
-
-function formatCellValue(value: any) {
-  if (value === null) return 'NULL'
-  if (typeof value === 'string') return value
-  return JSON.stringify(value)
-}
 
 const Results = ({ rows }: { rows: readonly any[] }) => {
   const [expandCell, setExpandCell] = useState(false)

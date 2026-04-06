@@ -1,11 +1,18 @@
 import rawPages from '@/_go'
 import { goPageSchema, type GoPage } from '@/types/go'
 
+function isExpired(page: { expiresAt?: string }): boolean {
+  if (!page.expiresAt) return false
+  return new Date(page.expiresAt) < new Date()
+}
+
 export function getAllGoPages(): GoPage[] {
   const pages: GoPage[] = []
   const seenSlugs = new Set<string>()
 
   for (const raw of rawPages) {
+    if (isExpired(raw)) continue
+
     const result = goPageSchema.safeParse(raw)
 
     if (!result.success) {

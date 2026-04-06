@@ -35,7 +35,10 @@ export const OrganizationSelector = ({ form }: OrganizationSelectorProps) => {
   const { slug } = useParams()
   const queryClient = useQueryClient()
   const { data: currentOrg } = useSelectedOrganizationQuery()
-  const { can: isAdmin } = useAsyncCheckPermissions(PermissionAction.CREATE, 'projects')
+  const { can: isAdmin, isLoading: isPermissionsLoading } = useAsyncCheckPermissions(
+    PermissionAction.CREATE,
+    'projects'
+  )
 
   // Permissions may be stale for newly created accounts due to replication lag between
   // org setup and the permissions endpoint. Invalidate in the background on mount so the
@@ -45,7 +48,7 @@ export const OrganizationSelector = ({ form }: OrganizationSelectorProps) => {
   }, [queryClient])
 
   const { data: organizations, isSuccess: isOrganizationsSuccess } = useOrganizationsQuery()
-  const isInvalidSlug = isOrganizationsSuccess && currentOrg === undefined
+  const isInvalidSlug = isOrganizationsSuccess && !!slug && currentOrg === undefined
   const orgNotFound = (organizations?.length ?? 0) > 0 && isInvalidSlug
 
   return (
@@ -87,7 +90,7 @@ export const OrganizationSelector = ({ form }: OrganizationSelectorProps) => {
         )}
       />
 
-      {isOrganizationsSuccess && !isAdmin && !orgNotFound && (
+      {isOrganizationsSuccess && !isPermissionsLoading && !isAdmin && !orgNotFound && (
         <NoPermission resourceText="create a project" />
       )}
       {orgNotFound && <OrgNotFound slug={slug} />}

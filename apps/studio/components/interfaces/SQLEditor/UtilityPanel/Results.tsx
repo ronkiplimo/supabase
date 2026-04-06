@@ -147,7 +147,7 @@ const Results = ({ rows }: { rows: readonly any[] }) => {
           <DataGrid
             columns={columns}
             rows={rows}
-            className="h-full flex-grow border-t-0"
+            className="flex-grow border-t-0"
             rowClass={() => '[&>.rdg-cell]:items-center'}
             onSelectedCellChange={setCellPosition}
             onCellKeyDown={handleCopyCell}

@@ -1,14 +1,14 @@
 'use client'
 
 import {
-  type DocsSearchResult as Page,
-  type DocsSearchResultSection as PageSection,
   DocsSearchResultType as PageType,
   useDocsSearch,
+  type DocsSearchResult as Page,
+  type DocsSearchResultSection as PageSection,
 } from 'common'
 import { Book, ChevronRight, Github, Hash, Loader2, MessageSquare, Search } from 'lucide-react'
 import { useCallback, useEffect, useRef } from 'react'
-import { Button, CommandGroup_Shadcn_, CommandItem_Shadcn_, CommandList_Shadcn_, cn } from 'ui'
+import { Button, cn, CommandGroup_Shadcn_, CommandItem_Shadcn_, CommandList_Shadcn_ } from 'ui'
 import { StatusIcon } from 'ui/src/components/StatusIcon'
 
 import {
@@ -19,8 +19,8 @@ import {
   escapeAttributeSelector,
   generateCommandClassNames,
   TextHighlighter,
-  useCrossCompatRouter,
   useCommandMenuTelemetryContext,
+  useCrossCompatRouter,
   useQuery,
   useSetCommandMenuOpen,
   useSetQuery,
@@ -101,56 +101,53 @@ const DocsSearchPage = () => {
 
   async function openLink(pageType: PageType, link: string) {
     // A simple way to achieve opening links in new tab but room for improvement including support for middle clicks
-    const openInNewTab = window.event?.metaKey || window.event?.ctrlKey;
+    const openInNewTab = window.event?.metaKey || window.event?.ctrlKey
 
     switch (pageType) {
       case PageType.Markdown:
       case PageType.Reference:
       case PageType.Troubleshooting:
         if (BASE_PATH === '/docs') {
-          if(openInNewTab){
+          if (openInNewTab) {
             window.open(`/docs${link}`, '_blank', 'noreferrer,noopener')
-          }
-          else{
+          } else {
             router.push(link)
             setIsOpen(false)
           }
         } else if (!BASE_PATH) {
-          if(openInNewTab){
+          if (openInNewTab) {
             window.open(`/docs${link}`, '_blank', 'noreferrer,noopener')
-          }
-          else{
+          } else {
             router.push(`/docs${link}`)
             setIsOpen(false)
           }
         } else {
           window.open(`https://supabase.com/docs${link}`, '_blank', 'noreferrer,noopener')
-          if(!openInNewTab){
+          if (!openInNewTab) {
             setIsOpen(false)
           }
         }
         break
       case PageType.Integration:
         if (!BASE_PATH) {
-          if(openInNewTab){
+          if (openInNewTab) {
             window.open(link, '_blank', 'noreferrer,noopener')
-          }
-          else{
+          } else {
             router.push(link)
             setIsOpen(false)
           }
         } else {
           window.open(`https://supabase.com${link}`, '_blank', 'noreferrer,noopener')
-          if(!openInNewTab){
+          if (!openInNewTab) {
             setIsOpen(false)
           }
         }
         break
       case PageType.GithubDiscussion:
         window.open(link, '_blank', 'noreferrer,noopener')
-          if(!openInNewTab){
-            setIsOpen(false)
-          }
+        if (!openInNewTab) {
+          setIsOpen(false)
+        }
         break
       default:
         throw new Error(`Unknown page type '${pageType}'`)

@@ -22,7 +22,6 @@ import {
   PopoverTrigger_Shadcn_,
   RadioGroup_Shadcn_,
   RadioGroupLargeItem_Shadcn_,
-  ScrollArea,
   Select_Shadcn_,
   SelectContent_Shadcn_,
   SelectGroup_Shadcn_,
@@ -170,30 +169,30 @@ export const PolicyDetailsV2 = ({
                       >
                         <Command_Shadcn_>
                           <CommandInput_Shadcn_ placeholder="Find a table..." />
-                          <CommandList_Shadcn_>
+                          <CommandList_Shadcn_
+                            className={(tables ?? []).length > 7 ? 'max-h-[200px]' : ''}
+                          >
                             <CommandEmpty_Shadcn_>No tables found</CommandEmpty_Shadcn_>
                             <CommandGroup_Shadcn_>
-                              <ScrollArea className={(tables ?? []).length > 7 ? 'h-[200px]' : ''}>
-                                {(tables ?? []).map((table) => (
-                                  <CommandItem_Shadcn_
-                                    key={table.id}
-                                    className="cursor-pointer flex items-center justify-between space-x-2 w-full"
-                                    onSelect={() => {
-                                      form.setValue('table', table.name)
-                                      setOpen(false)
-                                    }}
-                                    onClick={() => {
-                                      form.setValue('table', table.name)
-                                      setOpen(false)
-                                    }}
-                                  >
-                                    <span className="flex items-center gap-1.5">
-                                      {field.value === table.name ? <Check size={13} /> : ''}
-                                      {table.name}
-                                    </span>
-                                  </CommandItem_Shadcn_>
-                                ))}
-                              </ScrollArea>
+                              {(tables ?? []).map((table) => (
+                                <CommandItem_Shadcn_
+                                  key={table.id}
+                                  className="cursor-pointer flex items-center justify-between space-x-2 w-full"
+                                  onSelect={() => {
+                                    form.setValue('table', table.name)
+                                    setOpen(false)
+                                  }}
+                                  onClick={() => {
+                                    form.setValue('table', table.name)
+                                    setOpen(false)
+                                  }}
+                                >
+                                  <span className="flex items-center gap-1.5">
+                                    {field.value === table.name ? <Check size={13} /> : ''}
+                                    {table.name}
+                                  </span>
+                                </CommandItem_Shadcn_>
+                              ))}
                             </CommandGroup_Shadcn_>
                           </CommandList_Shadcn_>
                         </Command_Shadcn_>

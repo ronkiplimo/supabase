@@ -101,7 +101,7 @@ const DocsSearchPage = () => {
 
   async function openLink(pageType: PageType, link: string) {
     // A simple way to achieve opening links in new tab but room for improvement including support for middle clicks
-    const openInNewTab = window.event?.metaKey || window.event?.ctrlKey
+    const openInNewTab = (window.event as KeyboardEvent)?.metaKey || (window.event as KeyboardEvent)?.ctrlKey
 
     switch (pageType) {
       case PageType.Markdown:

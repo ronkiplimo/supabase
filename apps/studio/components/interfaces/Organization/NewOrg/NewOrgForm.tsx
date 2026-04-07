@@ -606,7 +606,7 @@ export const NewOrgForm = ({
                   )}
                 >
                   {creationPreview.total !== creationPreview.plan_price && (
-                    <div className="flex items-center justify-between gap-2 border-b border-muted text-xs">
+                    <div className="flex items-center justify-between gap-2 border-b border-muted text-sm">
                       <div className="py-2">Plan price</div>
                       <div className="py-2 text-right tabular-nums" translate="no">
                         {formatCurrency(creationPreview.plan_price)}
@@ -617,7 +617,7 @@ export const NewOrgForm = ({
                   {creationPreview.tax_status === 'calculated' &&
                     creationPreview.tax &&
                     creationPreview.tax.tax_amount > 0 && (
-                      <div className="flex items-center justify-between gap-2 border-b border-muted text-xs">
+                      <div className="flex items-center justify-between gap-2 border-b border-muted text-sm">
                         <div className="py-2">Tax ({creationPreview.tax.tax_rate_percentage}%)</div>
                         <div className="py-2 text-right tabular-nums" translate="no">
                           {formatCurrency(creationPreview.tax.tax_amount)}
@@ -626,14 +626,14 @@ export const NewOrgForm = ({
                     )}
 
                   {creationPreview.tax_status === 'failed' && (
-                    <div className="flex items-center justify-between gap-2 border-b border-muted text-xs">
+                    <div className="flex items-center justify-between gap-2 border-b border-muted text-sm">
                       <div className="py-2 text-foreground-lighter">
                         Tax could not be estimated and may be applied separately
                       </div>
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between gap-2 text-foreground">
+                  <div className="flex items-center justify-between gap-2 text-foreground text-base">
                     <div className="py-2">Total due today</div>
                     <div className="py-2 text-right tabular-nums" translate="no">
                       {formatCurrency(creationPreview.total)}

@@ -96,6 +96,7 @@ const Wizard: NextPageWithLayout = () => {
   const projectCreationDisabled = useFlag('disableProjectCreationAndUpdate')
   const showPostgresVersionSelector = useFlag('showPostgresVersionSelector')
   const cloudProviderEnabled = useFlag('enableFlyCloudProvider')
+
   const isDataApiGrantTogglesEnabled = useDataApiGrantTogglesEnabled()
   // Read the raw flag for telemetry — useDataApiGrantTogglesEnabled coerces undefined→false,
   // which would record false for users whose flags haven't loaded yet. The raw value preserves
@@ -400,6 +401,12 @@ const Wizard: NextPageWithLayout = () => {
       form.setValue('dbRegion', recommendedSmartRegion)
     }
   }, [recommendedSmartRegion])
+
+  useEffect(() => {
+    if (highAvailability && cloudProvider !== 'AWS_K8S') {
+      form.setValue('cloudProvider', 'AWS_K8S')
+    }
+  }, [highAvailability, cloudProvider, form])
 
   useEffect(() => {
     if (watchedInstanceSize !== instanceSize) {

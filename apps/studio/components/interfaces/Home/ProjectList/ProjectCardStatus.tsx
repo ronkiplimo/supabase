@@ -1,10 +1,10 @@
 import { AlertTriangle, Info, PauseCircle, RefreshCcw } from 'lucide-react'
-
-import { RESOURCE_WARNING_MESSAGES } from 'components/ui/ResourceExhaustionWarningBanner/ResourceExhaustionWarningBanner.constants'
-import { getWarningContent } from 'components/ui/ResourceExhaustionWarningBanner/ResourceExhaustionWarningBanner.utils'
-import type { ResourceWarning } from 'data/usage/resource-warnings-query'
 import { Badge, cn, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
+
 import { InferredProjectStatus } from './ProjectCard.utils'
+import { RESOURCE_WARNING_MESSAGES } from '@/components/ui/ResourceExhaustionWarningBanner/ResourceExhaustionWarningBanner.constants'
+import { getWarningContent } from '@/components/ui/ResourceExhaustionWarningBanner/ResourceExhaustionWarningBanner.utils'
+import type { ResourceWarning } from '@/data/usage/resource-warnings-query'
 
 export interface ProjectCardWarningsProps {
   resourceWarnings?: ResourceWarning
@@ -68,9 +68,7 @@ export const ProjectCardStatus = ({
         return renderMode === 'badge' ? 'Pause Failed' : 'Project pause failed'
     }
 
-    if (!resourceWarnings) {
-      return renderMode === 'badge' && projectStatus === 'isHealthy' ? 'Active' : undefined
-    }
+    if (!resourceWarnings) return undefined
 
     // If none of the paused/restoring states match, proceed with the default logic
     return activeWarnings.length > 1

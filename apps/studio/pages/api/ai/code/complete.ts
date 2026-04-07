@@ -20,21 +20,36 @@ import z from 'zod'
 
 export const maxDuration = 60
 
+const requestBodySchema = z.object({
+  completionMetadata: z.object({
+    textBeforeCursor: z.string(),
+    textAfterCursor: z.string(),
+    prompt: z.string(),
+    selection: z.string(),
+  }),
+  projectRef: z.string(),
+  connectionString: z.string().optional(),
+  orgSlug: z.string().optional(),
+  language: z.string().optional(),
+})
+
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` })
   }
 
   try {
-    const { completionMetadata, projectRef, connectionString, orgSlug, language } = req.body
-    const { textBeforeCursor, textAfterCursor, prompt, selection } = completionMetadata
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+    const { data, error: parseError } = requestBodySchema.safeParse(body)
 
-    if (!projectRef) {
-      return res.status(400).json({ error: 'Missing project_ref in request body' })
+    if (parseError) {
+      return res.status(400).json({ error: 'Invalid request body', issues: parseError.issues })
     }
 
-    const authorization = req.headers.authorization
+    const { completionMetadata, projectRef, connectionString, orgSlug, language } = data
+    const { textBeforeCursor, textAfterCursor, prompt, selection } = completionMetadata
 
+    const authorization = req.headers.authorization
     let aiOptInLevel: AiOptInLevel = IS_PLATFORM ? 'disabled' : 'schema'
 
     if (IS_PLATFORM && orgSlug && authorization && projectRef) {

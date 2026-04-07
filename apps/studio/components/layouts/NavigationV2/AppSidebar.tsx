@@ -102,13 +102,13 @@ function AppSidebarNavBody({ scope, variant = 'desktop' }: AppSidebarNavBodyProp
           </>
         )}
       </SidebarHeader>
-      <div
-        className={cn(
-          'relative min-h-0 flex-1',
-          isMobileSheet ? 'overflow-y-auto' : 'overflow-hidden'
-        )}
-      >
-        <SidebarContent className={cn('relative gap-0 pb-8', !isMobileSheet && 'h-full')}>
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+        <SidebarContent
+          className={cn(
+            'min-h-0 flex-1 gap-0 pb-8',
+            isMobileSheet ? 'overflow-y-auto' : 'h-full overflow-y-auto'
+          )}
+        >
           {isProjectScope ? (
             <>
               <NavGroup id="project" label="Project" items={projectItems} />
@@ -116,19 +116,23 @@ function AppSidebarNavBody({ scope, variant = 'desktop' }: AppSidebarNavBodyProp
               <NavGroup id="platform" label="Platform" items={platformItems} />
               <NavGroup id="observability" label="Observability" items={observabilityItems} />
               <NavGroup id="integrations" label="Integrations" items={integrationsItems} />
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-x-0 top-0 z-10 h-3 bg-gradient-to-b from-sidebar to-transparent"
-              />
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-3 bg-gradient-to-t from-sidebar to-transparent"
-              />
             </>
           ) : (
             <NavGroup id="organization" label="" items={organizationItems} isCollapsible={false} />
           )}
         </SidebarContent>
+        {isProjectScope ? (
+          <>
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 top-0 z-10 h-3 bg-gradient-to-b from-sidebar to-transparent"
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-3 bg-gradient-to-t from-sidebar to-transparent"
+            />
+          </>
+        ) : null}
       </div>
     </>
   )

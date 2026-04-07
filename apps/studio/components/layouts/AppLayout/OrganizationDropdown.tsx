@@ -11,17 +11,23 @@ import { useEmbeddedCloseHandler } from './useEmbeddedCloseHandler'
 import { useOrganizationsQuery } from '@/data/organizations/organizations-query'
 import { useIsFeatureEnabled } from '@/hooks/misc/useIsFeatureEnabled'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
+import type { Organization } from '@/types'
 
 interface OrganizationDropdownProps {
   embedded?: boolean
   className?: string
   onClose?: () => void
+  /** Render only the command list (e.g. inside another popover column). */
+  renderCommandContentOnly?: boolean
+  onSelectOrganization?: (org: Organization) => void
 }
 
 export const OrganizationDropdown = ({
   embedded = false,
   className,
   onClose,
+  renderCommandContentOnly = false,
+  onSelectOrganization,
 }: OrganizationDropdownProps = {}) => {
   const router = useRouter()
   const { slug: routeSlug } = useParams()
@@ -40,7 +46,7 @@ export const OrganizationDropdown = ({
   const [open, setOpen] = useState(false)
   const close = useEmbeddedCloseHandler(embedded, onClose, setOpen)
 
-  if (isLoadingOrganizations && !embedded)
+  if (isLoadingOrganizations && !embedded && !renderCommandContentOnly)
     return <ShimmeringLoader className="p-2 md:mr-2 w-[90px]" />
 
   if (isError) return <AppLayoutDropdownError message="Failed to load organizations" />
@@ -54,9 +60,18 @@ export const OrganizationDropdown = ({
       routePathname={router.pathname}
       hasRouteSlug={!!routeSlug}
       organizationCreationEnabled={organizationCreationEnabled}
-      onClose={close}
+      onClose={renderCommandContentOnly ? () => onClose?.() : close}
+      onSelectOrganization={onSelectOrganization}
     />
   )
+
+  if (renderCommandContentOnly) {
+    return isLoadingOrganizations ? (
+      <ShimmeringLoader className="p-2 md:mr-2 w-full min-h-[120px]" />
+    ) : (
+      commandContent
+    )
+  }
 
   if (embedded)
     return isLoadingOrganizations ? <GenericSkeletonLoader className="p-2" /> : commandContent

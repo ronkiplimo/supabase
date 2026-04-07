@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { getProjectBranchSelectorState } from './ProjectBranchSelector.utils'
+import { getProjectBranchSelectorState, getSelectedOrgInitial } from './ProjectBranchSelector.utils'
 
 describe('getProjectBranchSelectorState', () => {
   it('returns main branch when branching disabled', () => {
@@ -61,7 +61,7 @@ describe('getProjectBranchSelectorState', () => {
       selectedOrganization: { slug: 'my-org', name: 'My Org' } as any,
     })
     expect(result.organizationHref).toBe('/org/my-org')
-    expect(result.selectedOrgInitial).toBe('M')
+    expect(getSelectedOrgInitial('My Org')).toBe('M')
   })
 
   it('returns organizations fallback when no org slug', () => {
@@ -71,7 +71,7 @@ describe('getProjectBranchSelectorState', () => {
       selectedOrganization: undefined,
     })
     expect(result.organizationHref).toBe('/organizations')
-    expect(result.selectedOrgInitial).toBe('O')
+    expect(getSelectedOrgInitial('O')).toBe('O')
   })
 
   it('handles org name with leading/trailing spaces for initial', () => {
@@ -80,6 +80,6 @@ describe('getProjectBranchSelectorState', () => {
       isBranchingEnabled: false,
       selectedOrganization: { slug: 'x', name: '  Acme  ' } as any,
     })
-    expect(result.selectedOrgInitial).toBe('A')
+    expect(getSelectedOrgInitial('  Acme  ')).toBe('A')
   })
 })

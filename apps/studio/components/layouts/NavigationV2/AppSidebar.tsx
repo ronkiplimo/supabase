@@ -1,9 +1,9 @@
 import { useParams } from 'common'
-import { Plug } from 'lucide-react'
+import { Plug, Search } from 'lucide-react'
 import { useRouter } from 'next/router'
 import { parseAsBoolean, useQueryState } from 'nuqs'
 import { Button, cn, Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from 'ui'
-import { ShimmeringLoader } from 'ui-patterns'
+import { ShimmeringLoader, useSetCommandMenuOpen } from 'ui-patterns'
 
 import { NavGroup } from './NavGroup'
 import { NavUser } from './NavUser'
@@ -32,6 +32,7 @@ interface AppSidebarNavBodyProps {
  */
 function AppSidebarNavBody({ scope, variant = 'desktop' }: AppSidebarNavBodyProps) {
   const [, setShowConnect] = useQueryState('showConnect', parseAsBoolean.withDefault(false))
+  const setCommandMenuOpen = useSetCommandMenuOpen()
   const { slug: orgRouteSlug } = useParams()
   const { data: selectedOrganization } = useSelectedOrganizationQuery()
   const { isPending: isLoadingOrganizations } = useOrganizationsQuery()
@@ -85,7 +86,14 @@ function AppSidebarNavBody({ scope, variant = 'desktop' }: AppSidebarNavBodyProp
             {isProjectScope && (
               <>
                 <ProjectBranchSelector />
-                <div className="flex items-center px-0.5">
+                <div className="flex items-center px-0 gap-1.5">
+                  <Button
+                    type="outline"
+                    size="small"
+                    onClick={() => setCommandMenuOpen(true)}
+                    className="h-7 min-w-8 !w-8 px-0 justify-center text-foreground-lighter font-normal bg-transparent"
+                    icon={<Search strokeWidth={1.5} />}
+                  />
                   <Button
                     type="default"
                     size="small"

@@ -126,7 +126,7 @@ const IntegrationPage: NextPageWithLayout = () => {
       setIsInstalling(true)
       try {
         const response = await fetchPost<{ redirectUrl: string }>(
-          `${API_URL}/platform/integrations/partners?ref=${ref}&listing_id=${integration.listingId}`,
+          `${API_URL}/integrations/partners/${ref}/${integration.listingId}`,
           {}
         )
         if ('redirectUrl' in response) {

@@ -97,6 +97,22 @@ export function useAppSidebarNavItems(
     'realtime:all',
   ])
 
+  const {
+    authenticationSignInProviders,
+    authenticationRateLimits,
+    authenticationEmails,
+    authenticationMultiFactor,
+    authenticationAttackProtection,
+    authenticationPerformance,
+  } = useIsFeatureEnabled([
+    'authentication:sign_in_providers',
+    'authentication:rate_limits',
+    'authentication:emails',
+    'authentication:multi_factor',
+    'authentication:attack_protection',
+    'authentication:performance',
+  ])
+
   const authOverviewPageEnabled = useFlag('authOverviewPage')
   const showReports = useIsFeatureEnabled('reports:all')
   const showBilling = useIsFeatureEnabled('billing:all')
@@ -169,6 +185,14 @@ export function useAppSidebarNavItems(
           storageEnabled,
           realtimeEnabled,
           authOverviewPageEnabled,
+          authMenuFeatures: {
+            signInProviders: authenticationSignInProviders,
+            rateLimits: authenticationRateLimits,
+            emails: authenticationEmails,
+            multiFactor: authenticationMultiFactor,
+            attackProtection: authenticationAttackProtection,
+            performance: authenticationPerformance,
+          },
           pathname: router.pathname,
         })
       : []

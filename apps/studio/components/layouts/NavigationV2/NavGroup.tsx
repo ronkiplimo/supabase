@@ -30,6 +30,7 @@ export interface NavGroupItem {
     title: string
     url: string
     isActive?: boolean
+    label?: string
   }[]
 }
 
@@ -65,14 +66,13 @@ export function NavGroup({ id, label, items, isCollapsible = true }: NavGroupPro
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
                 <SidebarMenuButton
-                  tooltip={item.title}
                   isActive={item.isActive}
-                  className="gap-2 text-foreground-light !py-1.5 !h-7"
+                  className="gap-2 text-foreground-lighter md:!h-6"
                 >
                   <NavItemIcon icon={item.icon} />
                   <span className="truncate">{item.title}</span>
                   {item.label && (
-                    <Badge className="ml-1 px-1.5 py-0.5 bg-transparent !border-stronger text-[10px] leading-none font-medium">
+                    <Badge className="ml-1 px-1.5 py-0.5 bg-transparent !border-stronger text-[10px] leading-none">
                       {item.label}
                     </Badge>
                   )}
@@ -86,9 +86,23 @@ export function NavGroup({ id, label, items, isCollapsible = true }: NavGroupPro
                 <SidebarMenuSub className="gap-[2px] ml-3 mr-0 pl-3.5 pr-0">
                   {item.items.map((subItem) => (
                     <SidebarMenuSubItem key={subItem.title}>
-                      <SidebarMenuSubButton asChild isActive={subItem.isActive}>
+                      <SidebarMenuSubButton
+                        asChild
+                        isActive={subItem.isActive}
+                        className="h-7 md:h-6"
+                      >
                         <Link href={subItem.url}>
-                          <span>{subItem.title}</span>
+                          <span className="truncate flex-1 min-w-0">{subItem.title}</span>
+                          {subItem.label && (
+                            <Badge
+                              className="flex-shrink-0"
+                              variant={
+                                subItem.label.toLowerCase() === 'new' ? 'success' : 'warning'
+                              }
+                            >
+                              {subItem.label}
+                            </Badge>
+                          )}
                         </Link>
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
@@ -100,16 +114,18 @@ export function NavGroup({ id, label, items, isCollapsible = true }: NavGroupPro
         ) : (
           <SidebarMenuItem key={item.title}>
             <SidebarMenuButton
-              tooltip={item.title}
               isActive={item.isActive}
               asChild
-              className="gap-2 text-foreground-light !py-1.5 !h-7"
+              className="gap-2 text-foreground-lighter md:!h-6"
             >
               <Link href={item.url}>
                 <NavItemIcon icon={item.icon} />
-                <span>{item.title}</span>
+                <span className="truncate flex-1 min-w-0">{item.title}</span>
                 {item.label && (
-                  <Badge className="ml-1 px-1.5 py-0.5 bg-transparent !border-stronger text-[10px] leading-none font-medium">
+                  <Badge
+                    className="flex-shrink-0"
+                    variant={item.label.toLowerCase() === 'new' ? 'success' : 'warning'}
+                  >
                     {item.label}
                   </Badge>
                 )}
@@ -131,7 +147,7 @@ export function NavGroup({ id, label, items, isCollapsible = true }: NavGroupPro
         <SidebarGroup>
           <CollapsibleTrigger asChild>
             <SidebarGroupLabel
-              className={`group/label text-foreground-lighter flex items-center gap-1 ${
+              className={`group/label text-foreground-lighter/70 flex items-center gap-1 md:!h-6 ${
                 isCollapsible ? 'cursor-pointer hover:text-foreground-light' : 'pointer-events-none'
               }`}
             >
@@ -139,7 +155,7 @@ export function NavGroup({ id, label, items, isCollapsible = true }: NavGroupPro
               {isCollapsible && (
                 <ChevronRight
                   strokeWidth={1.5}
-                  className="!w-4 !h-4 text-foreground-muted group-hover/label:text-foreground-light transition-transform duration-200 group-data-[state=open]/group-collapsible:rotate-90 hidden group-hover:block"
+                  className="!w-4 !h-4 text-foreground-muted group-hover/label:text-foreground-lighter transition-transform duration-200 group-data-[state=open]/group-collapsible:rotate-90 block md:hidden group-hover:block"
                 />
               )}
             </SidebarGroupLabel>
@@ -155,13 +171,8 @@ export function NavGroup({ id, label, items, isCollapsible = true }: NavGroupPro
 
 function NavItemIcon({ icon }: { icon?: LucideIcon | ReactNode }) {
   if (!icon) return null
+  if (isValidElement(icon)) return icon
 
-  // If it's already a rendered React element (e.g. <SomeIcon />), use it as-is
-  if (isValidElement(icon)) {
-    return icon
-  }
-
-  // Otherwise it's a component reference (function or forwardRef) - render it
   const IconComponent = icon as LucideIcon
   return <IconComponent strokeWidth={1.5} className="!w-4 !h-4" />
 }

@@ -21,7 +21,9 @@ import {
   Telescope,
 } from 'lucide-react'
 
+import { generateAuthMenu, type GenerateAuthMenuOptions } from '../AuthLayout/AuthLayout.utils'
 import type { NavGroupItem } from './NavGroup'
+import type { ProductMenuGroup } from '@/components/ui/ProductMenu/ProductMenu.types'
 
 interface DatabaseNavFlags {
   pgNetExtensionExists?: boolean
@@ -40,7 +42,41 @@ interface PlatformNavFlags {
   storageEnabled?: boolean
   realtimeEnabled?: boolean
   authOverviewPageEnabled?: boolean
+  /** Mirrors AuthLayout / ProductMenu; defaults to all enabled when omitted. */
+  authMenuFeatures?: GenerateAuthMenuOptions['features']
   pathname?: string
+}
+
+const defaultAuthMenuFeatures: GenerateAuthMenuOptions['features'] = {
+  signInProviders: true,
+  rateLimits: true,
+  emails: true,
+  multiFactor: true,
+  attackProtection: true,
+  performance: true,
+}
+
+/** Flatten auth product menu for V2 sidebar; active segment matches ProductMenu (`pathname.split('/')[4]`). */
+export function mapAuthMenuGroupsToNavSubItems(
+  pathname: string,
+  menu: ProductMenuGroup[]
+): NonNullable<NavGroupItem['items']> {
+  const page = pathname.split('/')[4] ?? ''
+  const out: NonNullable<NavGroupItem['items']> = []
+
+  for (const group of menu) {
+    for (const item of group.items) {
+      const isActive = item.pages?.length ? item.pages.includes(page) : page === item.key
+      out.push({
+        title: item.name,
+        url: item.url,
+        isActive,
+        ...(item.label ? { label: item.label } : {}),
+      })
+    }
+  }
+
+  return out
 }
 
 interface OtherNavFlags {
@@ -215,6 +251,7 @@ export function generatePlatformNavItems(
     storageEnabled = true,
     realtimeEnabled = true,
     authOverviewPageEnabled = false,
+    authMenuFeatures,
     pathname = '',
   } = flags || {}
 
@@ -222,6 +259,16 @@ export function generatePlatformNavItems(
   const isStorageActive = pathname.includes('/storage')
   const isFunctionsActive = pathname.includes('/functions')
   const isRealtimeActive = pathname.includes('/realtime')
+
+  const authNavSubItems = mapAuthMenuGroupsToNavSubItems(
+    pathname,
+    generateAuthMenu({
+      ref,
+      isPlatform: IS_PLATFORM,
+      showOverview: authOverviewPageEnabled,
+      features: authMenuFeatures ?? defaultAuthMenuFeatures,
+    })
+  )
 
   return [
     ...(authEnabled
@@ -235,52 +282,7 @@ export function generatePlatformNavItems(
                 : `/project/${ref}/auth/users`,
             icon: AuthIcon,
             isActive: isAuthActive,
-            items: [
-              {
-                title: 'Users',
-                url: `/project/${ref}/auth/users`,
-                isActive: pathname.includes('/auth/users'),
-              },
-              {
-                title: 'Policies',
-                url: `/project/${ref}/auth/policies`,
-                isActive: pathname.includes('/auth/policies'),
-              },
-              ...(IS_PLATFORM
-                ? [
-                    {
-                      title: 'Providers',
-                      url: `/project/${ref}/auth/providers`,
-                      isActive: pathname.includes('/auth/providers'),
-                    },
-                    {
-                      title: 'Sessions',
-                      url: `/project/${ref}/auth/sessions`,
-                      isActive: pathname.includes('/auth/sessions'),
-                    },
-                    {
-                      title: 'Rate Limits',
-                      url: `/project/${ref}/auth/rate-limits`,
-                      isActive: pathname.includes('/auth/rate-limits'),
-                    },
-                    {
-                      title: 'Email Templates',
-                      url: `/project/${ref}/auth/templates`,
-                      isActive: pathname.includes('/auth/templates'),
-                    },
-                    {
-                      title: 'URL Configuration',
-                      url: `/project/${ref}/auth/url-configuration`,
-                      isActive: pathname.includes('/auth/url-configuration'),
-                    },
-                    {
-                      title: 'Auth Hooks',
-                      url: `/project/${ref}/auth/hooks`,
-                      isActive: pathname.includes('/auth/hooks'),
-                    },
-                  ]
-                : []),
-            ],
+            items: authNavSubItems,
           },
         ]
       : []),
@@ -293,26 +295,24 @@ export function generatePlatformNavItems(
             isActive: isStorageActive,
             items: [
               {
-                title: 'Buckets',
+                title: 'Files',
                 url: `/project/${ref}/storage/files`,
-                isActive:
-                  pathname.includes('/storage/files') &&
-                  !pathname.includes('/storage/files/settings') &&
-                  !pathname.includes('/storage/files/policies'),
+                isActive: pathname.includes('/storage/files'),
               },
-              ...(IS_PLATFORM
-                ? [
-                    {
-                      title: 'Settings',
-                      url: `/project/${ref}/storage/files/settings`,
-                      isActive: pathname.includes('/storage/files/settings'),
-                    },
-                  ]
-                : []),
               {
-                title: 'Policies',
-                url: `/project/${ref}/storage/files/policies`,
-                isActive: pathname.includes('/storage/files/policies'),
+                title: 'Analytics',
+                url: `/project/${ref}/storage/analytics`,
+                isActive: pathname.includes('/storage/analytics'),
+              },
+              {
+                title: 'Vectors',
+                url: `/project/${ref}/storage/vectors`,
+                isActive: pathname.includes('/storage/vectors'),
+              },
+              {
+                title: 'S3 Configuration',
+                url: `/project/${ref}/storage/s3`,
+                isActive: pathname.includes('/storage/s3'),
               },
             ],
           },

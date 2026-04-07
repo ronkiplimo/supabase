@@ -81,6 +81,8 @@ export const LOCAL_STORAGE_KEYS = {
   API_KEYS_FEEDBACK_DISMISSED: (ref: string) => `supabase-api-keys-feedback-dismissed-${ref}`,
   MAINTENANCE_WINDOW_BANNER: 'maintenance-window-banner-2026-01-16',
   REPORT_DATERANGE: 'supabase-report-daterange',
+  PROJECT_PAUSING_STARTED_AT: (ref: string) => `supabase-project-pausing-started-at-${ref}`,
+  PROJECT_RESTORING_STARTED_AT: (ref: string) => `supabase-project-restoring-started-at-${ref}`,
 
   // api keys view switcher for new and legacy api keys
   API_KEYS_VIEW: (ref: string) => `supabase-api-keys-view-${ref}`,
@@ -153,9 +155,9 @@ const LOCAL_STORAGE_KEYS_ALLOWLIST = [
   LOCAL_STORAGE_KEYS.TELEMETRY_CONSENT,
   LOCAL_STORAGE_KEYS.UI_PREVIEW_API_SIDE_PANEL,
   LOCAL_STORAGE_KEYS.UI_PREVIEW_INLINE_EDITOR,
+  LOCAL_STORAGE_KEYS.UI_PREVIEW_QUEUE_OPERATIONS,
   LOCAL_STORAGE_KEYS.UI_PREVIEW_CLS,
   LOCAL_STORAGE_KEYS.UI_PREVIEW_UNIFIED_LOGS,
-  LOCAL_STORAGE_KEYS.UI_PREVIEW_QUEUE_OPERATIONS,
   LOCAL_STORAGE_KEYS.UI_PREVIEW_TABLE_FILTER_BAR,
   LOCAL_STORAGE_KEYS.UI_PREVIEW_PLATFORM_WEBHOOKS,
   LOCAL_STORAGE_KEYS.UI_PREVIEW_JIT_DB_ACCESS,

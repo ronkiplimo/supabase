@@ -2,6 +2,7 @@ import { useFlag, useParams } from 'common'
 import { useInstalledIntegrations } from 'components/interfaces/Integrations/Landing/useInstalledIntegrations'
 import { DefaultLayout } from 'components/layouts/DefaultLayout'
 import { UnknownInterface } from 'components/ui/UnknownInterface'
+import { useAPIKeysQuery } from 'data/api-keys/api-keys-query'
 import { useDatabaseExtensionsQuery } from 'data/database-extensions/database-extensions-query'
 import { fetchPost } from 'data/fetchers'
 import { useIsFeatureEnabled } from 'hooks/misc/useIsFeatureEnabled'
@@ -157,6 +158,15 @@ const IntegrationPage: NextPageWithLayout = () => {
     </div>
   ) : null
 
+  const { data: apiKeys } = useAPIKeysQuery({ projectRef: ref, reveal: false }, { enabled: !!ref })
+
+  const oAuthIntegrationInstalled = useMemo(() => {
+    if (!apiKeys || !integration) return false
+    const prefix = integration.secretKeyPrefix
+    if (integration.installMethod !== 'secret_key_prefix' || !prefix) return false
+    return apiKeys.some((k) => k.type === 'secret' && k.name.startsWith(prefix))
+  }, [apiKeys, integration])
+
   // Determine content based on state
   const content = useMemo(() => {
     if (!router?.isReady || isInstalledIntegrationsLoading || isAvailableIntegrationsLoading) {
@@ -243,6 +253,7 @@ const IntegrationPage: NextPageWithLayout = () => {
                 className="shrink-0"
                 loading={isInstalling}
                 onClick={handleInstallClick}
+                disabled={oAuthIntegrationInstalled}
               >
                 Install integration
               </Button>

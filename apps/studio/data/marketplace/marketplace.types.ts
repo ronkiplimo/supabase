@@ -2,6 +2,8 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export type InstallUrlType = 'get' | 'post'
 
+export type InstallIdentificationMethod = 'secret_key_prefix'
+
 export type Database = {
   public: {
     Tables: {
@@ -26,8 +28,10 @@ export type Database = {
           slug: string
           website_url: string
           documentation_url: string
-          installation_url: string | null
-          installation_url_type: InstallUrlType | null
+          installation_url: string
+          installation_url_type: InstallUrlType
+          installation_identification_method: InstallIdentificationMethod,
+          secret_key_prefix: string,
           youtube_id: string | null
           featured: boolean
           partner_slug: string

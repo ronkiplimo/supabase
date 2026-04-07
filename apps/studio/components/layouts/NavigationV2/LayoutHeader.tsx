@@ -1,4 +1,5 @@
-import { LOCAL_STORAGE_KEYS } from 'common'
+import { LOCAL_STORAGE_KEYS, useParams } from 'common'
+import dayjs from 'dayjs'
 import { DevToolbarTrigger } from 'dev-tools'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronLeft } from 'lucide-react'
@@ -8,19 +9,25 @@ import type { ReactNode } from 'react'
 import { Badge, cn } from 'ui'
 import { CommandMenuTriggerInput } from 'ui-patterns'
 
-import { HomeIcon } from '../Navigation/LayoutHeader/HomeIcon'
-import { useIsFloatingMobileToolbarEnabled } from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'
+import {
+  useIsBranching2Enabled,
+  useIsFloatingMobileToolbarEnabled,
+} from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'
+import { ConnectButton } from '@/components/interfaces/ConnectButton/ConnectButton'
 import { ConnectSheet } from '@/components/interfaces/ConnectSheet/ConnectSheet'
 import { LocalDropdown } from '@/components/interfaces/LocalDropdown'
 import { UserDropdown } from '@/components/interfaces/UserDropdown'
 import { BreadcrumbsView } from '@/components/layouts/Navigation/LayoutHeader/BreadcrumbsView'
 import { FeedbackDropdown } from '@/components/layouts/Navigation/LayoutHeader/FeedbackDropdown/FeedbackDropdown'
+import { HomeIcon } from '@/components/layouts/Navigation/LayoutHeader/HomeIcon'
 import { LayoutHeaderDivider } from '@/components/layouts/Navigation/LayoutHeader/LayoutHeader'
 import { LocalVersionPopover } from '@/components/layouts/Navigation/LayoutHeader/LocalVersionPopover'
+import { MergeRequestButton } from '@/components/layouts/Navigation/LayoutHeader/MergeRequestButton'
 import { useHideSidebar } from '@/hooks/misc/useHideSidebar'
 import { useLocalStorageQuery } from '@/hooks/misc/useLocalStorage'
 import { useOrgUsageExceedingLimits } from '@/hooks/misc/useOrgUsageExceedingLimits'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
+import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
 import { IS_PLATFORM } from '@/lib/constants'
 
 interface LayoutHeaderProps {
@@ -38,12 +45,21 @@ export const LayoutHeader = ({
 }: LayoutHeaderProps) => {
   const router = useRouter()
   const hideSidebar = useHideSidebar()
+  const { ref: projectRef } = useParams()
   const { data: selectedOrganization } = useSelectedOrganizationQuery()
+  const { data: selectedProject } = useSelectedProjectQuery()
+  const gitlessBranching = useIsBranching2Enabled()
   const showFloatingMobileToolbar = useIsFloatingMobileToolbarEnabled()
   const [commandMenuEnabled] = useLocalStorageQuery(LOCAL_STORAGE_KEYS.HOTKEY_COMMAND_MENU, true)
   const { exceedingLimits } = useOrgUsageExceedingLimits(selectedOrganization)
 
   const isAccountPage = router.pathname.startsWith('/account')
+
+  const isNewProject =
+    selectedProject?.inserted_at !== undefined &&
+    dayjs(selectedProject.inserted_at).isAfter(dayjs().subtract(5, 'day'))
+
+  const connectButtonType = isNewProject ? 'primary' : 'default'
 
   return (
     <>
@@ -88,6 +104,23 @@ export const LayoutHeader = ({
               )}
             </AnimatePresence>
 
+            <AnimatePresence>
+              {projectRef && (
+                <motion.div
+                  className="items-center gap-x-2 flex"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{
+                    duration: 0.15,
+                    ease: 'easeOut',
+                  }}
+                >
+                  <ConnectButton buttonType={connectButtonType} />
+                  {IS_PLATFORM && gitlessBranching && <MergeRequestButton />}
+                </motion.div>
+              )}
+            </AnimatePresence>
             <BreadcrumbsView defaultValue={breadcrumbs} />
 
             {exceedingLimits && (

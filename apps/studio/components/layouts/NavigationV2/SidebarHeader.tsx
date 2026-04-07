@@ -30,7 +30,7 @@ export function SidebarHeader(props: SidebarHeaderProps) {
       {isProjectScope && (
         <>
           <ProjectBranchSelector isCollapsed={isCollapsedRail} />
-          <div className="flex items-center px-0">
+          {/* <div className="flex items-center px-0">
             {isCollapsedRail ? (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -57,7 +57,7 @@ export function SidebarHeader(props: SidebarHeaderProps) {
                 Connect
               </Button>
             )}
-          </div>
+          </div> */}
         </>
       )}
     </SidebarHeaderPrimitive>

@@ -1,10 +1,8 @@
-import type { ParsedUrlQuery } from 'querystring'
 import { useParams } from 'common'
-import { OrganizationDropdownCommandContent } from 'components/layouts/AppLayout/OrganizationDropdownCommandContent'
+import { sanitizeRoute } from 'components/layouts/AppLayout/ProjectDropdown.utils'
 import { OrganizationProjectSelector } from 'components/ui/OrganizationProjectSelector'
 import { useBranchesQuery } from 'data/branches/branches-query'
 import type { Branch } from 'data/branches/branches-query'
-import { useOrganizationsQuery } from 'data/organizations/organizations-query'
 import { useProjectDetailQuery } from 'data/projects/project-detail-query'
 import { useIsFeatureEnabled } from 'hooks/misc/useIsFeatureEnabled'
 import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
@@ -14,7 +12,6 @@ import { Check, ListTree, MessageCircle, Plus, Shield } from 'lucide-react'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import { useAppStateSnapshot } from 'state/app-state'
-import type { Organization } from 'types'
 import {
   Command_Shadcn_,
   CommandEmpty_Shadcn_,
@@ -26,21 +23,26 @@ import {
 } from 'ui'
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
+import { OrganizationDropdown } from '@/components/layouts/AppLayout/OrganizationDropdown'
+
 const BRANCHING_GITHUB_DISCUSSION_LINK = 'https://github.com/orgs/supabase/discussions/18937'
 
 export interface ProjectBranchSelectorPopoverProps {
   onClose: () => void
+  /** When false, org is chosen elsewhere; only project + branch columns render. */
+  showOrganizationColumn?: boolean
 }
 
-export function ProjectBranchSelectorPopover({ onClose }: ProjectBranchSelectorPopoverProps) {
+export function ProjectBranchSelectorPopover({
+  onClose,
+  showOrganizationColumn = true,
+}: ProjectBranchSelectorPopoverProps) {
   const router = useRouter()
-  const { ref, slug: routeSlug } = useParams()
+  const { ref } = useParams()
   const snap = useAppStateSnapshot()
   const { data: selectedOrganization } = useSelectedOrganizationQuery()
-  const { data: organizations } = useOrganizationsQuery()
   const { data: project } = useSelectedProjectQuery()
   const projectCreationEnabled = useIsFeatureEnabled('projects:create')
-  const organizationCreationEnabled = useIsFeatureEnabled('organizations:create')
 
   const isBranch = project?.parentRef !== project?.ref
   const { data: parentProject } = useProjectDetailQuery(
@@ -88,21 +90,26 @@ export function ProjectBranchSelectorPopover({ onClose }: ProjectBranchSelectorP
   if (!IS_PLATFORM) return null
   if (!displayProject) return null
 
+  const organizationSlugForProjects = showOrganizationColumn
+    ? (activeOrganizationSlug ?? selectedOrganization?.slug)
+    : selectedOrganization?.slug
+
   return (
     <div className="flex divide-x h-[320px]">
-      <OrganizationColumn
-        routePathname={router.pathname}
-        hasRouteSlug={Boolean(routeSlug)}
-        organizations={organizations ?? []}
-        selectedSlug={activeOrganizationSlug ?? selectedOrganization?.slug}
-        onSelect={(slug) => setActiveOrganizationSlug(slug)}
-        organizationCreationEnabled={organizationCreationEnabled}
-        onClose={onClose}
-      />
+      {showOrganizationColumn ? (
+        <div className="flex min-w-0 flex-1 flex-col">
+          <OrganizationDropdown
+            renderCommandContentOnly
+            className="bg-transparent border-0 shadow-none min-h-0 flex-1 flex flex-col overflow-hidden rounded-none"
+            onClose={onClose}
+            onSelectOrganization={(org) => setActiveOrganizationSlug(org.slug)}
+          />
+        </div>
+      ) : null}
       <ProjectColumn
         selectedRef={ref}
         onClose={onClose}
-        organizationSlug={activeOrganizationSlug ?? selectedOrganization?.slug}
+        organizationSlug={organizationSlugForProjects}
         projectCreationEnabled={projectCreationEnabled}
       />
       <BranchColumn
@@ -128,51 +135,6 @@ export function ProjectBranchSelectorPopover({ onClose }: ProjectBranchSelectorP
         onClose={onClose}
       />
     </div>
-  )
-}
-
-function sanitizeRoute(route: string, routerQueries: ParsedUrlQuery) {
-  const queryArray = Object.entries(routerQueries)
-  if (queryArray.length > 1) {
-    const isStorageBucketRoute = 'bucketId' in routerQueries
-    const isSecurityAdvisorRoute = 'preset' in routerQueries
-    return route
-      .split('/')
-      .slice(0, isStorageBucketRoute || isSecurityAdvisorRoute ? 5 : 4)
-      .join('/')
-  }
-  return route
-}
-
-function OrganizationColumn({
-  routePathname,
-  hasRouteSlug,
-  organizations,
-  selectedSlug,
-  onSelect,
-  organizationCreationEnabled,
-  onClose,
-}: {
-  routePathname: string
-  hasRouteSlug: boolean
-  organizations: Array<{ slug: string; name: string }>
-  selectedSlug?: string
-  onSelect: (slug: string) => void
-  organizationCreationEnabled: boolean
-  onClose: () => void
-}) {
-  return (
-    <OrganizationDropdownCommandContent
-      embedded={false}
-      className="bg-transparent border-0 shadow-none min-h-0 flex-1 flex flex-col overflow-hidden rounded-none"
-      organizations={organizations as Organization[]}
-      selectedSlug={selectedSlug}
-      routePathname={routePathname}
-      hasRouteSlug={hasRouteSlug}
-      organizationCreationEnabled={organizationCreationEnabled}
-      onClose={onClose}
-      onSelectOrganization={(org) => onSelect(org.slug)}
-    />
   )
 }
 

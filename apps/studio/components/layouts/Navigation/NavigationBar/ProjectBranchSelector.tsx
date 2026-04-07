@@ -13,6 +13,7 @@ import {
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
 import { getProjectBranchSelectorState } from './ProjectBranchSelector.utils'
+import { ProjectBranchSelectorOverlay } from './ProjectBranchSelectorOverlay'
 import { ProjectBranchSelectorPopover } from './ProjectBranchSelectorPopover'
 import { ProjectBranchSelectorSheet } from './ProjectBranchSelectorSheet'
 import { ProjectBranchSelectorTrigger } from './ProjectBranchSelectorTrigger'
@@ -38,12 +39,20 @@ export function ProjectBranchSelector({ isCollapsed = false }: { isCollapsed?: b
   )
   const displayProject = parentProject ?? project
 
-  const [open, setOpen] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [mobileCollapsedOverlayOpen, setMobileCollapsedOverlayOpen] = useState(false)
+  const [collapsedDesktopOpen, setCollapsedDesktopOpen] = useState(false)
+
+  const isMobile = useBreakpoint('md')
+  const isSplitDesktop = !isMobile && !isCollapsed
 
   const isBranchingEnabled = project?.is_branch_enabled === true
   const { data: branches } = useBranchesQuery(
     { projectRef: project?.parent_project_ref || ref },
-    { enabled: open && Boolean(project) }
+    {
+      enabled:
+        Boolean(project) && (sheetOpen || collapsedDesktopOpen || mobileCollapsedOverlayOpen),
+    }
   )
 
   const selectedBranch = branches?.find((b) => b.project_ref === ref)
@@ -54,11 +63,15 @@ export function ProjectBranchSelector({ isCollapsed = false }: { isCollapsed?: b
   })
 
   const goToOrganization = () => {
-    setOpen(false)
+    setCollapsedDesktopOpen(false)
     router.push(organizationHref)
   }
 
-  const isMobile = useBreakpoint('md')
+  const navigateToProjectHome = () => {
+    const targetRef = ref ?? project?.ref
+    if (!targetRef) return
+    router.push(`/project/${targetRef}`)
+  }
 
   if (isLoadingProject || !displayProject)
     return (
@@ -94,14 +107,35 @@ export function ProjectBranchSelector({ isCollapsed = false }: { isCollapsed?: b
   }
 
   if (isMobile) {
+    if (isCollapsed) {
+      return (
+        <ProjectBranchSelectorOverlay
+          open={mobileCollapsedOverlayOpen}
+          onOpenChange={setMobileCollapsedOverlayOpen}
+          showOrganizationColumn
+          anchor={
+            <ProjectBranchSelectorTrigger
+              {...triggerProps}
+              interactionMode="unified"
+              onClick={() => setMobileCollapsedOverlayOpen(true)}
+            />
+          }
+        />
+      )
+    }
+
     return (
       <>
-        <ProjectBranchSelectorTrigger {...triggerProps} onClick={() => setOpen(true)} />
+        <ProjectBranchSelectorTrigger
+          {...triggerProps}
+          interactionMode="unified"
+          onClick={() => setSheetOpen(true)}
+        />
         <ProjectBranchSelectorSheet
-          open={open}
-          onOpenChange={setOpen}
+          open={sheetOpen}
+          onOpenChange={setSheetOpen}
           selectedRef={ref}
-          onClose={() => setOpen(false)}
+          onClose={() => setSheetOpen(false)}
           selectedOrganization={selectedOrganization ?? null}
           displayProject={displayProject ?? null}
           selectedBranch={selectedBranch ?? null}
@@ -111,15 +145,36 @@ export function ProjectBranchSelector({ isCollapsed = false }: { isCollapsed?: b
     )
   }
 
+  if (isSplitDesktop) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <ProjectBranchSelectorTrigger
+            {...triggerProps}
+            interactionMode="split-desktop"
+            onProjectHome={navigateToProjectHome}
+          />
+        </SidebarMenuItem>
+      </SidebarMenu>
+    )
+  }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <Popover_Shadcn_ open={open} onOpenChange={setOpen} modal={false}>
+        <Popover_Shadcn_
+          open={collapsedDesktopOpen}
+          onOpenChange={setCollapsedDesktopOpen}
+          modal={false}
+        >
           <PopoverTrigger_Shadcn_ asChild>
-            <ProjectBranchSelectorTrigger {...triggerProps} />
+            <ProjectBranchSelectorTrigger {...triggerProps} interactionMode="unified" />
           </PopoverTrigger_Shadcn_>
           <PopoverContent_Shadcn_ className="w-[780px] p-0" side="bottom" align="start">
-            <ProjectBranchSelectorPopover onClose={() => setOpen(false)} />
+            <ProjectBranchSelectorPopover
+              showOrganizationColumn
+              onClose={() => setCollapsedDesktopOpen(false)}
+            />
           </PopoverContent_Shadcn_>
         </Popover_Shadcn_>
       </SidebarMenuItem>

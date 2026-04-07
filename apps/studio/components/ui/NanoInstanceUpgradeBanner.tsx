@@ -1,11 +1,10 @@
-import { Zap } from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/router'
-
 import { useParams } from 'common'
 import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
 import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
-import { AlertDescription_Shadcn_, AlertTitle_Shadcn_, Alert_Shadcn_, Button, cn } from 'ui'
+import { Zap } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/router'
+import { Alert_Shadcn_, AlertDescription_Shadcn_, AlertTitle_Shadcn_, Button, cn } from 'ui'
 
 export const NanoInstanceUpgradeBanner = () => {
   const { ref } = useParams()

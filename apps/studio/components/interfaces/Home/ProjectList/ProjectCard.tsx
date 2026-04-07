@@ -145,9 +145,7 @@ export const ProjectCard = ({
               </div>
             </div>
           }
-          footer={
-            <ProjectCardStatus projectStatus={projectStatus} />
-          }
+          footer={<ProjectCardStatus projectStatus={projectStatus} />}
           containerElement={<ProjectIndexPageLink projectRef={projectRef} />}
         />
       </li>

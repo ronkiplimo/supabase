@@ -1,6 +1,4 @@
 import { PermissionAction } from '@supabase/shared-types/out/constants'
-import { useRouter } from 'next/router'
-
 import { useParams } from 'common'
 import { ButtonTooltip } from 'components/ui/ButtonTooltip'
 import { InlineLink } from 'components/ui/InlineLink'
@@ -8,6 +6,7 @@ import { useProjectSettingsV2Query } from 'data/config/project-settings-v2-query
 import { useAsyncCheckPermissions } from 'hooks/misc/useCheckPermissions'
 import { useIsProjectActive, useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
 import { DOCS_URL } from 'lib/constants'
+import { useRouter } from 'next/router'
 import { Button, cn } from 'ui'
 import { CodeBlock } from 'ui-patterns/CodeBlock'
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
@@ -56,10 +55,11 @@ export const LogicalBackupCliInstructions = ({
     }
   )
 
-  const { data: settings, isSuccess, isError } = useProjectSettingsV2Query(
-    { projectRef: ref },
-    { enabled: enabled && Boolean(ref) }
-  )
+  const {
+    data: settings,
+    isSuccess,
+    isError,
+  } = useProjectSettingsV2Query({ projectRef: ref }, { enabled: enabled && Boolean(ref) })
 
   const connectionUri =
     isSuccess && settings

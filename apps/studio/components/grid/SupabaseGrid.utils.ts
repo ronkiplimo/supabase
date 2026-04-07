@@ -12,6 +12,7 @@ import type { Sort, SupaColumn, SupaTable } from './types'
 import { formatClipboardValue } from './utils/common'
 import type { Filter, SavedState, SupaRow } from '@/components/grid/types'
 import { Entity, isTableLike } from '@/data/table-editor/table-editor-types'
+import { BASE_PATH } from '@/lib/constants'
 import { QueuedOperation, QueuedOperationType } from '@/state/table-editor-operation-queue.types'
 
 export function formatSortURLParams(tableName: string, sort?: string[]): Sort[] {
@@ -158,7 +159,7 @@ export function buildTableEditorUrl({
   tableId: number
   schema?: string
 }) {
-  const url = new URL(`/project/${projectRef}/editor/${tableId}`, location.origin)
+  const url = new URL(`${BASE_PATH}/project/${projectRef}/editor/${tableId}`, location.origin)
 
   // If the schema is provided, add it to the URL so that the left sidebar is opened to the correct schema
   if (schema) {
@@ -172,7 +173,7 @@ export function buildTableEditorUrl({
   if (savedState?.filters && savedState.filters.length > 0) {
     savedState.filters?.forEach((filter) => url.searchParams.append('filter', filter))
   }
-  return url.pathname + url.search
+  return url.toString()
 }
 
 export function saveTableEditorStateToLocalStorage({

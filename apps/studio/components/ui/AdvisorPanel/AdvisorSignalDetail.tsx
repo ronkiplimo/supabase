@@ -64,9 +64,8 @@ export const AdvisorSignalDetail = ({ item, onDismiss }: AdvisorSignalDetailProp
           ? '1 SELECT policy'
           : `${item.sourceData.policyCount} SELECT policies`}{' '}
         on <code className="text-code-inline">storage.objects</code>{' '}
-        {item.sourceData.policyCount === 1 ? 'makes' : 'make'} its contents listable. Public
-        buckets do not require SELECT policies for object access by URL, so this is often
-        unintentional.
+        {item.sourceData.policyCount === 1 ? 'makes' : 'make'} its contents listable. Public buckets
+        do not require SELECT policies for object access by URL, so this is often unintentional.
       </>
     )
 

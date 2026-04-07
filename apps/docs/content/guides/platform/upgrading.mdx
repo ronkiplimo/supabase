@@ -106,6 +106,12 @@ height={385}
 
 When upgrading, the Supabase platform will "right-size" your disk based on the current size of the database. For example, if your database is 100GB in size, and you have a 200GB disk, the upgrade will reduce the disk size to 120GB (1.2x the size of your database).
 
+### Instance resizing
+
+If your database exceeds 10GB and is running on a Nano, Micro, Small, Medium, or Large compute instance, the Supabase platform might resize your instance to XL during a Postgres upgrade. This happens only when your project is under heavy load at the time of the upgrade, and is done to ensure sufficient I/O throughput during data migration, preventing the upgrade from failing due to exhausted EBS I/O balance.
+
+After the upgrade completes, your instance will not be automatically reverted to its original size. You should manually downgrade back from the [Compute and Disk settings](/dashboard/project/_/settings/compute-and-disk) in your project dashboard to avoid being billed at the XL compute rate beyond what you need.
+
 ### Objects dependent on Postgres extensions
 
 In-place upgrades do not support upgrading of databases containing reg\* data types referencing system OIDs.

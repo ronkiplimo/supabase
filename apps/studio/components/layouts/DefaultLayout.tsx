@@ -1,4 +1,4 @@
-import { LOCAL_STORAGE_KEYS } from 'common'
+import { LOCAL_STORAGE_KEYS, useBreakpoint, useParams } from 'common'
 import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { useRouter } from 'next/router'
 import { useEffect, useState, type PropsWithChildren } from 'react'
@@ -13,6 +13,7 @@ import { AppBannerWrapper } from '@/components/interfaces/App/AppBannerWrapper'
 import { Sidebar } from '@/components/interfaces/Sidebar'
 import { useLocalStorageQuery } from '@/hooks/misc/useLocalStorage'
 import { useCheckLatestDeploy } from '@/hooks/use-check-latest-deploy'
+import { IS_PLATFORM } from '@/lib/constants'
 import { useAppStateSnapshot } from '@/state/app-state'
 
 export interface DefaultLayoutProps {
@@ -77,12 +78,16 @@ const DefaultLayoutV1 = ({
   const backToDashboardURL = router.pathname.startsWith('/account')
     ? appSnap.lastRouteBeforeVisitingAccountPage.length > 0
       ? appSnap.lastRouteBeforeVisitingAccountPage
-      : !!lastVisitedOrganization
+      : IS_PLATFORM && !!lastVisitedOrganization
         ? `/org/${lastVisitedOrganization}`
-        : '/organizations'
+        : IS_PLATFORM
+          ? '/organizations'
+          : '/project/default'
     : undefined
 
   useCheckLatestDeploy()
+
+  const isMobile = useBreakpoint('md')
 
   const contentMinSizePercentage = 50
   const contentMaxSizePercentage = 70
@@ -93,10 +98,12 @@ const DefaultLayoutV1 = ({
         {/* Top Banner */}
         <AppBannerWrapper />
         <div className="flex-shrink-0">
-          <MobileNavigationBar
-            hideMobileMenu={hideMobileMenu}
-            backToDashboardURL={backToDashboardURL}
-          />
+          {isMobile && (
+            <MobileNavigationBar
+              hideMobileMenu={hideMobileMenu}
+              backToDashboardURL={backToDashboardURL}
+            />
+          )}
           <LayoutHeader headerTitle={headerTitle} backToDashboardURL={backToDashboardURL} />
         </div>
         {/* Main Content Area */}

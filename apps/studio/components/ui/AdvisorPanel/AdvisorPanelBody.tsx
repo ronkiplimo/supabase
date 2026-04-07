@@ -5,17 +5,16 @@ import { GenericSkeletonLoader } from 'ui-patterns'
 import type { AdvisorItem } from './AdvisorPanel.types'
 import {
   formatItemDate,
-  getAdvisorItemDisplayTitle,
-  getLintEntityString,
+  getAdvisorItemSecondaryText,
+  getAdvisorPanelItemDisplayTitle,
   severityBadgeVariants,
   severityColorClasses,
   severityLabels,
   tabIconMap,
 } from './AdvisorPanel.utils'
 import { EmptyAdvisor } from './EmptyAdvisor'
-import { Lint } from '@/data/lint/lint-query'
-import { Notification } from '@/data/notifications/notifications-v2-query'
-import { AdvisorSeverity, AdvisorTab } from '@/state/advisor-state'
+import type { Notification } from '@/data/notifications/notifications-v2-query'
+import type { AdvisorSeverity, AdvisorTab } from '@/state/advisor-state'
 
 const NoProjectNotice = () => {
   return (
@@ -98,14 +97,11 @@ export const AdvisorPanelBody = ({
           const isNotification = item.source === 'notification'
           const notification = isNotification ? (item.original as Notification) : null
           const isUnread = notification?.status === 'new'
-          const lint = !isNotification ? (item.original as Lint) : null
 
-          // Primary text: issue type for lint items, title for notifications
-          const primaryText = getAdvisorItemDisplayTitle(item)
-
-          // Secondary text: entity for lint items when no date, date for notifications
-          const hasDate = !!item.createdAt
-          const entityString = getLintEntityString(lint)
+          const primaryText = getAdvisorPanelItemDisplayTitle(item)
+          const secondaryText = getAdvisorItemSecondaryText(item)
+          const metadataText =
+            secondaryText ?? (item.createdAt ? formatItemDate(item.createdAt) : undefined)
 
           return (
             <div key={`${item.source}-${item.id}`} className="border-b">
@@ -126,16 +122,10 @@ export const AdvisorPanelBody = ({
                     />
                     <div className="text-left flex flex-col gap-0.5 truncate flex-1 min-w-0">
                       <div className="truncate">{primaryText}</div>
-                      {hasDate ? (
-                        <span className="text-xs text-foreground-light capitalize-sentence">
-                          {formatItemDate(item.createdAt!)}
-                        </span>
-                      ) : (
-                        entityString && (
-                          <div className="flex items-center gap-1 text-xs text-foreground-light">
-                            <span className="truncate">{entityString}</span>
-                          </div>
-                        )
+                      {metadataText && (
+                        <div className="flex items-center gap-1 text-xs text-foreground-light">
+                          <span className="truncate">{metadataText}</span>
+                        </div>
                       )}
                     </div>
                   </div>

@@ -89,7 +89,7 @@ export const ProjectBranchSelectorTrigger = React.forwardRef<
           <>
             <Tooltip>
               <TooltipTrigger>
-                <div className="relative flex h-8 aspect-square shrink-0 items-center bg-background-muted group-hover/project-branch-selector:border-stronger justify-center rounded border border-strong text-xs">
+                <div className="relative flex md:hidden h-8 aspect-square shrink-0 items-center bg-background-muted group-hover/project-branch-selector:border-stronger justify-center rounded border border-strong text-xs">
                   {selectedOrgInitial}
                 </div>
               </TooltipTrigger>

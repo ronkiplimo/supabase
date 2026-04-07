@@ -1,4 +1,4 @@
-import { LOCAL_STORAGE_KEYS } from 'common'
+import { LOCAL_STORAGE_KEYS, useParams } from 'common'
 import { DevToolbarTrigger } from 'dev-tools'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronLeft } from 'lucide-react'
@@ -13,11 +13,11 @@ import { useIsFloatingMobileToolbarEnabled } from '@/components/interfaces/App/F
 import { ConnectSheet } from '@/components/interfaces/ConnectSheet/ConnectSheet'
 import { LocalDropdown } from '@/components/interfaces/LocalDropdown'
 import { UserDropdown } from '@/components/interfaces/UserDropdown'
+import { OrganizationDropdown } from '@/components/layouts/AppLayout/OrganizationDropdown'
 import { BreadcrumbsView } from '@/components/layouts/Navigation/LayoutHeader/BreadcrumbsView'
 import { FeedbackDropdown } from '@/components/layouts/Navigation/LayoutHeader/FeedbackDropdown/FeedbackDropdown'
 import { LayoutHeaderDivider } from '@/components/layouts/Navigation/LayoutHeader/LayoutHeader'
 import { LocalVersionPopover } from '@/components/layouts/Navigation/LayoutHeader/LocalVersionPopover'
-import { useHideSidebar } from '@/hooks/misc/useHideSidebar'
 import { useLocalStorageQuery } from '@/hooks/misc/useLocalStorage'
 import { useOrgUsageExceedingLimits } from '@/hooks/misc/useOrgUsageExceedingLimits'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
@@ -37,13 +37,14 @@ export const LayoutHeader = ({
   backToDashboardURL,
 }: LayoutHeaderProps) => {
   const router = useRouter()
-  const hideSidebar = useHideSidebar()
+  const { ref: projectRef, slug } = useParams()
   const { data: selectedOrganization } = useSelectedOrganizationQuery()
   const showFloatingMobileToolbar = useIsFloatingMobileToolbarEnabled()
   const [commandMenuEnabled] = useLocalStorageQuery(LOCAL_STORAGE_KEYS.HOTKEY_COMMAND_MENU, true)
   const { exceedingLimits } = useOrgUsageExceedingLimits(selectedOrganization)
 
   const isAccountPage = router.pathname.startsWith('/account')
+  const showOrgSelection = slug || (selectedOrganization && projectRef)
 
   return (
     <>
@@ -65,11 +66,17 @@ export const LayoutHeader = ({
         )}
         <div
           className={cn(
-            'flex items-center justify-between h-full px-1 pl-3 flex-1 overflow-x-auto gap-x-4'
+            'flex items-center justify-between h-full px-1 pl-4 flex-1 overflow-x-auto gap-x-4'
           )}
         >
           <div className="hidden md:flex items-center justify-start text-sm gap-x-2">
-            {hideSidebar && <HomeIcon />}
+            <HomeIcon />
+            {showOrgSelection && IS_PLATFORM && (
+              <>
+                <LayoutHeaderDivider className="pr-0" />
+                <OrganizationDropdown />
+              </>
+            )}
             <AnimatePresence>
               {headerTitle && (
                 <motion.div

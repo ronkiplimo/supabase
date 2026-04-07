@@ -9,24 +9,16 @@ import {
 } from 'ui'
 
 import { useSidebarHeader, type SidebarHeaderProps } from './useSidebarHeader'
-import { OrgSelector } from '@/components/layouts/Navigation/NavigationBar/OrgSelector'
 import { ProjectBranchSelector } from '@/components/layouts/Navigation/NavigationBar/ProjectBranchSelector'
 
 export type { SidebarHeaderProps }
 
 export function SidebarHeader(props: SidebarHeaderProps) {
-  const {
-    setShowConnect,
-    isProjectScope,
-    isActiveHealthy,
-    shouldShowOrgSelector,
-    selectorHeaderClass,
-    isCollapsedRail,
-  } = useSidebarHeader(props)
+  const { setShowConnect, isProjectScope, isActiveHealthy, selectorHeaderClass, isCollapsedRail } =
+    useSidebarHeader(props)
 
   return (
     <SidebarHeaderPrimitive className={cn(selectorHeaderClass, 'shrink-0 pb-0')}>
-      {shouldShowOrgSelector && <OrgSelector isCollapsed={isCollapsedRail} />}
       {isProjectScope && (
         <>
           <ProjectBranchSelector isCollapsed={isCollapsedRail} />

@@ -50,13 +50,11 @@ export const DefaultLayoutV2 = ({
             hideMobileMenu={hideMobileMenu}
             backToDashboardURL={backToDashboardURL}
           />
+          <LayoutHeader headerTitle={headerTitle} backToDashboardURL={backToDashboardURL} />
         </div>
         <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
           {showLeftSidebar && <Sidebar className="h-full min-h-0 border-r border-default" />}
           <div className="flex flex-1 h-full w-full min-h-0 min-w-0 flex-col overflow-hidden">
-            <div className="shrink-0">
-              <LayoutHeader headerTitle={headerTitle} backToDashboardURL={backToDashboardURL} />
-            </div>
             <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
               <RightPanelToolbarLayout>{children}</RightPanelToolbarLayout>
             </div>

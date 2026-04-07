@@ -118,7 +118,7 @@ export function ProjectBranchSelector({ isCollapsed = false }: { isCollapsed?: b
           <PopoverTrigger_Shadcn_ asChild>
             <ProjectBranchSelectorTrigger {...triggerProps} />
           </PopoverTrigger_Shadcn_>
-          <PopoverContent_Shadcn_ className="w-[780px] p-0" side="bottom" align="start">
+          <PopoverContent_Shadcn_ className="w-[520px] p-0" side="bottom" align="start">
             <ProjectBranchSelectorPopover onClose={() => setOpen(false)} />
           </PopoverContent_Shadcn_>
         </Popover_Shadcn_>

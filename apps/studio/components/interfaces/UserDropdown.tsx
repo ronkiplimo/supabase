@@ -52,11 +52,9 @@ export function UserDropdown({
         </ButtonTooltip>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent
-        side="bottom"
-        align="end"
-        className={contentClassName}
-      ></DropdownMenuContent>
+      <DropdownMenuContent side="bottom" align="end" className={contentClassName}>
+        <UserDropdownContent />
+      </DropdownMenuContent>
     </DropdownMenu>
   )
 }

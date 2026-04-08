@@ -1,15 +1,12 @@
 import { useDebounce } from '@uidotdev/usehooks'
 import { useParams } from 'common'
-import { useProjectStorageConfigQuery } from 'data/config/project-storage-config-query'
-import type { Bucket } from 'data/storage/buckets-query'
-import { IS_PLATFORM } from 'lib/constants'
 import { compact, get, isEmpty, uniqBy } from 'lodash'
 import { useEffect, useRef, useState } from 'react'
-import { useStorageExplorerStateSnapshot } from 'state/storage-explorer'
 import { cn } from 'ui'
 
 import { useSelectedBucket } from '../FilesBuckets/useSelectedBucket'
 import { STORAGE_ROW_TYPES, STORAGE_VIEWS } from '../Storage.constants'
+import type { StorageItem, StorageItemWithColumn } from '../Storage.types'
 import { ConfirmDeleteModal } from './ConfirmDeleteModal'
 import { CustomExpiryModal } from './CustomExpiryModal'
 import { FileExplorer } from './FileExplorer'
@@ -21,7 +18,11 @@ import {
   StorageExplorerPickerProvider,
   type StoragePickerReturnValue,
 } from './StorageExplorerPickerContext'
+import { useProjectStorageConfigQuery } from '@/data/config/project-storage-config-query'
+import type { Bucket } from '@/data/storage/buckets-query'
 import { useStaticEffectEvent } from '@/hooks/useStaticEffectEvent'
+import { IS_PLATFORM } from '@/lib/constants'
+import { useStorageExplorerStateSnapshot } from '@/state/storage-explorer'
 
 export type StorageExplorerProps = {
   variant?: 'default' | 'picker'
@@ -29,9 +30,8 @@ export type StorageExplorerProps = {
   onPickerPick?: (value: string) => void
   pickerAcceptedFileExtensions?: string[]
   pickerHideUnsupportedFiles?: boolean
-  /** Mobile sheet: list layout only; hides column/list switch (sort remains available). */
   forceListView?: boolean
-  /** When set (embedded picker), loading gate uses bucket id from store instead of the route. */
+
   expectedBucketId?: string
   className?: string
 }
@@ -104,7 +104,7 @@ export const StorageExplorer = ({
       })
     } else if (view === STORAGE_VIEWS.COLUMNS) {
       if (openedFolders.length > 0) {
-        const paths = openedFolders.map((folder) => folder.name)
+        const paths = openedFolders.map((folder: StorageItem) => folder.name)
         fetchFoldersByPath({
           paths,
           searchString: debouncedSearchString,
@@ -132,18 +132,18 @@ export const StorageExplorer = ({
 
   const onSelectAllItemsInColumn = (columnIndex: number) => {
     const columnFiles = columns[columnIndex].items
-      .filter((item) => item.type === STORAGE_ROW_TYPES.FILE)
-      .map((item) => {
+      .filter((item: StorageItem) => item.type === STORAGE_ROW_TYPES.FILE)
+      .map((item: StorageItem) => {
         return { ...item, columnIndex }
       })
-    const columnFilesId = compact(columnFiles.map((item) => item.id))
+    const columnFilesId = compact(columnFiles.map((item: StorageItemWithColumn) => item.id))
     const selectedItemsFromColumn = selectedItems.filter(
-      (item) => item.id && columnFilesId.includes(item.id)
+      (item: StorageItemWithColumn) => item.id && columnFilesId.includes(item.id)
     )
 
     if (selectedItemsFromColumn.length === columnFiles.length) {
       const updatedSelectedItems = selectedItems.filter(
-        (item) => item.id && !columnFilesId.includes(item.id)
+        (item: StorageItemWithColumn) => item.id && !columnFilesId.includes(item.id)
       )
       setSelectedItems(updatedSelectedItems)
     } else {

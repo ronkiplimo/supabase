@@ -1,5 +1,4 @@
 import { useBreakpoint } from 'common'
-import type { Bucket } from 'data/storage/buckets-query'
 import { ChevronLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import {
@@ -19,6 +18,7 @@ import { BucketsListPanel } from '../FilesBuckets/BucketsListPanel'
 import { STORAGE_VIEWS } from '../Storage.constants'
 import { StorageExplorer } from './StorageExplorer'
 import type { StoragePickerReturnValue } from './StorageExplorerPickerContext'
+import type { Bucket } from '@/data/storage/buckets-query'
 import {
   StorageExplorerEmbeddedStateProvider,
   useStorageExplorerStateSnapshot,

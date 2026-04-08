@@ -1,14 +1,9 @@
 import { Transition } from '@headlessui/react'
 import { PermissionAction } from '@supabase/shared-types/out/constants'
-import { ButtonTooltip } from 'components/ui/ButtonTooltip'
-import { useAsyncCheckPermissions } from 'hooks/misc/useCheckPermissions'
-import { BASE_PATH } from 'lib/constants'
-import { formatBytes } from 'lib/helpers'
 import { isEmpty } from 'lodash'
 import { AlertCircle, ChevronDown, Copy, Download, LoaderCircle, Trash2, X } from 'lucide-react'
 import SVG from 'react-inlinesvg'
 import { toast } from 'sonner'
-import { useStorageExplorerStateSnapshot } from 'state/storage-explorer'
 import {
   Button,
   cn,
@@ -24,7 +19,12 @@ import { getPathAlongFoldersToIndex } from './StorageExplorer.utils'
 import { useStorageExplorerPicker } from './StorageExplorerPickerContext'
 import { useCopyUrl } from './useCopyUrl'
 import { fetchFileUrl, useFetchFileUrlQuery } from './useFetchFileUrlQuery'
+import { ButtonTooltip } from '@/components/ui/ButtonTooltip'
 import { useProjectApiUrl } from '@/data/config/project-endpoint-query'
+import { useAsyncCheckPermissions } from '@/hooks/misc/useCheckPermissions'
+import { BASE_PATH } from '@/lib/constants'
+import { formatBytes } from '@/lib/helpers'
+import { useStorageExplorerStateSnapshot } from '@/state/storage-explorer'
 
 const PREVIEW_SIZE_LIMIT = 10 * 1024 * 1024 // 10MB
 

@@ -1,9 +1,4 @@
 import { PermissionAction } from '@supabase/shared-types/out/constants'
-import { useIsAPIDocsSidePanelEnabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
-import { APIDocsButton } from 'components/ui/APIDocsButton'
-import { ButtonTooltip } from 'components/ui/ButtonTooltip'
-import { useAsyncCheckPermissions } from 'hooks/misc/useCheckPermissions'
-import { useTrack } from 'lib/telemetry/track'
 import { compact, isEqual, noop } from 'lodash'
 import {
   ArrowLeft,
@@ -27,7 +22,6 @@ import {
   type ChangeEventHandler,
   type SyntheticEvent,
 } from 'react'
-import { useStorageExplorerStateSnapshot } from 'state/storage-explorer'
 import {
   Button,
   cn,
@@ -52,6 +46,13 @@ import {
 import { Input } from 'ui-patterns/DataInputs/Input'
 
 import { STORAGE_SORT_BY, STORAGE_SORT_BY_ORDER, STORAGE_VIEWS } from '../Storage.constants'
+import type { StorageColumn } from '../Storage.types'
+import { useIsAPIDocsSidePanelEnabled } from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'
+import { APIDocsButton } from '@/components/ui/APIDocsButton'
+import { ButtonTooltip } from '@/components/ui/ButtonTooltip'
+import { useAsyncCheckPermissions } from '@/hooks/misc/useCheckPermissions'
+import { useTrack } from '@/lib/telemetry/track'
+import { useStorageExplorerStateSnapshot } from '@/state/storage-explorer'
 
 const VIEW_OPTIONS = [
   { key: STORAGE_VIEWS.COLUMNS, name: 'As columns' },
@@ -242,7 +243,7 @@ export const FileExplorerHeader = ({
     selectedBucket,
   } = useStorageExplorerStateSnapshot()
 
-  const breadcrumbs = columns.map((column) => column.name)
+  const breadcrumbs = columns.map((column: StorageColumn) => column.name)
   const backDisabled = columns.length <= 1
   const { can: canUpdateStorage } = useAsyncCheckPermissions(PermissionAction.STORAGE_WRITE, '*')
   const isPicker = variant === 'picker'

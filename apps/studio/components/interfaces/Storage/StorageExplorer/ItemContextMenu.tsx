@@ -4,12 +4,11 @@ import { Item, Menu, Separator, Submenu } from 'react-contexify'
 
 import 'react-contexify/dist/ReactContexify.css'
 
-import { useAsyncCheckPermissions } from 'hooks/misc/useCheckPermissions'
-import { useStorageExplorerStateSnapshot } from 'state/storage-explorer'
-
 import { URL_EXPIRY_DURATION } from '../Storage.constants'
 import { StorageItemWithColumn } from '../Storage.types'
 import { useCopyUrl } from './useCopyUrl'
+import { useAsyncCheckPermissions } from '@/hooks/misc/useCheckPermissions'
+import { useStorageExplorerStateSnapshot } from '@/state/storage-explorer'
 
 interface ItemContextMenuProps {
   id: string

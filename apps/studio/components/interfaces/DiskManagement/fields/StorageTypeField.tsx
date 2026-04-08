@@ -1,8 +1,5 @@
 import { useParams } from 'common'
-import { InlineLink } from 'components/ui/InlineLink'
-import { useDiskAttributesQuery } from 'data/config/disk-attributes-query'
-import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
-import { UseFormReturn } from 'react-hook-form'
+import type { UseFormReturn } from 'react-hook-form'
 import {
   Badge,
   buttonVariants,
@@ -25,6 +22,9 @@ import { IO2_AVAILABLE_REGIONS } from '../DiskManagement.constants'
 import { DiskStorageSchemaType } from '../DiskManagement.schema'
 import { DISK_LIMITS, DISK_TYPE_OPTIONS, DiskType } from '../ui/DiskManagement.constants'
 import FormMessage from '../ui/FormMessage'
+import { InlineLink } from '@/components/ui/InlineLink'
+import { useDiskAttributesQuery } from '@/data/config/disk-attributes-query'
+import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
 
 type StorageTypeFieldProps = {
   form: UseFormReturn<DiskStorageSchemaType>

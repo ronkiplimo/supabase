@@ -1,4 +1,4 @@
-import { DOCS_URL } from 'lib/constants'
+import { DOCS_URL } from '@/lib/constants'
 
 // Original storage constants
 export enum URL_EXPIRY_DURATION {
@@ -41,6 +41,12 @@ export enum STORAGE_ROW_STATUS {
   EDITING = 'EDITING',
 }
 
+export const CONTEXT_MENU_KEYS = {
+  STORAGE_COLUMN: 'STORAGE_COLUMN',
+  STORAGE_ITEM: 'STORAGE_ITEM',
+  STORAGE_FOLDER: 'STORAGE_FOLDER',
+}
+
 export const STORAGE_CLIENT_LIBRARY_MAPPINGS = {
   upload: ['INSERT'],
   download: ['SELECT'],
@@ -52,12 +58,6 @@ export const STORAGE_CLIENT_LIBRARY_MAPPINGS = {
   createSignedUrl: ['SELECT'],
   createSignedUrls: ['SELECT'],
   getPublicUrl: [],
-}
-
-export const CONTEXT_MENU_KEYS = {
-  STORAGE_COLUMN: 'STORAGE_COLUMN',
-  STORAGE_ITEM: 'STORAGE_ITEM',
-  STORAGE_FOLDER: 'STORAGE_FOLDER',
 }
 
 export const BUCKET_TYPES = {
@@ -88,3 +88,5 @@ export const BUCKET_TYPES = {
 }
 export const BUCKET_TYPE_KEYS = Object.keys(BUCKET_TYPES) as Array<keyof typeof BUCKET_TYPES>
 export const DEFAULT_BUCKET_TYPE: keyof typeof BUCKET_TYPES = 'files'
+
+export const PUBLIC_BUCKET_TOOLTIP = 'Objects in this bucket are readable by anyone with the URL.'

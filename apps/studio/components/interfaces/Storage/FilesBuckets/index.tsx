@@ -1,10 +1,11 @@
 import { useParams } from 'common'
 import { parseAsBoolean, useQueryState } from 'nuqs'
-import { useStorageExplorerStateSnapshot } from 'state/storage-explorer'
 import { PageContainer } from 'ui-patterns/PageContainer'
 import { PageSection, PageSectionContent } from 'ui-patterns/PageSection'
+
 import { CreateBucketModal } from '../CreateBucketModal'
 import { BucketsListPanel } from './BucketsListPanel'
+import { useStorageExplorerStateSnapshot } from '@/state/storage-explorer'
 
 export const FilesBuckets = () => {
   const { ref } = useParams()

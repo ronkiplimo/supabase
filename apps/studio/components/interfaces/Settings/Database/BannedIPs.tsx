@@ -17,12 +17,12 @@ import ConfirmationModal from 'ui-patterns/Dialogs/ConfirmationModal'
 import AlertError from '@/components/ui/AlertError'
 import { ButtonTooltip } from '@/components/ui/ButtonTooltip'
 import { DocsButton } from '@/components/ui/DocsButton'
+import { useBannedIPsDeleteMutation } from '@/data/banned-ips/banned-ips-delete-mutations'
+import { useBannedIPsQuery } from '@/data/banned-ips/banned-ips-query'
 import {
   ADVISOR_DEBUG_BANNED_IPS_ENV_VAR,
   getAdvisorDebugBannedIPs,
 } from '@/data/banned-ips/debug-banned-ips'
-import { useBannedIPsDeleteMutation } from '@/data/banned-ips/banned-ips-delete-mutations'
-import { useBannedIPsQuery } from '@/data/banned-ips/banned-ips-query'
 import { useUserIPAddressQuery } from '@/data/misc/user-ip-address-query'
 import { useAsyncCheckPermissions } from '@/hooks/misc/useCheckPermissions'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
@@ -113,31 +113,31 @@ export const BannedIPs = () => {
                 const isMocked = mockedBannedIPSet.has(ip)
 
                 return (
-                <CardContent key={ip} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-5">
-                    <Globe size={16} className="text-foreground-lighter" />
-                    <p className="text-sm font-mono">{ip}</p>
-                    {ip === userIPAddress && <Badge>Your IP address</Badge>}
-                    {isMocked && <Badge>Mocked</Badge>}
-                  </div>
-                  <ButtonTooltip
-                    type="default"
-                    disabled={!canUnbanNetworks || isMocked}
-                    onClick={() => openConfirmationModal(ip)}
-                    tooltip={{
-                      content: {
-                        side: 'bottom',
-                        text: isMocked
-                          ? `Mocked via ${ADVISOR_DEBUG_BANNED_IPS_ENV_VAR}`
-                          : !canUnbanNetworks
-                          ? 'You need additional permissions to unban networks'
-                          : undefined,
-                      },
-                    }}
-                  >
-                    Unban IP
-                  </ButtonTooltip>
-                </CardContent>
+                  <CardContent key={ip} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-5">
+                      <Globe size={16} className="text-foreground-lighter" />
+                      <p className="text-sm font-mono">{ip}</p>
+                      {ip === userIPAddress && <Badge>Your IP address</Badge>}
+                      {isMocked && <Badge>Mocked</Badge>}
+                    </div>
+                    <ButtonTooltip
+                      type="default"
+                      disabled={!canUnbanNetworks || isMocked}
+                      onClick={() => openConfirmationModal(ip)}
+                      tooltip={{
+                        content: {
+                          side: 'bottom',
+                          text: isMocked
+                            ? `Mocked via ${ADVISOR_DEBUG_BANNED_IPS_ENV_VAR}`
+                            : !canUnbanNetworks
+                              ? 'You need additional permissions to unban networks'
+                              : undefined,
+                        },
+                      }}
+                    >
+                      Unban IP
+                    </ButtonTooltip>
+                  </CardContent>
                 )
               })}
             </Card>

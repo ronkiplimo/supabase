@@ -2,8 +2,8 @@ import { useMemo } from 'react'
 
 import { createAdvisorSignalItems } from './AdvisorPanel.utils'
 import { useAdvisorSignalDismissals } from './useAdvisorSignalDismissals'
-import { getAdvisorDebugBannedIPs } from '@/data/banned-ips/debug-banned-ips'
 import { useBannedIPsQuery } from '@/data/banned-ips/banned-ips-query'
+import { getAdvisorDebugBannedIPs } from '@/data/banned-ips/debug-banned-ips'
 
 interface UseAdvisorSignalsOptions {
   projectRef?: string

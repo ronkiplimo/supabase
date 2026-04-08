@@ -1,16 +1,18 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  ADVISOR_DEBUG_BANNED_IPS_ENV_VAR,
   createAdvisorLintItems,
   createAdvisorNotificationItems,
   createAdvisorSignalDismissalStorageKey,
   createAdvisorSignalItems,
   createBannedIPSignalFingerprint,
-  getAdvisorDebugBannedIPs,
   getAdvisorItemSecondaryText,
   sortAdvisorItems,
 } from './AdvisorPanel.utils'
+import {
+  ADVISOR_DEBUG_BANNED_IPS_ENV_VAR,
+  getAdvisorDebugBannedIPs,
+} from '@/data/banned-ips/debug-banned-ips'
 import type { IPData } from '@/data/banned-ips/banned-ips-query'
 import type { Lint } from '@/data/lint/lint-query'
 import type { Notification } from '@/data/notifications/notifications-v2-query'

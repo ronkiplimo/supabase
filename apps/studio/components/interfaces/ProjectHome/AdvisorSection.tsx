@@ -1,6 +1,6 @@
 import { useParams } from 'common'
 import { BarChart, Shield } from 'lucide-react'
-import { CSSProperties, useCallback, useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { AiIconAnimation, Badge, Button, Card, CardContent, CardHeader, CardTitle, cn } from 'ui'
 import { Row } from 'ui-patterns'
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
@@ -25,17 +25,6 @@ import { useTrack } from '@/lib/telemetry/track'
 import { useAdvisorStateSnapshot } from '@/state/advisor-state'
 import { useAiAssistantStateSnapshot } from '@/state/ai-assistant-state'
 import { useSidebarManagerSnapshot } from '@/state/sidebar-manager-state'
-
-const severityCardStyles: Partial<Record<'critical' | 'warning', CSSProperties>> = {
-  critical: {
-    backgroundImage:
-      'linear-gradient(135deg, hsl(var(--destructive-default) / 0.14) 0%, hsl(var(--destructive-500) / 0.08) 28%, hsl(var(--background-default) / 1) 72%)',
-  },
-  warning: {
-    backgroundImage:
-      'linear-gradient(135deg, hsl(var(--warning-default) / 0.16) 0%, hsl(var(--warning-500) / 0.1) 28%, hsl(var(--background-default) / 1) 72%)',
-  },
-}
 
 export const AdvisorSection = ({ showEmptyState = false }: { showEmptyState?: boolean }) => {
   const { ref: projectRef } = useParams()
@@ -156,7 +145,6 @@ export const AdvisorSection = ({ showEmptyState = false }: { showEmptyState?: bo
                   : item.severity === 'warning'
                     ? 'border-warning-400'
                     : ''
-              const cardStyle = severityCardStyles[item.severity as 'critical' | 'warning']
 
               return (
                 <Card
@@ -165,7 +153,6 @@ export const AdvisorSection = ({ showEmptyState = false }: { showEmptyState?: bo
                     'min-h-full flex flex-col items-stretch cursor-pointer h-64',
                     cardClasses
                   )}
-                  style={cardStyle}
                   onClick={() => {
                     handleCardClick(item)
                   }}

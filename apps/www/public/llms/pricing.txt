@@ -1,0 +1,105 @@
+# Supabase Pricing
+
+> Start for free, scale as you grow. Pay only for what you use.
+
+Supabase offers four plans: Free, Pro, Team, and Enterprise. All plans include unlimited API requests. Pro and Team plans include one project running on Micro compute ($10/month value) in the base price.
+
+Note: prices shown are as of April 2026. For current pricing, visit https://supabase.com/pricing.
+
+## Plan Tiers
+
+### Free - $0/month
+- 2 active projects (paused after 1 week of inactivity)
+- 50,000 monthly active users (MAUs)
+- 500 MB database size (Shared CPU, 500 MB RAM)
+- 5 GB bandwidth
+- 1 GB file storage
+- 500,000 Edge Function invocations
+- 200 Realtime concurrent connections
+- 2 million Realtime messages
+- 1-day log retention
+- Community support
+
+### Pro - from $25/month
+- 100,000 MAUs included, then $0.00325 per additional MAU
+- 8 GB database disk included, then $0.125 per GB
+- 250 GB bandwidth included, then $0.09 per GB
+- 100 GB file storage included, then $0.021 per GB
+- 2 million Edge Function invocations, then $2 per million
+- 500 Realtime concurrent connections, then $10 per 1,000
+- 5 million Realtime messages, then $2.50 per million
+- 7-day log retention
+- Daily backups (7-day retention)
+- Email support
+
+### Team - from $599/month
+- Same usage quotas and overage rates as Pro
+- SOC2 compliance
+- HIPAA available as paid add-on
+- SSO for Supabase Dashboard
+- Project-scoped and read-only access controls
+- Priority email support with SLAs
+- Daily backups (14-day retention)
+- 28-day log retention
+
+### Enterprise - custom pricing
+- Designated support manager
+- Uptime SLAs
+- Bring Your Own Cloud (BYO Cloud)
+- 24x7x365 premium support
+- Private Slack channel
+- Custom security questionnaires
+- 90-day log retention
+
+## Compute Add-Ons
+
+All projects run on a compute instance. Pro and Team include Micro compute in the base price.
+
+| Size | $/month | CPU | Dedicated | RAM | Direct Connections | Pooler Connections |
+|------|---------|-----|-----------|-----|-------------------|-------------------|
+| Micro | $10 | 2-core ARM | Shared | 1 GB | 60 | 200 |
+| Small | $15 | 2-core ARM | Shared | 2 GB | 90 | 400 |
+| Medium | $60 | 2-core ARM | Shared | 4 GB | 120 | 600 |
+| Large | $110 | 2-core ARM | Dedicated | 8 GB | 160 | 800 |
+| XL | $210 | 4-core ARM | Dedicated | 16 GB | 240 | 1,000 |
+| 2XL | $410 | 8-core ARM | Dedicated | 32 GB | 380 | 1,500 |
+| 4XL | $960 | 16-core ARM | Dedicated | 64 GB | 480 | 3,000 |
+| 8XL | $1,870 | 32-core ARM | Dedicated | 128 GB | 490 | 6,000 |
+| 12XL | $2,800 | 48-core ARM | Dedicated | 192 GB | 500 | 9,000 |
+| 16XL | $3,730 | 64-core ARM | Dedicated | 256 GB | 500 | 12,000 |
+
+Compute is billed hourly. Pro and Team plans include $10 of compute credits (covers one Micro instance).
+
+## Disk Storage
+
+### General Purpose (default)
+- 8 GB included, then $0.125/GB
+- 3,000 IOPS included, then $0.024/IOPS
+- 125 MB/s throughput included, then $0.095 per MB/s
+- Max size: 16 TB
+- Durability: 99.9%
+
+### High Performance
+- $0.195/GB (no included amount)
+- $0.119/IOPS
+- Throughput scales automatically with IOPS
+- Max size: 60 TB
+- Durability: 99.999%
+
+## Add-Ons
+
+| Add-on | Price |
+|--------|-------|
+| Point-in-Time Recovery (PITR) | $100/month per 7 days retention |
+| Custom Domain | $10/domain/month/project |
+| Database Branching | $0.01344/branch/hour |
+| Advanced MFA (Phone) | $75/month first project, $10/month additional |
+| SAML/SSO Auth | 50 connections included, then $0.015 per MAU |
+| Log Drains | $60/drain/month + $0.20 per million events + $0.09/GB egress |
+| Image Transformations | 100 origin images included, then $5 per 1,000 |
+
+## Links
+
+- Pricing page: https://supabase.com/pricing
+- Documentation: https://supabase.com/docs/guides/platform/org-based-billing
+- Dashboard: https://supabase.com/dashboard

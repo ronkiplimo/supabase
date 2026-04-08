@@ -12,7 +12,6 @@ import { render } from '@/tests/helpers'
 const {
   mockUseProjectLintsQuery,
   mockUseBannedIPsQuery,
-  mockUseListablePublicBucketsQuery,
   mockUseSelectedProjectQuery,
   mockUseNotificationsV2Query,
   mockUseNotificationsV2UpdateMutation,
@@ -20,7 +19,6 @@ const {
 } = vi.hoisted(() => ({
   mockUseProjectLintsQuery: vi.fn(),
   mockUseBannedIPsQuery: vi.fn(),
-  mockUseListablePublicBucketsQuery: vi.fn(),
   mockUseSelectedProjectQuery: vi.fn(),
   mockUseNotificationsV2Query: vi.fn(),
   mockUseNotificationsV2UpdateMutation: vi.fn(),
@@ -42,10 +40,6 @@ vi.mock('@/data/lint/lint-query', () => ({
 
 vi.mock('@/data/banned-ips/banned-ips-query', () => ({
   useBannedIPsQuery: mockUseBannedIPsQuery,
-}))
-
-vi.mock('@/data/storage/public-buckets-with-select-policies-query', () => ({
-  useListablePublicBucketsQuery: mockUseListablePublicBucketsQuery,
 }))
 
 vi.mock('@/hooks/misc/useSelectedProject', () => ({
@@ -135,30 +129,6 @@ describe('Advisor signals integration', () => {
         isError: false,
       }
     })
-    mockUseListablePublicBucketsQuery.mockImplementation((_variables, options) => {
-      if (options?.enabled === false) {
-        return {
-          data: undefined,
-          isPending: false,
-          isError: false,
-        }
-      }
-
-      return {
-        data: [
-          {
-            bucket_id: 'avatars',
-            bucket_name: 'avatars',
-            created_at: '2026-03-01T00:00:00.000Z',
-            updated_at: '2026-03-02T00:00:00.000Z',
-            policy_count: 1,
-            policy_names: ['public bucket access'],
-          },
-        ],
-        isPending: false,
-        isError: false,
-      }
-    })
     mockUseNotificationsV2Query.mockReturnValue({
       data: { pages: [[]] },
       isPending: false,
@@ -185,43 +155,25 @@ describe('Advisor signals integration', () => {
       </>
     )
 
-    expect(screen.getByText('Advisor found 3 issues')).toBeInTheDocument()
-    expect(screen.getByText('Public bucket allows listing')).toBeInTheDocument()
+    expect(screen.getByText('Advisor found 2 issues')).toBeInTheDocument()
     expect(screen.getByText('Banned IP address')).toBeInTheDocument()
     expect(screen.getAllByText('Critical lint detail').length).toBeGreaterThan(0)
     expect(
       screen.getAllByText((_, node) =>
         Boolean(
           node?.textContent?.includes(
-            'The bucket avatars has 1 SELECT policy on storage.objects that lets anyone list its contents.'
+            'The IP address 203.0.113.10 is temporarily blocked because of suspicious traffic or repeated failed password attempts.'
           )
         )
       ).length
     ).toBeGreaterThan(0)
 
-    await userEvent.click(screen.getByText('Public bucket allows listing'))
+    await userEvent.click(screen.getByText('Banned IP address'))
 
     expect(screen.getByText('Entity')).toBeInTheDocument()
     expect(screen.getByText('Issue')).toBeInTheDocument()
     expect(screen.getByText('Resolve')).toBeInTheDocument()
     expect(screen.getAllByTestId('advisor-assistant-dropdown').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('avatars').length).toBeGreaterThan(0)
-    expect(
-      screen.getAllByText((_, node) =>
-        Boolean(
-          node?.textContent?.includes(
-            'The bucket avatars is public, and 1 SELECT policy on storage.objects makes its contents listable.'
-          )
-        )
-      ).length
-    ).toBeGreaterThan(0)
-    expect(screen.getByRole('link', { name: 'Learn more' })).toHaveAttribute(
-      'href',
-      'https://supabase.com/docs/guides/storage/security/access-control'
-    )
-
-    await userEvent.click(screen.getByText('Banned IP address'))
-
     expect(
       screen.getAllByText((_, node) =>
         Boolean(
@@ -236,17 +188,14 @@ describe('Advisor signals integration', () => {
       'https://supabase.com/docs/reference/cli/supabase-network-bans'
     )
 
-    await userEvent.click(screen.getByText('Public bucket allows listing'))
-
-    expect(screen.getAllByText('Public bucket allows listing').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Banned IP address').length).toBeGreaterThan(0)
 
     await userEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
 
     await waitFor(() => {
-      expect(screen.queryByText('Public bucket allows listing')).not.toBeInTheDocument()
+      expect(screen.queryByText('Banned IP address')).not.toBeInTheDocument()
     })
 
-    expect(screen.getAllByText('Banned IP address').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Critical lint detail').length).toBeGreaterThan(0)
   })
 

@@ -3,7 +3,6 @@ import { useMemo } from 'react'
 import { createAdvisorSignalItems, getAdvisorDebugBannedIPs } from './AdvisorPanel.utils'
 import { useAdvisorSignalDismissals } from './useAdvisorSignalDismissals'
 import { useBannedIPsQuery } from '@/data/banned-ips/banned-ips-query'
-import { useListablePublicBucketsQuery } from '@/data/storage/public-buckets-with-select-policies-query'
 
 interface UseAdvisorSignalsOptions {
   projectRef?: string
@@ -23,12 +22,6 @@ export const useAdvisorSignals = ({
       enabled,
     }
   )
-  const listablePublicBucketsQuery = useListablePublicBucketsQuery(
-    { projectRef },
-    {
-      enabled,
-    }
-  )
   const { dismissSignal, dismissedFingerprintSet } = useAdvisorSignalDismissals(projectRef)
 
   const data = useMemo(() => {
@@ -36,22 +29,15 @@ export const useAdvisorSignals = ({
       projectRef,
       bannedIPsData: bannedIPsQuery.data,
       debugBannedIPs,
-      listablePublicBuckets: listablePublicBucketsQuery.data,
     })
 
     return items.filter((item) => !dismissedFingerprintSet.has(item.fingerprint))
-  }, [
-    projectRef,
-    bannedIPsQuery.data,
-    listablePublicBucketsQuery.data,
-    debugBannedIPs,
-    dismissedFingerprintSet,
-  ])
+  }, [projectRef, bannedIPsQuery.data, debugBannedIPs, dismissedFingerprintSet])
 
   return {
     data,
     dismissSignal,
-    isPending: bannedIPsQuery.isPending || listablePublicBucketsQuery.isPending,
-    isError: bannedIPsQuery.isError || listablePublicBucketsQuery.isError,
+    isPending: bannedIPsQuery.isPending,
+    isError: bannedIPsQuery.isError,
   }
 }

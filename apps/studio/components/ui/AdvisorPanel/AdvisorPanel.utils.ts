@@ -12,7 +12,6 @@ import { lintInfoMap } from '@/components/interfaces/Linter/Linter.utils'
 import type { IPData } from '@/data/banned-ips/banned-ips-query'
 import type { Lint } from '@/data/lint/lint-query'
 import type { Notification, NotificationData } from '@/data/notifications/notifications-v2-query'
-import type { ListablePublicBucket } from '@/data/storage/public-buckets-with-select-policies-query'
 import type { AdvisorSeverity, AdvisorTab } from '@/state/advisor-state'
 
 export const MAX_HOMEPAGE_ADVISOR_ITEMS = 4
@@ -54,9 +53,6 @@ export const ADVISOR_DEBUG_BANNED_IPS_ENV_VAR = 'NEXT_PUBLIC_ADVISOR_DEBUG_BANNE
 
 export const createBannedIPSignalFingerprint = (ip: string) => `signal:banned-ip:${ip}:v1`
 
-export const createPublicBucketListingSignalFingerprint = (bucketId: string) =>
-  `signal:public-bucket-listing:${bucketId}:v1`
-
 export const getAdvisorDebugBannedIPs = (rawValue?: string): string[] => {
   if (!rawValue) return []
 
@@ -70,15 +66,7 @@ export const getAdvisorDebugBannedIPs = (rawValue?: string): string[] => {
   ]
 }
 
-const getSignalResourceLabel = (item: AdvisorSignalItem) =>
-  item.sourceData.type === 'banned-ip' ? item.sourceData.ip : item.sourceData.bucketName
-
-const toTimestamp = (value?: string | null) => {
-  if (!value) return undefined
-
-  const timestamp = dayjs(value).valueOf()
-  return Number.isNaN(timestamp) ? undefined : timestamp
-}
+const getSignalResourceLabel = (item: AdvisorSignalItem) => item.sourceData.ip
 
 export const createAdvisorLintItems = (lintData?: Lint[]): AdvisorLintItem[] => {
   if (!lintData) return []
@@ -131,12 +119,10 @@ export const createAdvisorSignalItems = ({
   projectRef,
   bannedIPsData,
   debugBannedIPs,
-  listablePublicBuckets,
 }: {
   projectRef?: string
   bannedIPsData?: IPData
   debugBannedIPs?: string[]
-  listablePublicBuckets?: ListablePublicBucket[]
 }): AdvisorSignalItem[] => {
   if (!projectRef) return []
 
@@ -165,43 +151,7 @@ export const createAdvisorSignalItems = ({
     sourceData: { type: 'banned-ip' as const, ip },
   }))
 
-  const publicBucketSignals = (listablePublicBuckets ?? []).map((bucket) => {
-    const policyLabel =
-      bucket.policy_count === 1 ? '1 SELECT policy' : `${bucket.policy_count} SELECT policies`
-    const policyVerb = bucket.policy_count === 1 ? 'lets' : 'let'
-    const policyDetailVerb = bucket.policy_count === 1 ? 'makes' : 'make'
-    const description = `The bucket \`${bucket.bucket_name}\` has ${policyLabel} on \`storage.objects\` that ${policyVerb} anyone list its contents.`
-    const detailDescription = `The bucket \`${bucket.bucket_name}\` is public, and ${policyLabel} on \`storage.objects\` ${policyDetailVerb} its contents listable. Public buckets do not require SELECT policies for object access by URL, so this is often unintentional.`
-
-    return {
-      id: createPublicBucketListingSignalFingerprint(bucket.bucket_id),
-      fingerprint: createPublicBucketListingSignalFingerprint(bucket.bucket_id),
-      source: 'signal' as const,
-      signalType: 'public-bucket-listing' as const,
-      severity: 'warning' as const,
-      createdAt: toTimestamp(bucket.updated_at ?? bucket.created_at),
-      tab: 'security' as const,
-      title: 'Public bucket allows listing',
-      description,
-      detailDescription,
-      learnMoreHref: 'https://supabase.com/docs/guides/storage/security/access-control',
-      actions: [
-        {
-          label: 'Review bucket',
-          href: `/project/${projectRef}/storage/files/buckets/${encodeURIComponent(bucket.bucket_id)}`,
-        },
-      ],
-      sourceData: {
-        type: 'public-bucket-listing' as const,
-        bucketId: bucket.bucket_id,
-        bucketName: bucket.bucket_name,
-        policyCount: bucket.policy_count,
-        policyNames: bucket.policy_names,
-      },
-    }
-  })
-
-  return [...bannedIpSignals, ...publicBucketSignals]
+  return bannedIpSignals
 }
 
 export const sortAdvisorItems = <T extends AdvisorItem>(items: T[]) => {
@@ -252,7 +202,7 @@ export const getAdvisorItemSecondaryText = (item: AdvisorItem): string | undefin
   }
 
   if (item.source === 'signal') {
-    return item.sourceData.type === 'banned-ip' ? 'Database' : 'Storage'
+    return 'Database'
   }
 
   return undefined

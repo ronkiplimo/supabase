@@ -35,13 +35,11 @@ describe('useAdvisorSignalDismissals', () => {
     )
 
     act(() => {
-      result.current.dismissSignal('signal:public-bucket-listing:avatars:v1')
+      result.current.dismissSignal('signal:banned-ip:203.0.113.10:v1')
     })
 
     await waitFor(() => {
-      expect(result.current.dismissedFingerprints).toEqual([
-        'signal:public-bucket-listing:avatars:v1',
-      ])
+      expect(result.current.dismissedFingerprints).toEqual(['signal:banned-ip:203.0.113.10:v1'])
     })
 
     rerender({ projectRef: 'project-b' })

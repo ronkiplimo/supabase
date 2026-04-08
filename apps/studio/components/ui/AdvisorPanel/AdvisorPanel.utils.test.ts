@@ -7,7 +7,6 @@ import {
   createAdvisorSignalDismissalStorageKey,
   createAdvisorSignalItems,
   createBannedIPSignalFingerprint,
-  createPublicBucketListingSignalFingerprint,
   getAdvisorDebugBannedIPs,
   getAdvisorItemSecondaryText,
   sortAdvisorItems,
@@ -15,20 +14,6 @@ import {
 import type { IPData } from '@/data/banned-ips/banned-ips-query'
 import type { Lint } from '@/data/lint/lint-query'
 import type { Notification } from '@/data/notifications/notifications-v2-query'
-import type { ListablePublicBucket } from '@/data/storage/public-buckets-with-select-policies-query'
-
-const createListablePublicBucket = (
-  overrides: Partial<ListablePublicBucket> = {}
-): ListablePublicBucket =>
-  ({
-    bucket_id: 'avatars',
-    bucket_name: 'avatars',
-    created_at: '2026-03-01T00:00:00.000Z',
-    updated_at: '2026-03-02T00:00:00.000Z',
-    policy_count: 1,
-    policy_names: ['public bucket access'],
-    ...overrides,
-  }) as ListablePublicBucket
 
 const createLint = (overrides: Partial<Lint> = {}): Lint =>
   ({
@@ -111,26 +96,7 @@ describe('AdvisorPanel.utils', () => {
     ])
   })
 
-  it('creates one signal per listable public bucket', () => {
-    const result = createAdvisorSignalItems({
-      projectRef: 'project-ref',
-      listablePublicBuckets: [createListablePublicBucket()],
-    })
-
-    expect(result).toHaveLength(1)
-    expect(result[0]).toMatchObject({
-      source: 'signal',
-      signalType: 'public-bucket-listing',
-      fingerprint: 'signal:public-bucket-listing:avatars:v1',
-      title: 'Public bucket allows listing',
-    })
-  })
-
-  it('uses surface-area metadata for signal items', () => {
-    const [publicBucketSignal] = createAdvisorSignalItems({
-      projectRef: 'project-ref',
-      listablePublicBuckets: [createListablePublicBucket()],
-    })
+  it('uses database surface-area metadata for banned IP signals', () => {
     const [bannedIpSignal] = createAdvisorSignalItems({
       projectRef: 'project-ref',
       bannedIPsData: {
@@ -138,27 +104,7 @@ describe('AdvisorPanel.utils', () => {
       } as IPData,
     })
 
-    expect(getAdvisorItemSecondaryText(publicBucketSignal)).toBe('Storage')
     expect(getAdvisorItemSecondaryText(bannedIpSignal)).toBe('Database')
-  })
-
-  it('creates multiple signals when multiple listable public buckets exist', () => {
-    const result = createAdvisorSignalItems({
-      projectRef: 'project-ref',
-      listablePublicBuckets: [
-        createListablePublicBucket({ bucket_id: 'avatars', bucket_name: 'avatars' }),
-        createListablePublicBucket({
-          bucket_id: 'exports',
-          bucket_name: 'exports',
-          updated_at: '2026-03-03T00:00:00.000Z',
-        }),
-      ],
-    })
-
-    expect(result.map((item) => item.fingerprint)).toEqual([
-      'signal:public-bucket-listing:avatars:v1',
-      'signal:public-bucket-listing:exports:v1',
-    ])
   })
 
   it('orders mixed lint, signal and notification items by severity and recency', () => {
@@ -167,13 +113,9 @@ describe('AdvisorPanel.utils', () => {
     ])
     const signalItems = createAdvisorSignalItems({
       projectRef: 'project-ref',
-      listablePublicBuckets: [
-        createListablePublicBucket({
-          bucket_id: 'exports',
-          bucket_name: 'exports',
-          updated_at: '2026-03-04T00:00:00.000Z',
-        }),
-      ],
+      bannedIPsData: {
+        banned_ipv4_addresses: ['203.0.113.10'],
+      } as IPData,
     })
     const notificationItems = createAdvisorNotificationItems([
       createNotification({
@@ -185,23 +127,6 @@ describe('AdvisorPanel.utils', () => {
     const sorted = sortAdvisorItems([...notificationItems, ...signalItems, ...lintItems])
 
     expect(sorted.map((item) => item.source)).toEqual(['lint', 'signal', 'notification'])
-  })
-
-  it('uses exact resource fingerprints so dismissing one bucket does not hide another', () => {
-    const dismissedFingerprint = createPublicBucketListingSignalFingerprint('avatars')
-    const signals = createAdvisorSignalItems({
-      projectRef: 'project-ref',
-      listablePublicBuckets: [
-        createListablePublicBucket({ bucket_id: 'avatars', bucket_name: 'avatars' }),
-        createListablePublicBucket({ bucket_id: 'exports', bucket_name: 'exports' }),
-      ],
-    })
-
-    const visibleSignals = signals.filter((item) => item.fingerprint !== dismissedFingerprint)
-
-    expect(visibleSignals.map((item) => item.fingerprint)).toEqual([
-      'signal:public-bucket-listing:exports:v1',
-    ])
   })
 
   it('uses exact resource fingerprints so dismissing one IP does not hide another', () => {

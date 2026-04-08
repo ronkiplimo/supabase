@@ -2,7 +2,7 @@ import type { Lint } from '@/data/lint/lint-query'
 import type { Notification } from '@/data/notifications/notifications-v2-query'
 import type { AdvisorItemSource, AdvisorSeverity } from '@/state/advisor-state'
 
-export type AdvisorSignalType = 'banned-ip' | 'public-bucket-listing'
+export type AdvisorSignalType = 'banned-ip'
 
 export type AdvisorSignalAction = {
   label: string
@@ -36,15 +36,7 @@ export type AdvisorSignalItem = AdvisorBaseItem & {
   detailDescription?: string
   learnMoreHref?: string
   actions: AdvisorSignalAction[]
-  sourceData:
-    | { type: 'banned-ip'; ip: string }
-    | {
-        type: 'public-bucket-listing'
-        bucketId: string
-        bucketName: string
-        policyCount: number
-        policyNames: string[]
-      }
+  sourceData: { type: 'banned-ip'; ip: string }
 }
 
 export type AdvisorItem = AdvisorLintItem | AdvisorNotificationItem | AdvisorSignalItem

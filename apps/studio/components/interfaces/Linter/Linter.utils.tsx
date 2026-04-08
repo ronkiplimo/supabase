@@ -320,6 +320,15 @@ export const lintInfoMap: LintInfo[] = [
     docsLink: `${DOCS_URL}/guides/database/database-linter?lint=0024_permissive_rls_policy`,
     category: 'security',
   },
+  {
+    name: 'public_bucket_select_policy',
+    title: 'Public Bucket with SELECT Policy',
+    icon: <Unlock className="text-foreground-muted" size={15} strokeWidth={1} />,
+    link: ({ projectRef, metadata }) => `/project/${projectRef}/storage/buckets/${metadata?.name}`,
+    linkText: 'View bucket',
+    docsLink: `${DOCS_URL}/guides/storage/security/access-control`,
+    category: 'security',
+  },
 ]
 
 export const LintCTA = ({

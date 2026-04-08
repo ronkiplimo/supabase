@@ -2,6 +2,7 @@ import { ChevronsUpDown, GitBranch } from 'lucide-react'
 import * as React from 'react'
 import { useState } from 'react'
 import {
+  Badge,
   cn,
   Popover_Shadcn_,
   PopoverAnchor_Shadcn_,
@@ -101,7 +102,14 @@ export const ProjectBranchSelectorTrigger = React.forwardRef<
                 </button>
               </PopoverAnchor_Shadcn_>
             </TooltipTrigger>
-            <TooltipContent side="bottom">{selectedOrg?.name}</TooltipContent>
+            <TooltipContent side="bottom" className="flex flex-col max-w-60 bg-overlay py-1 px-2">
+              <div className="text-xs text-foreground-light flex flex-wrap items-center gap-1">
+                <span className="text-sm text-foreground-light truncate">{selectedOrg?.name}</span>
+                <div>
+                  {!!selectedOrg && <Badge variant="default">{selectedOrg?.plan.name}</Badge>}
+                </div>
+              </div>
+            </TooltipContent>
           </Tooltip>
           <PopoverContent_Shadcn_ className="p-0" side="bottom" align="start">
             <OrganizationDropdown

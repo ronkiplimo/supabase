@@ -141,7 +141,7 @@ export const LayoutHeader = ({
                   showShortcut={commandMenuEnabled}
                   placeholder="Search..."
                   className={cn(
-                    'flex !min-w-40 w-full rounded-full bg-transparent border-strong',
+                    'flex !min-w-60 w-full rounded-full bg-transparent border-strong',
                     '[&_.command-shortcut>div]:border-none',
                     '[&_.command-shortcut>div]:pr-2',
                     '[&_.command-shortcut>div]:bg-transparent',

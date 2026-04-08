@@ -324,7 +324,8 @@ export const lintInfoMap: LintInfo[] = [
     name: 'public_bucket_select_policy',
     title: 'Public Bucket with SELECT Policy',
     icon: <Unlock className="text-foreground-muted" size={15} strokeWidth={1} />,
-    link: ({ projectRef, metadata }) => `/project/${projectRef}/storage/buckets/${metadata?.name}`,
+    link: ({ projectRef, metadata }) =>
+      `/project/${projectRef}/storage/files/buckets/${metadata?.name}`,
     linkText: 'View bucket',
     docsLink: `${DOCS_URL}/guides/storage/security/access-control`,
     category: 'security',

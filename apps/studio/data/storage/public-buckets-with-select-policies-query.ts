@@ -1,6 +1,8 @@
 import { literal } from '@supabase/pg-meta/src/pg-format'
 import { useQuery } from '@tanstack/react-query'
+
 import { storageKeys } from './keys'
+import { isValidConnString } from '@/data/fetchers'
 import { executeSql } from '@/data/sql/execute-sql-query'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
 import { PROJECT_STATUS } from '@/lib/constants'
@@ -134,12 +136,22 @@ export const usePublicBucketsWithSelectPoliciesQuery = <
 ) => {
   const { data: project } = useSelectedProjectQuery()
   const isActive = project?.status === PROJECT_STATUS.ACTIVE_HEALTHY
+  const resolvedConnectionString = connectionString ?? project?.connectionString
 
   return useQuery<PublicBucketsWithSelectPoliciesData, PublicBucketsWithSelectPoliciesError, TData>(
     {
       queryKey: storageKeys.publicBucketsWithSelectPolicies(projectRef, bucketId),
-      queryFn: () => getPublicBucketsWithSelectPolicies({ projectRef, connectionString, bucketId }),
-      enabled: enabled && typeof projectRef !== 'undefined' && isActive,
+      queryFn: () =>
+        getPublicBucketsWithSelectPolicies({
+          projectRef,
+          connectionString: resolvedConnectionString,
+          bucketId,
+        }),
+      enabled:
+        enabled &&
+        typeof projectRef !== 'undefined' &&
+        isActive &&
+        isValidConnString(resolvedConnectionString),
       staleTime: 5 * 60 * 1000,
       refetchOnWindowFocus: false,
       ...options,
@@ -165,7 +177,11 @@ export const useListablePublicBucketsQuery = <TData = ListablePublicBucketsData>
         projectRef,
         connectionString: resolvedConnectionString,
       }),
-    enabled: enabled && typeof projectRef !== 'undefined' && isActive,
+    enabled:
+      enabled &&
+      typeof projectRef !== 'undefined' &&
+      isActive &&
+      isValidConnString(resolvedConnectionString),
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     ...options,

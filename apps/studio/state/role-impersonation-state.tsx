@@ -181,3 +181,17 @@ export function useSyncRoleImpersonationWithUrl() {
 export function isRoleImpersonationEnabled(impersonationRole?: ImpersonationRole) {
   return impersonationRole?.type === 'postgrest'
 }
+
+export function buildRoleImpersonationUrl({
+  projectRef,
+  userId,
+  path,
+}: {
+  projectRef: string
+  userId: string
+  path: 'editor' | 'sql'
+}) {
+  const basePath =
+    path === 'editor' ? `/project/${projectRef}/editor` : `/project/${projectRef}/sql/new`
+  return `${basePath}?role=authenticated&userId=${userId}`
+}

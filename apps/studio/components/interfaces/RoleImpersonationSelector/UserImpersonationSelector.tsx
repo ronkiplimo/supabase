@@ -183,11 +183,11 @@ const UserImpersonationSelector = () => {
 
   return (
     <>
-      <div className="px-5 py-3">
-        <p className="text-foreground text-sm">
+      <div className="p-3">
+        <p className="text-foreground text-xs font-medium">
           {displayName ? `Impersonating ${displayName}` : 'Impersonate a User'}
         </p>
-        <p className="text-sm text-foreground-light">
+        <p className="text-xs text-foreground-light">
           {!impersonatingUser && !isExternalAuthImpersonating
             ? "Select a user to respect your database's Row-Level Security policies for that particular user."
             : "Results will respect your database's Row-Level Security policies for this user."}
@@ -212,10 +212,16 @@ const UserImpersonationSelector = () => {
         )}
 
         {!impersonatingUser && !isExternalAuthImpersonating && (
-          <Tabs_Shadcn_ value={selectedTab} onValueChange={(value: any) => setSelectedTab(value)}>
+          <Tabs_Shadcn_
+            value={selectedTab}
+            onValueChange={(value: any) => setSelectedTab(value)}
+            className="mt-3"
+          >
             <TabsList_Shadcn_ className="gap-x-3">
-              <TabsTrigger_Shadcn_ value="user">Project user</TabsTrigger_Shadcn_>
-              <TabsTrigger_Shadcn_ value="external" className="gap-x-1.5">
+              <TabsTrigger_Shadcn_ value="user" className="text-xs">
+                Project user
+              </TabsTrigger_Shadcn_>
+              <TabsTrigger_Shadcn_ value="external" className="gap-x-1.5 text-xs">
                 External user
                 <InfoTooltip side="bottom" className="flex flex-col gap-1 max-w-96">
                   Test RLS policies with external auth providers like Clerk or Auth0 by providing a
@@ -342,10 +348,9 @@ const UserImpersonationSelector = () => {
             </TabsContent_Shadcn_>
 
             <TabsContent_Shadcn_ value="external">
-              <div className="flex flex-col gap-y-4">
+              <div className="flex flex-col gap-y-3">
                 <Input
-                  size="small"
-                  layout="horizontal"
+                  size="tiny"
                   label="External User ID"
                   descriptionText="The user ID from your external auth provider"
                   placeholder="e.g. user_abc123"
@@ -353,8 +358,7 @@ const UserImpersonationSelector = () => {
                   onChange={(e) => setExternalUserId(e.target.value)}
                 />
                 <Input
-                  size="small"
-                  layout="horizontal"
+                  size="tiny"
                   label="Additional Claims (JSON)"
                   descriptionText="Optional: Add custom claims like org_id or roles"
                   placeholder='e.g. {"app_metadata": {"org_id": "org_456"}}'
@@ -363,6 +367,7 @@ const UserImpersonationSelector = () => {
                 />
                 <div className="flex items-center justify-end">
                   <Button
+                    size="tiny"
                     type="default"
                     disabled={!externalUserId}
                     onClick={impersonateExternalUser}
@@ -380,7 +385,7 @@ const UserImpersonationSelector = () => {
       {!impersonatingUser && !isExternalAuthImpersonating ? (
         <>
           <DropdownMenuSeparator className="m-0" />
-          <div className="px-5 py-2 flex flex-col gap-2 relative">
+          <div className="px-3 py-2 flex flex-col gap-2 relative">
             <Collapsible_Shadcn_>
               <CollapsibleTrigger_Shadcn_ className="group font-normal p-0 [&[data-state=open]>div>svg]:!-rotate-180">
                 <div className="flex items-center gap-x-1 w-full">
@@ -395,9 +400,9 @@ const UserImpersonationSelector = () => {
                 </div>
               </CollapsibleTrigger_Shadcn_>
               <CollapsibleContent_Shadcn_ className="mt-1 flex flex-col gap-y-4">
-                <div className="flex flex-row items-center gap-x-4 text-sm text-foreground-light">
+                <div className="flex flex-row items-center gap-x-4 text-xs text-foreground-light">
                   <div className="flex items-center gap-x-1">
-                    <h3>MFA assurance level</h3>
+                    <h3 className="text-xs">MFA assurance level</h3>
                     <InfoTooltip side="top" className="max-w-96">
                       AAL1 verifies users via standard login methods, while AAL2 adds a second
                       authentication factor. If you're not using MFA, you can leave this on AAL1.
@@ -443,8 +448,8 @@ const BaseImpersonatingRow = ({
   isLoading = false,
 }: BaseImpersonatingRowProps) => {
   return (
-    <div className="flex items-center gap-3 py-2 text-foreground">
-      <div className="flex items-center gap-4 bg-surface-200 pr-4 pl-0.5 py-0.5 border rounded-full max-w-l">
+    <div className="flex items-center gap-2 py-2 text-foreground">
+      <div className="flex items-center gap-2 bg-surface-200 pr-3 pl-0.5 py-0.5 border rounded-full min-w-0">
         {avatarUrl ? (
           <img className="rounded-full w-5 h-5" src={avatarUrl} alt={displayName} />
         ) : (
@@ -453,16 +458,16 @@ const BaseImpersonatingRow = ({
           </div>
         )}
 
-        <span className="text-sm truncate">
+        <span className="text-xs truncate">
           {displayName}{' '}
-          <span className="ml-2 text-foreground-lighter text-xs font-light">
+          <span className="ml-1 text-foreground-lighter font-light">
             {aal === 'aal2' ? 'AAL2' : 'AAL1'}
           </span>
         </span>
       </div>
 
-      <Button type="default" onClick={onClick} disabled={isLoading} loading={isLoading}>
-        {isImpersonating ? 'Stop Impersonating' : 'Impersonate'}
+      <Button size="tiny" type="default" onClick={onClick} disabled={isLoading} loading={isLoading}>
+        {isImpersonating ? 'Stop' : 'Impersonate'}
       </Button>
     </div>
   )
@@ -532,33 +537,38 @@ const UserRow = ({ user, onClick, isImpersonating = false, isLoading = false }: 
 
   return (
     <div className="flex items-center justify-between py-1 text-foreground">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 min-w-0">
         {avatarUrl ? (
           <img className="rounded-full w-5 h-5" src={avatarUrl} alt={displayName || emailOrPhone} />
         ) : (
-          <div className="rounded-full w-[21px] h-[21px] bg-surface-300 border flex items-center justify-center text-foreground-lighter">
+          <div className="rounded-full w-[21px] h-[21px] bg-surface-300 border flex items-center justify-center text-foreground-lighter shrink-0">
             <IconUser size={12} strokeWidth={2} />
           </div>
         )}
 
-        <span className="text-sm flex items-center gap-4">
+        <span className="text-xs flex items-center gap-2 min-w-0 truncate">
           {emailOrPhone}
           {showDisplayName && (
-            <>
-              <span className="text-foreground-lighter">
-                {displayName}
-                {isAnonymous ? ' (anonymous)' : ''}
-              </span>
-            </>
+            <span className="text-foreground-lighter truncate">
+              {displayName}
+              {isAnonymous ? ' (anonymous)' : ''}
+            </span>
           )}
-          <span className="text-foreground-light bg-surface-200 dark:bg-surface-400 rounded-md px-1 py-0.5 font-mono text-xs">
+          <span className="text-foreground-light bg-surface-200 dark:bg-surface-400 rounded-md px-1 py-0.5 font-mono text-[10px] shrink-0">
             {user?.id?.slice(0, 8)}
           </span>
         </span>
       </div>
 
-      <Button type="default" onClick={() => onClick(user)} disabled={isLoading} loading={isLoading}>
-        {isImpersonating ? 'Stop Impersonating' : 'Impersonate'}
+      <Button
+        size="tiny"
+        type="default"
+        onClick={() => onClick(user)}
+        disabled={isLoading}
+        loading={isLoading}
+        className="shrink-0 ml-2"
+      >
+        {isImpersonating ? 'Stop' : 'Impersonate'}
       </Button>
     </div>
   )

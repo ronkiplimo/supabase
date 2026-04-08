@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { parseAsArrayOf, parseAsString, parseAsStringEnum, useQueryState } from 'nuqs'
-import { UIEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { UIEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DataGrid, { Column, DataGridHandle, Row } from 'react-data-grid'
 import { toast } from 'sonner'
 import {
@@ -74,6 +74,7 @@ import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganizati
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
 import { PROJECT_STATUS } from '@/lib/constants/infrastructure'
 import { cleanPointerEventsNoneOnBody, isAtBottom } from '@/lib/helpers'
+import { buildRoleImpersonationUrl } from '@/state/role-impersonation-state'
 
 const SORT_BY_VALUE_COUNT_THRESHOLD = 10_000
 const IMPROVED_SEARCH_COUNT_THRESHOLD = 10_000
@@ -432,6 +433,20 @@ export const UsersV2 = () => {
     }
   }
 
+  const handleSelectImpersonateUser = useCallback(
+    (user: User, path: 'editor' | 'sql') => {
+      const userId = user.id
+      if (userId && projectRef) {
+        window.location.href = buildRoleImpersonationUrl({
+          projectRef,
+          userId,
+          path,
+        })
+      }
+    },
+    [projectRef]
+  )
+
   useEffect(() => {
     if (
       !isRefetching &&
@@ -444,6 +459,7 @@ export const UsersV2 = () => {
         config: columnConfiguration ?? [],
         users: users ?? [],
         visibleColumns: selectedColumns,
+        onSelectImpersonateUser: handleSelectImpersonateUser,
         setSortByValue: updateSortByValue,
         onSelectDeleteUser: setSelectedUserToDelete,
       })
@@ -684,6 +700,7 @@ export const UsersV2 = () => {
                       users: users ?? [],
                       visibleColumns: value,
                       setSortByValue: updateSortByValue,
+                      onSelectImpersonateUser: handleSelectImpersonateUser,
                       onSelectDeleteUser: setSelectedUserToDelete,
                     })
 

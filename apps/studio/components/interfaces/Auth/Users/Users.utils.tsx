@@ -1,5 +1,6 @@
 import dayjs from 'dayjs'
-import { Copy, Trash, UserIcon } from 'lucide-react'
+import { Code, Copy, Table, Trash, UserIcon } from 'lucide-react'
+import { useCallback } from 'react'
 import { Column, useRowSelection } from 'react-data-grid'
 import {
   Checkbox_Shadcn_,
@@ -17,6 +18,7 @@ import { ColumnConfiguration, UsersTableColumn } from './Users.constants'
 import { HeaderCell } from './UsersGridComponents'
 import { User } from '@/data/auth/users-infinite-query'
 import { BASE_PATH } from '@/lib/constants'
+import { buildRoleImpersonationUrl } from '@/state/role-impersonation-state'
 
 const GITHUB_AVATAR_URL = 'https://avatars.githubusercontent.com'
 const SUPPORTED_CSP_AVATAR_URLS = [GITHUB_AVATAR_URL, 'https://lh3.googleusercontent.com']
@@ -259,6 +261,7 @@ export const formatUserColumns = ({
   users,
   visibleColumns = [],
   setSortByValue,
+  onSelectImpersonateUser,
   onSelectDeleteUser,
 }: {
   specificFilterColumn: string
@@ -267,6 +270,7 @@ export const formatUserColumns = ({
   users: User[]
   visibleColumns?: string[]
   setSortByValue: (val: string) => void
+  onSelectImpersonateUser: (user: User, path: 'editor' | 'sql') => void
   onSelectDeleteUser: (user: User) => void
 }) => {
   const columnOrder = config.map((c) => c.id) ?? columns.map((c) => c.id)
@@ -401,6 +405,31 @@ export const formatUserColumns = ({
               >
                 <Copy size={12} />
                 <span>Copy {col.id === 'id' ? col.name : col.name.toLowerCase()}</span>
+              </ContextMenuItem_Shadcn_>
+              <ContextMenuSeparator_Shadcn_ />
+              <ContextMenuItem_Shadcn_
+                className="gap-x-2"
+                onFocusCapture={(e) => e.stopPropagation()}
+                onSelect={() => {
+                  if (user) {
+                    onSelectImpersonateUser(user, 'editor')
+                  }
+                }}
+              >
+                <Table size={12} />
+                <span>View data as user</span>
+              </ContextMenuItem_Shadcn_>
+              <ContextMenuItem_Shadcn_
+                className="gap-x-2"
+                onFocusCapture={(e) => e.stopPropagation()}
+                onSelect={() => {
+                  if (user) {
+                    onSelectImpersonateUser(user, 'sql')
+                  }
+                }}
+              >
+                <Code size={12} />
+                <span>Run SQL as user</span>
               </ContextMenuItem_Shadcn_>
               <ContextMenuSeparator_Shadcn_ />
               <ContextMenuItem_Shadcn_

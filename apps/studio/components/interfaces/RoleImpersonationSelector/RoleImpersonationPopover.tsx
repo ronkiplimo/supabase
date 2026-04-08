@@ -1,5 +1,5 @@
 import { RoleImpersonationSelector } from '.'
-import { ChevronDown, User as IconUser } from 'lucide-react'
+import { ChevronDown, User as IconUser, X } from 'lucide-react'
 import { useState } from 'react'
 import { Button, cn, Popover_Shadcn_, PopoverContent_Shadcn_, PopoverTrigger_Shadcn_ } from 'ui'
 
@@ -53,6 +53,20 @@ export const RoleImpersonationPopover = ({
                   {state.role.aal === 'aal2' ? 'AAL2' : 'AAL1'}
                 </span>
               </>
+            )}
+            {state.role !== undefined && (
+              <span
+                role="button"
+                aria-label="Reset to default role"
+                className="text-foreground-muted hover:text-foreground transition-colors p-0.5 rounded hover:bg-surface-300"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  e.preventDefault()
+                  state.setRole(undefined)
+                }}
+              >
+                <X size={14} strokeWidth={2} />
+              </span>
             )}
             <ChevronDown className="text-muted" strokeWidth={1} size={12} />
           </div>

@@ -58,9 +58,10 @@ export const RoleImpersonationSelector = ({
 
   return (
     <>
-      <div className={cn('flex flex-col gap-3', padded ? 'p-5' : 'pb-5')}>
-        <p className="text-foreground text-base">Database role settings</p>
-
+      <div className="border-b border-overlay bg-surface-200 rounded-t px-3 py-2">
+        <span className="text-xs text-foreground-light">Database role settings</span>
+      </div>
+      <div className={cn('flex flex-col gap-3', padded ? 'px-3 pt-3 pb-3' : 'pb-3')}>
         <form
           onSubmit={(e) => {
             // don't allow form submission
@@ -98,7 +99,7 @@ export const RoleImpersonationSelector = ({
         </form>
 
         {selectedOption === 'service_role' && (
-          <p className="text-foreground-light text-sm">
+          <p className="text-foreground-light text-xs">
             <span className="text-foreground">The default Postgres/superuser role</span>
             <br />
             This has admin privileges and will bypass Row Level Security (RLS) policies.
@@ -106,7 +107,7 @@ export const RoleImpersonationSelector = ({
         )}
 
         {selectedOption === 'anon' && (
-          <p className="text-foreground-light text-sm">
+          <p className="text-foreground-light text-xs">
             <span className="text-foreground">For "anonymous access"</span>
             <br />
             This is the role which the API (PostgREST) will use when a user is not logged in. <br />
@@ -115,7 +116,7 @@ export const RoleImpersonationSelector = ({
         )}
 
         {selectedOption === 'authenticated' && (
-          <p className="text-foreground-light text-sm">
+          <p className="text-foreground-light text-xs">
             <span className="text-foreground">For "authenticated access"</span>
             <br />
             This is the role which the API (PostgREST) will use when a user is logged in. <br />

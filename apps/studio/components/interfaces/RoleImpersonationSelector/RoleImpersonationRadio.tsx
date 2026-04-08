@@ -19,8 +19,8 @@ function RoleImpersonationRadio<T extends string>({
   return (
     <label
       className={cn(
-        'border border-default rounded-md bg-surface-200 hover:bg-overlay-hover hover:border-control px-4 py-3 w-44 cursor-pointer transition-colors',
-        isSelected && 'border-foreground-muted hover:border-foreground-muted bg-surface-300'
+        'border border-overlay rounded-md bg-surface-200 hover:bg-overlay-hover hover:border-control px-3 py-2.5 w-40 cursor-pointer transition-colors',
+        isSelected && 'border-brand hover:border-brand bg-surface-300'
       )}
       tabIndex={0}
       onKeyDown={(e) => {

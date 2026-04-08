@@ -19,6 +19,7 @@ import { LocalDropdown } from '@/components/interfaces/LocalDropdown'
 import { UserDropdown } from '@/components/interfaces/UserDropdown'
 import { BreadcrumbsView } from '@/components/layouts/Navigation/LayoutHeader/BreadcrumbsView'
 import { FeedbackDropdown } from '@/components/layouts/Navigation/LayoutHeader/FeedbackDropdown/FeedbackDropdown'
+import { HeaderUpgradeButton } from '@/components/layouts/Navigation/LayoutHeader/HeaderUpgradeButton'
 import { HomeIcon } from '@/components/layouts/Navigation/LayoutHeader/HomeIcon'
 import { LayoutHeaderDivider } from '@/components/layouts/Navigation/LayoutHeader/LayoutHeader'
 import { LocalVersionPopover } from '@/components/layouts/Navigation/LayoutHeader/LocalVersionPopover'
@@ -84,7 +85,7 @@ export const LayoutHeader = ({
             'flex items-center justify-between h-full px-1 pl-3 flex-1 overflow-x-auto gap-x-4'
           )}
         >
-          <div className="hidden md:flex items-center justify-start text-sm gap-x-2">
+          <div className="hidden md:flex items-center justify-start text-sm gap-x-2 md:w-1/3">
             {hideSidebar && <HomeIcon />}
             <AnimatePresence>
               {headerTitle && (
@@ -131,39 +132,31 @@ export const LayoutHeader = ({
               </div>
             )}
           </div>
-          <div className="flex items-center justify-end gap-x-1">
+          <div className="flex items-center w-full max-w-60 xl:max-w-60 justify-center">
+            <CommandMenuTriggerInput
+              showShortcut={commandMenuEnabled}
+              placeholder="Search..."
+              className={cn(
+                'flex !min-w-60 w-full rounded-full bg-transparent border-strong',
+                '[&_.command-shortcut>div]:border-none',
+                '[&_.command-shortcut>div]:pr-2',
+                '[&_.command-shortcut>div]:bg-transparent',
+                '[&_.command-shortcut>div]:text-foreground-lighter'
+              )}
+            />
+          </div>
+          <div className="flex items-center justify-end gap-x-1 md:w-1/3">
             {customHeaderComponents && customHeaderComponents}
             {IS_PLATFORM ? (
               <>
                 <DevToolbarTrigger />
                 <FeedbackDropdown />
-                <CommandMenuTriggerInput
-                  showShortcut={commandMenuEnabled}
-                  placeholder="Search..."
-                  className={cn(
-                    'flex !min-w-60 w-full rounded-full bg-transparent border-strong',
-                    '[&_.command-shortcut>div]:border-none',
-                    '[&_.command-shortcut>div]:pr-2',
-                    '[&_.command-shortcut>div]:bg-transparent',
-                    '[&_.command-shortcut>div]:text-foreground-lighter'
-                  )}
-                />
+                <HeaderUpgradeButton className="hidden md:flex" />
                 <UserDropdown triggerClassName="hidden md:flex" />
               </>
             ) : (
               <>
                 <LocalVersionPopover />
-                <CommandMenuTriggerInput
-                  showShortcut={commandMenuEnabled}
-                  placeholder="Search..."
-                  className={cn(
-                    'flex max-w-32 xl:max-w-32 rounded-full bg-transparent border-strong',
-                    '[&_.command-shortcut>div]:border-none',
-                    '[&_.command-shortcut>div]:pr-2',
-                    '[&_.command-shortcut>div]:bg-transparent',
-                    '[&_.command-shortcut>div]:text-foreground-lighter'
-                  )}
-                />
                 <LocalDropdown triggerClassName="hidden md:flex" />
               </>
             )}

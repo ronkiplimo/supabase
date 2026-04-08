@@ -1,5 +1,5 @@
 import { LOCAL_STORAGE_KEYS, useBreakpoint, useParams } from 'common'
-import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
+import { useIsNavigationV2Enabled } from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { useRouter } from 'next/router'
 import { useEffect, useState, type PropsWithChildren } from 'react'
 import { ResizablePanel, ResizablePanelGroup } from 'ui'

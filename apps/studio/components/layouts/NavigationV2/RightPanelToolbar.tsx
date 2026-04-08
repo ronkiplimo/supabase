@@ -1,6 +1,5 @@
 import { useBreakpoint, useParams } from 'common'
 import { useEffect, type ReactNode } from 'react'
-import { useSidebarManagerSnapshot } from 'state/sidebar-manager-state'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from 'ui'
 
 import { useMobileSheet } from '../Navigation/NavigationBar/MobileSheetContext'
@@ -8,6 +7,7 @@ import { isSidebarId } from '../ProjectLayout/LayoutSidebar'
 import { generateToolbarItems } from './RightPanelToolbar.utils'
 import { ToolbarButton } from './ToolbarButton'
 import { IS_PLATFORM } from '@/lib/constants'
+import { useSidebarManagerSnapshot } from '@/state/sidebar-manager-state'
 
 const RIGHT_SIDEBAR_MIN_SIZE_PERCENTAGE = 300
 const RIGHT_SIDEBAR_DEFAULT_SIZE_PERCENTAGE = 340
@@ -25,6 +25,9 @@ function RightPanelToolbar() {
     isPlatform: IS_PLATFORM,
   }).filter((item) => item.enabled)
 
+  const helpItem = toolbarItems.find((item) => item.key === 'help')
+  const primaryToolbarItems = toolbarItems.filter((item) => item.key !== 'help')
+
   useEffect(() => {
     if (!isMobile) {
       setMobileSheetContent(null)
@@ -39,10 +42,17 @@ function RightPanelToolbar() {
 
   return (
     <aside className="bg-dash-sidebar text-foreground-lighter border-default flex w-10 shrink-0 border-l">
-      <nav className="flex flex-1 flex-col items-center justify-start gap-1 p-1">
-        {toolbarItems.map((item) => (
-          <ToolbarButton key={item.key} {...item.config} />
-        ))}
+      <nav className="flex min-h-0 flex-1 flex-col items-center justify-start gap-1 p-1">
+        <div className="flex w-full flex-col items-center gap-1">
+          {primaryToolbarItems.map((item) => (
+            <ToolbarButton key={item.key} {...item.config} />
+          ))}
+        </div>
+        {helpItem ? (
+          <div className="mt-auto flex w-full flex-col items-center pt-2">
+            <ToolbarButton key={helpItem.key} {...helpItem.config} />
+          </div>
+        ) : null}
       </nav>
     </aside>
   )

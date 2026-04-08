@@ -1,11 +1,11 @@
 import { IS_PLATFORM, LOCAL_STORAGE_KEYS, useParams } from 'common'
-import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, type PropsWithChildren } from 'react'
 
 import { ProjectLayoutV2 } from '../NavigationV2/ProjectLayout'
 import { ProjectLayout } from '../ProjectLayout'
 import ObservabilityMenu from './ObservabilityMenu'
+import { useIsNavigationV2Enabled } from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { useIndexAdvisorStatus } from '@/components/interfaces/QueryPerformance/hooks/useIsIndexAdvisorStatus'
 import { BannerIndexAdvisor } from '@/components/ui/BannerStack/Banners/BannerIndexAdvisor'
 import { BannerMetricsAPI } from '@/components/ui/BannerStack/Banners/BannerMetricsAPI'

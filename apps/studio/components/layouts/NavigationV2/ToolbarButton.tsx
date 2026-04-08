@@ -1,9 +1,10 @@
 import { LOCAL_STORAGE_KEYS, useBreakpoint } from 'common'
-import { ButtonTooltip } from 'components/ui/ButtonTooltip'
-import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
 import type { ReactNode } from 'react'
-import { useSidebarManagerSnapshot } from 'state/sidebar-manager-state'
 import { cn, KeyboardShortcut } from 'ui'
+
+import { ButtonTooltip } from '@/components/ui/ButtonTooltip'
+import { useLocalStorageQuery } from '@/hooks/misc/useLocalStorage'
+import { useSidebarManagerSnapshot } from '@/state/sidebar-manager-state'
 
 export interface ToolbarButtonConfig {
   id: string

@@ -1,5 +1,5 @@
 import { useParams } from 'common'
-import { useCheckLatestDeploy } from 'hooks/use-check-latest-deploy'
+import { useCheckLatestDeploy } from '@/hooks/use-check-latest-deploy'
 import { PropsWithChildren } from 'react'
 import { SidebarProvider } from 'ui'
 

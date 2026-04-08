@@ -1,10 +1,10 @@
 import { LOCAL_STORAGE_KEYS } from 'common'
-import { SupportFormPage } from 'components/interfaces/Support/SupportFormPage'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { parseAsString, useQueryState } from 'nuqs'
 import { useEffect, type PropsWithChildren } from 'react'
 
+import { SupportFormPage } from '@/components/interfaces/Support/SupportFormPage'
 import { getSupportLinkQueryParams } from '@/components/ui/HelpPanel/HelpPanel.utils'
 import { useSendEventMutation } from '@/data/telemetry/send-event-mutation'
 import useLatest from '@/hooks/misc/useLatest'

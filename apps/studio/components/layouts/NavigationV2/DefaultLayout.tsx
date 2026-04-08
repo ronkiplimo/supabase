@@ -1,16 +1,16 @@
 import { LOCAL_STORAGE_KEYS, useBreakpoint } from 'common'
-import { AppBannerWrapper } from 'components/interfaces/App/AppBannerWrapper'
-import MobileNavigationBar from 'components/layouts/Navigation/NavigationBar/MobileNavigationBar'
-import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
 import { useRouter } from 'next/router'
 import type { PropsWithChildren } from 'react'
-import { useAppStateSnapshot } from 'state/app-state'
 
 import { DefaultLayoutProviders } from '../DefaultLayoutProviders'
 import { LayoutHeader } from './LayoutHeader'
 import { RightPanelToolbarLayout } from './RightPanelToolbar'
+import { AppBannerWrapper } from '@/components/interfaces/App/AppBannerWrapper'
 import { Sidebar } from '@/components/interfaces/Sidebar'
+import MobileNavigationBar from '@/components/layouts/Navigation/NavigationBar/MobileNavigationBar'
 import { useHideSidebar } from '@/hooks/misc/useHideSidebar'
+import { useLocalStorageQuery } from '@/hooks/misc/useLocalStorage'
+import { useAppStateSnapshot } from '@/state/app-state'
 
 export interface DefaultLayoutV2Props {
   headerTitle?: string

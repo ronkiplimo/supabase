@@ -1,17 +1,7 @@
 import { useParams } from 'common'
-import { sanitizeRoute } from 'components/layouts/AppLayout/ProjectDropdown.utils'
-import { OrganizationProjectSelector } from 'components/ui/OrganizationProjectSelector'
-import { useBranchesQuery } from 'data/branches/branches-query'
-import type { Branch } from 'data/branches/branches-query'
-import { useProjectDetailQuery } from 'data/projects/project-detail-query'
-import { useIsFeatureEnabled } from 'hooks/misc/useIsFeatureEnabled'
-import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
-import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
-import { IS_PLATFORM } from 'lib/constants'
 import { Check, ListTree, MessageCircle, Plus, Shield } from 'lucide-react'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
-import { useAppStateSnapshot } from 'state/app-state'
 import {
   Command_Shadcn_,
   CommandEmpty_Shadcn_,
@@ -24,6 +14,16 @@ import {
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
 import { OrganizationDropdown } from '@/components/layouts/AppLayout/OrganizationDropdown'
+import { sanitizeRoute } from '@/components/layouts/AppLayout/ProjectDropdown.utils'
+import { OrganizationProjectSelector } from '@/components/ui/OrganizationProjectSelector'
+import { useBranchesQuery } from '@/data/branches/branches-query'
+import type { Branch } from '@/data/branches/branches-query'
+import { useProjectDetailQuery } from '@/data/projects/project-detail-query'
+import { useIsFeatureEnabled } from '@/hooks/misc/useIsFeatureEnabled'
+import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
+import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
+import { IS_PLATFORM } from '@/lib/constants'
+import { useAppStateSnapshot } from '@/state/app-state'
 
 const BRANCHING_GITHUB_DISCUSSION_LINK = 'https://github.com/orgs/supabase/discussions/18937'
 

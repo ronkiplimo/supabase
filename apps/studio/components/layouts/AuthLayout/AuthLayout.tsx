@@ -1,11 +1,11 @@
 import { useParams } from 'common'
-import { useIsNavigationV2Enabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { useRouter } from 'next/router'
 import type { PropsWithChildren } from 'react'
 
 import { ProjectLayoutV2 } from '../NavigationV2/ProjectLayout'
 import { ProjectLayout } from '../ProjectLayout'
 import { useGenerateAuthMenu } from './AuthLayout.utils'
+import { useIsNavigationV2Enabled } from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { ProductMenu } from '@/components/ui/ProductMenu'
 import { useAuthConfigPrefetch } from '@/data/auth/auth-config-query'
 import { withAuth } from '@/hooks/misc/withAuth'

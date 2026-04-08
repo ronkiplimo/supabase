@@ -6,6 +6,7 @@ import { getOrganizations } from '@/data/organizations/organizations-query'
 import { getProjectDetail } from '@/data/projects/project-detail-query'
 import { getOrgSubscription } from '@/data/subscriptions/org-subscription-query'
 import { getAiOptInLevel } from '@/hooks/misc/useOrgOptedIntoAi'
+import { IS_TRACING_ENABLED } from '@/lib/ai/braintrust-logger'
 
 export const getOrgAIDetails = async ({
   orgSlug,
@@ -19,14 +20,18 @@ export const getOrgAIDetails = async ({
     ...(authorization && { Authorization: authorization }),
   }
 
+  const dpaPromise = IS_TRACING_ENABLED
+    ? get('/platform/organizations/{slug}/documents/dpa-signed', {
+        params: { path: { slug: orgSlug } },
+        headers,
+      })
+    : undefined
+
   const [organizations, subscription, advanceModelAccess, dpaSignedStatus] = await Promise.all([
     getOrganizations({ headers }),
     getOrgSubscription({ orgSlug }, undefined, headers),
     checkEntitlement(orgSlug, 'assistant.advance_model', undefined, headers),
-    get('/platform/organizations/{slug}/documents/dpa-signed', {
-      params: { path: { slug: orgSlug } },
-      headers,
-    }),
+    dpaPromise,
   ])
 
   const selectedOrg = organizations.find((org) => org.slug === orgSlug)
@@ -35,7 +40,7 @@ export const getOrgAIDetails = async ({
     aiOptInLevel: getAiOptInLevel(selectedOrg?.opt_in_tags),
     hasAccessToAdvanceModel: advanceModelAccess.hasAccess,
     hasHipaaAddon: subscriptionHasHipaaAddon(subscription),
-    isDpaSigned: dpaSignedStatus.data?.signed,
+    isDpaSigned: dpaSignedStatus?.data?.signed,
     orgId: selectedOrg?.id,
     planId: selectedOrg?.plan.id,
   }

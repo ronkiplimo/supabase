@@ -34,6 +34,10 @@ vi.mock('@/data/fetchers', () => ({
   get: vi.fn(),
 }))
 
+vi.mock('@/lib/ai/braintrust-logger', () => ({
+  IS_TRACING_ENABLED: true,
+}))
+
 const AUTH = 'Bearer token'
 const HEADERS = { 'Content-Type': 'application/json', Authorization: AUTH }
 
@@ -170,6 +174,23 @@ describe('getOrgAIDetails', () => {
 
     expect(result.orgId).toBe(2)
     expect(result.planId).toBe('pro')
+  })
+
+  it('skips dpa-signed call when tracing is disabled', async () => {
+    const braintrustLogger = await import('@/lib/ai/braintrust-logger')
+    vi.mocked(braintrustLogger).IS_TRACING_ENABLED = false as any
+
+    mockGetOrganizations.mockResolvedValue([
+      { id: 1, slug: 'test-org', plan: { id: 'pro' }, opt_in_tags: [] },
+    ])
+    mockGetAiOptInLevel.mockReturnValue('schema')
+
+    const result = await getOrgAIDetails({ orgSlug: 'test-org', authorization: AUTH })
+
+    expect(mockGet).not.toHaveBeenCalled()
+    expect(result.isDpaSigned).toBeUndefined()
+
+    vi.mocked(braintrustLogger).IS_TRACING_ENABLED = true as any
   })
 })
 

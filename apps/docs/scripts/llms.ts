@@ -114,11 +114,38 @@ const SOURCES: Source[] = [
   },
 ]
 
+// Marketing page .txt files are hand-curated and live in apps/www/public/llms/.
+// These links always point to production since llms.txt is only meaningful in prod.
+const MARKETING_LINKS = [
+  '- [Supabase Overview](https://supabase.com/llms/homepage.txt)',
+  '- [Supabase Database](https://supabase.com/llms/database.txt)',
+  '- [Supabase Auth](https://supabase.com/llms/auth.txt)',
+  '- [Supabase Storage](https://supabase.com/llms/storage.txt)',
+  '- [Supabase Edge Functions](https://supabase.com/llms/edge-functions.txt)',
+  '- [Supabase Realtime](https://supabase.com/llms/realtime.txt)',
+  '- [Supabase Vector](https://supabase.com/llms/vector.txt)',
+  '- [Supabase Pricing](https://supabase.com/llms/pricing.txt)',
+].join('\n')
+
 async function generateMainLlmsTxt() {
   const sourceLinks = SOURCES.filter((source) => source.enabled !== false)
     .map((source) => `- ${toLink(source)}`)
     .join('\n')
-  const fullText = `# ${metadataTitle}\n\n${sourceLinks}`
+
+  const fullText = [
+    `# ${metadataTitle}`,
+    '',
+    'For the complete documentation in a single file, see [Full Documentation](https://supabase.com/llms-full.txt).',
+    '',
+    '## Documentation',
+    '',
+    sourceLinks,
+    '',
+    '## Product Overview',
+    '',
+    MARKETING_LINKS,
+  ].join('\n')
+
   fs.writeFile('public/llms.txt', fullText)
 }
 

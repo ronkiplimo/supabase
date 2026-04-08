@@ -1,8 +1,14 @@
 import { useConstant } from 'common'
-import { createContext, PropsWithChildren, useCallback, useContext, useEffect } from 'react'
+import { parseAsString, useQueryState } from 'nuqs'
+import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useRef } from 'react'
 import { proxy, snapshot, subscribe, useSnapshot } from 'valtio'
 
-import { CustomAccessTokenHookDetails } from '../hooks/misc/useCustomAccessTokenHookDetails'
+import {
+  CustomAccessTokenHookDetails,
+  useCustomAccessTokenHookDetails,
+} from '../hooks/misc/useCustomAccessTokenHookDetails'
+import { useUserQuery } from '@/data/auth/user-query'
+import { useConnectionStringForReadOps } from '@/data/read-replicas/replicas-query'
 import { executeSql } from '@/data/sql/execute-sql-query'
 import useLatest from '@/hooks/misc/useLatest'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
@@ -120,6 +126,56 @@ export function useSubscribeToImpersonatedRole(
       onChangeRef.current(snapshot(roleImpersonationState).role)
     })
   }, [roleImpersonationState])
+}
+
+export function useSyncRoleImpersonationWithUrl() {
+  const state = useRoleImpersonationStateSnapshot()
+  const { data: project } = useSelectedProjectQuery()
+  const { connectionString } = useConnectionStringForReadOps()
+  const customAccessTokenHookDetails = useCustomAccessTokenHookDetails(project?.ref)
+
+  const [urlRole, setUrlRole] = useQueryState('role', parseAsString)
+  const [urlUserId, setUrlUserId] = useQueryState('userId', parseAsString)
+
+  const hasInitializedFromUrl = useRef(false)
+
+  const role = state.role
+
+  const { data: user } = useUserQuery(
+    { projectRef: project?.ref, connectionString, userId: urlUserId },
+    { enabled: urlRole === 'authenticated' && !!urlUserId && !hasInitializedFromUrl.current }
+  )
+
+  // URL → State: one-time initialization from URL params
+  useEffect(() => {
+    if (hasInitializedFromUrl.current || !urlRole) return
+    if (urlRole === 'authenticated' && urlUserId && !user) return
+
+    hasInitializedFromUrl.current = true
+
+    if (urlRole === 'anon') {
+      state.setRole({ type: 'postgrest', role: 'anon' }, customAccessTokenHookDetails)
+    } else if (urlRole === 'authenticated' && user) {
+      state.setRole(
+        { type: 'postgrest', role: 'authenticated', userType: 'native', user },
+        customAccessTokenHookDetails
+      )
+    }
+  }, [urlRole, urlUserId, user, state, customAccessTokenHookDetails])
+
+  // State → URL: keep URL params in sync with role state.
+  useEffect(() => {
+    if (!role || role.type !== 'postgrest' || role.role === 'service_role') {
+      setUrlRole(null)
+      setUrlUserId(null)
+    } else if (role.role === 'anon') {
+      setUrlRole('anon')
+      setUrlUserId(null)
+    } else if (role.role === 'authenticated' && role.userType === 'native' && role.user?.id) {
+      setUrlRole('authenticated')
+      setUrlUserId(role.user.id)
+    }
+  }, [role, setUrlRole, setUrlUserId])
 }
 
 export function isRoleImpersonationEnabled(impersonationRole?: ImpersonationRole) {

@@ -24,6 +24,7 @@ import { useDashboardHistory } from '@/hooks/misc/useDashboardHistory'
 import { useQuerySchemaState } from '@/hooks/misc/useSchemaQueryState'
 import { useUrlState } from '@/hooks/ui/useUrlState'
 import { useIsProtectedSchema } from '@/hooks/useProtectedSchemas'
+import { useSyncRoleImpersonationWithUrl } from '@/state/role-impersonation-state'
 import { TableEditorTableStateContextProvider } from '@/state/table-editor-table'
 import { createTabId, useTabsStateSnapshot } from '@/state/tabs'
 
@@ -47,6 +48,8 @@ export const TableGridEditor = ({
     projectRef,
     table: selectedTable,
   })
+
+  useSyncRoleImpersonationWithUrl()
 
   const [{ view: selectedView = 'data' }] = useUrlState()
   const { can: canEditTables } = useAsyncCheckPermissions(

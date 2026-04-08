@@ -12,7 +12,7 @@ Note: prices shown are as of April 2026. For current pricing, visit https://supa
 - 2 active projects (paused after 1 week of inactivity)
 - 50,000 monthly active users (MAUs)
 - 500 MB database size (Shared CPU, 500 MB RAM)
-- 5 GB bandwidth
+- 5 GB egress, 5 GB cached egress
 - 1 GB file storage
 - 500,000 Edge Function invocations
 - 200 Realtime concurrent connections

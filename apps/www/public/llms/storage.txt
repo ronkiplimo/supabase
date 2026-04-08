@@ -27,7 +27,7 @@ For AI/ML workloads. Store and index vector embeddings with multiple distance me
 
 - Protocol: S3-compatible API
 - CDN: 285+ global edge locations
-- Max file size: 50GB (multipart upload)
+- Max file size: 50 MB (Free), 500 GB (Pro/Team/Enterprise), via multipart upload
 - Image transformations: resize, crop, format conversion (WebP, AVIF)
 - Authorization: Postgres RLS policies on storage.objects table
 

@@ -31,7 +31,6 @@ export type StorageFilePickerProps = {
   returnValue?: StoragePickerReturnValue
   acceptedFileExtensions?: string[]
   hideUnsupportedFiles?: boolean
-  /** When true, only public buckets can be selected in the picker. */
   publicBucketsOnly?: boolean
   onSelect: (value: string) => void
   title?: string
@@ -126,6 +125,7 @@ export function StorageFilePicker({
   onSelect,
   title = 'Choose a file',
 }: StorageFilePickerProps) {
+  const enforcePublicBucketsOnly = publicBucketsOnly || returnValue === 'publicUrl'
   const isMobileLayout = useBreakpoint('lg')
   const [selectedBucket, setSelectedBucket] = useState<Bucket | null>(null)
   const [showCreateBucketModal, setShowCreateBucketModal] = useState(false)
@@ -175,7 +175,7 @@ export function StorageFilePicker({
       projectRef={projectRef}
       onSelectBucket={setSelectedBucket}
       onCreateBucket={() => setShowCreateBucketModal(true)}
-      publicBucketsOnly={publicBucketsOnly}
+      publicBucketsOnly={enforcePublicBucketsOnly}
     />
   )
 

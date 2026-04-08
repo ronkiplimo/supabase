@@ -315,6 +315,7 @@ export const CreateOrUpdateOAuthAppSheet = ({
                                         type="default"
                                         size="tiny"
                                         icon={<Storage strokeWidth={1.5} />}
+                                        aria-label="Select from Storage"
                                         className="absolute right-1 top-1/2 h-6 w-6 -translate-y-1/2 justify-center overflow-hidden px-1 transition-all duration-150 group-hover:w-36 group-focus-within:w-36 [&_span]:hidden group-hover:[&_span]:block group-focus-within:[&_span]:block"
                                         onClick={() => setStoragePickerOpen(true)}
                                       >

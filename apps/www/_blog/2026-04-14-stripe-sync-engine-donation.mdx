@@ -22,7 +22,7 @@ Today, the repo moves from [`supabase/stripe-sync-engine`](https://github.com/su
 
 In December 2025, we announced a one-click integration that brought the Stripe Sync Engine directly into the Supabase dashboard. That launch came from close collaboration with Stripe's engineering team.
 
-Stripe engineers contributed directly to the repo: incremental sync using cursor-based pagination, JSONB storage with generated columns, multi-account support for [Stripe Connect](https://stripe.com/en-ca/connect) platforms, and a new CLI with proper event ordering.
+Stripe engineers contributed directly to the repo: incremental sync using cursor-based pagination, JSONB storage with generated columns, multi-account support for [Stripe Connect](https://stripe.com/connect) platforms, and a new CLI with proper event ordering.
 
 A key part of that collaboration was Stripe's work on automatic, incremental backfilling using Supabase Cron and Queue. This is what made it possible to ingest all of your existing Stripe data into Postgres reliably and at scale, and what unlocked the dashboard integration.
 

@@ -2,12 +2,9 @@ import { noop } from 'lodash'
 import { useEffect, useRef } from 'react'
 import { cn } from 'ui'
 
-import { CONTEXT_MENU_KEYS, STORAGE_ROW_STATUS, STORAGE_VIEWS } from '../Storage.constants'
+import { STORAGE_ROW_STATUS, STORAGE_VIEWS } from '../Storage.constants'
 import type { StorageColumn, StorageItemWithColumn } from '../Storage.types'
-import { ColumnContextMenu } from './ColumnContextMenu'
 import { FileExplorerColumn } from './FileExplorerColumn'
-import { FolderContextMenu } from './FolderContextMenu'
-import { ItemContextMenu } from './ItemContextMenu'
 import { useStorageExplorerStateSnapshot } from '@/state/storage-explorer'
 
 export interface FileExplorerProps {
@@ -52,10 +49,6 @@ export const FileExplorer = ({
         snap.view === STORAGE_VIEWS.COLUMNS && 'h-full'
       )}
     >
-      <ColumnContextMenu id={CONTEXT_MENU_KEYS.STORAGE_COLUMN} />
-      <ItemContextMenu id={CONTEXT_MENU_KEYS.STORAGE_ITEM} />
-      <FolderContextMenu id={CONTEXT_MENU_KEYS.STORAGE_FOLDER} />
-
       {isLoading ? (
         <FileExplorerColumn
           column={{ id: '', name: '', path: '', items: [], status: STORAGE_ROW_STATUS.LOADING }}

@@ -17,7 +17,6 @@ import {
   Trash2,
 } from 'lucide-react'
 import type { CSSProperties } from 'react'
-import { useContextMenu } from 'react-contexify'
 import {
   Checkbox,
   cn,
@@ -36,13 +35,13 @@ import {
 } from 'ui'
 
 import {
-  CONTEXT_MENU_KEYS,
   STORAGE_ROW_STATUS,
   STORAGE_ROW_TYPES,
   STORAGE_VIEWS,
   URL_EXPIRY_DURATION,
 } from '../Storage.constants'
 import { StorageItemWithColumn, type StorageItem } from '../Storage.types'
+import { useFileExplorerContextMenu } from './FileExplorerRowContextMenu'
 import { FileExplorerRowEditing } from './FileExplorerRowEditing'
 import { copyPathToFolder } from './StorageExplorer.utils'
 import { isPickerItemSelectable, useStorageExplorerPicker } from './StorageExplorerPickerContext'
@@ -129,7 +128,7 @@ export const FileExplorerRow = ({
     selectRangeItems,
   } = useStorageExplorerStateSnapshot()
   const picker = useStorageExplorerPicker()
-  const { show } = useContextMenu()
+  const ctx = useFileExplorerContextMenu()
   const { onCopyUrl } = useCopyUrl()
 
   const isPublic = selectedBucket.public
@@ -275,18 +274,6 @@ export const FileExplorerRow = ({
   const createdAt = item.created_at ? new Date(item.created_at).toLocaleString() : '-'
   const updatedAt = item.updated_at ? new Date(item.updated_at).toLocaleString() : '-'
 
-  const displayMenu = (event: any, rowType: STORAGE_ROW_TYPES) => {
-    show(event, {
-      id:
-        rowType === STORAGE_ROW_TYPES.FILE
-          ? CONTEXT_MENU_KEYS.STORAGE_ITEM
-          : CONTEXT_MENU_KEYS.STORAGE_FOLDER,
-      props: {
-        item: itemWithColumnIndex,
-      },
-    })
-  }
-
   const nameWidth =
     view === STORAGE_VIEWS.LIST && item.isCorrupted
       ? `calc(100% - 60px)`
@@ -307,9 +294,7 @@ export const FileExplorerRow = ({
       onContextMenu={(event) => {
         event.preventDefault()
         event.stopPropagation()
-        item.type === STORAGE_ROW_TYPES.FILE
-          ? displayMenu(event, STORAGE_ROW_TYPES.FILE)
-          : displayMenu(event, STORAGE_ROW_TYPES.FOLDER)
+        ctx?.onRowContextMenu(event, rowOptions)
       }}
     >
       <div

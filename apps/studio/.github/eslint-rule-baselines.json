@@ -441,7 +441,6 @@
       "components/interfaces/Storage/StorageExplorer/FileExplorerColumn.tsx": 6,
       "components/interfaces/Storage/StorageExplorer/FileExplorerRow.tsx": 1,
       "components/interfaces/Storage/StorageExplorer/FileExplorerRowEditing.tsx": 2,
-      "components/interfaces/Storage/StorageExplorer/ItemContextMenu.tsx": 1,
       "components/interfaces/Storage/StorageExplorer/MoveItemsModal.tsx": 1,
       "components/interfaces/Storage/StorageExplorer/StorageExplorer.tsx": 1,
       "components/interfaces/Storage/StorageExplorer/StorageExplorer.utils.tsx": 2,

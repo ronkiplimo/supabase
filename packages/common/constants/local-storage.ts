@@ -92,6 +92,9 @@ export const LOCAL_STORAGE_KEYS = {
   USER_IMPERSONATION_SELECTOR_PREVIOUS_SEARCHES: (ref: string) =>
     `user-impersonation-selector-previous-searches-${ref}`,
 
+  // role impersonation state (role type, user id, etc.)
+  ROLE_IMPERSONATION: (ref: string) => `role-impersonation-${ref}`,
+
   HOTKEY_COMMAND_MENU: 'supabase-dashboard-hotkey-command-menu',
 
   LAST_OPENED_SIDE_BAR: (ref: string) => `last-opened-sidebar-${ref}`,

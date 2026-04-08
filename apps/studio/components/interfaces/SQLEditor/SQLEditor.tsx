@@ -76,7 +76,7 @@ import { useDatabaseSelectorStateSnapshot } from '@/state/database-selector'
 import {
   isRoleImpersonationEnabled,
   useGetImpersonatedRoleState,
-  useSyncRoleImpersonationWithUrl,
+  useSyncRoleImpersonationState,
 } from '@/state/role-impersonation-state'
 import { useSidebarManagerSnapshot } from '@/state/sidebar-manager-state'
 import { getSqlEditorV2StateSnapshot, useSqlEditorV2StateSnapshot } from '@/state/sql-editor-v2'
@@ -94,7 +94,7 @@ export const SQLEditor = () => {
   const router = useRouter()
   const { ref, id: urlId } = useParams()
 
-  useSyncRoleImpersonationWithUrl()
+  useSyncRoleImpersonationState()
 
   const { profile } = useProfile()
   const { data: project } = useSelectedProjectQuery()

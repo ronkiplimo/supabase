@@ -1,4 +1,4 @@
-import { useConstant } from 'common'
+import { LOCAL_STORAGE_KEYS, useConstant } from 'common'
 import { parseAsString, useQueryState } from 'nuqs'
 import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useRef } from 'react'
 import { proxy, snapshot, subscribe, useSnapshot } from 'valtio'
@@ -13,6 +13,43 @@ import { executeSql } from '@/data/sql/execute-sql-query'
 import useLatest from '@/hooks/misc/useLatest'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
 import { getPostgrestClaims, ImpersonationRole } from '@/lib/role-impersonation'
+
+type PersistedRoleImpersonationState = {
+  role: 'anon' | 'authenticated' | 'service_role'
+  userId?: string
+}
+
+function getStorageKey(projectRef: string) {
+  return LOCAL_STORAGE_KEYS.ROLE_IMPERSONATION(projectRef)
+}
+
+export function saveRoleImpersonationToLocalStorage(
+  projectRef: string,
+  state: PersistedRoleImpersonationState | undefined
+) {
+  const storageKey = getStorageKey(projectRef)
+  if (!state) {
+    localStorage.removeItem(storageKey)
+    sessionStorage.removeItem(storageKey)
+    return
+  }
+  const value = JSON.stringify(state)
+  localStorage.setItem(storageKey, value)
+  sessionStorage.setItem(storageKey, value)
+}
+
+export function loadRoleImpersonationFromLocalStorage(
+  projectRef: string
+): PersistedRoleImpersonationState | undefined {
+  const storageKey = getStorageKey(projectRef)
+  const jsonStr = sessionStorage.getItem(storageKey) ?? localStorage.getItem(storageKey)
+  if (!jsonStr) return undefined
+  try {
+    return JSON.parse(jsonStr) as PersistedRoleImpersonationState
+  } catch {
+    return undefined
+  }
+}
 
 export function createRoleImpersonationState(
   projectRef: string,
@@ -51,10 +88,21 @@ export function createRoleImpersonationState(
       if (claims) {
         roleImpersonationState.claims = claims
       }
+
+      saveRoleImpersonationToLocalStorage(projectRef, roleToState(role))
     },
   })
 
   return roleImpersonationState
+}
+
+function roleToState(role: ImpersonationRole | undefined): PersistedRoleImpersonationState | undefined {
+  if (!role || role.type !== 'postgrest' || role.role === 'service_role') return undefined
+  if (role.role === 'anon') return { role: 'anon' }
+  if (role.role === 'authenticated' && role.userType === 'native' && role.user?.id) {
+    return { role: 'authenticated', userId: role.user.id }
+  }
+  return undefined
 }
 
 export type RoleImpersonationState = ReturnType<typeof createRoleImpersonationState>
@@ -109,7 +157,6 @@ export function useGetImpersonatedRoleState() {
   const roleImpersonationState = useContext(RoleImpersonationStateContext)
 
   return useCallback(
-    // [Alaister]: typeof roleImpersonationState is needed to avoid readonly type errors everywhere
     () => snapshot(roleImpersonationState) as typeof roleImpersonationState,
     [roleImpersonationState]
   )
@@ -128,7 +175,7 @@ export function useSubscribeToImpersonatedRole(
   }, [roleImpersonationState])
 }
 
-export function useSyncRoleImpersonationWithUrl() {
+export function useSyncRoleImpersonationState() {
   const state = useRoleImpersonationStateSnapshot()
   const { data: project } = useSelectedProjectQuery()
   const { connectionString } = useConnectionStringForReadOps()
@@ -137,21 +184,59 @@ export function useSyncRoleImpersonationWithUrl() {
   const [urlRole, setUrlRole] = useQueryState('role', parseAsString)
   const [urlUserId, setUrlUserId] = useQueryState('userId', parseAsString)
 
-  const hasInitializedFromUrl = useRef(false)
+  const hasInitialized = useRef(false)
 
   const role = state.role
 
+  // Determine which userId we need to fetch user data for
+  // Priority: URL param (shared links) > localStorage
+  const storedState = project?.ref
+    ? loadRoleImpersonationFromLocalStorage(project.ref)
+    : undefined
+  const targetUserId =
+    urlUserId ?? (storedState?.role === 'authenticated' ? storedState.userId : undefined)
+
   const { data: user } = useUserQuery(
-    { projectRef: project?.ref, connectionString, userId: urlUserId },
-    { enabled: urlRole === 'authenticated' && !!urlUserId && !hasInitializedFromUrl.current }
+    { projectRef: project?.ref, connectionString, userId: targetUserId },
+    { enabled: !hasInitialized.current && !!targetUserId }
   )
 
-  // URL → State: one-time initialization from URL params
+  // Initialization: read from localStorage (primary) or URL params (fallback for shared links)
   useEffect(() => {
-    if (hasInitializedFromUrl.current || !urlRole) return
+    if (hasInitialized.current) return
+
+    const projectRef = project?.ref
+    if (!projectRef) return
+
+    const fromStorage = loadRoleImpersonationFromLocalStorage(projectRef)
+
+    if (fromStorage) {
+      if (fromStorage.role === 'anon') {
+        hasInitialized.current = true
+        state.setRole({ type: 'postgrest', role: 'anon' }, customAccessTokenHookDetails)
+      } else if (fromStorage.role === 'authenticated' && fromStorage.userId) {
+        // Need user data before we can set the role
+        if (!user) return
+        hasInitialized.current = true
+        state.setRole(
+          { type: 'postgrest', role: 'authenticated', userType: 'native', user },
+          customAccessTokenHookDetails
+        )
+      } else {
+        hasInitialized.current = true
+      }
+      return
+    }
+
+    // Fallback: URL params (for shared links)
+    if (!urlRole) {
+      hasInitialized.current = true
+      return
+    }
+
     if (urlRole === 'authenticated' && urlUserId && !user) return
 
-    hasInitializedFromUrl.current = true
+    hasInitialized.current = true
 
     if (urlRole === 'anon') {
       state.setRole({ type: 'postgrest', role: 'anon' }, customAccessTokenHookDetails)
@@ -161,10 +246,13 @@ export function useSyncRoleImpersonationWithUrl() {
         customAccessTokenHookDetails
       )
     }
-  }, [urlRole, urlUserId, user, state, customAccessTokenHookDetails])
+  }, [urlRole, urlUserId, user, state, customAccessTokenHookDetails, project?.ref])
 
-  // State → URL: keep URL params in sync with role state.
+  // State → URL params: keep URL in sync for shareability
+  // localStorage is already kept in sync by valtio's setRole
   useEffect(() => {
+    if (!hasInitialized.current) return
+
     if (!role || role.type !== 'postgrest' || role.role === 'service_role') {
       setUrlRole(null)
       setUrlUserId(null)
@@ -174,6 +262,9 @@ export function useSyncRoleImpersonationWithUrl() {
     } else if (role.role === 'authenticated' && role.userType === 'native' && role.user?.id) {
       setUrlRole('authenticated')
       setUrlUserId(role.user.id)
+    } else {
+      setUrlRole(null)
+      setUrlUserId(null)
     }
   }, [role, setUrlRole, setUrlUserId])
 }
@@ -191,7 +282,12 @@ export function buildRoleImpersonationUrl({
   userId: string
   path: 'editor' | 'sql'
 }) {
+  saveRoleImpersonationToLocalStorage(projectRef, {
+    role: 'authenticated',
+    userId,
+  })
+
   const basePath =
     path === 'editor' ? `/project/${projectRef}/editor` : `/project/${projectRef}/sql/new`
-  return `${basePath}?role=authenticated&userId=${userId}`
+  return `${basePath}`
 }

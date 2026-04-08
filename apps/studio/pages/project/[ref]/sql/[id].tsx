@@ -84,7 +84,9 @@ const SqlEditor: NextPageWithLayout = () => {
       content === undefined
     ) {
       const snippet = allSnippets.find((snippet) => snippet.id === history.sql)
-      if (snippet !== undefined) router.replace(`/project/${ref}/sql/${history.sql}`)
+      if (snippet !== undefined) {
+        router.replace(`/project/${ref}/sql/${history.sql}`)
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, allSnippets, content])

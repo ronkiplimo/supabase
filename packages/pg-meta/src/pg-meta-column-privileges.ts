@@ -63,8 +63,7 @@ function list({
   sql: SafeSqlFragment
   zod: typeof pgColumnPrivilegesArrayZod
 } {
-  let sql =
-  safeSql`
+  let sql = safeSql`
 -- source: dashboard
 -- description: List all column privileges with metadata
   with column_privileges as (${COLUMN_PRIVILEGES_SQL})
@@ -105,8 +104,7 @@ function list({
 
 type ColumnPrivilegesGrant = z.infer<typeof privilegeGrant>
 function grant(grants: ColumnPrivilegesGrant[]): { sql: SafeSqlFragment } {
-  const sql =
-    safeSql`
+  const sql = safeSql`
     -- source: dashboard
     -- description: Grant column privilege on table
 do $$

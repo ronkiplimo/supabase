@@ -75,6 +75,14 @@ export type PaymentMethodElementRef = {
       }
     | undefined
   >
+  getFormValues: () => Promise<
+    | {
+        address: CustomerAddress
+        customerName: string
+        taxId: CustomerTaxId | null
+      }
+    | undefined
+  >
 }
 
 export const NewPaymentMethodElement = forwardRef(
@@ -226,9 +234,29 @@ export const NewPaymentMethodElement = forwardRef(
       }
     }
 
+    const getFormValues = async (): ReturnType<PaymentMethodElementRef['getFormValues']> => {
+      if (!elements) return
+
+      await form.trigger()
+      if (purchasingAsBusiness && availableTaxIds.length > 0 && !form.getValues('tax_id_value')) {
+        return
+      }
+
+      const addressElement = await elements.getElement('address')!.getValue()
+      return {
+        address: {
+          ...addressElement.value.address,
+          line2: addressElement.value.address.line2 || undefined,
+        },
+        customerName: addressElement.value.name,
+        taxId: getConfiguredTaxId(),
+      }
+    }
+
     useImperativeHandle(ref, () => ({
       createPaymentMethod,
       confirmSetup,
+      getFormValues,
     }))
 
     const addressOptions: StripeAddressElementOptions = useMemo(

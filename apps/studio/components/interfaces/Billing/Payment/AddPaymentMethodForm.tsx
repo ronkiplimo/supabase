@@ -14,7 +14,6 @@ import { useOrganizationCustomerProfileQuery } from '@/data/organizations/organi
 import { useOrganizationCustomerProfileUpdateMutation } from '@/data/organizations/organization-customer-profile-update-mutation'
 import { useOrganizationPaymentMethodMarkAsDefaultMutation } from '@/data/organizations/organization-payment-method-default-mutation'
 import { useOrganizationTaxIdQuery } from '@/data/organizations/organization-tax-id-query'
-import { useOrganizationTaxIdUpdateMutation } from '@/data/organizations/organization-tax-id-update-mutation'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
 
 interface AddPaymentMethodFormProps {
@@ -42,7 +41,6 @@ const AddPaymentMethodForm = ({ onCancel, onConfirm }: AddPaymentMethodFormProps
   const queryClient = useQueryClient()
   const { mutateAsync: markAsDefault } = useOrganizationPaymentMethodMarkAsDefaultMutation()
   const { mutateAsync: updateCustomerProfile } = useOrganizationCustomerProfileUpdateMutation()
-  const { mutateAsync: updateTaxId } = useOrganizationTaxIdUpdateMutation()
   const { data: taxId, isPending: isCustomerTaxIdLoading } = useOrganizationTaxIdQuery({
     slug: selectedOrganization?.slug,
   })
@@ -57,6 +55,42 @@ const AddPaymentMethodForm = ({ onCancel, onConfirm }: AddPaymentMethodFormProps
     if (document !== undefined) {
       // [Joshen] This is to ensure that any 3DS popup from Stripe remains clickable
       document.body.classList.add('!pointer-events-auto')
+    }
+
+    // Save customer profile (address + tax ID) before confirming payment,
+    // so validation errors (e.g. invalid tax ID) block the flow early.
+    if (isPrimaryBillingAddress) {
+      const formValues = await paymentRef.current?.getFormValues()
+      if (!formValues) {
+        setIsSaving(false)
+        if (document !== undefined) {
+          document.body.classList.remove('!pointer-events-auto')
+        }
+        return
+      }
+
+      const addressChanged =
+        formValues.address &&
+        (!isEqual(formValues.address, customerProfile?.address) ||
+          customerProfile?.billing_name !== formValues.customerName)
+      const taxIdChanged = formValues.taxId && !isEqual(formValues.taxId, taxId)
+
+      if (addressChanged || taxIdChanged) {
+        try {
+          await updateCustomerProfile({
+            slug: selectedOrganization?.slug,
+            billing_name: formValues.customerName,
+            ...(addressChanged ? { address: formValues.address } : {}),
+            ...(taxIdChanged ? { tax_id: formValues.taxId } : {}),
+          })
+        } catch {
+          setIsSaving(false)
+          if (document !== undefined) {
+            document.body.classList.remove('!pointer-events-auto')
+          }
+          return
+        }
+      }
     }
 
     const result = await paymentRef.current?.confirmSetup()
@@ -101,28 +135,6 @@ const AddPaymentMethodForm = ({ onCancel, onConfirm }: AddPaymentMethodFormProps
           await queryClient.invalidateQueries({
             queryKey: organizationKeys.paymentMethods(selectedOrganization.slug),
           })
-        }
-      }
-
-      if (isPrimaryBillingAddress) {
-        try {
-          if (
-            result.address &&
-            (!isEqual(result.address, customerProfile?.address) ||
-              customerProfile?.billing_name !== result.customerName)
-          ) {
-            await updateCustomerProfile({
-              slug: selectedOrganization?.slug,
-              billing_name: result.customerName,
-              address: result.address,
-            })
-          }
-
-          if (result.taxId && !isEqual(result.taxId, taxId)) {
-            await updateTaxId({ taxId: result.taxId, slug: selectedOrganization?.slug })
-          }
-        } catch (error) {
-          toast.error('Failed to update billing address')
         }
       }
 

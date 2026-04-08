@@ -3,7 +3,6 @@ import { RadioGroupCard, RadioGroupCardItem } from '@ui/components/radio-group-c
 import { cn } from '@ui/lib/utils'
 import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
 import { useMemo, useState } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -21,6 +20,7 @@ import { z } from 'zod'
 
 import { OrganizationCard } from '../OrganizationCard'
 import AwsMarketplaceAutoRenewalWarning from './AwsMarketplaceAutoRenewalWarning'
+import { useAwsMarketplaceOnboardingRouteApi } from './AwsMarketplaceOnboarding.route'
 import AwsMarketplaceOnboardingPlaceholder from './AwsMarketplaceOnboardingPlaceholder'
 import AwsMarketplaceOnboardingSuccessModal from './AwsMarketplaceOnboardingSuccessModal'
 import { useCloudMarketplaceOnboardingInfoQuery } from './cloud-marketplace-query'
@@ -36,6 +36,7 @@ import { DOCS_URL } from '@/lib/constants'
 import type { Organization } from '@/types'
 
 interface AwsMarketplaceLinkExistingOrgProps {
+  buyerId: string | Array<string> | undefined
   organizations?: Organization[] | undefined
 }
 
@@ -46,12 +47,10 @@ const FormSchema = z.object({
 type LinkExistingOrgForm = z.infer<typeof FormSchema>
 
 export const AwsMarketplaceLinkExistingOrg = ({
+  buyerId,
   organizations,
 }: AwsMarketplaceLinkExistingOrgProps) => {
-  const router = useRouter()
-  const {
-    query: { buyer_id: buyerId },
-  } = router
+  const { navigate } = useAwsMarketplaceOnboardingRouteApi()
 
   const { data: onboardingInfo, isPending: isLoadingOnboardingInfo } =
     useCloudMarketplaceOnboardingInfoQuery({
@@ -306,7 +305,7 @@ export const AwsMarketplaceLinkExistingOrg = ({
         visible={orgLinkedSuccessfully}
         onClose={() => {
           setOrgLinkedSuccessfully(false)
-          router.push(`/org/${orgToRedirectTo}`)
+          navigate(`/org/${orgToRedirectTo}`)
         }}
       />
 

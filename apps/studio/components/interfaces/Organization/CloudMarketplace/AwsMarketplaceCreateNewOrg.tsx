@@ -1,10 +1,10 @@
 import Link from 'next/link'
-import { useRouter } from 'next/router'
 import { SubmitHandler } from 'react-hook-form'
 import { toast } from 'sonner'
 import { Button } from 'ui'
 
 import AwsMarketplaceAutoRenewalWarning from './AwsMarketplaceAutoRenewalWarning'
+import { useAwsMarketplaceOnboardingRouteApi } from './AwsMarketplaceOnboarding.route'
 import AwsMarketplaceOnboardingPlaceholder from './AwsMarketplaceOnboardingPlaceholder'
 import { useCloudMarketplaceOnboardingInfoQuery } from './cloud-marketplace-query'
 import NewAwsMarketplaceOrgForm, {
@@ -19,11 +19,12 @@ import {
 import { useAwsManagedOrganizationCreateMutation } from '@/data/organizations/organization-create-mutation'
 import { DOCS_URL } from '@/lib/constants'
 
-const AwsMarketplaceCreateNewOrg = () => {
-  const router = useRouter()
-  const {
-    query: { buyer_id: buyerId },
-  } = router
+interface AwsMarketplaceCreateNewOrgProps {
+  buyerId: string | Array<string> | undefined
+}
+
+const AwsMarketplaceCreateNewOrg = ({ buyerId }: AwsMarketplaceCreateNewOrgProps) => {
+  const { navigate } = useAwsMarketplaceOnboardingRouteApi()
 
   const { data: onboardingInfo, isPending: isLoadingOnboardingInfo } =
     useCloudMarketplaceOnboardingInfoQuery({
@@ -34,7 +35,7 @@ const AwsMarketplaceCreateNewOrg = () => {
     useAwsManagedOrganizationCreateMutation({
       onSuccess: (org) => {
         //TODO(thomas): send tracking event?
-        router.push(`/org/${org.slug}`)
+        navigate(`/org/${org.slug}`)
       },
       onError: (res) => {
         toast.error(res.message, {

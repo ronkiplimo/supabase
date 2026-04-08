@@ -49,6 +49,7 @@ import { STORAGE_SORT_BY, STORAGE_SORT_BY_ORDER, STORAGE_VIEWS } from '../Storag
 import type { StorageColumn } from '../Storage.types'
 import { useIsAPIDocsSidePanelEnabled } from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { APIDocsButton } from '@/components/ui/APIDocsButton'
+import { useStoragePreference } from './useStoragePreference'
 import { ButtonTooltip } from '@/components/ui/ButtonTooltip'
 import { useAsyncCheckPermissions } from '@/hooks/misc/useCheckPermissions'
 import { useTrack } from '@/lib/telemetry/track'
@@ -213,7 +214,6 @@ export const FileExplorerHeader = ({
   forceListView = false,
 }: FileExplorerHeaderProps) => {
   const snap = useStorageExplorerStateSnapshot()
-  const isNewAPIDocsEnabled = useIsAPIDocsSidePanelEnabled()
   const track = useTrack()
 
   const [pathString, setPathString] = useState('')

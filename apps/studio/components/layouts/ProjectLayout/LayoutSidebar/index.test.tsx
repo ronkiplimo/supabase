@@ -9,15 +9,15 @@ import { sidebarManagerState } from '@/state/sidebar-manager-state'
 import { render } from '@/tests/helpers'
 import { routerMock } from '@/tests/lib/route-mock'
 
-vi.mock('components/ui/AIAssistantPanel/AIAssistant', () => ({
+vi.mock('@/components/ui/AIAssistantPanel/AIAssistant', () => ({
   AIAssistant: () => <div data-testid="ai-assistant-sidebar">AI Assistant</div>,
 }))
 
-vi.mock('components/ui/EditorPanel/EditorPanel', () => ({
+vi.mock('@/components/ui/EditorPanel/EditorPanel', () => ({
   EditorPanel: () => <div data-testid="editor-panel-sidebar">Editor Panel</div>,
 }))
 
-vi.mock('components/ui/AdvisorPanel/AdvisorPanel', () => ({
+vi.mock('@/components/ui/AdvisorPanel/AdvisorPanel', () => ({
   AdvisorPanel: () => <div data-testid="advisor-panel-sidebar">Advisor Panel</div>,
 }))
 
@@ -51,7 +51,7 @@ const mockProject = {
 
 let mockProjectData: typeof mockProject | undefined = mockProject
 
-vi.mock('hooks/misc/useSelectedProject', () => ({
+vi.mock('@/hooks/misc/useSelectedProject', () => ({
   useSelectedProjectQuery: () => {
     // Access the variable at runtime when the function is called
     return {
@@ -60,7 +60,7 @@ vi.mock('hooks/misc/useSelectedProject', () => ({
   },
 }))
 
-vi.mock('hooks/misc/useSelectedOrganization', () => ({
+vi.mock('@/hooks/misc/useSelectedOrganization', () => ({
   useSelectedOrganizationQuery: () => ({
     data: {
       id: 1,
@@ -83,7 +83,7 @@ vi.mock('hooks/misc/useSelectedOrganization', () => ({
   }),
 }))
 
-vi.mock('data/telemetry/send-event-mutation', () => ({
+vi.mock('@/data/telemetry/send-event-mutation', () => ({
   useSendEventMutation: () => ({
     mutate: vi.fn(),
   }),

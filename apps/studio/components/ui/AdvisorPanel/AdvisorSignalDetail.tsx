@@ -3,13 +3,12 @@ import { EyeOff, Globe } from 'lucide-react'
 import Link from 'next/link'
 import { Button, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
 
+import type { AdvisorSignalItem } from './AdvisorPanel.types'
 import { SIDEBAR_KEYS } from '@/components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
 import { AiAssistantDropdown } from '@/components/ui/AiAssistantDropdown'
 import { InlineLink } from '@/components/ui/InlineLink'
 import { useAiAssistantStateSnapshot } from '@/state/ai-assistant-state'
 import { useSidebarManagerSnapshot } from '@/state/sidebar-manager-state'
-
-import type { AdvisorSignalItem } from './AdvisorPanel.types'
 
 interface AdvisorSignalDetailProps {
   item: AdvisorSignalItem

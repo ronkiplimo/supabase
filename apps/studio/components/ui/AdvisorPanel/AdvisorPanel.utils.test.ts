@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest'
 
-import type { IPData } from '@/data/banned-ips/banned-ips-query'
-import type { Lint } from '@/data/lint/lint-query'
-import type { Notification } from '@/data/notifications/notifications-v2-query'
-import type { ListablePublicBucket } from '@/data/storage/public-buckets-with-select-policies-query'
-
 import {
   ADVISOR_DEBUG_BANNED_IPS_ENV_VAR,
   createAdvisorLintItems,
@@ -17,6 +12,10 @@ import {
   getAdvisorItemSecondaryText,
   sortAdvisorItems,
 } from './AdvisorPanel.utils'
+import type { IPData } from '@/data/banned-ips/banned-ips-query'
+import type { Lint } from '@/data/lint/lint-query'
+import type { Notification } from '@/data/notifications/notifications-v2-query'
+import type { ListablePublicBucket } from '@/data/storage/public-buckets-with-select-policies-query'
 
 const createListablePublicBucket = (
   overrides: Partial<ListablePublicBucket> = {}

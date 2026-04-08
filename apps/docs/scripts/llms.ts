@@ -135,11 +135,34 @@ async function generateSourceLlmsTxt(sourceDefn: Source) {
   fs.writeFile(`public/${sourceDefn.relPath}`, fullText)
 }
 
+async function generateFullLlmsTxt() {
+  const enabledSources = SOURCES.filter((source) => source.enabled !== false)
+
+  const sections = await Promise.all(
+    enabledSources.map(async (sourceDefn) => {
+      const source = await sourceDefn.fetch()
+      const sourceText = source
+        .map((section) => {
+          section.process()
+          return section.extractIndexedContent()
+        })
+        .join('\n\n')
+      // Use markdown heading per source for clear section boundaries in the concatenated file
+      return `# ${sourceDefn.title}\n\n${sourceText}`
+    })
+  )
+
+  const fullText = `# ${metadataTitle}\n\n${sections.join('\n\n---\n\n')}`
+  await fs.writeFile('public/llms-full.txt', fullText)
+  console.log(`llms-full.txt: ${(Buffer.byteLength(fullText) / 1024 / 1024).toFixed(1)}MB`)
+}
+
 async function generateLlmsTxt() {
   try {
     await fs.mkdir('public/llms', { recursive: true })
     await Promise.all([
       generateMainLlmsTxt(),
+      generateFullLlmsTxt(),
       ...SOURCES.filter((source) => source.enabled !== false).map(generateSourceLlmsTxt),
     ])
   } catch (err) {

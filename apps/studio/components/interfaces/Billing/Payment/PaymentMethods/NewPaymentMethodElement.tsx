@@ -243,6 +243,8 @@ export const NewPaymentMethodElement = forwardRef(
       }
 
       const addressElement = await elements.getElement('address')!.getValue()
+      if (!addressElement.complete) return
+
       return {
         address: {
           ...addressElement.value.address,

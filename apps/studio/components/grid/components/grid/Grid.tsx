@@ -1,6 +1,7 @@
 import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { horizontalListSortingStrategy, SortableContext } from '@dnd-kit/sortable'
 import type { PostgresColumn } from '@supabase/postgres-meta'
+import { User as IconUser } from 'lucide-react'
 import { forwardRef, memo, Ref, useCallback, useMemo, useRef, useState } from 'react'
 import DataGrid, { CalculatedColumn, DataGridHandle } from 'react-data-grid'
 import { Button, cn } from 'ui'
@@ -17,7 +18,9 @@ import { RowContextMenuProvider, RowRenderer } from './RowRenderer'
 import { useTableFilterNew } from '@/components/grid/hooks/useTableFilterNew'
 import { handleCopyCell } from '@/components/grid/SupabaseGrid.utils'
 import { useIsTableFilterBarEnabled } from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'
+import { getAvatarUrl, getDisplayName } from '@/components/interfaces/Auth/Users/Users.utils'
 import { formatForeignKeys } from '@/components/interfaces/TableGridEditor/SidePanelEditor/ForeignKeySelector/ForeignKeySelector.utils'
+import type { User } from '@/data/auth/users-infinite-query'
 import { useForeignKeyConstraintsQuery } from '@/data/database/foreign-key-constraints-query'
 import { ENTITY_TYPE } from '@/data/entity-types/entity-type-constants'
 import { isTableLike } from '@/data/table-editor/table-editor-types'
@@ -25,6 +28,7 @@ import { useSendEventMutation } from '@/data/telemetry/send-event-mutation'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
 import { useCsvFileDrop } from '@/hooks/ui/useCsvFileDrop'
+import { useRoleImpersonationStateSnapshot } from '@/state/role-impersonation-state'
 import { useTableEditorStateSnapshot } from '@/state/table-editor'
 import { useTableEditorTableStateSnapshot } from '@/state/table-editor-table'
 import { ResponseError } from '@/types'
@@ -63,6 +67,7 @@ export const Grid = memo(
     ) => {
       const newFilterBarEnabled = useIsTableFilterBarEnabled()
 
+      const roleImpersonationState = useRoleImpersonationStateSnapshot()
       const tableEditorSnap = useTableEditorStateSnapshot()
       const snap = useTableEditorTableStateSnapshot()
       const { filters: oldFilters, clearFilters: clearOldFilters } = useTableFilter()
@@ -225,6 +230,20 @@ export const Grid = memo(
         }
       }, [rowClass])
 
+      const isImpersonatingAuthenticated =
+        roleImpersonationState.role?.type === 'postgrest' &&
+        roleImpersonationState.role.role === 'authenticated'
+      const impersonatedUser =
+        isImpersonatingAuthenticated && roleImpersonationState.role.userType === 'native'
+          ? roleImpersonationState.role.user
+          : undefined
+      const impersonatedExternalSub =
+        isImpersonatingAuthenticated && roleImpersonationState.role.userType === 'external'
+          ? roleImpersonationState.role.externalAuth?.sub
+          : undefined
+      const showImpersonationBanner =
+        isImpersonatingAuthenticated && (impersonatedUser || impersonatedExternalSub)
+
       const sensors = useSensors(useSensor(PointerSensor))
       const [draggedColumn, setDraggedColumn] = useState<SupaColumn | undefined>(undefined)
 
@@ -330,6 +349,10 @@ export const Grid = memo(
             </div>
           )}
 
+          {showImpersonationBanner && (
+            <ImpersonationBanner user={impersonatedUser} externalSub={impersonatedExternalSub} />
+          )}
+
           <DndContext
             sensors={sensors}
             onDragStart={({ active }) => {
@@ -386,3 +409,30 @@ export const Grid = memo(
     }
   )
 )
+
+function ImpersonationBanner({ user, externalSub }: { user?: User; externalSub?: string }) {
+  const displayName = user
+    ? getDisplayName(user, user.email ?? user.phone ?? user.id ?? 'Unknown')
+    : undefined
+  const avatarUrl = user ? getAvatarUrl(user) : undefined
+  const userId = user?.id ?? externalSub
+
+  return (
+    <div className="absolute top-[35px] left-0 right-0 z-[2] flex items-center gap-2 px-3 py-1.5 bg-surface-200 border-b text-xs">
+      {avatarUrl ? (
+        <img className="rounded-full w-5 h-5" src={avatarUrl} alt={displayName} />
+      ) : (
+        <div className="rounded-full w-5 h-5 bg-surface-300 border flex items-center justify-center text-foreground-lighter">
+          <IconUser size={12} strokeWidth={2} />
+        </div>
+      )}
+      <span className="text-foreground-light">Viewing as</span>
+      {displayName && <span className="text-foreground">{displayName}</span>}
+      {userId && (
+        <span className="text-foreground-lighter font-mono">
+          {user ? 'UID' : 'Sub'}: {userId}
+        </span>
+      )}
+    </div>
+  )
+}

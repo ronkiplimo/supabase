@@ -1,12 +1,13 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { AdvisorSection } from 'components/interfaces/ProjectHome/AdvisorSection'
-import { SIDEBAR_KEYS } from 'components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
-import { AdvisorPanel } from 'components/ui/AdvisorPanel/AdvisorPanel'
-import { advisorState } from 'state/advisor-state'
-import { sidebarManagerState } from 'state/sidebar-manager-state'
-import { render } from 'tests/helpers'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { AdvisorSection } from '@/components/interfaces/ProjectHome/AdvisorSection'
+import { SIDEBAR_KEYS } from '@/components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
+import { AdvisorPanel } from '@/components/ui/AdvisorPanel/AdvisorPanel'
+import { advisorState } from '@/state/advisor-state'
+import { sidebarManagerState } from '@/state/sidebar-manager-state'
+import { render } from '@/tests/helpers'
 
 const {
   mockUseProjectLintsQuery,
@@ -35,41 +36,41 @@ vi.mock('common', async () => {
   }
 })
 
-vi.mock('data/lint/lint-query', () => ({
+vi.mock('@/data/lint/lint-query', () => ({
   useProjectLintsQuery: mockUseProjectLintsQuery,
 }))
 
-vi.mock('data/banned-ips/banned-ips-query', () => ({
+vi.mock('@/data/banned-ips/banned-ips-query', () => ({
   useBannedIPsQuery: mockUseBannedIPsQuery,
 }))
 
-vi.mock('data/storage/public-buckets-with-select-policies-query', () => ({
+vi.mock('@/data/storage/public-buckets-with-select-policies-query', () => ({
   useListablePublicBucketsQuery: mockUseListablePublicBucketsQuery,
 }))
 
-vi.mock('hooks/misc/useSelectedProject', () => ({
+vi.mock('@/hooks/misc/useSelectedProject', () => ({
   useSelectedProjectQuery: mockUseSelectedProjectQuery,
 }))
 
-vi.mock('data/notifications/notifications-v2-query', () => ({
+vi.mock('@/data/notifications/notifications-v2-query', () => ({
   useNotificationsV2Query: mockUseNotificationsV2Query,
 }))
 
-vi.mock('data/notifications/notifications-v2-update-mutation', () => ({
+vi.mock('@/data/notifications/notifications-v2-update-mutation', () => ({
   useNotificationsV2UpdateMutation: mockUseNotificationsV2UpdateMutation,
 }))
 
-vi.mock('lib/telemetry/track', () => ({
+vi.mock('@/lib/telemetry/track', () => ({
   useTrack: mockUseTrack,
 }))
 
-vi.mock('state/ai-assistant-state', () => ({
+vi.mock('@/state/ai-assistant-state', () => ({
   useAiAssistantStateSnapshot: () => ({
     newChat: vi.fn(),
   }),
 }))
 
-vi.mock('components/ui/AiAssistantDropdown', () => ({
+vi.mock('@/components/ui/AiAssistantDropdown', () => ({
   AiAssistantDropdown: () => <div data-testid="advisor-assistant-dropdown" />,
 }))
 

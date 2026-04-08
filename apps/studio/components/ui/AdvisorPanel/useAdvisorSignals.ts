@@ -1,6 +1,7 @@
-import { useBannedIPsQuery } from 'data/banned-ips/banned-ips-query'
-import { useListablePublicBucketsQuery } from 'data/storage/public-buckets-with-select-policies-query'
 import { useMemo } from 'react'
+
+import { useBannedIPsQuery } from '@/data/banned-ips/banned-ips-query'
+import { useListablePublicBucketsQuery } from '@/data/storage/public-buckets-with-select-policies-query'
 
 import { createAdvisorSignalItems, getAdvisorDebugBannedIPs } from './AdvisorPanel.utils'
 import { useAdvisorSignalDismissals } from './useAdvisorSignalDismissals'

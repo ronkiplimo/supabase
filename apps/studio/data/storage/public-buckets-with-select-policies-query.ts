@@ -1,11 +1,10 @@
 import { literal } from '@supabase/pg-meta/src/pg-format'
 import { useQuery } from '@tanstack/react-query'
-import { executeSql } from 'data/sql/execute-sql-query'
-import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
-import { PROJECT_STATUS } from 'lib/constants'
-import type { ResponseError, UseCustomQueryOptions } from 'types'
-
 import { storageKeys } from './keys'
+import { executeSql } from '@/data/sql/execute-sql-query'
+import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
+import { PROJECT_STATUS } from '@/lib/constants'
+import type { ResponseError, UseCustomQueryOptions } from '@/types'
 
 export type PublicBucketsWithSelectPoliciesVariables = {
   projectRef?: string
@@ -17,7 +16,6 @@ export type ListablePublicBucketsVariables = {
   projectRef?: string
   connectionString?: string | null
 }
-
 export type PublicBucketSelectPolicy = {
   bucket_id: string
   bucket_name: string
@@ -35,7 +33,6 @@ export type ListablePublicBucket = {
 
 const LISTABLE_BUCKET_POLICY_SQL =
   "COALESCE(p.qual, '') ~* ('bucket_id\\\\s*=\\\\s*' || quote_literal(b.id))"
-
 /**
  * For the given public bucket, checks whether any SELECT policy on storage.objects
  * references this bucket's ID in its qual expression. This combination means anyone
@@ -115,7 +112,6 @@ export async function getListablePublicBuckets({
     })
   )
 }
-
 export type PublicBucketsWithSelectPoliciesData = Awaited<
   ReturnType<typeof getPublicBucketsWithSelectPolicies>
 >
@@ -123,7 +119,6 @@ export type PublicBucketsWithSelectPoliciesError = ResponseError
 
 export type ListablePublicBucketsData = Awaited<ReturnType<typeof getListablePublicBuckets>>
 export type ListablePublicBucketsError = ResponseError
-
 export const usePublicBucketsWithSelectPoliciesQuery = <
   TData = PublicBucketsWithSelectPoliciesData,
 >(
@@ -170,7 +165,7 @@ export const useListablePublicBucketsQuery = <TData = ListablePublicBucketsData>
         projectRef,
         connectionString: resolvedConnectionString,
       }),
-    enabled: enabled && typeof projectRef !== 'undefined' && isActive && !!resolvedConnectionString,
+    enabled: enabled && typeof projectRef !== 'undefined' && isActive,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     ...options,

@@ -1,7 +1,8 @@
 import { screen } from '@testing-library/react'
-import { AdvisorButton } from 'components/layouts/AppLayout/AdvisorButton'
-import { render } from 'tests/helpers'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { AdvisorButton } from '@/components/layouts/AppLayout/AdvisorButton'
+import { render } from '@/tests/helpers'
 
 const {
   mockUseProjectLintsQuery,
@@ -15,19 +16,19 @@ const {
   mockToggleSidebar: vi.fn(),
 }))
 
-vi.mock('data/lint/lint-query', () => ({
+vi.mock('@/data/lint/lint-query', () => ({
   useProjectLintsQuery: mockUseProjectLintsQuery,
 }))
 
-vi.mock('data/notifications/notifications-v2-query', () => ({
+vi.mock('@/data/notifications/notifications-v2-query', () => ({
   useNotificationsV2Query: mockUseNotificationsV2Query,
 }))
 
-vi.mock('components/ui/AdvisorPanel/useAdvisorSignals', () => ({
+vi.mock('@/components/ui/AdvisorPanel/useAdvisorSignals', () => ({
   useAdvisorSignals: mockUseAdvisorSignals,
 }))
 
-vi.mock('state/sidebar-manager-state', () => ({
+vi.mock('@/state/sidebar-manager-state', () => ({
   useSidebarManagerSnapshot: () => ({
     toggleSidebar: mockToggleSidebar,
     activeSidebar: undefined,

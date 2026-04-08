@@ -1,12 +1,13 @@
-import { SIDEBAR_KEYS } from 'components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
-import { AiAssistantDropdown } from 'components/ui/AiAssistantDropdown'
-import { InlineLink } from 'components/ui/InlineLink'
 import { FilesBucket as FilesBucketIcon } from 'icons'
 import { EyeOff, Globe } from 'lucide-react'
 import Link from 'next/link'
-import { useAiAssistantStateSnapshot } from 'state/ai-assistant-state'
-import { useSidebarManagerSnapshot } from 'state/sidebar-manager-state'
 import { Button, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
+
+import { SIDEBAR_KEYS } from '@/components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
+import { AiAssistantDropdown } from '@/components/ui/AiAssistantDropdown'
+import { InlineLink } from '@/components/ui/InlineLink'
+import { useAiAssistantStateSnapshot } from '@/state/ai-assistant-state'
+import { useSidebarManagerSnapshot } from '@/state/sidebar-manager-state'
 
 import type { AdvisorSignalItem } from './AdvisorPanel.types'
 

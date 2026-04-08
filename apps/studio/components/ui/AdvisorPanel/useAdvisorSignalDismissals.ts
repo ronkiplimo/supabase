@@ -1,4 +1,4 @@
-import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
+import { useLocalStorageQuery } from '@/hooks/misc/useLocalStorage'
 import { useCallback, useMemo } from 'react'
 
 import { createAdvisorSignalDismissalStorageKey } from './AdvisorPanel.utils'

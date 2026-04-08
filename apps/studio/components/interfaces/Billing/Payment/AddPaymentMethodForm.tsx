@@ -79,8 +79,8 @@ const AddPaymentMethodForm = ({ onCancel, onConfirm }: AddPaymentMethodFormProps
         try {
           await updateCustomerProfile({
             slug: selectedOrganization?.slug,
+            address: formValues.address,
             billing_name: formValues.customerName,
-            ...(addressChanged ? { address: formValues.address } : {}),
             ...(taxIdChanged ? { tax_id: formValues.taxId } : {}),
           })
         } catch {

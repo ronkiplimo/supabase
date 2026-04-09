@@ -14,6 +14,7 @@ import {
   FormField_Shadcn_,
   Input_Shadcn_,
   Switch,
+  useWatch_Shadcn_,
 } from 'ui'
 import { FormItemLayout } from 'ui-patterns/form/FormItemLayout/FormItemLayout'
 import { GenericSkeletonLoader } from 'ui-patterns/ShimmeringLoader'
@@ -56,27 +57,27 @@ function validWebAuthnOrigins(value: string): boolean {
 const schema = z
   .object({
     PASSKEY_ENABLED: z.boolean(),
-    WEBAUTHN_RP_ID: z.string(),
-    WEBAUTHN_RP_DISPLAY_NAME: z.string(),
-    WEBAUTHN_RP_ORIGINS: z.string(),
+    WEBAUTHN_RP_ID: z.string().trim(),
+    WEBAUTHN_RP_DISPLAY_NAME: z.string().trim(),
+    WEBAUTHN_RP_ORIGINS: z.string().trim(),
   })
   .superRefine((data, ctx) => {
     if (!data.PASSKEY_ENABLED) return
-    if (!data.WEBAUTHN_RP_ID.trim()) {
+    if (!data.WEBAUTHN_RP_ID) {
       ctx.addIssue({
         path: ['WEBAUTHN_RP_ID'],
         code: z.ZodIssueCode.custom,
         message: 'Relying Party ID is required when Passkey is enabled',
       })
     }
-    if (!data.WEBAUTHN_RP_DISPLAY_NAME.trim()) {
+    if (!data.WEBAUTHN_RP_DISPLAY_NAME) {
       ctx.addIssue({
         path: ['WEBAUTHN_RP_DISPLAY_NAME'],
         code: z.ZodIssueCode.custom,
         message: 'Relying Party Display Name is required when Passkey is enabled',
       })
     }
-    const origins = data.WEBAUTHN_RP_ORIGINS.trim()
+    const origins = data.WEBAUTHN_RP_ORIGINS
     if (!origins) {
       ctx.addIssue({
         path: ['WEBAUTHN_RP_ORIGINS'],
@@ -137,18 +138,13 @@ function buildPasskeysFormValues(
 ): PasskeysSettings {
   const values: PasskeysSettings = {
     PASSKEY_ENABLED: config.PASSKEY_ENABLED ?? false,
-    WEBAUTHN_RP_ID: '',
-    WEBAUTHN_RP_DISPLAY_NAME: '',
-    WEBAUTHN_RP_ORIGINS: '',
+    WEBAUTHN_RP_ID: config.WEBAUTHN_RP_ID || getPasskeyDefault('WEBAUTHN_RP_ID', config, project),
+    WEBAUTHN_RP_DISPLAY_NAME:
+      config.WEBAUTHN_RP_DISPLAY_NAME ||
+      getPasskeyDefault('WEBAUTHN_RP_DISPLAY_NAME', config, project),
+    WEBAUTHN_RP_ORIGINS:
+      config.WEBAUTHN_RP_ORIGINS || getPasskeyDefault('WEBAUTHN_RP_ORIGINS', config, project),
   }
-
-  values.WEBAUTHN_RP_ID =
-    config.WEBAUTHN_RP_ID || getPasskeyDefault('WEBAUTHN_RP_ID', config, project)
-  values.WEBAUTHN_RP_DISPLAY_NAME =
-    config.WEBAUTHN_RP_DISPLAY_NAME ||
-    getPasskeyDefault('WEBAUTHN_RP_DISPLAY_NAME', config, project)
-  values.WEBAUTHN_RP_ORIGINS =
-    config.WEBAUTHN_RP_ORIGINS || getPasskeyDefault('WEBAUTHN_RP_ORIGINS', config, project)
 
   return values
 }
@@ -214,6 +210,8 @@ export const PasskeysSettingsForm = () => {
     updateAuthConfig({ projectRef, config: payload })
   }
 
+  const passKeysEnabled = useWatch_Shadcn_({ control: form.control, name: 'PASSKEY_ENABLED' })
+
   if (isPermissionsLoaded && !canReadConfig) {
     return <NoPermission resourceText="view passkey settings" />
   }
@@ -254,7 +252,7 @@ export const PasskeysSettingsForm = () => {
             />
           </CardContent>
 
-          {form.watch('PASSKEY_ENABLED') && (
+          {passKeysEnabled && (
             <>
               <CardContent>
                 <FormField_Shadcn_

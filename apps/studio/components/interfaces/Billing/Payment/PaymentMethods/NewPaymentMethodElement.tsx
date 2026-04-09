@@ -13,7 +13,7 @@ import {
 } from '@stripe/stripe-js'
 import { Form } from '@ui/components/shadcn/ui/form'
 import { Check, ChevronsUpDown } from 'lucide-react'
-import { forwardRef, useEffect, useId, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import { forwardRef, useEffect, useId, useImperativeHandle, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import {
@@ -285,28 +285,15 @@ export const NewPaymentMethodElement = forwardRef(
       [purchasingAsBusiness]
     )
 
-    // Reset tax ID fields when the billing country changes
-    const addressCountry = stripeAddress?.address.country
-    const prevCountryRef = useRef(addressCountry)
-    useEffect(() => {
-      if (!addressCountry) return
-      if (prevCountryRef.current && prevCountryRef.current !== addressCountry) {
-        form.setValue('tax_id_type', '')
-        form.setValue('tax_id_value', '')
-        form.setValue('tax_id_name', '')
-      }
-      prevCountryRef.current = addressCountry
-    }, [addressCountry])
-
     // Preselect tax id if there is no more than 2 available tax ids (even if there are two options, first one in the list is likely to be it)
     useEffect(() => {
-      if (availableTaxIds.length && addressCountry && !form.getValues('tax_id_name')) {
+      if (availableTaxIds.length && stripeAddress?.address.country && !currentTaxId) {
         const taxIdOption = availableTaxIds[0]
         form.setValue('tax_id_type', taxIdOption.type)
         form.setValue('tax_id_value', '')
         form.setValue('tax_id_name', taxIdOption.name)
       }
-    }, [availableTaxIds, addressCountry])
+    }, [availableTaxIds])
 
     return (
       <div className="space-y-2">

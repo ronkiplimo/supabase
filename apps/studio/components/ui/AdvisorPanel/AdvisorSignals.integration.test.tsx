@@ -197,4 +197,61 @@ describe('Advisor signals integration', () => {
 
     expect(screen.getAllByText('Critical lint detail').length).toBeGreaterThan(0)
   })
+
+  it('shows an overflow affordance when the homepage cap hides additional issues', () => {
+    mockUseProjectLintsQuery.mockImplementation((_variables, options) => {
+      if (options?.enabled === false) {
+        return {
+          data: undefined,
+          isPending: false,
+          isError: false,
+        }
+      }
+
+      return {
+        data: [
+          {
+            cache_key: 'lint-1',
+            name: 'unknown_lint',
+            detail: 'Critical lint detail 1',
+            level: 'ERROR',
+            categories: ['SECURITY'],
+            metadata: {},
+          },
+          {
+            cache_key: 'lint-2',
+            name: 'unknown_lint',
+            detail: 'Critical lint detail 2',
+            level: 'ERROR',
+            categories: ['SECURITY'],
+            metadata: {},
+          },
+          {
+            cache_key: 'lint-3',
+            name: 'unknown_lint',
+            detail: 'Critical lint detail 3',
+            level: 'ERROR',
+            categories: ['SECURITY'],
+            metadata: {},
+          },
+          {
+            cache_key: 'lint-4',
+            name: 'unknown_lint',
+            detail: 'Critical lint detail 4',
+            level: 'ERROR',
+            categories: ['SECURITY'],
+            metadata: {},
+          },
+        ],
+        isPending: false,
+        isError: false,
+      }
+    })
+
+    render(<AdvisorSection />)
+
+    expect(screen.getByText('Advisor found 5 issues')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'View 1 more issue in Advisor' })).toBeInTheDocument()
+    expect(screen.queryByText('Banned IP address')).not.toBeInTheDocument()
+  })
 })

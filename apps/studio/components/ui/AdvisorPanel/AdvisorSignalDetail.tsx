@@ -39,7 +39,7 @@ export const AdvisorSignalDetail = ({ item, onDismiss }: AdvisorSignalDetailProp
     openSidebar(SIDEBAR_KEYS.AI_ASSISTANT)
     snap.newChat({
       name: `Review ${item.title.toLowerCase()}`,
-      initialMessage: buildSignalAssistantPrompt(item),
+      initialInput: buildSignalAssistantPrompt(item),
     })
   }
 

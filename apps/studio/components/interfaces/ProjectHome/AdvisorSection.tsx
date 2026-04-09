@@ -59,6 +59,7 @@ export const AdvisorSection = ({ showEmptyState = false }: { showEmptyState?: bo
   )
 
   const totalIssues = advisorItems.length
+  const hiddenIssuesCount = totalIssues - visibleAdvisorItems.length
 
   const titleContent = useMemo(() => {
     if (totalIssues === 0) return <h2>Advisor found no issues</h2>
@@ -221,6 +222,14 @@ export const AdvisorSection = ({ showEmptyState = false }: { showEmptyState?: bo
               )
             })}
           </Row>
+          {hiddenIssuesCount > 0 && (
+            <div className="mt-4 flex justify-end">
+              <Button type="text" onClick={() => openSidebar(SIDEBAR_KEYS.ADVISOR_PANEL)}>
+                View {hiddenIssuesCount} more issue{hiddenIssuesCount !== 1 ? 's' : ''} in
+                Advisor
+              </Button>
+            </div>
+          )}
         </>
       ) : (
         <EmptyState />

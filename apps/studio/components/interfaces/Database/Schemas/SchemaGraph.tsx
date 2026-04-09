@@ -148,7 +148,10 @@ export const SchemaGraph = () => {
 
   const handleShowAllTables = () => {
     setShowAllTables(true)
-    resetLayout()
+
+    setTimeout(() => {
+      resetLayout()
+    }, 100)
   }
 
   const saveNodePositions = useStaticEffectEvent(() => {

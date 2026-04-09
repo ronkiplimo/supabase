@@ -53,7 +53,7 @@ export const useAvailableIntegrations = () => {
       images,
       content,
       partner_name: authorName,
-      partner_logo: partnerLogo,
+      listing_logo: listingLogo,
     } = integration
 
     const status = undefined
@@ -73,14 +73,14 @@ export const useAvailableIntegrations = () => {
       docsUrl,
       siteUrl,
       installUrl,
-      installUrlType: installUrlType,
-      installMethod,
-      secretKeyPrefix,
+      installUrlType: installUrlType ?? undefined,
+      installMethod: installMethod ?? undefined,
+      secretKeyPrefix: secretKeyPrefix ?? undefined,
       listingId: listingId ?? undefined,
       author,
       requiredExtensions: [],
       icon: ({ className, ...props } = {}) => (
-        <Image src={fullImageUrl(partnerLogo ?? '')} alt="" width={22} height={22} />
+        <Image src={fullImageUrl(listingLogo ?? '')} alt="" width={22} height={22} />
       ),
       navigation: [
         {
@@ -138,8 +138,6 @@ export const useAvailableIntegrations = () => {
     () => allIntegrations.sort((a, b) => a.name.localeCompare(b.name)),
     [allIntegrations]
   )
-
-  console.log(`MARKETPLACE INTEGRATIONS: ${JSON.stringify(marketplaceIntegrations)}`)
 
   return {
     data: [...marketplaceIntegrations, ...availableIntegrations],

@@ -3,10 +3,15 @@ import { createClient } from '@supabase/supabase-js'
 import type { Database } from './marketplace.types'
 
 export const createMarketplaceClient = () => {
-  const API_URL = process.env.NEXT_PUBLIC_MARKETPLACE_API_URL || ''
-  const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_MARKETPLACE_PUBLISHABLE_KEY || ''
+  if (!process.env.NEXT_PUBLIC_MARKETPLACE_API_URL) {
+    throw new Error('NEXT_PUBLIC_MARKETPLACE_API_URL env var not set')
+  }
+  if (!process.env.NEXT_PUBLIC_MARKETPLACE_PUBLISHABLE_KEY) {
+    throw new Error('NEXT_PUBLIC_MARKETPLACE_PUBLISHABLE_KEY env var not set')
+  }
 
-  console.log(`API_URL: ${API_URL}, PUBLISHABLE_KEY: ${PUBLISHABLE_KEY}`)
+  const API_URL = process.env.NEXT_PUBLIC_MARKETPLACE_API_URL
+  const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_MARKETPLACE_PUBLISHABLE_KEY
 
   return createClient<Database>(API_URL, PUBLISHABLE_KEY, {
     auth: {
@@ -21,3 +26,5 @@ export const createMarketplaceClient = () => {
     },
   })
 }
+
+export const marketplaceClient = createMarketplaceClient()

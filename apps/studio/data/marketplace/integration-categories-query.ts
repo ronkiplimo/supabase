@@ -1,12 +1,11 @@
 import { queryOptions } from '@tanstack/react-query'
+import { marketplaceClient } from 'common/marketplace-client'
 
 import { marketplaceIntegrationsKeys } from './keys'
-import { createMarketplaceClient } from './marketplace-client'
 import { handleError } from '@/data/fetchers'
 
 async function getMarketplaceCategories() {
-  const client = createMarketplaceClient()
-  const { data, error } = await client.from('categories').select('*')
+  const { data, error } = await marketplaceClient.from('categories').select('*')
 
   if (error) handleError(error)
   return data ?? []

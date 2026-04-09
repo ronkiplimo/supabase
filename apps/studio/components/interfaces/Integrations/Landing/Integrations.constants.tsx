@@ -1,5 +1,4 @@
 import { getEnableWebhooksSQL } from '@supabase/pg-meta'
-import { InstallIdentificationMethod, InstallUrlType } from 'data/marketplace/marketplace.types'
 import { Clock5, Code2, Layers, Timer, Vault, Webhook } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
@@ -47,6 +46,10 @@ type IntegrationStep = {
   description?: string
 }
 
+type InstallUrlType = 'get' | 'post'
+
+type InstallIdentificationMethod = 'secret_key_prefix'
+
 /**
  * [Joshen] For marketplace, we probably need to revisit this definition
  * What properties are obsolete, what properties we need from remote source
@@ -64,8 +67,8 @@ export type IntegrationDefinition = {
   siteUrl?: string | null
   installUrl?: string | null
   installUrlType?: InstallUrlType
-  installMethod?: InstallIdentificationMethod,
-  secretKeyPrefix?: string,
+  installMethod?: InstallIdentificationMethod
+  secretKeyPrefix?: string
   /** UUID of the marketplace listing, used for API calls (id is the slug used for routing) */
   listingId?: string
   author: {

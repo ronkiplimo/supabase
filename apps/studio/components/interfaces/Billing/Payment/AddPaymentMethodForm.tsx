@@ -73,7 +73,7 @@ const AddPaymentMethodForm = ({ onCancel, onConfirm }: AddPaymentMethodFormProps
         formValues.address &&
         (!isEqual(formValues.address, customerProfile?.address) ||
           customerProfile?.billing_name !== formValues.customerName)
-      const taxIdChanged = !isEqual(formValues.taxId, taxId)
+      const taxIdChanged = taxId !== undefined && !isEqual(formValues.taxId, taxId)
 
       if (addressChanged || taxIdChanged) {
         try {

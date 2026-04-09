@@ -241,8 +241,12 @@ export const NewPaymentMethodElement = forwardRef(
     const getFormValues = async (): ReturnType<PaymentMethodElementRef['getFormValues']> => {
       if (!elements) return
 
-      await form.trigger()
-      if (purchasingAsBusiness && availableTaxIds.length > 0 && !form.getValues('tax_id_value')) {
+      const isValid = await form.trigger()
+      if (
+        purchasingAsBusiness &&
+        availableTaxIds.length > 0 &&
+        (!isValid || !form.getValues('tax_id_value'))
+      ) {
         return
       }
 

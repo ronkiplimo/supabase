@@ -35,6 +35,7 @@ export type MonacoEditorProps = {
     endLineNumber: number
   }) => void
   placeholder?: string
+  fontSize: number
 }
 
 const MonacoEditor = ({
@@ -49,6 +50,7 @@ const MonacoEditor = ({
   onHasSelection,
   onPrompt,
   onMount,
+  fontSize,
 }: MonacoEditorProps) => {
   const router = useRouter()
   const { profile } = useProfile()
@@ -217,6 +219,10 @@ const MonacoEditor = ({
     if (content && content.length > 0) handleEditorChange(content)
   }, [])
 
+  useEffect(() => {
+    editorRef.current?.updateOptions({ fontSize })
+  }, [fontSize])
+
   return (
     <>
       {disableEdit && (
@@ -237,7 +243,7 @@ const MonacoEditor = ({
         path={id}
         options={{
           tabSize: 2,
-          fontSize: 13,
+          fontSize,
           placeholder,
           lineDecorationsWidth: 0,
           readOnly: disableEdit,

@@ -1,5 +1,4 @@
 import { FeatureFlagContext, LOCAL_STORAGE_KEYS, useFlag } from 'common'
-import { EMPTY_OBJ } from 'lib/void'
 import { noop } from 'lodash'
 import { useQueryState } from 'nuqs'
 import {
@@ -14,6 +13,7 @@ import {
 
 import { useFeaturePreviews } from './useFeaturePreviews'
 import { useStaticEffectEvent } from '@/hooks/useStaticEffectEvent'
+import { EMPTY_OBJ } from '@/lib/void'
 
 type FeaturePreviewContextType = {
   flags: { [key: string]: boolean }
@@ -70,11 +70,6 @@ export const FeaturePreviewContextProvider = ({ children }: PropsWithChildren<{}
 
 // Helpers
 
-export const useIsAPIDocsSidePanelEnabled = () => {
-  const { flags } = useFeaturePreviewContext()
-  return flags[LOCAL_STORAGE_KEYS.UI_PREVIEW_API_SIDE_PANEL]
-}
-
 export const useIsColumnLevelPrivilegesEnabled = () => {
   const { flags } = useFeaturePreviewContext()
   return flags[LOCAL_STORAGE_KEYS.UI_PREVIEW_CLS]
@@ -106,11 +101,6 @@ export const useIsPgDeltaDiffEnabled = () => {
 export const useIsAdvisorRulesEnabled = () => {
   const { flags } = useFeaturePreviewContext()
   return flags[LOCAL_STORAGE_KEYS.UI_PREVIEW_ADVISOR_RULES]
-}
-
-export const useIsQueueOperationsEnabled = () => {
-  const { flags } = useFeaturePreviewContext()
-  return flags[LOCAL_STORAGE_KEYS.UI_PREVIEW_QUEUE_OPERATIONS]
 }
 
 export const useIsPlatformWebhooksEnabled = () => {

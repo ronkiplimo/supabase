@@ -1,7 +1,4 @@
-import { DatePicker } from 'components/ui/DatePicker'
-import { InlineLink } from 'components/ui/InlineLink'
 import dayjs from 'dayjs'
-import { DOCS_URL } from 'lib/constants'
 import type { Control } from 'react-hook-form'
 import {
   Checkbox_Shadcn_,
@@ -20,6 +17,9 @@ import { SingleValueFieldArray } from 'ui-patterns/form/SingleValueFieldArray/Si
 import { JIT_EXPIRY_MODE_OPTIONS, JIT_MAX_CUSTOM_EXPIRY_YEARS } from './JitDbAccess.constants'
 import type { JitRoleGrantDraft, JitRoleOption, JitUserRuleDraft } from './JitDbAccess.types'
 import { createEmptyIpRange, getRelativeDatetimeByMode } from './JitDbAccess.utils'
+import { DatePicker } from '@/components/ui/DatePicker'
+import { InlineLink } from '@/components/ui/InlineLink'
+import { DOCS_URL } from '@/lib/constants'
 
 interface JitDbAccessRoleGrantFieldsProps {
   control: Control<JitUserRuleDraft>

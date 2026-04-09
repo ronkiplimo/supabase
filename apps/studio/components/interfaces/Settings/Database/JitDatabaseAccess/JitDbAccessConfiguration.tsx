@@ -25,6 +25,7 @@ import {
 import {
   PageSection,
   PageSectionContent,
+  PageSectionDescription,
   PageSectionMeta,
   PageSectionSummary,
   PageSectionTitle,
@@ -32,7 +33,12 @@ import {
 import { Admonition } from 'ui-patterns/admonition'
 import { FormLayout } from 'ui-patterns/form/Layout/FormLayout'
 
-import type { JitUserRule, SheetMode } from './JitDbAccess.types'
+import {
+  JIT_DB_ACCESS_DESCRIPTION,
+  JIT_DB_ACCESS_PRODUCT_NAME,
+  JIT_DB_ACCESS_PRODUCT_NAME_LOWER,
+} from './JitDbAccess.constants'
+import type { JitDbAccessUnavailableReason, JitUserRule, SheetMode } from './JitDbAccess.types'
 import {
   getAssignableJitRoleOptions,
   getJitMemberOptions,
@@ -107,18 +113,18 @@ export const JitDbAccessConfiguration = () => {
         const nextEnabled = variables.requestedConfig.state === 'enabled'
 
         if (nextEnabled) {
-          toast.success('Ephemeral token-based access enabled')
+          toast.success(`${JIT_DB_ACCESS_PRODUCT_NAME} enabled`)
         } else {
           toast.success(
             activeRuleCount > 0
-              ? `Ephemeral token-based access disabled. ${activeRuleCount} configured member${activeRuleCount === 1 ? '' : 's'} can no longer request temporary database access.`
-              : 'Ephemeral token-based access disabled'
+              ? `${JIT_DB_ACCESS_PRODUCT_NAME} disabled. ${activeRuleCount} configured member${activeRuleCount === 1 ? '' : 's'} can no longer request temporary database access.`
+              : `${JIT_DB_ACCESS_PRODUCT_NAME} disabled`
           )
         }
       },
       onError: (error) => {
         setEnabled(initialIsEnabled ?? false)
-        toast.error(`Failed to update Ephemeral token-based database access: ${error.message}`)
+        toast.error(`Failed to update ${JIT_DB_ACCESS_PRODUCT_NAME_LOWER}: ${error.message}`)
       },
     })
 
@@ -145,11 +151,15 @@ export const JitDbAccessConfiguration = () => {
     'state' in jitDbAccessConfiguration &&
     (jitDbAccessConfiguration as { state: string }).state === 'enabled'
 
-  const hasAccessToJitDbAccess = !(
-    jitDbAccessConfiguration !== undefined &&
-    'isUnavailable' in jitDbAccessConfiguration &&
-    jitDbAccessConfiguration.isUnavailable
-  )
+  const isJitDbAccessUnavailable =
+    jitDbAccessConfiguration?.state === 'unavailable' ||
+    ('isUnavailable' in (jitDbAccessConfiguration ?? {}) &&
+      !!jitDbAccessConfiguration?.isUnavailable)
+  const hasAccessToJitDbAccess = !isJitDbAccessUnavailable
+  const unavailableReason: JitDbAccessUnavailableReason =
+    jitDbAccessConfiguration && 'unavailableReason' in jitDbAccessConfiguration
+      ? jitDbAccessConfiguration.unavailableReason
+      : 'temporarily_unavailable'
 
   const roleOptions = useMemo(() => getAssignableJitRoleOptions(databaseRoles), [databaseRoles])
 
@@ -265,6 +275,13 @@ export const JitDbAccessConfiguration = () => {
     'appliedSuccessfully' in jitDbAccessConfiguration &&
     !jitDbAccessConfiguration.appliedSuccessfully
 
+  const unavailableDescription =
+    unavailableReason === 'postgres_upgrade_required'
+      ? `${JIT_DB_ACCESS_PRODUCT_NAME} requires a newer Postgres version. Upgrade Postgres to enable this feature.`
+      : unavailableReason === 'manual_migration_required'
+        ? `This project can’t use ${JIT_DB_ACCESS_PRODUCT_NAME_LOWER} yet because it needs a platform migration. Contact Supabase Support to migrate this project.`
+        : `${JIT_DB_ACCESS_PRODUCT_NAME} is temporarily unavailable for this project. Contact Supabase Support if you need help enabling this feature.`
+
   useEffect(() => {
     if (!isLoadingConfiguration && jitDbAccessConfiguration) {
       setEnabled(initialIsEnabled ?? false)
@@ -276,7 +293,8 @@ export const JitDbAccessConfiguration = () => {
       <PageSection id="jit-db-access-configuration">
         <PageSectionMeta>
           <PageSectionSummary>
-            <PageSectionTitle>Ephemeral token-based database access</PageSectionTitle>
+            <PageSectionTitle>{JIT_DB_ACCESS_PRODUCT_NAME}</PageSectionTitle>
+            {/* <PageSectionDescription>{JIT_DB_ACCESS_DESCRIPTION}</PageSectionDescription> */}
           </PageSectionSummary>
           <DocsButton href={`${DOCS_URL}/guides/platform/ephemeral-token-database-access`} />
         </PageSectionMeta>
@@ -285,23 +303,41 @@ export const JitDbAccessConfiguration = () => {
           {isErrorJitDbAccessConfiguration && (
             <AlertError
               projectRef={ref}
-              subject="Failed to retrieve ephemeral token-based database access configuration"
+              subject={`Failed to load ${JIT_DB_ACCESS_PRODUCT_NAME_LOWER}`}
               error={jitDbAccessConfigurationError as { message: string } | null}
+              showInstructions={false}
             />
           )}
 
-          {!isErrorJitDbAccessConfiguration && !hasAccessToJitDbAccess && (
+          {!isErrorJitDbAccessConfiguration && isJitDbAccessUnavailable && (
             <Admonition
               type="note"
               layout="responsive"
-              title="Postgres upgrade required"
-              description="Ephemeral token-based access requires a newer Postgres version. Upgrade your project’s Postgres version to enable ephemeral access."
+              title={`${JIT_DB_ACCESS_PRODUCT_NAME} unavailable`}
+              description={unavailableDescription}
               actions={
-                ref ? (
+                unavailableReason === 'postgres_upgrade_required' && ref ? (
                   <Button type="default" asChild>
                     <Link href={`/project/${ref}/settings/infrastructure`}>Upgrade Postgres</Link>
                   </Button>
-                ) : undefined
+                ) : (
+                  <Button type="default" asChild>
+                    <SupportLink
+                      queryParams={{
+                        category: SupportCategories.PROBLEM,
+                        projectRef: ref,
+                        subject: `${JIT_DB_ACCESS_PRODUCT_NAME} unavailable`,
+                        error:
+                          jitDbAccessConfiguration &&
+                          'unavailableMessage' in jitDbAccessConfiguration
+                            ? jitDbAccessConfiguration.unavailableMessage
+                            : undefined,
+                      }}
+                    >
+                      Contact support
+                    </SupportLink>
+                  </Button>
+                )
               }
             />
           )}
@@ -311,8 +347,8 @@ export const JitDbAccessConfiguration = () => {
               <CardContent className="space-y-4">
                 <FormLayout
                   layout="flex-row-reverse"
-                  label="Enable Ephemeral token-based access"
-                  description="Allow configured project members to request temporary database access."
+                  label={`Enable ${JIT_DB_ACCESS_PRODUCT_NAME_LOWER}`}
+                  description="Allow project members to request temporary database access."
                 >
                   <div className="flex w-fit flex-shrink-0 items-center justify-end gap-2">
                     {(isLoadingConfiguration || isUpdatingJitDbAccess) && (
@@ -345,15 +381,15 @@ export const JitDbAccessConfiguration = () => {
                 <Admonition
                   type="warning"
                   layout="horizontal"
-                  title="Ephemeral token-based access update failed"
+                  title={`${JIT_DB_ACCESS_PRODUCT_NAME} update didn’t apply`}
                   description={
                     <>
-                      The change didn’t apply. Try turning Ephemeral token-based access on or off
-                      again, or{' '}
+                      The change didn’t apply. Try enabling or disabling{' '}
+                      {JIT_DB_ACCESS_PRODUCT_NAME_LOWER} again, or{' '}
                       <SupportLink
                         queryParams={{
                           category: SupportCategories.DASHBOARD_BUG,
-                          subject: 'Ephemeral token-based access was not updated successfully',
+                          subject: `${JIT_DB_ACCESS_PRODUCT_NAME} was not updated successfully`,
                         }}
                         className={InlineLinkClassName}
                       >
@@ -373,8 +409,9 @@ export const JitDbAccessConfiguration = () => {
               {isErrorJitMembers && (
                 <AlertError
                   projectRef={ref}
-                  subject="Failed to retrieve Ephemeral token-based access rules"
+                  subject={`Failed to load ${JIT_DB_ACCESS_PRODUCT_NAME_LOWER} rules`}
                   error={jitMembersError as { message: string } | null}
+                  showInstructions={false}
                 />
               )}
 
@@ -409,13 +446,13 @@ export const JitDbAccessConfiguration = () => {
       <AlertDialog open={showEnableJitDialog} onOpenChange={setShowEnableJitDialog}>
         <AlertDialogContent size="small">
           <AlertDialogHeader>
-            <AlertDialogTitle>JIT access will activate existing rules</AlertDialogTitle>
+            <AlertDialogTitle>Enabling access will activate existing rules</AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="text-sm">
                 <p>
-                  Enabling Ephemeral token-based will allow {activeRuleCount} configured member
-                  {activeRuleCount === 1 ? '' : 's'} to request temporary database access
-                  immediately.
+                  Enabling {JIT_DB_ACCESS_PRODUCT_NAME_LOWER} will allow {activeRuleCount}{' '}
+                  configured member{activeRuleCount === 1 ? '' : 's'} to request temporary database
+                  access immediately.
                 </p>
               </div>
             </AlertDialogDescription>
@@ -427,7 +464,7 @@ export const JitDbAccessConfiguration = () => {
               disabled={isUpdatingJitDbAccess}
               onClick={handleConfirmEnableJit}
             >
-              Enable Ephemeral token-based access
+              {`Enable ${JIT_DB_ACCESS_PRODUCT_NAME_LOWER}`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

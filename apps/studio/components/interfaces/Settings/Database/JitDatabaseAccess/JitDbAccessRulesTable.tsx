@@ -21,6 +21,10 @@ import {
   TooltipTrigger,
 } from 'ui'
 
+import {
+  JIT_DB_ACCESS_PRODUCT_NAME,
+  JIT_DB_ACCESS_PRODUCT_NAME_LOWER,
+} from './JitDbAccess.constants'
 import type { JitUserRule } from './JitDbAccess.types'
 import { getJitStatusDisplay } from './JitDbAccess.utils'
 
@@ -49,7 +53,7 @@ export function JitDbAccessRulesTable({
   const addRuleTooltip = !canUpdate
     ? 'Additional permissions required'
     : allProjectMembersHaveRules
-      ? 'All project members already have Ephemeral token-based access rules'
+      ? `All project members already have ${JIT_DB_ACCESS_PRODUCT_NAME_LOWER} rules`
       : undefined
 
   if (isLoading) {
@@ -74,9 +78,9 @@ export function JitDbAccessRulesTable({
       <CardContent className="space-y-4 p-0">
         <div className="flex items-center justify-between px-4 pb-2 pt-6">
           <div>
-            <h3 className="text-sm text-foreground">Ephemeral token-based access rules</h3>
+            <h3 className="text-sm text-foreground">{JIT_DB_ACCESS_PRODUCT_NAME} rules</h3>
             <p className="text-sm text-foreground-light">
-              Configure which members can request temporary database access.
+              Manage member access, allowed roles, and expiry settings.
             </p>
           </div>
 
@@ -107,9 +111,9 @@ export function JitDbAccessRulesTable({
             {users.length === 0 ? (
               <TableRow className="[&>td]:hover:bg-inherit">
                 <TableCell colSpan={4}>
-                  <p className="text-sm text-foreground">No JIT access rules</p>
+                  <p className="text-sm text-foreground">No rules yet</p>
                   <p className="text-sm text-foreground-lighter">
-                    Add your first Ephemeral token-based access rule above
+                    {`Add your first ${JIT_DB_ACCESS_PRODUCT_NAME_LOWER} rule above`}
                   </p>
                 </TableCell>
               </TableRow>

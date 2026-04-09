@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 import { jitDbAccessKeys } from './keys'
+import { JIT_DB_ACCESS_PRODUCT_NAME_LOWER } from '@/components/interfaces/Settings/Database/JitDatabaseAccess/JitDbAccess.constants'
 import { handleError, put } from '@/data/fetchers'
 import type { ResponseError, UseCustomMutationOptions } from '@/types'
 
@@ -44,7 +45,7 @@ export const useJitDbAccessUpdateMutation = ({
     },
     async onError(data, variables, context) {
       if (onError === undefined) {
-        toast.error(`Failed to update just-in-time (JIT) database access: ${data.message}`)
+        toast.error(`Failed to update ${JIT_DB_ACCESS_PRODUCT_NAME_LOWER}: ${data.message}`)
       } else {
         onError(data, variables, context)
       }

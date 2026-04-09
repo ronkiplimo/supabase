@@ -26,6 +26,7 @@ import { Admonition } from 'ui-patterns'
 import { FormItemLayout } from 'ui-patterns/form/FormItemLayout/FormItemLayout'
 import { z } from 'zod'
 
+import { JIT_DB_ACCESS_PRODUCT_NAME_LOWER } from './JitDbAccess.constants'
 import type {
   JitExpiryMode,
   JitMemberOption,
@@ -63,7 +64,7 @@ const grantSchema = z.object({
 function createJitRuleSchema(mode: SheetMode, membersWithRules: Set<string>) {
   return z
     .object({
-      memberId: z.string().min(1, 'Select a member for this Ephemeral token-based access rule.'),
+      memberId: z.string().min(1, 'Select a member for this ephemeral access rule.'),
       grants: z.array(grantSchema),
     })
     .superRefine((data, ctx) => {
@@ -71,8 +72,7 @@ function createJitRuleSchema(mode: SheetMode, membersWithRules: Set<string>) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['memberId'],
-          message:
-            'This member already has a Ephemeral token-based access rule. Edit their existing rule from the list.',
+          message: 'This member already has an ephemeral access rule. Edit their existing rule from the list.',
         })
       }
 
@@ -227,12 +227,10 @@ export function JitDbAccessRuleSheet({
         >
           <SheetHeader>
             <SheetTitle>
-              {mode === 'edit'
-                ? 'Edit Ephemeral token-based access rule'
-                : 'New Ephemeral token-based access rule'}
+              {mode === 'edit' ? 'Edit ephemeral access rule' : 'New ephemeral access rule'}
             </SheetTitle>
             <SheetDescription className="sr-only">
-              Configure which database roles a user can request with JIT access.
+              {`Configure which database roles a user can request with ${JIT_DB_ACCESS_PRODUCT_NAME_LOWER}.`}
             </SheetDescription>
           </SheetHeader>
 
@@ -276,7 +274,8 @@ export function JitDbAccessRuleSheet({
 
                       {mode === 'add' && availableMembersForAddCount === 0 && (
                         <p className="mt-2 text-foreground-lighter">
-                          All project members already have Ephemeral token-based access rules. Edit
+                          All project members already have {JIT_DB_ACCESS_PRODUCT_NAME_LOWER}{' '}
+                          rules. Edit
                           an existing rule from the table above.
                         </p>
                       )}

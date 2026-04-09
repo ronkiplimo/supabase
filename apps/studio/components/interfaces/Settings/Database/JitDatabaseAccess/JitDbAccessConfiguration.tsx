@@ -377,8 +377,7 @@ export const JitDbAccessConfiguration = () => {
                   title="Ephemeral access update didn’t apply"
                   description={
                     <>
-                      The change didn’t apply. Try enabling or disabling{' '}
-                      ephemeral access again, or{' '}
+                      The change didn’t apply. Try enabling or disabling ephemeral access again, or{' '}
                       <SupportLink
                         queryParams={{
                           category: SupportCategories.DASHBOARD_BUG,
@@ -443,9 +442,9 @@ export const JitDbAccessConfiguration = () => {
             <AlertDialogDescription asChild>
               <div className="text-sm">
                 <p>
-                  Enabling ephemeral access will allow {activeRuleCount}{' '}
-                  configured member{activeRuleCount === 1 ? '' : 's'} to request temporary database
-                  access immediately.
+                  Enabling ephemeral access will allow {activeRuleCount} configured member
+                  {activeRuleCount === 1 ? '' : 's'} to request temporary database access
+                  immediately.
                 </p>
               </div>
             </AlertDialogDescription>

@@ -71,7 +71,8 @@ function createJitRuleSchema(mode: SheetMode, membersWithRules: Set<string>) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['memberId'],
-          message: 'This member already has an ephemeral access rule. Edit their existing rule from the list.',
+          message:
+            'This member already has an ephemeral access rule. Edit their existing rule from the list.',
         })
       }
 

@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { jitDbAccessKeys } from './keys'
-import { get, handleError } from '@/data/fetchers'
 import type { JitDbAccessUnavailableReason } from '@/components/interfaces/Settings/Database/JitDatabaseAccess/JitDbAccess.types'
+import { get, handleError } from '@/data/fetchers'
 import type { ResponseError, UseCustomQueryOptions } from '@/types'
 
 type JitDbAccessVariables = { projectRef?: string }

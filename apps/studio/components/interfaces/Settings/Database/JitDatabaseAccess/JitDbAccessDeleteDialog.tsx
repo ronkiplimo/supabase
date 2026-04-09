@@ -39,8 +39,8 @@ export function JitDbAccessDeleteDialog({
                 <strong className="text-foreground">{userDisplayName}</strong>?
               </p>
               <p>
-                This revokes any assigned database roles for this member and removes their{' '}
-                ephemeral access configuration.
+                This revokes any assigned database roles for this member and removes their ephemeral
+                access configuration.
               </p>
             </div>
           </AlertDialogDescription>

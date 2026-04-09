@@ -86,32 +86,51 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     type EntityDefinitionRow = { data: { definitions: Array<{ id: number; sql: string }> } }
 
-    const [{ result: schemas }, { result: publicDefs }] = await (includeSchema
-      ? Promise.all([
-          executeSql<Schemas>(
-            { projectRef, connectionString, sql: pgMetaSchemasList.sql },
-            undefined,
-            headers,
-            IS_PLATFORM ? undefined : executeQuery
-          ),
-          executeSql<EntityDefinitionRow[]>(
+    // Fetch schema list first so we can determine which schemas to load DDL for
+    const { result: schemas } = await (includeSchema
+      ? executeSql<Schemas>(
+          { projectRef, connectionString, sql: pgMetaSchemasList.sql },
+          undefined,
+          headers,
+          IS_PLATFORM ? undefined : executeQuery
+        )
+      : Promise.resolve({ result: [] as Schemas }))
+
+    // Always include public; also eagerly include any non-public schema whose name
+    // appears as `name.` in the cursor context. Checking against the real schema list
+    // avoids fetching DDL for table aliases or other false matches. This is robust to
+    // incomplete SQL (the user may be mid-typing, so a full parser would fail here).
+    const cursorContext = textBeforeCursor + selection + textAfterCursor
+    const lowerContext = cursorContext.toLowerCase()
+    const schemasToFetch = includeSchema
+      ? [
+          'public',
+          ...(schemas ?? [])
+            .filter((s) => s.name !== 'public' && lowerContext.includes(s.name + '.'))
+            .map((s) => s.name),
+        ]
+      : []
+
+    const { result: entityDefs } =
+      schemasToFetch.length > 0
+        ? await executeSql<EntityDefinitionRow[]>(
             {
               projectRef,
               connectionString,
-              sql: getEntityDefinitionsSql({ schemas: ['public'] }),
+              sql: getEntityDefinitionsSql({ schemas: schemasToFetch }),
             },
             undefined,
             headers,
             IS_PLATFORM ? undefined : executeQuery
-          ),
-        ])
-      : Promise.resolve([{ result: [] as Schemas }, { result: [] as EntityDefinitionRow[] }]))
+          )
+        : { result: [] as EntityDefinitionRow[] }
 
-    const publicSchemaDDL = publicDefs?.[0]?.data?.definitions?.map((d) => d.sql).join('\n\n')
+    const schemaDDL = entityDefs?.[0]?.data?.definitions?.map((d) => d.sql).join('\n\n')
 
-    const otherSchemaNames = schemas
-      ?.map((s) => s.name)
-      .filter((name) => name !== 'public')
+    const fetchedSchemaSet = new Set(schemasToFetch)
+    const otherSchemaNames = (schemas ?? [])
+      .filter((s) => !fetchedSchemaSet.has(s.name))
+      .map((s) => s.name)
       .join(', ')
 
     // Important: do not use dynamic content in the system prompt or Bedrock will not cache it
@@ -136,7 +155,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           Here is the context:
           ${textBeforeCursor}<selection>${selection}</selection>${textAfterCursor}
 
-          ${publicSchemaDDL ? `Public schema:\n${publicSchemaDDL}` : ''}
+          ${schemaDDL ? `Schema definitions (${schemasToFetch.join(', ')}):\n${schemaDDL}` : ''}
           ${otherSchemaNames ? `Other available schemas (use getSchemaDefinitions to look them up): ${otherSchemaNames}` : ''}
 
           Instructions:

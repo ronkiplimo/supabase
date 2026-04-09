@@ -11,7 +11,7 @@ const IS_LOCAL_DEV = process.env.NODE_ENV === 'development'
 const POSITION_STORAGE_KEY = 'dev-telemetry-toolbar-position'
 const DRAG_THRESHOLD = 4
 const MARGIN = 24
-const BUTTON_SIZE = 36 // h-9
+const BUTTON_SIZE = 40 // h-10 w-10
 
 // Spring easing: slight overshoot then settle
 const SNAP_TRANSITION =
@@ -78,7 +78,7 @@ function readStoredPosition(): SnapPosition {
 export function DevToolbarTrigger() {
   const { isEnabled, isOpen, setIsOpen, events, dismissToolbar } = useDevToolbar()
   const [popoverOpen, setPopoverOpen] = useState(false)
-  const [snapPosition, setSnapPosition] = useState<SnapPosition>(readStoredPosition)
+  const [snapPosition, setSnapPosition] = useState<SnapPosition>('bottom-right')
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null)
   // Holds the last drag pixel position for one RAF to prime the CSS transition
   const [releasedAt, setReleasedAt] = useState<{ x: number; y: number } | null>(null)
@@ -96,6 +96,12 @@ export function DevToolbarTrigger() {
     hasDragged: boolean
   } | null>(null)
   const wasDraggingRef = useRef(false)
+
+  // Restore persisted position after mount to avoid SSR hydration mismatch
+  useEffect(() => {
+    const stored = readStoredPosition()
+    if (stored !== 'bottom-right') setSnapPosition(stored)
+  }, [])
 
   // Keep snap coords accurate on resize
   useEffect(() => {
@@ -265,8 +271,8 @@ export function DevToolbarTrigger() {
                   y2="3.60994"
                   gradientUnits="userSpaceOnUse"
                 >
-                  <stop stopColor="#EDEDED" stopOpacity="0.5" />
-                  <stop offset="1" stopColor="white" />
+                  <stop stopColor="#3ECF8E" />
+                  <stop offset="1" stopColor="#3FC463" />
                 </linearGradient>
               </defs>
             </svg>

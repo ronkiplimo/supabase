@@ -35,9 +35,10 @@ import { SidePanelEditor } from '../../TableGridEditor/SidePanelEditor/SidePanel
 import { DefaultEdge } from './DefaultEdge'
 import { SchemaGraphContextProvider, SchemaGraphContextType } from './SchemaGraphContext'
 import { SchemaGraphLegend } from './SchemaGraphLegend'
-import { EdgeData, TABLE_NODE_LIMIT, TableNodeData } from './Schemas.constants'
+import { EdgeData, TableNodeData } from './Schemas.constants'
 import { getGraphDataFromTables, getLayoutedElementsViaDagre } from './Schemas.utils'
 import { TableNode } from './SchemaTableNode'
+import { useCappedTables } from './useCappedTables'
 import AlertError from '@/components/ui/AlertError'
 import { ButtonTooltip } from '@/components/ui/ButtonTooltip'
 import SchemaSelector from '@/components/ui/SchemaSelector'
@@ -61,11 +62,6 @@ export const SchemaGraph = () => {
   const { selectedSchema, setSelectedSchema } = useQuerySchemaState()
   const [selectedTable, setSelectedTable] = useState<PostgresTable | null>(null)
   const snap = useTableEditorStateSnapshot()
-
-  const [showAllTables, setShowAllTables] = useState(false)
-  useEffect(() => {
-    setShowAllTables(false)
-  }, [selectedSchema])
 
   const [copied, setCopied] = useState(false)
   useEffect(() => {
@@ -119,37 +115,7 @@ export const SchemaGraph = () => {
     includeColumns: true,
   })
   const hasNoTables = isSuccessSchemas && tables.length === 0
-  const isCapped = !showAllTables && tables.length > TABLE_NODE_LIMIT
-
-  const tablesToRender = useMemo(() => {
-    if (!isCapped) return tables
-
-    const tablesInRelationships = new Set<string>()
-    for (const table of tables) {
-      for (const rel of table.relationships) {
-        if (rel.source_schema === selectedSchema) {
-          tablesInRelationships.add(rel.source_table_name)
-        }
-        if (rel.target_table_schema === selectedSchema) {
-          tablesInRelationships.add(rel.target_table_name)
-        }
-      }
-    }
-
-    const withRels: PostgresTable[] = []
-    const withoutRels: PostgresTable[] = []
-    for (const table of tables) {
-      if (tablesInRelationships.has(table.name)) {
-        withRels.push(table)
-      } else {
-        withoutRels.push(table)
-      }
-    }
-
-    const remaining = TABLE_NODE_LIMIT - withRels.length
-    if (remaining <= 0) return withRels.slice(0, TABLE_NODE_LIMIT)
-    return [...withRels, ...withoutRels.slice(0, remaining)]
-  }, [tables, isCapped, selectedSchema])
+  const { tablesToRender, isCapped, setShowAllTables } = useCappedTables(tables, selectedSchema)
 
   const schema = (schemas ?? []).find((s) => s.name === selectedSchema)
   const [, setStoredPositions] = useLocalStorage(

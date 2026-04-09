@@ -26,7 +26,6 @@ import { Admonition } from 'ui-patterns'
 import { FormItemLayout } from 'ui-patterns/form/FormItemLayout/FormItemLayout'
 import { z } from 'zod'
 
-import { JIT_DB_ACCESS_PRODUCT_NAME_LOWER } from './JitDbAccess.constants'
 import type {
   JitExpiryMode,
   JitMemberOption,
@@ -230,7 +229,7 @@ export function JitDbAccessRuleSheet({
               {mode === 'edit' ? 'Edit ephemeral access rule' : 'New ephemeral access rule'}
             </SheetTitle>
             <SheetDescription className="sr-only">
-              {`Configure which database roles a user can request with ${JIT_DB_ACCESS_PRODUCT_NAME_LOWER}.`}
+              Configure which database roles a user can request with ephemeral access.
             </SheetDescription>
           </SheetHeader>
 
@@ -274,9 +273,8 @@ export function JitDbAccessRuleSheet({
 
                       {mode === 'add' && availableMembersForAddCount === 0 && (
                         <p className="mt-2 text-foreground-lighter">
-                          All project members already have {JIT_DB_ACCESS_PRODUCT_NAME_LOWER}{' '}
-                          rules. Edit
-                          an existing rule from the table above.
+                          All project members already have ephemeral access rules. Edit an existing
+                          rule from the table above.
                         </p>
                       )}
                     </FormItemLayout>

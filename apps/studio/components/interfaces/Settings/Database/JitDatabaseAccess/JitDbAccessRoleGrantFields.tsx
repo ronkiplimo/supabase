@@ -14,12 +14,22 @@ import { TimestampInfo } from 'ui-patterns'
 import { Admonition } from 'ui-patterns/admonition'
 import { SingleValueFieldArray } from 'ui-patterns/form/SingleValueFieldArray/SingleValueFieldArray'
 
-import { JIT_EXPIRY_MODE_OPTIONS, JIT_MAX_CUSTOM_EXPIRY_YEARS } from './JitDbAccess.constants'
 import type { JitRoleGrantDraft, JitRoleOption, JitUserRuleDraft } from './JitDbAccess.types'
 import { createEmptyIpRange, getRelativeDatetimeByMode } from './JitDbAccess.utils'
 import { DatePicker } from '@/components/ui/DatePicker'
 import { InlineLink } from '@/components/ui/InlineLink'
 import { DOCS_URL } from '@/lib/constants'
+
+const EXPIRY_MODE_OPTIONS: Array<{ value: JitRoleGrantDraft['expiryMode']; label: string }> = [
+  { value: '1h', label: '1 hour' },
+  { value: '1d', label: '1 day' },
+  { value: '7d', label: '7 days' },
+  { value: '30d', label: '30 days' },
+  { value: 'custom', label: 'Custom' },
+  { value: 'never', label: 'Never' },
+]
+
+const MAX_CUSTOM_EXPIRY_YEARS = 1
 
 interface JitDbAccessRoleGrantFieldsProps {
   control: Control<JitUserRuleDraft>
@@ -165,7 +175,7 @@ export function JitDbAccessRoleGrantFields({
                       <SelectValue_Shadcn_ placeholder="Expires in" />
                     </SelectTrigger_Shadcn_>
                     <SelectContent_Shadcn_>
-                      {JIT_EXPIRY_MODE_OPTIONS.map((option) => (
+                      {EXPIRY_MODE_OPTIONS.map((option) => (
                         <SelectItem_Shadcn_ key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem_Shadcn_>
@@ -181,7 +191,7 @@ export function JitDbAccessRoleGrantFields({
                     contentSide="top"
                     to={grant.expiry || undefined}
                     minDate={new Date()}
-                    maxDate={dayjs().add(JIT_MAX_CUSTOM_EXPIRY_YEARS, 'year').toDate()}
+                    maxDate={dayjs().add(MAX_CUSTOM_EXPIRY_YEARS, 'year').toDate()}
                     onChange={(value) => {
                       const selectedDate = value.to || value.from || ''
                       onChange({

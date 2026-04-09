@@ -10,7 +10,6 @@ import {
   Button,
 } from 'ui'
 
-import { JIT_DB_ACCESS_PRODUCT_NAME_LOWER } from './JitDbAccess.constants'
 import type { JitUserRule } from './JitDbAccess.types'
 
 interface JitDbAccessDeleteDialogProps {
@@ -36,12 +35,12 @@ export function JitDbAccessDeleteDialog({
           <AlertDialogDescription asChild>
             <div className="space-y-2 text-sm">
               <p>
-                Remove the {JIT_DB_ACCESS_PRODUCT_NAME_LOWER} rule for{' '}
+                Remove the ephemeral access rule for{' '}
                 <strong className="text-foreground">{userDisplayName}</strong>?
               </p>
               <p>
                 This revokes any assigned database roles for this member and removes their{' '}
-                {JIT_DB_ACCESS_PRODUCT_NAME_LOWER} configuration.
+                ephemeral access configuration.
               </p>
             </div>
           </AlertDialogDescription>

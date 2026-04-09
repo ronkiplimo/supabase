@@ -25,7 +25,6 @@ import {
 import {
   PageSection,
   PageSectionContent,
-  PageSectionDescription,
   PageSectionMeta,
   PageSectionSummary,
   PageSectionTitle,
@@ -33,11 +32,6 @@ import {
 import { Admonition } from 'ui-patterns/admonition'
 import { FormLayout } from 'ui-patterns/form/Layout/FormLayout'
 
-import {
-  JIT_DB_ACCESS_DESCRIPTION,
-  JIT_DB_ACCESS_PRODUCT_NAME,
-  JIT_DB_ACCESS_PRODUCT_NAME_LOWER,
-} from './JitDbAccess.constants'
 import type { JitDbAccessUnavailableReason, JitUserRule, SheetMode } from './JitDbAccess.types'
 import {
   getAssignableJitRoleOptions,
@@ -113,18 +107,18 @@ export const JitDbAccessConfiguration = () => {
         const nextEnabled = variables.requestedConfig.state === 'enabled'
 
         if (nextEnabled) {
-          toast.success(`${JIT_DB_ACCESS_PRODUCT_NAME} enabled`)
+          toast.success('Ephemeral access enabled')
         } else {
           toast.success(
             activeRuleCount > 0
-              ? `${JIT_DB_ACCESS_PRODUCT_NAME} disabled. ${activeRuleCount} configured member${activeRuleCount === 1 ? '' : 's'} can no longer request temporary database access.`
-              : `${JIT_DB_ACCESS_PRODUCT_NAME} disabled`
+              ? `Ephemeral access disabled. ${activeRuleCount} configured member${activeRuleCount === 1 ? '' : 's'} can no longer request temporary database access.`
+              : 'Ephemeral access disabled'
           )
         }
       },
       onError: (error) => {
         setEnabled(initialIsEnabled ?? false)
-        toast.error(`Failed to update ${JIT_DB_ACCESS_PRODUCT_NAME_LOWER}: ${error.message}`)
+        toast.error(`Failed to update ephemeral access: ${error.message}`)
       },
     })
 
@@ -277,10 +271,10 @@ export const JitDbAccessConfiguration = () => {
 
   const unavailableDescription =
     unavailableReason === 'postgres_upgrade_required'
-      ? `${JIT_DB_ACCESS_PRODUCT_NAME} requires a newer Postgres version. Upgrade Postgres to enable this feature.`
+      ? 'Ephemeral access requires a newer Postgres version. Upgrade Postgres to enable this feature.'
       : unavailableReason === 'manual_migration_required'
-        ? `This project can’t use ${JIT_DB_ACCESS_PRODUCT_NAME_LOWER} yet because it needs a platform migration. Contact Supabase Support to migrate this project.`
-        : `${JIT_DB_ACCESS_PRODUCT_NAME} is temporarily unavailable for this project. Contact Supabase Support if you need help enabling this feature.`
+        ? "This project can't use ephemeral access yet because it needs a platform migration. Contact Supabase Support to migrate this project."
+        : 'Ephemeral access is temporarily unavailable for this project. Contact Supabase Support if you need help enabling this feature.'
 
   useEffect(() => {
     if (!isLoadingConfiguration && jitDbAccessConfiguration) {
@@ -293,8 +287,7 @@ export const JitDbAccessConfiguration = () => {
       <PageSection id="jit-db-access-configuration">
         <PageSectionMeta>
           <PageSectionSummary>
-            <PageSectionTitle>{JIT_DB_ACCESS_PRODUCT_NAME}</PageSectionTitle>
-            {/* <PageSectionDescription>{JIT_DB_ACCESS_DESCRIPTION}</PageSectionDescription> */}
+            <PageSectionTitle>Ephemeral access</PageSectionTitle>
           </PageSectionSummary>
           <DocsButton href={`${DOCS_URL}/guides/platform/ephemeral-token-database-access`} />
         </PageSectionMeta>
@@ -303,7 +296,7 @@ export const JitDbAccessConfiguration = () => {
           {isErrorJitDbAccessConfiguration && (
             <AlertError
               projectRef={ref}
-              subject={`Failed to load ${JIT_DB_ACCESS_PRODUCT_NAME_LOWER}`}
+              subject="Failed to load ephemeral access"
               error={jitDbAccessConfigurationError as { message: string } | null}
               showInstructions={false}
             />
@@ -313,7 +306,7 @@ export const JitDbAccessConfiguration = () => {
             <Admonition
               type="note"
               layout="responsive"
-              title={`${JIT_DB_ACCESS_PRODUCT_NAME} unavailable`}
+              title="Ephemeral access unavailable"
               description={unavailableDescription}
               actions={
                 unavailableReason === 'postgres_upgrade_required' && ref ? (
@@ -326,7 +319,7 @@ export const JitDbAccessConfiguration = () => {
                       queryParams={{
                         category: SupportCategories.PROBLEM,
                         projectRef: ref,
-                        subject: `${JIT_DB_ACCESS_PRODUCT_NAME} unavailable`,
+                        subject: 'Ephemeral access unavailable',
                         error:
                           jitDbAccessConfiguration &&
                           'unavailableMessage' in jitDbAccessConfiguration
@@ -347,7 +340,7 @@ export const JitDbAccessConfiguration = () => {
               <CardContent className="space-y-4">
                 <FormLayout
                   layout="flex-row-reverse"
-                  label={`Enable ${JIT_DB_ACCESS_PRODUCT_NAME_LOWER}`}
+                  label="Enable ephemeral access"
                   description="Allow project members to request temporary database access."
                 >
                   <div className="flex w-fit flex-shrink-0 items-center justify-end gap-2">
@@ -381,15 +374,15 @@ export const JitDbAccessConfiguration = () => {
                 <Admonition
                   type="warning"
                   layout="horizontal"
-                  title={`${JIT_DB_ACCESS_PRODUCT_NAME} update didn’t apply`}
+                  title="Ephemeral access update didn’t apply"
                   description={
                     <>
                       The change didn’t apply. Try enabling or disabling{' '}
-                      {JIT_DB_ACCESS_PRODUCT_NAME_LOWER} again, or{' '}
+                      ephemeral access again, or{' '}
                       <SupportLink
                         queryParams={{
                           category: SupportCategories.DASHBOARD_BUG,
-                          subject: `${JIT_DB_ACCESS_PRODUCT_NAME} was not updated successfully`,
+                          subject: 'Ephemeral access was not updated successfully',
                         }}
                         className={InlineLinkClassName}
                       >
@@ -409,7 +402,7 @@ export const JitDbAccessConfiguration = () => {
               {isErrorJitMembers && (
                 <AlertError
                   projectRef={ref}
-                  subject={`Failed to load ${JIT_DB_ACCESS_PRODUCT_NAME_LOWER} rules`}
+                  subject="Failed to load ephemeral access rules"
                   error={jitMembersError as { message: string } | null}
                   showInstructions={false}
                 />
@@ -450,7 +443,7 @@ export const JitDbAccessConfiguration = () => {
             <AlertDialogDescription asChild>
               <div className="text-sm">
                 <p>
-                  Enabling {JIT_DB_ACCESS_PRODUCT_NAME_LOWER} will allow {activeRuleCount}{' '}
+                  Enabling ephemeral access will allow {activeRuleCount}{' '}
                   configured member{activeRuleCount === 1 ? '' : 's'} to request temporary database
                   access immediately.
                 </p>
@@ -464,7 +457,7 @@ export const JitDbAccessConfiguration = () => {
               disabled={isUpdatingJitDbAccess}
               onClick={handleConfirmEnableJit}
             >
-              {`Enable ${JIT_DB_ACCESS_PRODUCT_NAME_LOWER}`}
+              Enable ephemeral access
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

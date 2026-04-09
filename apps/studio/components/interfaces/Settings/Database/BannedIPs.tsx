@@ -19,10 +19,6 @@ import { ButtonTooltip } from '@/components/ui/ButtonTooltip'
 import { DocsButton } from '@/components/ui/DocsButton'
 import { useBannedIPsDeleteMutation } from '@/data/banned-ips/banned-ips-delete-mutations'
 import { useBannedIPsQuery } from '@/data/banned-ips/banned-ips-query'
-import {
-  ADVISOR_DEBUG_BANNED_IPS_ENV_VAR,
-  getAdvisorDebugBannedIPs,
-} from '@/data/banned-ips/debug-banned-ips'
 import { useUserIPAddressQuery } from '@/data/misc/user-ip-address-query'
 import { useAsyncCheckPermissions } from '@/hooks/misc/useCheckPermissions'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
@@ -46,10 +42,6 @@ export const BannedIPs = () => {
   const { data: userIPAddress } = useUserIPAddressQuery()
 
   const ipListLoading = isLoadingIPList || isFetchingIPList
-  const debugBannedIPs = getAdvisorDebugBannedIPs(process.env.NEXT_PUBLIC_ADVISOR_DEBUG_BANNED_IPS)
-  const realBannedIPs = ipList?.banned_ipv4_addresses ?? []
-  const mergedBannedIPs = [...new Set([...realBannedIPs, ...debugBannedIPs])]
-  const mockedBannedIPSet = new Set(debugBannedIPs.filter((ip) => !realBannedIPs.includes(ip)))
 
   const [showUnban, setShowUnban] = useState(false)
   const [confirmingIP, setConfirmingIP] = useState<string | null>(null) // Track the IP being confirmed for unban
@@ -107,39 +99,32 @@ export const BannedIPs = () => {
             </Card>
           ) : ipListError ? (
             <AlertError error={ipListError} subject="Failed to retrieve banned IP addresses" />
-          ) : mergedBannedIPs.length > 0 ? (
+          ) : ipList.banned_ipv4_addresses.length > 0 ? (
             <Card>
-              {mergedBannedIPs.map((ip) => {
-                const isMocked = mockedBannedIPSet.has(ip)
-
-                return (
-                  <CardContent key={ip} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-5">
-                      <Globe size={16} className="text-foreground-lighter" />
-                      <p className="text-sm font-mono">{ip}</p>
-                      {ip === userIPAddress && <Badge>Your IP address</Badge>}
-                      {isMocked && <Badge>Mocked</Badge>}
-                    </div>
-                    <ButtonTooltip
-                      type="default"
-                      disabled={!canUnbanNetworks || isMocked}
-                      onClick={() => openConfirmationModal(ip)}
-                      tooltip={{
-                        content: {
-                          side: 'bottom',
-                          text: isMocked
-                            ? `Mocked via ${ADVISOR_DEBUG_BANNED_IPS_ENV_VAR}`
-                            : !canUnbanNetworks
-                              ? 'You need additional permissions to unban networks'
-                              : undefined,
-                        },
-                      }}
-                    >
-                      Unban IP
-                    </ButtonTooltip>
-                  </CardContent>
-                )
-              })}
+              {ipList.banned_ipv4_addresses.map((ip) => (
+                <CardContent key={ip} className="flex items-center justify-between">
+                  <div className="flex items-center space-x-5">
+                    <Globe size={16} className="text-foreground-lighter" />
+                    <p className="text-sm font-mono">{ip}</p>
+                    {ip === userIPAddress && <Badge>Your IP address</Badge>}
+                  </div>
+                  <ButtonTooltip
+                    type="default"
+                    disabled={!canUnbanNetworks}
+                    onClick={() => openConfirmationModal(ip)}
+                    tooltip={{
+                      content: {
+                        side: 'bottom',
+                        text: !canUnbanNetworks
+                          ? 'You need additional permissions to unban networks'
+                          : undefined,
+                      },
+                    }}
+                  >
+                    Unban IP
+                  </ButtonTooltip>
+                </CardContent>
+              ))}
             </Card>
           ) : (
             <Card>

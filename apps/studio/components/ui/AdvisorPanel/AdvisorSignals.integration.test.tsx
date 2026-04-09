@@ -143,7 +143,6 @@ describe('Advisor signals integration', () => {
     advisorState.reset()
     sidebarManagerState.unregisterSidebar(SIDEBAR_KEYS.ADVISOR_PANEL)
     sidebarManagerState.clearActiveSidebar()
-    vi.unstubAllEnvs()
     vi.clearAllMocks()
   })
 
@@ -197,44 +196,5 @@ describe('Advisor signals integration', () => {
     })
 
     expect(screen.getAllByText('Critical lint detail').length).toBeGreaterThan(0)
-  })
-
-  it('renders debug banned IP signals from the env var when the API returns none', () => {
-    vi.stubEnv('NEXT_PUBLIC_ADVISOR_DEBUG_BANNED_IPS', '203.0.113.77')
-    mockUseBannedIPsQuery.mockImplementation((_variables, options) => {
-      if (options?.enabled === false) {
-        return {
-          data: undefined,
-          isPending: false,
-          isError: false,
-        }
-      }
-
-      return {
-        data: {
-          banned_ipv4_addresses: [],
-        },
-        isPending: false,
-        isError: false,
-      }
-    })
-
-    render(
-      <>
-        <AdvisorSection />
-        <AdvisorPanel />
-      </>
-    )
-
-    expect(screen.getAllByText('Banned IP address').length).toBeGreaterThan(0)
-    expect(
-      screen.getAllByText((_, node) =>
-        Boolean(
-          node?.textContent?.includes(
-            'The IP address 203.0.113.77 is temporarily blocked because of suspicious traffic or repeated failed password attempts.'
-          )
-        )
-      ).length
-    ).toBeGreaterThan(0)
   })
 })

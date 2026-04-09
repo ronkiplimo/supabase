@@ -103,17 +103,13 @@ export const createAdvisorNotificationItems = (
 export const createAdvisorSignalItems = ({
   projectRef,
   bannedIPsData,
-  debugBannedIPs,
 }: {
   projectRef?: string
   bannedIPsData?: IPData
-  debugBannedIPs?: string[]
 }): AdvisorSignalItem[] => {
   if (!projectRef) return []
 
-  const bannedIPs = [
-    ...new Set([...(bannedIPsData?.banned_ipv4_addresses ?? []), ...(debugBannedIPs ?? [])]),
-  ]
+  const bannedIPs = bannedIPsData?.banned_ipv4_addresses ?? []
 
   const bannedIpSignals = bannedIPs.map((ip) => ({
     id: createBannedIPSignalFingerprint(ip),

@@ -133,6 +133,18 @@ export function useBillingCustomerDataForm({
     setIsAddressDirty(!isAddressEqual(result.value, savedStripeAddressRef.current))
   }, [])
 
+  // Reset tax ID fields when the billing country changes
+  const prevCountryRef = useRef(addressCountry)
+  useEffect(() => {
+    if (!addressCountry) return
+    if (prevCountryRef.current && prevCountryRef.current !== addressCountry) {
+      form.setValue('tax_id_type', '', { shouldDirty: true })
+      form.setValue('tax_id_value', '', { shouldDirty: true })
+      form.setValue('tax_id_name', '', { shouldDirty: true })
+    }
+    prevCountryRef.current = addressCountry
+  }, [addressCountry, form])
+
   const isDirty = isAddressDirty || form.formState.isDirty
 
   const syncCurrentState = useCallback(

@@ -281,39 +281,22 @@ export const NewPaymentMethodElement = forwardRef(
       [purchasingAsBusiness]
     )
 
-    // Reset tax ID fields when the billing country changes, restoring
-    // the original values if the user switches back to the initial country.
+    // Reset tax ID fields when the billing country changes
     const addressCountry = stripeAddress?.address.country
-    const initialCountryRef = useRef<string | undefined>(undefined)
     const prevCountryRef = useRef(addressCountry)
     useEffect(() => {
       if (!addressCountry) return
-      // Capture the first country we see as the "initial" country
-      if (initialCountryRef.current === undefined) {
-        initialCountryRef.current = addressCountry
-      }
       if (prevCountryRef.current && prevCountryRef.current !== addressCountry) {
-        if (addressCountry === initialCountryRef.current && currentTaxId) {
-          const resolved = resolveStoredTaxId(
-            currentTaxId.type,
-            currentTaxId.country,
-            addressCountry
-          )
-          form.setValue('tax_id_type', currentTaxId.type)
-          form.setValue('tax_id_value', currentTaxId.value)
-          form.setValue('tax_id_name', resolved?.name ?? '')
-        } else {
-          form.setValue('tax_id_type', '')
-          form.setValue('tax_id_value', '')
-          form.setValue('tax_id_name', '')
-        }
+        form.setValue('tax_id_type', '')
+        form.setValue('tax_id_value', '')
+        form.setValue('tax_id_name', '')
       }
       prevCountryRef.current = addressCountry
     }, [addressCountry])
 
     // Preselect tax id if there is no more than 2 available tax ids (even if there are two options, first one in the list is likely to be it)
     useEffect(() => {
-      if (availableTaxIds.length && addressCountry && !currentTaxId) {
+      if (availableTaxIds.length && addressCountry && !form.getValues('tax_id_name')) {
         const taxIdOption = availableTaxIds[0]
         form.setValue('tax_id_type', taxIdOption.type)
         form.setValue('tax_id_value', '')

@@ -1,7 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup'
 import { PermissionAction } from '@supabase/shared-types/out/constants'
 import { useParams } from 'common'
-import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
 import { Check } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useQueryState } from 'nuqs'
@@ -48,42 +47,10 @@ interface ProviderFormProps {
 
 const doubleNegativeKeys = ['SMS_AUTOCONFIRM']
 
-function getPasskeyDefault(
-  key: string,
-  config: components['schemas']['GoTrueConfigResponse'],
-  project: { name: string } | undefined
-): string {
-  const siteUrl = config.SITE_URL
-  switch (key) {
-    case 'WEBAUTHN_RP_ID': {
-      if (!siteUrl) return ''
-      try {
-        return new URL(siteUrl).hostname
-      } catch {
-        return ''
-      }
-    }
-    case 'WEBAUTHN_RP_ORIGINS': {
-      if (!siteUrl) return ''
-      try {
-        return new URL(siteUrl).origin
-      } catch {
-        return ''
-      }
-    }
-    case 'WEBAUTHN_RP_DISPLAY_NAME': {
-      return project?.name ?? ''
-    }
-    default:
-      return ''
-  }
-}
-
 export const ProviderForm = ({ config, provider, isActive }: ProviderFormProps) => {
   const { resolvedTheme } = useTheme()
   const { ref: projectRef } = useParams()
   const { data: organization } = useSelectedOrganizationQuery()
-  const { data: project } = useSelectedProjectQuery()
   const [urlProvider, setUrlProvider] = useQueryState('provider', { defaultValue: '' })
 
   const [open, setOpen] = useState(false)
@@ -125,15 +92,6 @@ export const ProviderForm = ({ config, provider, isActive }: ProviderFormProps) 
         if (provider.title === 'SAML 2.0') {
           const configValue = (config as any)[key]
           values[key] = configValue || (provider.properties[key].type === 'boolean' ? false : '')
-        } else if (provider.title === 'Passkey') {
-          const configValue = (config as any)[key]
-          if (provider.properties[key].type === 'boolean') {
-            values[key] = configValue ?? false
-          } else if (!configValue) {
-            values[key] = getPasskeyDefault(key, config, project)
-          } else {
-            values[key] = configValue
-          }
         } else {
           if (isDoubleNegative) {
             values[key] = !(config as any)[key]
@@ -153,8 +111,8 @@ export const ProviderForm = ({ config, provider, isActive }: ProviderFormProps) 
 
   const INITIAL_VALUES = useMemo(() => {
     return getValuesForProvider(config)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config, getValuesForProvider, project])
+     
+  }, [config, getValuesForProvider])
 
   const onSubmit = (values: any) => {
     const payload = { ...values }

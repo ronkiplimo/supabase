@@ -1,4 +1,4 @@
-import { useFlag, useParams } from 'common'
+import { useParams } from 'common'
 import { ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import {
@@ -27,7 +27,6 @@ import { useAuthConfigQuery } from '@/data/auth/auth-config-query'
 
 export const AuthProvidersForm = () => {
   const { ref: projectRef } = useParams()
-  const isPasskeyEnabled = useFlag('enablePasskeyAuth')
   const {
     data: authConfig,
     error: authConfigError,
@@ -80,9 +79,7 @@ export const AuthProvidersForm = () => {
 
             <ResourceList>
               {isLoading &&
-                PROVIDERS_SCHEMAS.filter(
-                  (provider) => provider.title !== 'Passkey' || isPasskeyEnabled
-                ).map((provider) => (
+                PROVIDERS_SCHEMAS.map((provider) => (
                   <div
                     key={`provider_${provider.title}`}
                     className="py-4 px-6 border-b last:border-b-none"
@@ -91,9 +88,7 @@ export const AuthProvidersForm = () => {
                   </div>
                 ))}
               {isSuccess &&
-                PROVIDERS_SCHEMAS.filter(
-                  (provider) => provider.title !== 'Passkey' || isPasskeyEnabled
-                ).map((provider) => {
+                PROVIDERS_SCHEMAS.map((provider) => {
                   const providerSchema =
                     provider.title === 'Phone'
                       ? {
@@ -110,8 +105,6 @@ export const AuthProvidersForm = () => {
                     isActive = authConfig && (authConfig as any)['EXTERNAL_SLACK_OIDC_ENABLED']
                   } else if (providerSchema.title.includes('Web3')) {
                     isActive = authConfig && (authConfig as any)['EXTERNAL_WEB3_SOLANA_ENABLED']
-                  } else if (providerSchema.title === 'Passkey') {
-                    isActive = authConfig && authConfig['PASSKEY_ENABLED']
                   } else if (providerSchema.title.includes('X / Twitter (OAuth 2.0)')) {
                     isActive = authConfig && (authConfig as any)['EXTERNAL_X_ENABLED']
                   } else if (providerSchema.title === 'Twitter (Deprecated)') {

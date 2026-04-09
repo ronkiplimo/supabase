@@ -1599,11 +1599,106 @@ const PROVIDER_WEB3 = {
   },
 }
 
+const PROVIDER_PASSKEY = {
+  $schema: JSON_SCHEMA_VERSION,
+  type: 'object',
+  title: 'Passkey',
+  link: `${DOCS_URL}/guides/auth/passkeys`,
+  properties: {
+    PASSKEY_ENABLED: {
+      title: 'Enable Passkey authentication',
+      description:
+        'Allow users to sign in using passkeys (WebAuthn) with biometrics, security keys, or platform authenticators.',
+      type: 'boolean',
+    },
+    WEBAUTHN_RP_ID: {
+      title: 'Relying Party ID',
+      description:
+        'The domain name for your application (e.g. "example.com"). This determines which passkeys can be used.',
+      type: 'string',
+      show: {
+        key: 'PASSKEY_ENABLED',
+      },
+    },
+    WEBAUTHN_RP_DISPLAY_NAME: {
+      title: 'Relying Party Display Name',
+      description: 'A human-readable name for your application shown during passkey registration.',
+      type: 'string',
+      show: {
+        key: 'PASSKEY_ENABLED',
+      },
+    },
+    WEBAUTHN_RP_ORIGINS: {
+      title: 'Relying Party Origins',
+      description:
+        'Comma-separated list of allowed origins (e.g. "https://example.com"). HTTPS is required except for localhost.',
+      type: 'string',
+      show: {
+        key: 'PASSKEY_ENABLED',
+      },
+    },
+  },
+  validationSchema: object().shape({
+    PASSKEY_ENABLED: boolean().required(),
+    WEBAUTHN_RP_ID: string().when('PASSKEY_ENABLED', {
+      is: true,
+      then: (schema: ReturnType<typeof string>) =>
+        schema.trim().required('Relying Party ID is required when Passkey is enabled'),
+      otherwise: (schema: ReturnType<typeof string>) => schema,
+    }),
+    WEBAUTHN_RP_DISPLAY_NAME: string().when('PASSKEY_ENABLED', {
+      is: true,
+      then: (schema: ReturnType<typeof string>) =>
+        schema.trim().required('Relying Party Display Name is required when Passkey is enabled'),
+      otherwise: (schema: ReturnType<typeof string>) => schema,
+    }),
+    WEBAUTHN_RP_ORIGINS: string().when('PASSKEY_ENABLED', {
+      is: true,
+      then: (schema: ReturnType<typeof string>) =>
+        schema
+          .trim()
+          .required('Relying Party Origins is required when Passkey is enabled')
+          .test(
+            'valid-origins',
+            'Each origin must be a valid HTTPS URL (HTTP only allowed for localhost/127.0.0.1)',
+            (value) => {
+              if (!value) return false
+              const origins = value
+                .split(',')
+                .map((o) => o.trim())
+                .filter(Boolean)
+              if (origins.length === 0) return false
+              return origins.every((origin) => {
+                try {
+                  const url = new URL(origin)
+                  if (url.protocol === 'https:') return true
+                  if (
+                    url.protocol === 'http:' &&
+                    (url.hostname === 'localhost' || url.hostname === '127.0.0.1')
+                  ) {
+                    return true
+                  }
+                  return false
+                } catch {
+                  return false
+                }
+              })
+            }
+          ),
+      otherwise: (schema: ReturnType<typeof string>) => schema,
+    }),
+  }),
+  misc: {
+    iconKey: 'user-round-key-icon',
+  },
+}
+
 export const PROVIDERS_SCHEMAS = [
   PROVIDER_EMAIL,
   PROVIDER_PHONE,
   PROVIDER_SAML,
   PROVIDER_WEB3,
+  PROVIDER_PASSKEY,
   EXTERNAL_PROVIDER_APPLE,
   EXTERNAL_PROVIDER_AZURE,
   EXTERNAL_PROVIDER_BITBUCKET,

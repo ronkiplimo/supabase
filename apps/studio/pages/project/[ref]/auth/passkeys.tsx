@@ -62,9 +62,6 @@ const PasskeysPage: NextPageWithLayout = () => {
       <PageHeader size="default">
         <PageHeaderMeta>
           <HeaderSummary />
-          <PageHeaderAside>
-            <DocsButton href={`${DOCS_URL}/guides/auth/passkeys`} />
-          </PageHeaderAside>
         </PageHeaderMeta>
       </PageHeader>
       <PageContainer size="default">

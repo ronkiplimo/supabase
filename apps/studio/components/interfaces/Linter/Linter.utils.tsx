@@ -325,7 +325,7 @@ export const lintInfoMap: LintInfo[] = [
     title: 'Public Bucket Allows Listing',
     icon: <Unlock className="text-foreground-muted" size={15} strokeWidth={1} />,
     link: ({ projectRef, metadata }) =>
-      `/project/${projectRef}/storage/files/buckets/${metadata?.bucket_id ?? metadata?.name}`,
+      `/project/${projectRef}/storage/files/buckets/${metadata?.name}`,
     linkText: 'View bucket',
     docsLink: `${DOCS_URL}/guides/database/database-linter?lint=0025_public_bucket_allows_listing`,
     category: 'security',

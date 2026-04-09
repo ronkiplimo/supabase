@@ -201,7 +201,8 @@ export const NewPaymentMethodElement = forwardRef(
     }
 
     function getConfiguredTaxId(): CustomerTaxId | null {
-      return purchasingAsBusiness && selectedTaxId
+      const isValidForCountry = selectedTaxId && availableTaxIds.includes(selectedTaxId)
+      return purchasingAsBusiness && isValidForCountry
         ? {
             country: getEffectiveTaxCountry(selectedTaxId),
             type: selectedTaxId.type,
@@ -250,8 +251,10 @@ export const NewPaymentMethodElement = forwardRef(
         return
       }
 
+      const { error: submitError } = await elements.submit()
+      if (submitError) return
+
       const addressElement = await elements.getElement('address')!.getValue()
-      if (!addressElement.complete) return
 
       return {
         address: {

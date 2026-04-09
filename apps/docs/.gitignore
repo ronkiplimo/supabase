@@ -34,6 +34,9 @@ public/llms/
 public/docs/
 public/docs.tar.gz
 
+# Generated reference content (markdown + sections)
+content/reference/
+
 # Copied examples folder
 /examples/
 

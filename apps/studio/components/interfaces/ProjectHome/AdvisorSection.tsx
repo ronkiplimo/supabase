@@ -225,8 +225,7 @@ export const AdvisorSection = ({ showEmptyState = false }: { showEmptyState?: bo
           {hiddenIssuesCount > 0 && (
             <div className="mt-4 flex justify-end">
               <Button type="text" onClick={() => openSidebar(SIDEBAR_KEYS.ADVISOR_PANEL)}>
-                View {hiddenIssuesCount} more issue{hiddenIssuesCount !== 1 ? 's' : ''} in
-                Advisor
+                View {hiddenIssuesCount} more issue{hiddenIssuesCount !== 1 ? 's' : ''} in Advisor
               </Button>
             </div>
           )}

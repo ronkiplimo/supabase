@@ -152,6 +152,21 @@ const MonacoEditor = ({
 
           const allLines = model.getLinesContent()
 
+          const noSelection =
+            selection.startLineNumber === selection.endLineNumber &&
+            selection.startColumn === selection.endColumn
+
+          if (noSelection) {
+            onPrompt({
+              selection: allLines.join('\n'),
+              beforeSelection: '',
+              afterSelection: '',
+              startLineNumber: 1,
+              endLineNumber: allLines.length,
+            })
+            return
+          }
+
           const startLineIndex = selection.startLineNumber - 1
           const endLineIndex = selection.endLineNumber
 

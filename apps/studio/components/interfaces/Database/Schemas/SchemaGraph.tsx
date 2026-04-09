@@ -35,7 +35,7 @@ import { SidePanelEditor } from '../../TableGridEditor/SidePanelEditor/SidePanel
 import { DefaultEdge } from './DefaultEdge'
 import { SchemaGraphContextProvider, SchemaGraphContextType } from './SchemaGraphContext'
 import { SchemaGraphLegend } from './SchemaGraphLegend'
-import { EdgeData, TableNodeData } from './Schemas.constants'
+import { EdgeData, TABLE_NODE_LIMIT, TableNodeData } from './Schemas.constants'
 import { getGraphDataFromTables, getLayoutedElementsViaDagre } from './Schemas.utils'
 import { TableNode } from './SchemaTableNode'
 import AlertError from '@/components/ui/AlertError'
@@ -61,6 +61,11 @@ export const SchemaGraph = () => {
   const { selectedSchema, setSelectedSchema } = useQuerySchemaState()
   const [selectedTable, setSelectedTable] = useState<PostgresTable | null>(null)
   const snap = useTableEditorStateSnapshot()
+
+  const [showAllTables, setShowAllTables] = useState(false)
+  useEffect(() => {
+    setShowAllTables(false)
+  }, [selectedSchema])
 
   const [copied, setCopied] = useState(false)
   useEffect(() => {
@@ -114,6 +119,37 @@ export const SchemaGraph = () => {
     includeColumns: true,
   })
   const hasNoTables = isSuccessSchemas && tables.length === 0
+  const isCapped = !showAllTables && tables.length > TABLE_NODE_LIMIT
+
+  const tablesToRender = useMemo(() => {
+    if (!isCapped) return tables
+
+    const tablesInRelationships = new Set<string>()
+    for (const table of tables) {
+      for (const rel of table.relationships) {
+        if (rel.source_schema === selectedSchema) {
+          tablesInRelationships.add(rel.source_table_name)
+        }
+        if (rel.target_table_schema === selectedSchema) {
+          tablesInRelationships.add(rel.target_table_name)
+        }
+      }
+    }
+
+    const withRels: PostgresTable[] = []
+    const withoutRels: PostgresTable[] = []
+    for (const table of tables) {
+      if (tablesInRelationships.has(table.name)) {
+        withRels.push(table)
+      } else {
+        withoutRels.push(table)
+      }
+    }
+
+    const remaining = TABLE_NODE_LIMIT - withRels.length
+    if (remaining <= 0) return withRels.slice(0, TABLE_NODE_LIMIT)
+    return [...withRels, ...withoutRels.slice(0, remaining)]
+  }, [tables, isCapped, selectedSchema])
 
   const schema = (schemas ?? []).find((s) => s.name === selectedSchema)
   const [, setStoredPositions] = useLocalStorage(
@@ -231,9 +267,9 @@ export const SchemaGraph = () => {
 
   const isFirstLoad = useRef(true)
   useEffect(() => {
-    if (isSuccessTables && isSuccessSchemas && tables.length > 0) {
+    if (isSuccessTables && isSuccessSchemas && tablesToRender.length > 0) {
       const schema = schemas.find((s) => s.name === selectedSchema) as PostgresSchema
-      getGraphDataFromTables(ref as string, schema, tables).then(({ nodes, edges }) => {
+      getGraphDataFromTables(ref as string, schema, tablesToRender).then(({ nodes, edges }) => {
         reactFlowInstance.setNodes(nodes)
         reactFlowInstance.setEdges(edges)
         // Prevent resetting a view after first load to avoid layout changes after editing a column
@@ -246,7 +282,7 @@ export const SchemaGraph = () => {
   }, [
     isSuccessTables,
     isSuccessSchemas,
-    tables,
+    tablesToRender,
     reactFlowInstance,
     ref,
     resolvedTheme,
@@ -377,6 +413,18 @@ export const SchemaGraph = () => {
       )}
       {isSuccessTables && (
         <>
+          {isCapped && (
+            <Admonition
+              type="default"
+              title={`Showing ${tablesToRender.length} of ${tables.length} tables`}
+              description="Tables with relationships are prioritized."
+              className="rounded-none border-x-0 border-t-0"
+            >
+              <Button type="default" className="mt-2" onClick={() => setShowAllTables(true)}>
+                Load all tables
+              </Button>
+            </Admonition>
+          )}
           {hasNoTables ? (
             <div className="flex items-center justify-center w-full h-full">
               <Admonition

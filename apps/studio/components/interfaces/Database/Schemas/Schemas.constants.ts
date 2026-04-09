@@ -1,3 +1,5 @@
+export const TABLE_NODE_LIMIT = 100
+
 export type TableNodeData = {
   id: number
   schema: string

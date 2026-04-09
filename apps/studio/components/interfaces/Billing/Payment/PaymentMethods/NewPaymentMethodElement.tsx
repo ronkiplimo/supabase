@@ -167,9 +167,13 @@ export const NewPaymentMethodElement = forwardRef(
       PaymentMethodElementRef['createPaymentMethod']
     > => {
       if (!stripe || !elements) return
-      await form.trigger()
+      const isValid = await form.trigger()
 
-      if (purchasingAsBusiness && availableTaxIds.length > 0 && !form.getValues('tax_id_value')) {
+      if (
+        purchasingAsBusiness &&
+        availableTaxIds.length > 0 &&
+        (!isValid || !form.getValues('tax_id_value'))
+      ) {
         return
       }
 

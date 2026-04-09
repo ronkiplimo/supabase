@@ -1,4 +1,4 @@
-export const TABLE_NODE_LIMIT = 100
+export const TABLE_NODE_LIMIT = 50
 
 export type TableNodeData = {
   id: number

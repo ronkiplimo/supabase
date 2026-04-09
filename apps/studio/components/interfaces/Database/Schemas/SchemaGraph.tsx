@@ -146,6 +146,11 @@ export const SchemaGraph = () => {
     saveNodePositions()
   }
 
+  const handleShowAllTables = () => {
+    setShowAllTables(true)
+    resetLayout()
+  }
+
   const saveNodePositions = useStaticEffectEvent(() => {
     if (schema === undefined) return console.error('Schema is required')
 
@@ -381,12 +386,12 @@ export const SchemaGraph = () => {
         <>
           {isCapped && (
             <Admonition
-              type="default"
+              type="warning"
               title={`Showing ${tablesToRender.length} of ${tables.length} tables`}
-              description="Tables with relationships are prioritized."
+              description="Tables with relationships are prioritized due to large table count."
               className="rounded-none border-x-0 border-t-0"
             >
-              <Button type="default" className="mt-2" onClick={() => setShowAllTables(true)}>
+              <Button type="default" className="mt-2" onClick={handleShowAllTables}>
                 Load all tables
               </Button>
             </Admonition>

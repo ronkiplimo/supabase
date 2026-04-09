@@ -147,6 +147,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           5. Ensure the modified text flows naturally within the current line
           6. Avoid duplicating code when considering the full statement
           7. If there is no surrounding context (before or after), make sure your response is a complete valid SQL statement that can be run and resolves the prompt.
+          8. Match the identifier quoting style of the surrounding context. Do not quote identifiers unless they actually require it (uppercase letters, reserved words, or special characters). Plain lowercase identifiers like table and column names should not be quoted.
 
           Modify the selected text now:
         `,

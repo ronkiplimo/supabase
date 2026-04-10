@@ -1,18 +1,24 @@
-import { useOperationQueueActions } from 'components/grid/hooks/useOperationQueueActions'
-import { useOperationQueueShortcuts } from 'components/grid/hooks/useOperationQueueShortcuts'
-import { useIsQueueOperationsEnabled } from 'components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { Eye, MoreVertical, Trash } from 'lucide-react'
 import { createPortal } from 'react-dom'
-import { useTableEditorStateSnapshot } from 'state/table-editor'
-import { Button } from 'ui'
+import {
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  KeyboardShortcut,
+} from 'ui'
 
+import { useOperationQueueActions } from '@/components/grid/hooks/useOperationQueueActions'
+import { useOperationQueueShortcuts } from '@/components/grid/hooks/useOperationQueueShortcuts'
+import { useIsQueueOperationsEnabled } from '@/components/interfaces/Account/Preferences/useDashboardSettings'
 import { DiscardChangesConfirmationDialog } from '@/components/ui-patterns/Dialogs/DiscardChangesConfirmationDialog'
 import { useConfirmOnClose } from '@/hooks/ui/useConfirmOnClose'
-import { getModKeyLabel } from '@/lib/helpers'
+import { useTableEditorStateSnapshot } from '@/state/table-editor'
 
 export const SaveQueueActionBar = () => {
-  const modKey = getModKeyLabel()
   const snap = useTableEditorStateSnapshot()
   const isQueueOperationsEnabled = useIsQueueOperationsEnabled()
   const { handleSave, handleCancel } = useOperationQueueActions()
@@ -48,34 +54,53 @@ export const SaveQueueActionBar = () => {
               }}
             >
               <div className="flex items-center gap-x-12 pl-4 pr-2 py-2 bg-surface-100 border rounded-lg shadow-lg">
+                <p className="text-xs text-foreground-light max-w-40 truncate">
+                  {operationCount} pending change{operationCount !== 1 ? 's' : ''}
+                </p>
                 <div className="flex items-center gap-x-2">
-                  <span className="text-xs text-foreground-light max-w-40 truncate">
-                    {operationCount} pending change{operationCount !== 1 ? 's' : ''}
-                  </span>
-                  <Button
-                    type="default"
-                    size="tiny"
-                    disabled={isSaving}
-                    onClick={() => snap.toggleViewOperationQueue()}
-                  >
-                    Review{' '}
-                    <span className="text-[10px] text-foreground/40 ml-1.5">{`${modKey}.`}</span>
-                  </Button>
-                </div>
-                <div className="flex items-center gap-x-2">
-                  <Button type="default" onClick={confirmOnClose} disabled={isSaving}>
-                    Cancel
-                  </Button>
                   <Button
                     size="tiny"
                     type="primary"
                     onClick={handleSave}
                     disabled={isSaving}
                     loading={isSaving}
+                    iconRight={
+                      isSaving ? undefined : (
+                        <KeyboardShortcut keys={['Meta', 's']} variant="inline" />
+                      )
+                    }
                   >
                     Save
-                    <span className="text-[10px] text-foreground/40 ml-1.5">{`${modKey}S`}</span>
                   </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="outline"
+                        className="w-7"
+                        icon={<MoreVertical />}
+                        aria-label="More options"
+                      />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-40">
+                      <DropdownMenuItem
+                        className="justify-between"
+                        onClick={() => snap.toggleViewOperationQueue()}
+                      >
+                        <div className="flex items-center gap-x-2">
+                          <Eye size={14} />
+                          <span>Review</span>
+                        </div>
+                        <KeyboardShortcut keys={['Meta', '.']} />
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={confirmOnClose}>
+                        <div className="flex items-center gap-x-2">
+                          <Trash size={14} />
+                          <span>Discard</span>
+                        </div>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             </motion.div>

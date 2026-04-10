@@ -4,7 +4,13 @@
 
 > Start for free, scale as you grow. Pay only for what you use.
 
-Supabase offers four plans: Free, Pro, Team, and Enterprise. All plans include unlimited API requests. Pro and Team plans include one project running on Micro compute ($10/month value) in the base price.
+Supabase offers four plans: Free, Pro, Team, and Enterprise. All plans include unlimited API requests.
+
+## How billing works
+
+Supabase uses organization-based billing. You choose a plan (Pro, Team, or Enterprise) for your organization, then each project within it runs on its own compute instance. The plan subscription covers platform features and usage quotas. Compute is billed separately per project.
+
+Pro and Team plans include $10/month in compute credits, which covers one Micro instance. Additional projects each add their own compute cost. For example, a Pro org with 2 projects on Micro compute costs: $25 (plan) + $10 (project 1) + $10 (project 2) - $10 (credits) = $35/month.
 
 For current pricing, visit https://supabase.com/pricing.
 
@@ -66,7 +72,7 @@ All projects run on a compute instance. Pro and Team plans include Micro compute
 | 16XL   | $3,730     | 64-core ARM | Yes       | 256 GB | 500                | 12,000             |
 | >16XL  | Contact Us | Custom      | Yes       | Custom | Custom             | Custom             |
 
-Compute is billed hourly. Pro and Team plans include $10 of compute credits (covers one Micro instance).
+Compute is billed hourly. Each project runs its own instance. Pro and Team plans include $10/month in compute credits (covers one Micro instance). Additional projects add their full compute cost.
 
 ## Disk Storage
 

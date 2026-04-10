@@ -1,8 +1,7 @@
 import { useFlag, useParams } from 'common'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { toast } from 'sonner'
+import { useEffect, useMemo } from 'react'
 import {
   BreadcrumbItem_Shadcn_ as BreadcrumbItem,
   BreadcrumbLink_Shadcn_ as BreadcrumbLink,
@@ -30,17 +29,15 @@ import {
 import ShimmeringLoader, { GenericSkeletonLoader } from 'ui-patterns/ShimmeringLoader'
 
 import { InstallIntegrationSheet } from '@/components/interfaces/Integrations/Integration/IntegrationOverviewTabV2/InstallIntegrationSheet/InstallIntegrationSheet'
+import { InstallOAuthIntegrationButton } from '@/components/interfaces/Integrations/Integration/IntegrationOverviewTabV2/InstallIntegrationSheet/InstallOAuthIntegrationButton'
 import { useAvailableIntegrations } from '@/components/interfaces/Integrations/Landing/useAvailableIntegrations'
 import { useInstalledIntegrations } from '@/components/interfaces/Integrations/Landing/useInstalledIntegrations'
 import { DefaultLayout } from '@/components/layouts/DefaultLayout'
 import { ProjectIntegrationsLayout } from '@/components/layouts/ProjectIntegrationsLayout'
 import { UnknownInterface } from '@/components/ui/UnknownInterface'
-import { useAPIKeysQuery } from '@/data/api-keys/api-keys-query'
 import { useDatabaseExtensionsQuery } from '@/data/database-extensions/database-extensions-query'
-import { fetchPost } from '@/data/fetchers'
 import { useIsFeatureEnabled } from '@/hooks/misc/useIsFeatureEnabled'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
-import { API_URL } from '@/lib/constants'
 import type { NextPageWithLayout } from '@/types'
 
 type NavigationItem = { label: string; href: string; active?: boolean }
@@ -118,33 +115,6 @@ const IntegrationPage: NextPageWithLayout = () => {
     }
   }, [isInstalled, isInstalledIntegrationsLoading, pageId, router, ref, id])
 
-  const [isInstalling, setIsInstalling] = useState(false)
-
-  const handleInstallClick = useCallback(async () => {
-    if (!integration || !ref) return
-
-    if (integration.installUrlType === 'post') {
-      setIsInstalling(true)
-      try {
-        const response = await fetchPost<{ redirectUrl: string }>(
-          `${API_URL}/integrations/partners/${ref}/${integration.listingId}`,
-          {}
-        )
-        if ('redirectUrl' in response) {
-          window.location.href = response.redirectUrl
-        } else {
-          toast.error('Failed to start integration installation')
-        }
-      } catch {
-        toast.error('Failed to start integration installation')
-      } finally {
-        setIsInstalling(false)
-      }
-    } else {
-      window.location.href = integration.installUrl ?? '/'
-    }
-  }, [integration, ref])
-
   // Determine page title, icon, and subtitle based on state
   const pageTitle = integration?.name || 'Integration not found'
 
@@ -157,15 +127,6 @@ const IntegrationPage: NextPageWithLayout = () => {
       {integration.icon()}
     </div>
   ) : null
-
-  const { data: apiKeys } = useAPIKeysQuery({ projectRef: ref, reveal: false }, { enabled: !!ref })
-
-  const oAuthIntegrationInstalled = useMemo(() => {
-    if (!apiKeys || !integration) return false
-    const prefix = integration.secretKeyPrefix
-    if (integration.installIdentificationMethod !== 'secret_key_prefix' || !prefix) return false
-    return apiKeys.some((k) => k.type === 'secret' && k.name.startsWith(prefix))
-  }, [apiKeys, integration])
 
   // Determine content based on state
   const content = useMemo(() => {
@@ -247,16 +208,8 @@ const IntegrationPage: NextPageWithLayout = () => {
               <PageHeaderDescription className="truncate">{pageSubTitle}</PageHeaderDescription>
             </PageHeaderSummary>
 
-            {integration?.type === 'oauth' ? (
-              <Button
-                type="primary"
-                className="shrink-0"
-                loading={isInstalling}
-                onClick={handleInstallClick}
-                disabled={oAuthIntegrationInstalled}
-              >
-                Install integration
-              </Button>
+            {integration?.type === 'oauth' && ref ? (
+              <InstallOAuthIntegrationButton integration={integration} projectRef={ref} />
             ) : isMarketplaceEnabled && !!integration && !isInstalled ? (
               <InstallIntegrationSheet integration={integration} />
             ) : isMarketplaceEnabled && isInstalled ? (

@@ -7,35 +7,24 @@ import type { ResponseError, UseCustomQueryOptions } from '@/types'
 
 type JitDbAccessVariables = { projectRef?: string }
 
-const MANUAL_MIGRATION_ERROR_PATTERNS = ['must be migrated']
+const UNAVAILABLE_REASONS: JitDbAccessUnavailableReason[] = [
+  'manual_migration_required',
+  'postgres_upgrade_required',
+  'temporarily_unavailable',
+]
 
-const POSTGRES_UPGRADE_ERROR_PATTERNS = ['must be upgraded to postgres 17']
-
-function messageIncludesAny(message: string, patterns: string[]) {
-  return patterns.some((pattern) => message.includes(pattern))
+function getUnavailableReason(reason?: unknown): JitDbAccessUnavailableReason {
+  return UNAVAILABLE_REASONS.includes(reason as JitDbAccessUnavailableReason)
+    ? (reason as JitDbAccessUnavailableReason)
+    : 'temporarily_unavailable'
 }
 
-function getUnavailableReason(message?: string): JitDbAccessUnavailableReason {
-  const normalizedMessage = message?.toLowerCase() ?? ''
-
-  if (messageIncludesAny(normalizedMessage, MANUAL_MIGRATION_ERROR_PATTERNS)) {
-    return 'manual_migration_required'
-  }
-
-  if (messageIncludesAny(normalizedMessage, POSTGRES_UPGRADE_ERROR_PATTERNS)) {
-    return 'postgres_upgrade_required'
-  }
-
-  return 'temporarily_unavailable'
-}
-
-function createUnavailableState(message?: string) {
+function createUnavailableState(unavailableReason?: JitDbAccessUnavailableReason) {
   return {
     appliedSuccessfully: false,
     state: 'unavailable' as const,
     isUnavailable: true,
-    unavailableReason: getUnavailableReason(message),
-    unavailableMessage: message,
+    unavailableReason: unavailableReason ?? 'temporarily_unavailable',
   }
 }
 
@@ -53,24 +42,11 @@ async function getJitDbAccessConfiguration(
   // jit access might not be available on the project due to
   // postgres version
   if (error) {
-    const responseError = error as ResponseError
-    const normalizedMessage = responseError.message?.toLowerCase() ?? ''
-    const isNotAvailableError =
-      responseError.code === 400 &&
-      messageIncludesAny(normalizedMessage, [
-        ...MANUAL_MIGRATION_ERROR_PATTERNS,
-        ...POSTGRES_UPGRADE_ERROR_PATTERNS,
-      ])
-
-    if (isNotAvailableError) {
-      return createUnavailableState(responseError.message)
-    } else {
-      handleError(error)
-    }
+    handleError(error)
   }
 
   if (data?.state === 'unavailable') {
-    return createUnavailableState()
+    return createUnavailableState(getUnavailableReason(data.unavailableReason))
   }
 
   return data

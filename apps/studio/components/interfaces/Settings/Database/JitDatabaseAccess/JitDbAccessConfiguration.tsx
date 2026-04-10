@@ -272,9 +272,9 @@ export const JitDbAccessConfiguration = () => {
   const projectReference = ref ? `This project (${ref})` : 'This project'
   const unavailableTitle =
     unavailableReason === 'postgres_upgrade_required'
-      ? 'Postgres upgrade required'
+      ? 'Postgres upgrade required to use temporary access'
       : unavailableReason === 'manual_migration_required'
-        ? 'Migration required'
+        ? 'Migration required to use temporary access'
         : 'Temporary access unavailable'
   const unavailableDescription =
     unavailableReason === 'postgres_upgrade_required'
@@ -327,11 +327,6 @@ export const JitDbAccessConfiguration = () => {
                         category: SupportCategories.PROBLEM,
                         projectRef: ref,
                         subject: unavailableTitle,
-                        error:
-                          jitDbAccessConfiguration &&
-                          'unavailableMessage' in jitDbAccessConfiguration
-                            ? jitDbAccessConfiguration.unavailableMessage
-                            : undefined,
                       }}
                     >
                       Contact support

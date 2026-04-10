@@ -86,6 +86,9 @@ export const UpcomingInvoice = ({ slug }: UpcomingInvoiceProps) => {
       )
       .sort((a, b) => b.amount_before_discount - a.amount_before_discount) || []
 
+  const hasTax = upcomingInvoice?.tax_status === 'calculated'
+  const taxFailed = upcomingInvoice?.tax_status === 'failed'
+
   return (
     <>
       {isLoading && (
@@ -269,6 +272,39 @@ export const UpcomingInvoice = ({ slug }: UpcomingInvoiceProps) => {
                     </TableCell>
                   </TableRow>
                 ))}
+                {hasTax && upcomingInvoice?.tax_amount != null && (
+                  <TableRow>
+                    <TableCell className="py-2 px-0">
+                      <div className="flex items-center gap-1">
+                        <span>Tax</span>
+                        <InfoTooltip>
+                          Estimated tax
+                          {upcomingInvoice.tax_rate_percentage != null &&
+                            ` at ${upcomingInvoice.tax_rate_percentage}%`}{' '}
+                          based on your organization's billing address. The final amount may be
+                          adjusted at the end of the billing cycle.
+                        </InfoTooltip>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right py-2 px-0" translate="no">
+                      {formatCurrency(upcomingInvoice.tax_amount)}
+                    </TableCell>
+                  </TableRow>
+                )}
+                {taxFailed && (
+                  <TableRow>
+                    <TableCell className="py-2 px-0">
+                      <div className="flex items-center gap-1">
+                        <span className="text-warning">Tax — Could not be estimated</span>
+                        <InfoTooltip>
+                          We were unable to estimate tax for your organization. Please verify your
+                          billing address in your organization settings.
+                        </InfoTooltip>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right py-2 px-0">-</TableCell>
+                  </TableRow>
+                )}
               </TableBody>
 
               <TableFooter>
@@ -277,6 +313,8 @@ export const UpcomingInvoice = ({ slug }: UpcomingInvoiceProps) => {
                     <span className="mr-2">Current Costs</span>
                     <InfoTooltip>
                       Costs accumulated from the beginning of the billing cycle up to now.
+                      {hasTax && ' Applicable tax included.'}
+                      {taxFailed && ' Tax could not be estimated and is not included.'}
                     </InfoTooltip>
                   </TableCell>
                   <TableCell className="text-right font-medium py-2 px-0" translate="no">
@@ -293,6 +331,8 @@ export const UpcomingInvoice = ({ slug }: UpcomingInvoiceProps) => {
                         for Compute Hours, IPv4, Custom Domain and Point-In-Time-Recovery, but no
                         costs for metrics like MAU, storage or function invocations. Final amounts
                         may vary depending on your usage.
+                        {hasTax && ' Applicable tax included.'}
+                        {taxFailed && ' Tax could not be estimated and is not included.'}
                       </InfoTooltip>
                     </TableCell>
                     <TableCell className="text-right font-medium py-2 px-0" translate="no">

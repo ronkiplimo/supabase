@@ -17,6 +17,9 @@ export type UpcomingInvoiceResponse = {
   subscription_id: string
   billing_cycle_end: string
   billing_cycle_start: string
+  tax_amount: number | null
+  tax_rate_percentage: number | null
+  tax_status: 'calculated' | 'not_applicable' | 'failed'
   lines: {
     amount: number
     amount_before_discount: number

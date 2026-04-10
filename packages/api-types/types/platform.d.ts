@@ -4764,7 +4764,10 @@ export interface components {
       payment_intent_id: string
       size?: string
     }
-    ConfirmRequestDto: Record<string, never>
+    ConfirmRequestDto: {
+      organization_id?: number
+      organization_name?: string
+    }
     ConfirmResponseDto: {
       organization_slug: string
       success: boolean
@@ -5136,7 +5139,12 @@ export interface components {
       | {
           billing_email: string | null
           /** @enum {string|null} */
-          billing_partner: 'fly' | 'aws_marketplace' | 'vercel_marketplace' | null
+          billing_partner:
+            | 'fly'
+            | 'aws_marketplace'
+            | 'vercel_marketplace'
+            | 'stripe_projects'
+            | null
           id: number
           is_owner: boolean
           name: string
@@ -6628,7 +6636,7 @@ export interface components {
       }[]
       billing_cycle_anchor: number
       /** @enum {string} */
-      billing_partner?: 'fly' | 'aws_marketplace' | 'vercel_marketplace'
+      billing_partner?: 'fly' | 'aws_marketplace' | 'vercel_marketplace' | 'stripe_projects'
       billing_via_partner: boolean
       current_period_end: number
       current_period_start: number
@@ -7675,7 +7683,7 @@ export interface components {
     OrganizationResponse: {
       billing_email: string | null
       /** @enum {string|null} */
-      billing_partner: 'fly' | 'aws_marketplace' | 'vercel_marketplace' | null
+      billing_partner: 'fly' | 'aws_marketplace' | 'vercel_marketplace' | 'stripe_projects' | null
       id: number
       is_owner: boolean
       name: string
@@ -7745,7 +7753,7 @@ export interface components {
     OrganizationSlugResponse: {
       billing_email: string | null
       /** @enum {string|null} */
-      billing_partner: 'fly' | 'aws_marketplace' | 'vercel_marketplace' | null
+      billing_partner: 'fly' | 'aws_marketplace' | 'vercel_marketplace' | 'stripe_projects' | null
       has_oriole_project: boolean
       id: number
       name: string
@@ -9996,6 +10004,10 @@ export interface components {
         usage_original?: number
       }[]
       subscription_id: string
+      tax_amount: number | null
+      tax_rate_percentage: number | null
+      /** @enum {string} */
+      tax_status: 'calculated' | 'not_applicable' | 'failed'
     }
     UpdateAddonBody: {
       /** @enum {string} */

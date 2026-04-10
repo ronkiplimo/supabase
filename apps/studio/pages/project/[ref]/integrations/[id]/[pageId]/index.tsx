@@ -163,7 +163,7 @@ const IntegrationPage: NextPageWithLayout = () => {
   const oAuthIntegrationInstalled = useMemo(() => {
     if (!apiKeys || !integration) return false
     const prefix = integration.secretKeyPrefix
-    if (integration.installMethod !== 'secret_key_prefix' || !prefix) return false
+    if (integration.installIdentificationMethod !== 'secret_key_prefix' || !prefix) return false
     return apiKeys.some((k) => k.type === 'secret' && k.name.startsWith(prefix))
   }, [apiKeys, integration])
 

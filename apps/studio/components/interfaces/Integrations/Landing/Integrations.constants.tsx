@@ -67,9 +67,8 @@ export type IntegrationDefinition = {
   siteUrl?: string | null
   installUrl?: string | null
   installUrlType?: InstallUrlType
-  installMethod?: InstallIdentificationMethod
+  installIdentificationMethod?: InstallIdentificationMethod
   secretKeyPrefix?: string
-  /** UUID of the marketplace listing, used for API calls (id is the slug used for routing) */
   listingId?: string
   author: {
     name: string

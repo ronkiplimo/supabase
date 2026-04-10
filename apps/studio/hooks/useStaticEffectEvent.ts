@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useLayoutEffect, useRef } from 'react'
 
 export const useStaticEffectEvent = <Callback extends Function>(callback: Callback) => {
   const callbackRef = useRef(callback)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     callbackRef.current = callback
   })
 

@@ -135,6 +135,7 @@ module.exports.getCSP = function getCSP() {
     USERCENTRICS_APP_URL,
     STAPE_URL,
     USERCENTRICS_URLS,
+    MARKETPLACE_API_URL,
     ...(!!NIMBUS_PROD_PROJECTS_URL ? [NIMBUS_PROD_PROJECTS_URL, NIMBUS_PROD_PROJECTS_URL_WS] : []),
   ]
   const STYLE_SRC_URLS = [CLOUDFLARE_CDN_URL, SUPABASE_ASSETS_URL]
@@ -156,9 +157,7 @@ module.exports.getCSP = function getCSP() {
       : []),
     PUSHER_URL_WS,
     SENTRY_URL,
-  ]
-    .filter((url) => url && url.length > 0)
-    .join(' ')
+  ].join(' ')
 
   const imgSrcDirective = [
     `img-src 'self'`,
@@ -166,7 +165,7 @@ module.exports.getCSP = function getCSP() {
     `data:`,
     ...IMG_SRC_URLS,
     ...(isDevOrStaging
-      ? [SUPABASE_STAGING_PROJECTS_URL, NIMBUS_STAGING_PROJECTS_URL, VERCEL_URL, MARKETPLACE_API_URL]
+      ? [SUPABASE_STAGING_PROJECTS_URL, NIMBUS_STAGING_PROJECTS_URL, VERCEL_URL]
       : []),
   ].join(' ')
 

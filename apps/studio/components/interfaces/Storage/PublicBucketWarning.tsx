@@ -60,8 +60,9 @@ export function PublicBucketWarning({ projectRef, bucketId }: PublicBucketWarnin
   })
 
   const [showModal, setShowModal] = useState(false)
+  const [dismissed, setDismissed] = useState(false)
 
-  return policyToRemove ? (
+  return policyToRemove && !dismissed ? (
     <PublicBucketWarningView
       _tag="policy-to-remove"
       policyName={policyToRemove.policyname}
@@ -70,6 +71,7 @@ export function PublicBucketWarning({ projectRef, bucketId }: PublicBucketWarnin
       isModalVisible={showModal}
       onShowModal={() => setShowModal(true)}
       onHideModal={() => setShowModal(false)}
+      onDismiss={() => setDismissed(true)}
     />
   ) : (
     <PublicBucketWarningView _tag="no-policy-to-remove" />
@@ -88,6 +90,7 @@ type PublicBucketWarningViewProps_PolicyToRemove = {
   isModalVisible: boolean
   onShowModal: () => void
   onHideModal: () => void
+  onDismiss: () => void
 }
 
 type PublicBucketWarningViewProps =
@@ -99,8 +102,15 @@ function PublicBucketWarningView(props: PublicBucketWarningViewProps): ReactNode
     return null
   }
 
-  const { policyName, isRemovingPolicy, onRemovePolicy, isModalVisible, onShowModal, onHideModal } =
-    props
+  const {
+    policyName,
+    isRemovingPolicy,
+    onRemovePolicy,
+    isModalVisible,
+    onShowModal,
+    onHideModal,
+    onDismiss,
+  } = props
 
   return (
     <>
@@ -110,9 +120,14 @@ function PublicBucketWarningView(props: PublicBucketWarningViewProps): ReactNode
         title="Anyone can list all files in this bucket"
         description="A SELECT policy on storage.objects allows clients to retrieve a full list of files. Public buckets don’t need this and it may expose more data than intended."
         actions={
-          <Button type="warning" size="tiny" onClick={onShowModal}>
-            Remove policy
-          </Button>
+          <div className="flex gap-2">
+            <Button type="warning" size="tiny" onClick={onShowModal}>
+              Remove policy
+            </Button>
+            <Button type="default" size="tiny" onClick={onDismiss}>
+              Dismiss
+            </Button>
+          </div>
         }
       />
       <ConfirmationModal

@@ -92,8 +92,8 @@ hideToc: false
       <$CodeTabs>
 
         ```text name=.env.local
-        SUPABASE_URL=<SUBSTITUTE_SUPABASE_URL>
-        SUPABASE_PUBLISHABLE_KEY=<SUBSTITUTE_SUPABASE_PUBLISHABLE_KEY>
+        PUBLIC_SUPABASE_URL=<SUBSTITUTE_SUPABASE_URL>
+        PUBLIC_SUPABASE_PUBLISHABLE_KEY=<SUBSTITUTE_SUPABASE_PUBLISHABLE_KEY>
         ```
 
       </$CodeTabs>
@@ -116,10 +116,13 @@ hideToc: false
       ```ts name=src/lib/supabase.ts
       import { createClient } from "@supabase/supabase-js";
 
+      const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL
+      const supabasePublishableKey = import.meta.env.PUBLIC_SUPABASE_PUBLISHABLE_KE
+
       export function createServerClient() {
         return createClient(
-          import.meta.env.SUPABASE_URL,
-          import.meta.env.SUPABASE_PUBLISHABLE_KEY
+          supabaseUrl,
+          supabasePublishableKey
         );
       }
       ```

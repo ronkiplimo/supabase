@@ -6,6 +6,7 @@ import { Button, CriticalIcon, DropdownMenu, DropdownMenuContent, DropdownMenuTr
 
 import { DeleteProjectModal } from '@/components/interfaces/Settings/General/DeleteProjectPanel/DeleteProjectModal'
 import { SupportLink } from '@/components/interfaces/Support/SupportLink'
+import { LogicalBackupCliInstructions } from '@/components/layouts/ProjectLayout/LogicalBackupCliInstructions'
 import { ButtonTooltip } from '@/components/ui/ButtonTooltip'
 import { DropdownMenuItemTooltip } from '@/components/ui/DropdownMenuItemTooltip'
 import { InlineLink } from '@/components/ui/InlineLink'
@@ -65,6 +66,10 @@ export const RestoreFailedState = () => {
                   Please contact support for assistance.
                 </p>
               </div>
+            </div>
+
+            <div className="border-t border-overlay px-8 py-4">
+              <LogicalBackupCliInstructions />
             </div>
 
             <div className="border-t border-overlay flex items-center justify-end py-4 px-8 gap-x-2">

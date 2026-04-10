@@ -121,11 +121,11 @@ function PublicBucketWarningView(props: PublicBucketWarningViewProps): ReactNode
         description="A SELECT policy on storage.objects allows clients to retrieve a full list of files. Public buckets don’t need this and it may expose more data than intended."
         actions={
           <div className="flex gap-2">
-            <Button type="warning" size="tiny" onClick={onShowModal}>
-              Remove policy
-            </Button>
             <Button type="default" size="tiny" onClick={onDismiss}>
               Dismiss
+            </Button>
+            <Button type="warning" size="tiny" onClick={onShowModal}>
+              Remove policy
             </Button>
           </div>
         }

@@ -1,7 +1,8 @@
 'use client'
 
 import { useFeatureFlags } from 'common'
-import { Activity, ChevronDown, ChevronUp, EyeOff, Flag } from 'lucide-react'
+import { ChevronDown, ChevronUp, EyeOff, X } from 'lucide-react'
+import Image from 'next/image'
 import {
   useCallback,
   useEffect,
@@ -16,15 +17,18 @@ import {
   cn,
   Input_Shadcn_ as Input,
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
   Switch,
   Tabs_Shadcn_ as Tabs,
-  TabsContent_Shadcn_ as TabsContent,
   TabsList_Shadcn_ as TabsList,
   TabsTrigger_Shadcn_ as TabsTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from 'ui'
 
 import { useDevToolbar } from './DevToolbarContext'
@@ -292,43 +296,76 @@ export function DevToolbar() {
         side="bottom"
         size="lg"
         className="flex flex-col p-0 gap-0 overflow-hidden"
+        showClose={false}
         onOpenAutoFocus={(event) => event.preventDefault()}
       >
-        <SheetHeader className="px-6 py-4 border-b shrink-0 space-y-0">
-          <div className="flex items-center gap-3">
-            <Activity className="w-5 h-5 text-brand-500" />
-            <SheetTitle className="text-lg font-semibold">Dev Telemetry</SheetTitle>
-            <Badge variant="secondary">Local Only</Badge>
-            <Button
-              type="text"
-              icon={<EyeOff className="w-4 h-4" />}
-              onClick={dismissToolbar}
-              className="ml-auto text-foreground-light hover:text-foreground mr-5"
-            >
-              Hide
-            </Button>
-          </div>
-          <SheetDescription className="sr-only">
-            View telemetry events and feature flags for local development
-          </SheetDescription>
-        </SheetHeader>
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="flex flex-col flex-1 min-h-0 overflow-hidden"
+        >
+          <SheetHeader className="border-b shrink-0 space-y-0 p-0">
+            <SheetTitle className="sr-only">Dev Telemetry</SheetTitle>
+            <SheetDescription className="sr-only">
+              View telemetry events and feature flags for local development
+            </SheetDescription>
+            <div className="flex items-center px-6">
+              <Image
+                src="/img/logo-pixel-small-light.png"
+                alt="Dev Telemetry"
+                width={16}
+                height={16}
+                style={{
+                  filter:
+                    'brightness(0) saturate(100%) invert(72%) sepia(57%) saturate(431%) hue-rotate(108deg) brightness(95%) contrast(91%)',
+                }}
+                aria-hidden="true"
+                className="shrink-0 mr-4"
+              />
+              <TabsList className="flex gap-x-4 rounded-none !border-none h-auto">
+                <TabsTrigger
+                  value="events"
+                  className="text-xs py-4 border-b-[1px] font-mono uppercase"
+                >
+                  Events ({filteredEvents.length})
+                </TabsTrigger>
+                <TabsTrigger
+                  value="flags"
+                  className="text-xs py-4 border-b-[1px] font-mono uppercase"
+                >
+                  Flags {totalOverrideCount > 0 && `(${totalOverrideCount})`}
+                </TabsTrigger>
+              </TabsList>
+              <div className="ml-auto flex items-center gap-2">
+                <Badge variant="warning">Local Only</Badge>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="text"
+                      icon={<EyeOff className="w-4 h-4" />}
+                      onClick={dismissToolbar}
+                      className="text-foreground-light hover:text-foreground p-1"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Hide toolbar</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SheetClose asChild>
+                      <Button
+                        type="text"
+                        icon={<X className="w-4 h-4" />}
+                        className="text-foreground-light hover:text-foreground p-1"
+                      />
+                    </SheetClose>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Close</TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+          </SheetHeader>
 
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden px-6 pt-4">
-          <Tabs
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="flex-1 flex flex-col min-h-0 overflow-hidden"
-          >
-            <TabsList className="shrink-0 mb-4">
-              <TabsTrigger value="events" className="flex items-center gap-2 px-4">
-                <Activity className="w-4 h-4" />
-                Events ({filteredEvents.length})
-              </TabsTrigger>
-              <TabsTrigger value="flags" className="flex items-center gap-2 px-4">
-                <Flag className="w-4 h-4" />
-                Flags {totalOverrideCount > 0 && `(${totalOverrideCount} overrides)`}
-              </TabsTrigger>
-            </TabsList>
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden px-6 pt-4">
             {activeTab === 'events' && (
               <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
                 <div className="flex items-center gap-4 pb-4 shrink-0">
@@ -438,8 +475,8 @@ export function DevToolbar() {
                 </Tabs>
               </div>
             )}
-          </Tabs>
-        </div>
+          </div>
+        </Tabs>
       </SheetContent>
     </Sheet>
   )

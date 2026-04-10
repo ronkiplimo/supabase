@@ -12,6 +12,8 @@ export type OrganizationCustomerProfileUpdateVariables = {
   billing_name: string
   /** Pass a tax ID object to set/update, `null` to clear, or `undefined` to leave unchanged */
   tax_id?: CustomerTaxId | null
+  /** When true, validates the request without persisting changes */
+  dry_run?: boolean
 }
 
 export async function updateOrganizationCustomerProfile({
@@ -19,6 +21,7 @@ export async function updateOrganizationCustomerProfile({
   address,
   billing_name,
   tax_id,
+  dry_run,
 }: OrganizationCustomerProfileUpdateVariables) {
   if (!slug) return console.error('Slug is required')
 
@@ -36,6 +39,7 @@ export async function updateOrganizationCustomerProfile({
         : tax_id !== undefined
           ? { tax_id }
           : {}),
+      ...(dry_run ? { dry_run } : {}),
     },
   })
   if (error) throw handleError(error)
@@ -67,7 +71,12 @@ export const useOrganizationCustomerProfileUpdateMutation = ({
   >({
     mutationFn: (vars) => updateOrganizationCustomerProfile(vars),
     async onSuccess(data, variables, context) {
-      const { address, slug, billing_name, tax_id } = variables
+      const { address, slug, billing_name, tax_id, dry_run } = variables
+
+      if (dry_run) {
+        await onSuccess?.(data, variables, context)
+        return
+      }
 
       // We do not invalidate here as GET endpoint data is stale for 1-2 seconds, so we handle state manually
       queryClient.setQueriesData(

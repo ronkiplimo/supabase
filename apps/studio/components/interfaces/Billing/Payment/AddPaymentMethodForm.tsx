@@ -57,25 +57,53 @@ const AddPaymentMethodForm = ({ onCancel, onConfirm }: AddPaymentMethodFormProps
       document.body.classList.add('!pointer-events-auto')
     }
 
-    // Save customer profile (address + tax ID) before confirming payment,
+    // Validate address/tax ID with a dry run before proceeding with Stripe,
     // so validation errors (e.g. invalid tax ID) block the flow early.
-    if (isPrimaryBillingAddress) {
-      const formValues = await paymentRef.current?.getFormValues()
-      if (!formValues) {
+    const formValues = isPrimaryBillingAddress
+      ? await paymentRef.current?.getFormValues()
+      : undefined
+
+    if (isPrimaryBillingAddress && !formValues) {
+      setIsSaving(false)
+      if (document !== undefined) {
+        document.body.classList.remove('!pointer-events-auto')
+      }
+      return
+    }
+
+    const addressChanged =
+      formValues?.address &&
+      (!isEqual(formValues.address, customerProfile?.address) ||
+        customerProfile?.billing_name !== formValues.customerName)
+    const taxIdChanged = formValues && taxId !== undefined && !isEqual(formValues.taxId, taxId)
+    const profileNeedsUpdate = isPrimaryBillingAddress && (addressChanged || taxIdChanged)
+
+    if (profileNeedsUpdate && formValues) {
+      try {
+        await updateCustomerProfile({
+          slug: selectedOrganization?.slug,
+          address: formValues.address,
+          billing_name: formValues.customerName,
+          ...(taxIdChanged ? { tax_id: formValues.taxId } : {}),
+          dry_run: true,
+        })
+      } catch {
         setIsSaving(false)
         if (document !== undefined) {
           document.body.classList.remove('!pointer-events-auto')
         }
         return
       }
+    }
 
-      const addressChanged =
-        formValues.address &&
-        (!isEqual(formValues.address, customerProfile?.address) ||
-          customerProfile?.billing_name !== formValues.customerName)
-      const taxIdChanged = taxId !== undefined && !isEqual(formValues.taxId, taxId)
+    // Dry run passed — proceed with Stripe payment method creation / 3DS
+    const result = await paymentRef.current?.confirmSetup()
 
-      if (addressChanged || taxIdChanged) {
+    if (!result) {
+      setIsSaving(false)
+    } else {
+      // Stripe succeeded — persist the customer profile update for real
+      if (profileNeedsUpdate && formValues) {
         try {
           await updateCustomerProfile({
             slug: selectedOrganization?.slug,
@@ -84,20 +112,12 @@ const AddPaymentMethodForm = ({ onCancel, onConfirm }: AddPaymentMethodFormProps
             ...(taxIdChanged ? { tax_id: formValues.taxId } : {}),
           })
         } catch {
-          setIsSaving(false)
-          if (document !== undefined) {
-            document.body.classList.remove('!pointer-events-auto')
-          }
-          return
+          toast.error(
+            'Your payment method was added successfully, but we could not save your billing address. Please update it in your organization settings.'
+          )
         }
       }
-    }
 
-    const result = await paymentRef.current?.confirmSetup()
-
-    if (!result) {
-      setIsSaving(false)
-    } else {
       if (
         isDefaultPaymentMethod &&
         selectedOrganization &&

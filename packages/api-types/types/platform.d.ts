@@ -4692,6 +4692,7 @@ export interface components {
       billing_name?: string
       /** @enum {boolean} */
       clear_tax_id?: true
+      dry_run?: boolean
       tax_id?: {
         country?: string
         type: string
@@ -4764,7 +4765,6 @@ export interface components {
       payment_intent_id: string
       size?: string
     }
-    ConfirmRequestDto: Record<string, never>
     ConfirmResponseDto: {
       organization_slug: string
       success: boolean
@@ -26429,11 +26429,7 @@ export interface operations {
       }
       cookie?: never
     }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ConfirmRequestDto']
-      }
-    }
+    requestBody?: never
     responses: {
       200: {
         headers: {

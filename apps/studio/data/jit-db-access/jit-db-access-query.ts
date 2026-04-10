@@ -45,8 +45,10 @@ async function getJitDbAccessConfiguration(
     handleError(error)
   }
 
-  if (data?.state === 'unavailable') {
-    return createUnavailableState(getUnavailableReason(data.unavailableReason))
+  if (data && 'state' in data && data.state === 'unavailable') {
+    return createUnavailableState(
+      getUnavailableReason('unavailableReason' in data ? data.unavailableReason : undefined)
+    )
   }
 
   return data

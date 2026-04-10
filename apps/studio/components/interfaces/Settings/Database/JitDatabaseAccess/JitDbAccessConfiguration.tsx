@@ -146,7 +146,9 @@ export const JitDbAccessConfiguration = () => {
     (jitDbAccessConfiguration as { state: string }).state === 'enabled'
 
   const isJitDbAccessUnavailable =
-    jitDbAccessConfiguration?.state === 'unavailable' ||
+    (jitDbAccessConfiguration &&
+      'state' in jitDbAccessConfiguration &&
+      jitDbAccessConfiguration.state === 'unavailable') ||
     (jitDbAccessConfiguration &&
       'isUnavailable' in jitDbAccessConfiguration &&
       jitDbAccessConfiguration.isUnavailable)

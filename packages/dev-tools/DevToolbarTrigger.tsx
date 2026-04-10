@@ -1,6 +1,7 @@
 'use client'
 
 import { EyeOff } from 'lucide-react'
+import Image from 'next/image'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent, PointerEvent } from 'react'
 import { Button, cn, Popover_Shadcn_, PopoverContent_Shadcn_, PopoverTrigger_Shadcn_ } from 'ui'
@@ -233,12 +234,12 @@ export function DevToolbarTrigger() {
           <Button
             type="text"
             className={cn(
-              'relative rounded-full h-10 w-10',
+              'relative rounded-full h-10 w-10 p-0',
               'bg-surface-100 border border-overlay shadow-md',
               'text-foreground-light hover:text-foreground hover:bg-surface-200',
               'focus-visible:outline-0 focus-visible:outline-transparent focus-visible:outline-offset-0',
               'select-none touch-none',
-              isDragging ? 'cursor-grabbing' : 'cursor-grab',
+              isDragging ? 'cursor-grabbing' : 'cursor-pointer',
               isOpen && !isDragging && 'text-foreground bg-surface-300'
             )}
             aria-label="Open dev toolbar"
@@ -250,32 +251,18 @@ export function DevToolbarTrigger() {
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleTriggerMouseLeave}
           >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+            <Image
+              src="/img/logo-pixel-small-light.png"
+              alt="Dev Toolbar"
+              width={16}
+              height={16}
+              style={{
+                filter:
+                  'brightness(0) saturate(100%) invert(72%) sepia(57%) saturate(431%) hue-rotate(108deg) brightness(95%) contrast(91%)',
+              }}
               aria-hidden="true"
-            >
-              <path
-                d="M11.9279 3.80298C11.9169 3.07055 10.9913 2.75622 10.5348 3.32989L3.64644 11.9868C2.83339 13.0086 3.56261 14.5156 4.87012 14.5156H11.9938L12.0776 20.0943C12.0886 20.8267 13.0141 21.141 13.4706 20.5674L20.359 11.9104C21.172 10.8886 20.4428 9.38167 19.1353 9.38167H11.9646L11.9279 3.80298Z"
-                fill="url(#supabase-logo-gradient)"
-              />
-              <defs>
-                <linearGradient
-                  id="supabase-logo-gradient"
-                  x1="3.30088"
-                  y1="20.9999"
-                  x2="21.2905"
-                  y2="3.60994"
-                  gradientUnits="userSpaceOnUse"
-                >
-                  <stop stopColor="#3ECF8E" />
-                  <stop offset="1" stopColor="#3FC463" />
-                </linearGradient>
-              </defs>
-            </svg>
+              className="pointer-events-none"
+            />
             {eventCount > 0 && (
               <span
                 className={cn(

@@ -15,7 +15,6 @@ import {
 } from 'ui'
 import { GenericSkeletonLoader } from 'ui-patterns/ShimmeringLoader'
 
-import { useIsBranching2Enabled } from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import {
   BranchManagementSection,
   BranchRow,

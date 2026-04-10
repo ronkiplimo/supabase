@@ -129,7 +129,7 @@ function EventRow({ event }: { event: DevTelemetryEvent }) {
   )
 }
 
-function FlagCard({
+function FlagRow({
   flagName,
   currentValue,
   originalValue,
@@ -145,30 +145,44 @@ function FlagCard({
   const valueType = typeof originalValue
   const isNull = originalValue === null
   const inputProps = {
+    size: 'tiny' as const,
     value: String(currentValue),
     onChange: (event: ChangeEvent<HTMLInputElement>) => onToggle(event.target.value),
     className: 'w-32',
   }
 
   return (
-    <div className={cn('border rounded-md p-3', isOverridden && 'border-warning bg-warning/5')}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <span className="font-mono text-sm truncate">{flagName}</span>
-          {isOverridden && (
-            <Badge variant="warning" className="shrink-0">
-              Overridden
-            </Badge>
-          )}
-          {isNull && (
-            <Badge variant="secondary" className="shrink-0">
-              null
-            </Badge>
-          )}
+    <div className={cn('px-4 py-3 flex flex-col gap-0.5', isOverridden && 'bg-warning/5')}>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col items-start gap-1">
+          <div className="flex gap-2 min-w-0">
+            <span
+              className={cn(
+                'font-mono text-xs truncate h-4',
+                isOverridden ? 'text-warning' : 'text-foreground'
+              )}
+            >
+              {flagName}
+            </span>
+            {isOverridden && (
+              <Badge variant="warning" className="shrink-0">
+                Overridden
+              </Badge>
+            )}
+            {isNull && (
+              <Badge variant="secondary" className="shrink-0">
+                null
+              </Badge>
+            )}
+          </div>
+          <div className="text-xs text-foreground-muted uppercase font-mono">
+            Original:{' '}
+            <code className="text-foreground-lighter">{JSON.stringify(originalValue)}</code>
+          </div>
         </div>
 
         {isNull ? (
-          <Input value="null" disabled className="w-32 opacity-50" />
+          <Input size="tiny" value="null" disabled className="w-32 opacity-50" />
         ) : valueType === 'boolean' ? (
           <Switch
             checked={currentValue as boolean}
@@ -180,13 +194,6 @@ function FlagCard({
           <Input {...inputProps} />
         )}
       </div>
-
-      {isOverridden && (
-        <div className="mt-2 text-xs text-foreground-muted">
-          Original:{' '}
-          <code className="bg-surface-200 px-1 rounded">{JSON.stringify(originalValue)}</code>
-        </div>
-      )}
     </div>
   )
 }
@@ -411,7 +418,7 @@ export function DevToolbar() {
                   <Button
                     type="default"
                     onClick={() => setEvents([])}
-                    className="mr-2 text-foreground-lighter hover:text-foreground"
+                    className="text-foreground-lighter hover:text-foreground"
                   >
                     Clear all
                   </Button>
@@ -419,7 +426,7 @@ export function DevToolbar() {
 
                 <div className="flex-1 min-h-0 overflow-y-auto pb-4">
                   {filteredEvents.length === 0 ? (
-                    <div className="text-center text-sm text-foreground-muted py-8">
+                    <div className="text-center text-foreground-lighter py-8 text-sm">
                       No events yet. Interact with the app to see telemetry events.
                     </div>
                   ) : (
@@ -434,84 +441,86 @@ export function DevToolbar() {
             )}
 
             {activeTab === 'flags' && (
-              <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-                {totalOverrideCount > 0 && (
-                  <div className="flex items-center justify-between p-3 bg-warning/10 rounded-md mb-4 shrink-0">
-                    <span className="text-sm text-warning">
-                      {totalOverrideCount} flag(s) overridden
-                      {phOverrideCount > 0 && ccOverrideCount > 0
-                        ? ` (${phOverrideCount} PostHog, ${ccOverrideCount} ConfigCat)`
-                        : ''}
-                    </span>
-                    <Button type="outline" onClick={clearAllOverrides}>
-                      Clear & Reload
-                    </Button>
+              <div className="flex-1 min-h-0 overflow-hidden flex">
+                {/* Sidebar */}
+                <div className="w-44 border-r shrink-0 flex flex-col">
+                  <nav className="flex flex-col p-3 gap-0.5">
+                    {(
+                      [
+                        { id: 'posthog', label: 'PostHog', count: phOverrideCount },
+                        { id: 'configcat', label: 'ConfigCat', count: ccOverrideCount },
+                      ] as const
+                    ).map(({ id, label, count }) => (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => setFlagsSubTab(id)}
+                        className={cn(
+                          'flex items-center justify-between px-3 py-1.5 rounded text-sm text-left uppercase font-mono tracking-wide',
+                          flagsSubTab === id
+                            ? 'bg-surface-300 text-foreground'
+                            : 'text-foreground-light hover:bg-surface-200'
+                        )}
+                      >
+                        <span className="font-mono text-xs">{label}</span>
+                        {count > 0 && (
+                          <span className="text-xs text-foreground-lighter">{count}</span>
+                        )}
+                      </button>
+                    ))}
+                  </nav>
+                  {totalOverrideCount > 0 && (
+                    <div className="mt-auto p-2 border-t">
+                      <Button type="outline" size="tiny" block onClick={clearAllOverrides}>
+                        Reset overrides
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Flag list */}
+                <div className="flex-1 min-h-0 overflow-y-auto pb-6">
+                  <div className="divide-y">
+                    {flagsSubTab === 'posthog' &&
+                      (Object.keys(posthogFlags).length === 0 ? (
+                        <div className="text-center text-foreground-lighter py-8 text-sm">
+                          No PostHog feature flags loaded yet.
+                        </div>
+                      ) : (
+                        Object.entries(posthogFlags).map(([flagName, flagValue]) => (
+                          <FlagRow
+                            key={flagName}
+                            flagName={flagName}
+                            currentValue={
+                              phFlagOverrides[flagName] ?? phFlagOriginals[flagName] ?? flagValue
+                            }
+                            originalValue={phFlagOriginals[flagName] ?? flagValue}
+                            isOverridden={flagName in phFlagOverrides}
+                            onToggle={(value) => togglePhFlagOverride(flagName, value)}
+                          />
+                        ))
+                      ))}
+                    {flagsSubTab === 'configcat' &&
+                      (Object.keys(configcatFlags).length === 0 ? (
+                        <div className="text-center text-foreground-lighter py-8 text-sm">
+                          No ConfigCat feature flags loaded yet.
+                        </div>
+                      ) : (
+                        Object.entries(configcatFlags).map(([flagName, flagValue]) => (
+                          <FlagRow
+                            key={flagName}
+                            flagName={flagName}
+                            currentValue={
+                              ccFlagOverrides[flagName] ?? ccFlagOriginals[flagName] ?? flagValue
+                            }
+                            originalValue={ccFlagOriginals[flagName] ?? flagValue}
+                            isOverridden={flagName in ccFlagOverrides}
+                            onToggle={(value) => toggleCcFlagOverride(flagName, value)}
+                          />
+                        ))
+                      ))}
                   </div>
-                )}
-
-                <Tabs
-                  value={flagsSubTab}
-                  onValueChange={(v) => setFlagsSubTab(v as 'posthog' | 'configcat')}
-                  className="flex-1 flex flex-col min-h-0 overflow-hidden"
-                >
-                  <TabsList className="shrink-0 mb-4">
-                    <TabsTrigger value="posthog" className="px-4">
-                      PostHog {phOverrideCount > 0 && `(${phOverrideCount})`}
-                    </TabsTrigger>
-                    <TabsTrigger value="configcat" className="px-4">
-                      ConfigCat {ccOverrideCount > 0 && `(${ccOverrideCount})`}
-                    </TabsTrigger>
-                  </TabsList>
-
-                  {flagsSubTab === 'posthog' && (
-                    <div className="flex-1 min-h-0 overflow-y-auto pb-6">
-                      <div className="space-y-4">
-                        {Object.keys(posthogFlags).length === 0 ? (
-                          <div className="text-center text-foreground-muted py-8">
-                            No PostHog feature flags loaded yet.
-                          </div>
-                        ) : (
-                          Object.entries(posthogFlags).map(([flagName, flagValue]) => (
-                            <FlagCard
-                              key={flagName}
-                              flagName={flagName}
-                              currentValue={
-                                phFlagOverrides[flagName] ?? phFlagOriginals[flagName] ?? flagValue
-                              }
-                              originalValue={phFlagOriginals[flagName] ?? flagValue}
-                              isOverridden={flagName in phFlagOverrides}
-                              onToggle={(value) => togglePhFlagOverride(flagName, value)}
-                            />
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  {flagsSubTab === 'configcat' && (
-                    <div className="flex-1 min-h-0 overflow-y-auto pb-6">
-                      <div className="space-y-4">
-                        {Object.keys(configcatFlags).length === 0 ? (
-                          <div className="text-center text-foreground-muted py-8">
-                            No ConfigCat feature flags loaded yet.
-                          </div>
-                        ) : (
-                          Object.entries(configcatFlags).map(([flagName, flagValue]) => (
-                            <FlagCard
-                              key={flagName}
-                              flagName={flagName}
-                              currentValue={
-                                ccFlagOverrides[flagName] ?? ccFlagOriginals[flagName] ?? flagValue
-                              }
-                              originalValue={ccFlagOriginals[flagName] ?? flagValue}
-                              isOverridden={flagName in ccFlagOverrides}
-                              onToggle={(value) => toggleCcFlagOverride(flagName, value)}
-                            />
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </Tabs>
+                </div>
               </div>
             )}
           </div>

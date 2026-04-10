@@ -46,7 +46,18 @@ async function getPublicBucketsWithSelectPolicies({
         AND p.cmd = 'SELECT'
       WHERE b.public = true
         AND b.id = ${literal(bucketId)}
-        AND p.qual ~* ('bucket_id\\s*=\\s*' || quote_literal(b.id))
+        AND p.qual ~* (
+          'bucket_id\\s*=\\s*' ||
+          replace(replace(replace(replace(replace(replace(replace(
+            quote_literal(b.id),
+            '.', '\\.'),
+            '*', '\\*'),
+            '(', '\\('),
+            ')', '\\)'),
+            '$', '\\$'),
+            '+', '\\+'),
+            '?', '\\?')
+        )
         AND p.qual !~* 'auth\\.'
     `,
   })

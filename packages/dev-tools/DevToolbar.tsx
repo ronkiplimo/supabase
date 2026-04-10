@@ -1,7 +1,7 @@
 'use client'
 
 import { useFeatureFlags } from 'common'
-import { ChevronDown, ChevronUp, EyeOff, X } from 'lucide-react'
+import { Copy, EyeOff, Search, X } from 'lucide-react'
 import Image from 'next/image'
 import {
   useCallback,
@@ -15,7 +15,7 @@ import {
   Badge,
   Button,
   cn,
-  Input_Shadcn_ as Input,
+  Input,
   Sheet,
   SheetClose,
   SheetContent,
@@ -48,49 +48,80 @@ import {
 
 const IS_LOCAL_DEV = process.env.NODE_ENV === 'development'
 
-function EventCard({ event }: { event: DevTelemetryEvent }) {
+function EventRow({ event }: { event: DevTelemetryEvent }) {
   const [isExpanded, setIsExpanded] = useState(false)
 
-  const handleToggle = () => setIsExpanded((prev) => !prev)
+  const time = new Date(event.timestamp).toLocaleTimeString('en-US', {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  })
+
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    navigator.clipboard.writeText(
+      JSON.stringify({ name: event.eventName, properties: event.properties }, null, 2)
+    )
+  }
 
   return (
-    <div className="border rounded-md p-3 bg-surface-100">
-      <button
-        type="button"
+    <div className="group last:border-b-0">
+      <div
+        role="button"
+        tabIndex={0}
         aria-expanded={isExpanded}
-        aria-label={`${event.eventName} event details`}
-        className="flex items-start justify-between cursor-pointer gap-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm w-full text-left"
-        onClick={handleToggle}
+        onClick={() => setIsExpanded((prev) => !prev)}
+        onKeyDown={(e) => e.key === 'Enter' && setIsExpanded((prev) => !prev)}
+        className="flex items-center h-9 px-6 gap-5 hover:bg-surface-100 cursor-pointer"
       >
-        <div className="flex flex-col gap-1 min-w-0 flex-1">
-          <div className="flex items-start gap-2 flex-wrap">
-            <Badge variant={event.source === 'client' ? 'default' : 'success'} className="shrink-0">
-              {event.source}
-            </Badge>
-            <Badge variant="secondary" className="shrink-0">
-              {event.eventType}
-            </Badge>
-            <span className="font-mono text-sm break-all">{event.eventName}</span>
-          </div>
-          {event.distinctId && (
-            <div
-              className="text-xs text-foreground-muted font-mono truncate"
-              title={event.distinctId}
-            >
-              ID: {event.distinctId}
-            </div>
-          )}
-        </div>
-        <div className="flex items-center gap-2 text-foreground-muted shrink-0">
-          <span className="text-xs whitespace-nowrap">
-            {new Date(event.timestamp).toLocaleTimeString()}
+        <span className="flex items-center gap-2 shrink-0 w-16">
+          <span
+            className={cn(
+              'w-1.5 h-1.5 rounded-[2px] shrink-0',
+              event.source === 'client' ? 'bg-brand' : 'bg-foreground-lighter'
+            )}
+          />
+          <span
+            className={cn(
+              'font-mono text-xs uppercase',
+              event.source === 'client' ? 'text-brand' : 'text-foreground-light'
+            )}
+          >
+            {event.source}
           </span>
-          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-        </div>
-      </button>
+        </span>
 
+        <span className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
+          <span className="font-mono text-xs text-foreground-lighter shrink-0 w-20">{time}</span>
+          <span className="font-mono text-xs text-foreground-lighter shrink-0 w-28 truncate uppercase">
+            {event.eventType}
+          </span>
+          <span className="font-mono text-xs text-foreground truncate shrink-0">
+            {event.eventName}
+          </span>
+          {event.distinctId && (
+            <span className="font-mono text-xs text-foreground-muted truncate">
+              {event.distinctId}
+            </span>
+          )}
+        </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={handleCopy}
+              aria-label="Copy JSON"
+              className="shrink-0 p-1 rounded hover:bg-surface-200 text-foreground-muted hover:text-foreground-light"
+            >
+              <Copy className="w-3 h-3" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="left">Copy JSON</TooltipContent>
+        </Tooltip>
+      </div>
       {isExpanded && (
-        <pre className="mt-3 p-2 bg-surface-200 rounded text-xs overflow-x-auto max-h-[300px] overflow-y-auto">
+        <pre className="px-8 py-2 bg-surface-100 border-b text-xs font-mono overflow-x-auto max-h-[200px] overflow-y-auto text-foreground-light">
           {JSON.stringify(event.properties, null, 2)}
         </pre>
       )}
@@ -305,14 +336,14 @@ export function DevToolbar() {
           className="flex flex-col flex-1 min-h-0 overflow-hidden"
         >
           <SheetHeader className="border-b shrink-0 space-y-0 p-0">
-            <SheetTitle className="sr-only">Dev Telemetry</SheetTitle>
+            <SheetTitle className="sr-only">Dev Toolbar</SheetTitle>
             <SheetDescription className="sr-only">
               View telemetry events and feature flags for local development
             </SheetDescription>
             <div className="flex items-center px-6">
               <Image
                 src="/img/logo-pixel-small-light.png"
-                alt="Dev Telemetry"
+                alt="Dev Toolbar"
                 width={16}
                 height={16}
                 style={{
@@ -325,13 +356,13 @@ export function DevToolbar() {
               <TabsList className="flex gap-x-4 rounded-none !border-none h-auto">
                 <TabsTrigger
                   value="events"
-                  className="text-xs py-4 border-b-[1px] font-mono uppercase"
+                  className="text-xs py-3 border-b-[1px] font-mono uppercase"
                 >
                   Events ({filteredEvents.length})
                 </TabsTrigger>
                 <TabsTrigger
                   value="flags"
-                  className="text-xs py-4 border-b-[1px] font-mono uppercase"
+                  className="text-xs py-3 border-b-[1px] font-mono uppercase"
                 >
                   Flags {totalOverrideCount > 0 && `(${totalOverrideCount})`}
                 </TabsTrigger>
@@ -365,30 +396,38 @@ export function DevToolbar() {
             </div>
           </SheetHeader>
 
-          <div className="flex-1 flex flex-col min-h-0 overflow-hidden px-6 pt-4">
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
             {activeTab === 'events' && (
-              <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-                <div className="flex items-center gap-4 pb-4 shrink-0">
+              <div className="flex-1 overflow-hidden flex flex-col">
+                <div className="flex items-center justify-between border-b shrink-0 px-6 py-2">
                   <Input
+                    size="tiny"
                     placeholder="Filter events..."
                     value={eventFilter}
                     onChange={(e) => setEventFilter(e.target.value)}
-                    className="flex-1"
+                    icon={<Search size={14} className="text-foreground-lighter" />}
+                    className="flex-1 rounded-none border-0 bg-transparent shadow-none focus-visible:ring-0 max-w-96"
                   />
-                  <Button type="outline" onClick={() => setEvents([])}>
-                    Clear
+                  <Button
+                    type="default"
+                    onClick={() => setEvents([])}
+                    className="mr-2 text-foreground-lighter hover:text-foreground"
+                  >
+                    Clear all
                   </Button>
                 </div>
 
-                <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pb-6">
+                <div className="flex-1 min-h-0 overflow-y-auto pb-4">
                   {filteredEvents.length === 0 ? (
-                    <div className="text-center text-foreground-muted py-8">
+                    <div className="text-center text-sm text-foreground-muted py-8">
                       No events yet. Interact with the app to see telemetry events.
                     </div>
                   ) : (
-                    filteredEvents.map((event) => (
-                      <EventCard key={`${event.source}-${event.id}`} event={event} />
-                    ))
+                    <div className="overflow-hidden">
+                      {filteredEvents.map((event) => (
+                        <EventRow key={`${event.source}-${event.id}`} event={event} />
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>

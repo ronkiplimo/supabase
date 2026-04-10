@@ -158,10 +158,18 @@ export function DevToolbarTrigger() {
   const eventCount = events.length
   const isDragging = dragPos !== null
   const snapCoords = getSnapCoords(snapPosition, viewport.w, viewport.h)
+  const FULL_TRANSITION = `${SNAP_TRANSITION}, opacity 200ms ease`
 
   const containerStyle: CSSProperties =
     dragPos !== null
-      ? { position: 'fixed', zIndex: 50, left: dragPos.x, top: dragPos.y, transition: 'none' }
+      ? {
+          position: 'fixed',
+          zIndex: 50,
+          left: dragPos.x,
+          top: dragPos.y,
+          transition: 'none',
+          opacity: 1,
+        }
       : releasedAt !== null
         ? // Phase 1: same pixel position as drag end, transition now defined
           {
@@ -169,10 +177,19 @@ export function DevToolbarTrigger() {
             zIndex: 50,
             left: releasedAt.x,
             top: releasedAt.y,
-            transition: SNAP_TRANSITION,
+            transition: FULL_TRANSITION,
+            opacity: isOpen ? 0 : 1,
+            pointerEvents: isOpen ? 'none' : undefined,
           }
         : // Phase 2: spring fires from releasedAt → snapCoords
-          { position: 'fixed', zIndex: 50, ...snapCoords, transition: SNAP_TRANSITION }
+          {
+            position: 'fixed',
+            zIndex: 50,
+            ...snapCoords,
+            transition: FULL_TRANSITION,
+            opacity: isOpen ? 0 : 1,
+            pointerEvents: isOpen ? 'none' : undefined,
+          }
 
   const handleClick = () => {
     if (wasDraggingRef.current) {
@@ -192,8 +209,7 @@ export function DevToolbarTrigger() {
           'text-foreground-light hover:text-foreground hover:bg-surface-200',
           'focus-visible:outline-0 focus-visible:outline-transparent focus-visible:outline-offset-0',
           'select-none touch-none',
-          isDragging ? 'cursor-grabbing' : 'cursor-pointer',
-          isOpen && !isDragging && 'text-foreground bg-surface-300'
+          isDragging ? 'cursor-grabbing' : 'cursor-pointer'
         )}
         aria-label="Open dev toolbar"
         onClick={handleClick}
@@ -201,11 +217,11 @@ export function DevToolbarTrigger() {
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
-        title="Dev Telemetry"
+        title="Dev Toolbar"
       >
         <Image
           src="/img/logo-pixel-small-light.png"
-          alt="Dev Telemetry"
+          alt="Dev Toolbar"
           width={16}
           height={16}
           style={{

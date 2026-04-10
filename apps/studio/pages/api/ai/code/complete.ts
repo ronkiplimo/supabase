@@ -140,6 +140,27 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       ${SECURITY_PROMPT}
     `
 
+    const isEmptyEditor =
+      selection.trim() === '' && !textBeforeCursor.trim() && !textAfterCursor.trim()
+
+    const taskPrompt = isEmptyEditor
+      ? `Generate a complete, valid SQL statement that fulfills this request: ${prompt}`
+      : source`
+          You are helping me edit some code.
+          Here is the context:
+          ${textBeforeCursor}<selection>${selection}</selection>${textAfterCursor}
+
+          Instructions:
+          1. Only modify the selected text based on this prompt: ${prompt}
+          2. Your response should be ONLY the modified selection text, nothing else. Remove selected text if needed.
+          3. You can respond with one word or multiple words
+          4. Ensure the modified text flows naturally within the current line
+          5. Avoid duplicating code when considering the full statement
+          6. If there is no surrounding context (before or after), your response must be the COMPLETE modified SQL statement — preserve all unchanged clauses and keywords, do not return only the modified expression.
+
+          Modify the selected text now:
+        `
+
     // Note: these must be of type `CoreMessage` to prevent AI SDK from stripping `providerOptions`
     // https://github.com/vercel/ai/blob/81ef2511311e8af34d75e37fc8204a82e775e8c3/packages/ai/core/prompt/standardize-prompt.ts#L83-L88
     const coreMessages: ModelMessage[] = [
@@ -151,24 +172,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       {
         role: 'user',
         content: source`
-          You are helping me edit some code.
-          Here is the context:
-          ${textBeforeCursor}<selection>${selection}</selection>${textAfterCursor}
-
           ${schemaDDL ? `Schema definitions (${schemasToFetch.join(', ')}):\n${schemaDDL}` : ''}
           ${otherSchemaNames ? `Other available schemas (use getSchemaDefinitions to look them up): ${otherSchemaNames}` : ''}
 
-          Instructions:
-          1. Only modify the selected text based on this prompt: ${prompt}
-          2. Your response should be ONLY the modified selection text, nothing else. Remove selected text if needed.
-          3. Do not wrap in code blocks or markdown
-          4. You can respond with one word or multiple words
-          5. Ensure the modified text flows naturally within the current line
-          6. Avoid duplicating code when considering the full statement
-          7. If there is no surrounding context (before or after), your response must be the COMPLETE modified SQL statement — preserve all unchanged clauses and keywords, do not return only the modified expression.
-          8. Match the identifier quoting style of the surrounding context. Do not quote identifiers unless they actually require it (uppercase letters, reserved words, or special characters). Plain lowercase identifiers like table and column names should not be quoted.
+          ${taskPrompt}
 
-          Modify the selected text now:
+          Output rules:
+          - Output only raw SQL — no explanation, no markdown, no code fences
+          - Do not quote identifiers unless they actually require it (uppercase letters, reserved words, or special characters). Plain lowercase identifiers should not be quoted.
         `,
       },
     ]

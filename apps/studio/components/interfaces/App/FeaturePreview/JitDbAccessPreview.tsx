@@ -8,8 +8,8 @@ export const JitDbAccessPreview = () => {
   return (
     <div className="space-y-4">
       <p className="text-sm text-foreground-light">
-        Grant project members temporary database role access through short-lived tokens, controlled in{' '}
-        <InlineLink href={`/project/${ref}/database/settings`}>Database Settings</InlineLink>.
+        Grant project members temporary database role access through short-lived tokens, controlled
+        in <InlineLink href={`/project/${ref}/database/settings`}>Database Settings</InlineLink>.
       </p>
       <div className="space-y-2">
         <p className="text-sm">Enabling this preview will:</p>

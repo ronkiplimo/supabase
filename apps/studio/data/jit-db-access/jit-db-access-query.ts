@@ -7,13 +7,9 @@ import type { ResponseError, UseCustomQueryOptions } from '@/types'
 
 type JitDbAccessVariables = { projectRef?: string }
 
-const MANUAL_MIGRATION_ERROR_PATTERNS = [
-  'must be migrated',
-]
+const MANUAL_MIGRATION_ERROR_PATTERNS = ['must be migrated']
 
-const POSTGRES_UPGRADE_ERROR_PATTERNS = [
-  'must be upgraded to postgres 17',
-]
+const POSTGRES_UPGRADE_ERROR_PATTERNS = ['must be upgraded to postgres 17']
 
 function messageIncludesAny(message: string, patterns: string[]) {
   return patterns.some((pattern) => message.includes(pattern))

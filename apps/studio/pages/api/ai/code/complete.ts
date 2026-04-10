@@ -41,7 +41,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   try {
-    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+    let body: unknown
+    try {
+      body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body
+    } catch {
+      return res.status(400).json({ error: 'Malformed JSON' })
+    }
     const { data, error: parseError } = requestBodySchema.safeParse(body)
 
     if (parseError) {
@@ -89,6 +94,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     // Fetch schema list first so we can determine which schemas to load DDL for.
     // These are best-effort — if they fail, we proceed without DDL context.
+    let schemaListError = false
     const schemas: Schemas = includeSchema
       ? await executeSql<Schemas>(
           { projectRef, connectionString, sql: pgMetaSchemasList.sql },
@@ -97,7 +103,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           IS_PLATFORM ? undefined : executeQuery
         )
           .then(({ result }) => result)
-          .catch(() => [] as Schemas)
+          .catch(() => {
+            schemaListError = true
+            return [] as Schemas
+          })
       : []
 
     // Always include public; also eagerly include any non-public schema whose name
@@ -115,6 +124,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         ]
       : []
 
+    let schemaDDLError = false
     const entityDefs: EntityDefinitionRow[] =
       schemasToFetch.length > 0
         ? await executeSql<EntityDefinitionRow[]>(
@@ -128,7 +138,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             IS_PLATFORM ? undefined : executeQuery
           )
             .then(({ result }) => result)
-            .catch(() => [] as EntityDefinitionRow[])
+            .catch(() => {
+              schemaDDLError = true
+              return [] as EntityDefinitionRow[]
+            })
         : []
 
     const schemaDDL = entityDefs?.[0]?.data?.definitions?.map((d) => d.sql).join('\n\n')
@@ -161,8 +174,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       {
         role: 'user',
         content: source`
-          ${schemaDDL ? `Schema definitions (${schemasToFetch.join(', ')}):\n${schemaDDL}` : ''}
-          ${otherSchemaNames ? `Other available schemas (use getSchemaDefinitions to look them up): ${otherSchemaNames}` : ''}
+          ${schemaDDLError ? 'Failed to fetch schema definitions due to a database error.' : schemaDDL ? `Schema definitions (${schemasToFetch.join(', ')}):\n${schemaDDL}` : ''}
+          ${schemaListError ? 'Failed to fetch schema list due to a database error — other schemas may exist.' : otherSchemaNames ? `Other available schemas (use getSchemaDefinitions to look them up): ${otherSchemaNames}` : ''}
           ${hasCodeContext ? `\nCode:\n${textBeforeCursor}<selection>${selection}</selection>${textAfterCursor}` : ''}
 
           Prompt: ${prompt}
@@ -184,17 +197,21 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                   .describe('The schema names to get the definitions for'),
               }),
               execute: async ({ schemas: schemaNames }) => {
-                const { result } = await executeSql<EntityDefinitionRow[]>(
-                  {
-                    projectRef,
-                    connectionString,
-                    sql: getEntityDefinitionsSql({ schemas: schemaNames }),
-                  },
-                  undefined,
-                  headers,
-                  IS_PLATFORM ? undefined : executeQuery
-                )
-                return result?.[0]?.data?.definitions?.map((d) => d.sql).join('\n\n') ?? ''
+                try {
+                  const { result } = await executeSql<EntityDefinitionRow[]>(
+                    {
+                      projectRef,
+                      connectionString,
+                      sql: getEntityDefinitionsSql({ schemas: schemaNames }),
+                    },
+                    undefined,
+                    headers,
+                    IS_PLATFORM ? undefined : executeQuery
+                  )
+                  return result?.[0]?.data?.definitions?.map((d) => d.sql).join('\n\n') ?? ''
+                } catch {
+                  return 'Failed to fetch schema definitions due to a database error.'
+                }
               },
             }),
           }

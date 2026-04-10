@@ -289,7 +289,7 @@ export const JitDbAccessConfiguration = () => {
           <PageSectionSummary>
             <PageSectionTitle>Temporary access</PageSectionTitle>
           </PageSectionSummary>
-          <DocsButton href={`${DOCS_URL}/guides/platform/ephemeral-token-database-access`} />
+          <DocsButton href={`${DOCS_URL}/guides/platform/temporary-access`} />
         </PageSectionMeta>
 
         <PageSectionContent className="space-y-4">

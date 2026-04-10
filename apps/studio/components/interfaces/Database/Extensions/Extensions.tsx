@@ -29,24 +29,24 @@ export const Extensions = () => {
   const { data: project } = useSelectedProjectQuery()
   const [filterString, setFilterString] = useState<string>('')
 
-  const { data, isPending: isLoading } = useDatabaseExtensionsQuery({
+  const { data = [], isPending: isLoading } = useDatabaseExtensionsQuery({
     projectRef: project?.ref,
     connectionString: project?.connectionString,
   })
 
+  const visibleExtensions = data.filter((ext) => !HIDDEN_EXTENSIONS.includes(ext.name))
   const extensions =
     filterString.length === 0
-      ? (data ?? [])
-      : (data ?? []).filter((ext) => {
+      ? visibleExtensions
+      : visibleExtensions.filter((ext) => {
           const nameMatchesSearch = ext.name.toLowerCase().includes(filterString.toLowerCase())
           const searchTermsMatchesSearch = (SEARCH_TERMS[ext.name] || []).some((x) =>
             x.includes(filterString.toLowerCase())
           )
           return nameMatchesSearch || searchTermsMatchesSearch
         })
-  const extensionsWithoutHidden = extensions.filter((ext) => !HIDDEN_EXTENSIONS.includes(ext.name))
   const [enabledExtensions, disabledExtensions] = partition(
-    extensionsWithoutHidden,
+    extensions,
     (ext) => !isNull(ext.installed_version)
   )
 

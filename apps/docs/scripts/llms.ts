@@ -115,9 +115,9 @@ const SOURCES: Source[] = [
   },
 ]
 
-// Marketing page .txt files are hand-curated and live in apps/www/public/llms/.
+// Product overview .txt files are hand-curated and live in apps/www/public/llms/.
 // These links always point to production since llms.txt is only meaningful in prod.
-const MARKETING_LINKS = [
+const PRODUCT_OVERVIEW_LINKS = [
   '- [Supabase Overview](https://supabase.com/llms/homepage.txt)',
   '- [Supabase Database](https://supabase.com/llms/database.txt)',
   '- [Supabase Auth](https://supabase.com/llms/auth.txt)',
@@ -144,7 +144,7 @@ async function generateMainLlmsTxt() {
     '',
     '## Product Overview',
     '',
-    MARKETING_LINKS,
+    PRODUCT_OVERVIEW_LINKS,
   ].join('\n')
 
   fs.writeFile('public/llms.txt', fullText)

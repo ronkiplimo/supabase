@@ -345,7 +345,7 @@ export const UpcomingInvoice = ({ slug }: UpcomingInvoiceProps) => {
                         </TableCell>
                       </TableRow>
                     )}
-                    {(hasTax || taxFailed) && (
+                    {hasTax && (
                       <TableRow>
                         <TableCell className="font-medium py-2 px-0 flex items-center">
                           <span className="mr-2">Projected Total</span>

@@ -9,7 +9,18 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      v_secret_id: {
+        Row: {
+          create_secret: string | null
+        }
+        Insert: {
+          create_secret?: string | null
+        }
+        Update: {
+          create_secret?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       categories: {
@@ -98,7 +109,14 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      get_redirect_url: {
+        Args: {
+          p_listing_id: string
+          p_organization_slug: string
+          p_project_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

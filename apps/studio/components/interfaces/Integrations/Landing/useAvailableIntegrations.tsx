@@ -141,7 +141,6 @@ export const useAvailableIntegrations = () => {
 
   return {
     data: [...marketplaceIntegrations, ...availableIntegrations],
-    // data: [...marketplaceIntegrations],
     error,
     isPending,
     isSuccess,

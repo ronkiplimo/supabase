@@ -2,6 +2,7 @@ import './utils/dotenv.js'
 
 import 'dotenv/config'
 import fs from 'node:fs/promises'
+import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { isFeatureEnabled } from '../../../packages/common/enabled-features/index.js'
@@ -162,24 +163,67 @@ async function generateSourceLlmsTxt(sourceDefn: Source) {
   fs.writeFile(`public/${sourceDefn.relPath}`, fullText)
 }
 
+// Product overview .txt files in apps/www/public/llms/, read at build time.
+// Order matters: homepage first, pricing last, products alphabetical in between.
+const WWW_LLM_FILES = [
+  'homepage.txt',
+  'auth.txt',
+  'database.txt',
+  'edge-functions.txt',
+  'realtime.txt',
+  'storage.txt',
+  'vector.txt',
+  'pricing.txt',
+]
+
+const WWW_LLMS_DIR = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../../../apps/www/public/llms'
+)
+
+async function readWwwLlmContent(): Promise<string> {
+  const contents = await Promise.all(
+    WWW_LLM_FILES.map(async (file) => {
+      const filePath = path.join(WWW_LLMS_DIR, file)
+      return fs.readFile(filePath, 'utf-8')
+    })
+  )
+  return contents.join('\n\n---\n\n')
+}
+
 async function generateFullLlmsTxt() {
   const enabledSources = SOURCES.filter((source) => source.enabled !== false)
 
-  const sections = await Promise.all(
-    enabledSources.map(async (sourceDefn) => {
-      const source = await sourceDefn.fetch()
-      const sourceText = source
-        .map((section) => {
-          section.process()
-          return section.extractIndexedContent()
-        })
-        .join('\n\n')
-      // Use markdown heading per source for clear section boundaries in the concatenated file
-      return `# ${sourceDefn.title}\n\n${sourceText}`
-    })
-  )
+  const [wwwContent, docsSections] = await Promise.all([
+    readWwwLlmContent(),
+    Promise.all(
+      enabledSources.map(async (sourceDefn) => {
+        const source = await sourceDefn.fetch()
+        const sourceText = source
+          .map((section) => {
+            section.process()
+            return section.extractIndexedContent()
+          })
+          .join('\n\n')
+        return `# ${sourceDefn.title}\n\n${sourceText}`
+      })
+    ),
+  ])
 
-  const fullText = `# ${metadataTitle}\n\n${sections.join('\n\n---\n\n')}`
+  const fullText = [
+    '# Supabase',
+    '',
+    '## Product Overview',
+    '',
+    wwwContent,
+    '',
+    '---',
+    '',
+    '## Documentation',
+    '',
+    docsSections.join('\n\n---\n\n'),
+  ].join('\n')
+
   await fs.writeFile('public/llms-full.txt', fullText)
   console.log(`llms-full.txt: ${(Buffer.byteLength(fullText) / 1024 / 1024).toFixed(1)}MB`)
 }

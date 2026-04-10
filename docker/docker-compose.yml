@@ -16,10 +16,8 @@ services:
     healthcheck:
       test:
         [
-          "CMD",
-          "node",
-          "-e",
-          "fetch('http://studio:3000/api/platform/profile').then((r) => {if (r.status !== 200) throw new Error(r.status)})"
+          "CMD-SHELL",
+          "node -e \"fetch('http://localhost:3000/api/platform/profile').then((r) => {if (r.status !== 200) throw new Error(r.status)})\""
         ]
       timeout: 10s
       interval: 5s
@@ -264,8 +262,14 @@ services:
       PGRST_DB_MAX_ROWS: ${PGRST_DB_MAX_ROWS:-1000}
       PGRST_DB_EXTRA_SEARCH_PATH: ${PGRST_DB_EXTRA_SEARCH_PATH:-public}
       PGRST_DB_ANON_ROLE: anon
+
       # PostgREST accepts a plain-text symmetric secret, a single JWK, or a JWKS
+      # TODO: Podman does not support nested variable interpolation (${A:-${B}}).
+      # For Podman, replace the line below with the required variable (JWT_JWKS when
+      # switching to new API keys and new auth, or JWT_SECRET if still using
+      # the old API keys)
       PGRST_JWT_SECRET: ${JWT_JWKS:-${JWT_SECRET}}
+
       PGRST_DB_USE_LEGACY_GUCS: "false"
       PGRST_APP_SETTINGS_JWT_SECRET: ${JWT_SECRET}
       PGRST_APP_SETTINGS_JWT_EXP: ${JWT_EXPIRY}

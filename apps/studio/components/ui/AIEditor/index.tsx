@@ -21,6 +21,7 @@ interface AIEditorProps {
     projectRef?: string
     connectionString?: string | null
     orgSlug?: string
+    language?: string
   }
   initialPrompt?: string
   readOnly?: boolean

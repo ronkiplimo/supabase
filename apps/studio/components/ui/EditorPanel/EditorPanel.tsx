@@ -499,6 +499,7 @@ export const EditorPanel = () => {
               projectRef: project?.ref,
               connectionString: project?.connectionString,
               orgSlug: org?.slug,
+              language: 'sql',
             }}
             initialPrompt={initialPrompt}
             options={{

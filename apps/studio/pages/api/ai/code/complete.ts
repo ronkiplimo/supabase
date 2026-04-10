@@ -197,12 +197,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                   .describe('The schema names to get the definitions for'),
               }),
               execute: async ({ schemas: schemaNames }) => {
+                const validSchemaNames = schemaNames.filter((name) =>
+                  schemas.some((s) => s.name === name)
+                )
+                if (validSchemaNames.length === 0) return ''
                 try {
                   const { result } = await executeSql<EntityDefinitionRow[]>(
                     {
                       projectRef,
                       connectionString,
-                      sql: getEntityDefinitionsSql({ schemas: schemaNames }),
+                      sql: getEntityDefinitionsSql({ schemas: validSchemaNames }),
                     },
                     undefined,
                     headers,

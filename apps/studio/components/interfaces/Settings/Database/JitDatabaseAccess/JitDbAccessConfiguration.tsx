@@ -147,8 +147,9 @@ export const JitDbAccessConfiguration = () => {
 
   const isJitDbAccessUnavailable =
     jitDbAccessConfiguration?.state === 'unavailable' ||
-    ('isUnavailable' in (jitDbAccessConfiguration ?? {}) &&
-      !!jitDbAccessConfiguration?.isUnavailable)
+    (jitDbAccessConfiguration &&
+      'isUnavailable' in jitDbAccessConfiguration &&
+      jitDbAccessConfiguration.isUnavailable)
   const hasAccessToJitDbAccess = !isJitDbAccessUnavailable
   const unavailableReason: JitDbAccessUnavailableReason =
     jitDbAccessConfiguration && 'unavailableReason' in jitDbAccessConfiguration
@@ -269,18 +270,24 @@ export const JitDbAccessConfiguration = () => {
     'appliedSuccessfully' in jitDbAccessConfiguration &&
     !jitDbAccessConfiguration.appliedSuccessfully
 
-  const projectReference = ref ? `This project (${ref})` : 'This project'
+  const projectReference = ref ? (
+    <>
+      This project <code className="text-code-inline">{ref}</code>
+    </>
+  ) : (
+    'This project'
+  )
   const unavailableTitle =
     unavailableReason === 'postgres_upgrade_required'
-      ? 'Postgres upgrade required to use temporary access'
+      ? 'Postgres upgrade required'
       : unavailableReason === 'manual_migration_required'
-        ? 'Migration required to use temporary access'
+        ? 'Migration required'
         : 'Temporary access unavailable'
   const unavailableDescription =
     unavailableReason === 'postgres_upgrade_required'
-      ? `${projectReference} must be upgraded to Postgres 17 or later before temporary access can be enabled.`
+      ? 'must be upgraded to Postgres 17 or later before temporary access can be enabled.'
       : unavailableReason === 'manual_migration_required'
-        ? `${projectReference} must be migrated before temporary access can be enabled. Contact support to migrate this project.`
+        ? 'must be migrated before temporary access can be enabled. Contact support to migrate this project.'
         : 'Temporary access is temporarily unavailable for this project. Contact support if you need help enabling this feature.'
 
   useEffect(() => {
@@ -314,7 +321,15 @@ export const JitDbAccessConfiguration = () => {
               type="note"
               layout="responsive"
               title={unavailableTitle}
-              description={unavailableDescription}
+              description={
+                unavailableReason === 'temporarily_unavailable' ? (
+                  unavailableDescription
+                ) : (
+                  <>
+                    {projectReference} {unavailableDescription}
+                  </>
+                )
+              }
               actions={
                 unavailableReason === 'postgres_upgrade_required' && ref ? (
                   <Button type="default" asChild>

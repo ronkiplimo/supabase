@@ -107,7 +107,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       ? [
           'public',
           ...(schemas ?? [])
-            .filter((s) => s.name !== 'public' && lowerContext.includes(s.name + '.'))
+            .filter((s) => s.name !== 'public' && lowerContext.includes(s.name.toLowerCase() + '.'))
             .map((s) => s.name),
         ]
       : []
@@ -179,7 +179,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                   .describe('The schema names to get the definitions for'),
               }),
               execute: async ({ schemas: schemaNames }) => {
-                const { result } = await executeSql(
+                const { result } = await executeSql<EntityDefinitionRow[]>(
                   {
                     projectRef,
                     connectionString,
@@ -189,7 +189,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                   headers,
                   IS_PLATFORM ? undefined : executeQuery
                 )
-                return result
+                return result?.[0]?.data?.definitions?.map((d) => d.sql).join('\n\n') ?? ''
               },
             }),
           }

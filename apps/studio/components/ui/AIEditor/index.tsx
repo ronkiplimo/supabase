@@ -257,6 +257,23 @@ export const AIEditor = ({
         if (!model || !selection) return
 
         const allLines = model.getLinesContent()
+
+        const noSelection =
+          selection.startLineNumber === selection.endLineNumber &&
+          selection.startColumn === selection.endColumn
+
+        if (noSelection) {
+          setPromptState({
+            isOpen: true,
+            selection: allLines.join('\n'),
+            beforeSelection: '',
+            afterSelection: '',
+            startLineNumber: selection.startLineNumber,
+            endLineNumber: selection.endLineNumber,
+          })
+          return
+        }
+
         const startLineIndex = selection.startLineNumber - 1
         const endLineIndex = selection.endLineNumber
 

@@ -30,7 +30,7 @@ const requestBodySchema = z.object({
     selection: z.string(),
   }),
   projectRef: z.string(),
-  connectionString: z.string().optional(),
+  connectionString: z.string().nullish(),
   orgSlug: z.string().optional(),
   language: z.string().optional(),
 })

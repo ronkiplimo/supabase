@@ -9878,7 +9878,7 @@ export interface components {
       status: string
     }
     UpcomingInvoice: {
-      amount_projected?: number
+      amount_projected: number | null
       amount_total: number
       /** Format: date-time */
       billing_cycle_end: string
@@ -10004,8 +10004,13 @@ export interface components {
         usage_original?: number
       }[]
       subscription_id: string
-      tax_amount: number | null
-      tax_rate_percentage: number | null
+      tax: {
+        currency: string
+        tax_amount: number
+        tax_rate_percentage: number
+        total_amount_excluding_tax: number
+        total_amount_including_tax: number
+      } | null
       /** @enum {string} */
       tax_status: 'calculated' | 'not_applicable' | 'failed'
     }

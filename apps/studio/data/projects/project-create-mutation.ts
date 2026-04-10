@@ -29,6 +29,7 @@ export type ProjectCreateVariables = {
   postgresEngine?: PostgresEngine
   releaseChannel?: ReleaseChannel
   highAvailability?: boolean
+  suspendAndWake?: boolean
 }
 
 export async function createProject({
@@ -47,6 +48,7 @@ export async function createProject({
   postgresEngine,
   releaseChannel,
   highAvailability,
+  suspendAndWake,
 }: ProjectCreateVariables) {
   const body: CreateProjectBody = {
     cloud_provider: cloudProvider as CloudProvider,
@@ -66,6 +68,7 @@ export async function createProject({
     postgres_engine: postgresEngine,
     release_channel: releaseChannel,
     high_availability: highAvailability,
+    suspend_and_wake: suspendAndWake,
   }
 
   const { data, error } = await post(`/platform/projects`, {

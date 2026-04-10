@@ -38,6 +38,7 @@ import { ProjectCreationFooter } from '@/components/interfaces/ProjectCreation/P
 import { ProjectNameInput } from '@/components/interfaces/ProjectCreation/ProjectNameInput'
 import { RegionSelector } from '@/components/interfaces/ProjectCreation/RegionSelector'
 import { SecurityOptions } from '@/components/interfaces/ProjectCreation/SecurityOptions'
+import { SuspendAndWakeEnabledInput } from '@/components/interfaces/ProjectCreation/SuspendEnabled'
 import DefaultLayout from '@/components/layouts/DefaultLayout'
 import { WizardLayoutWithoutAuth } from '@/components/layouts/WizardLayout'
 import Panel from '@/components/ui/Panel'
@@ -149,6 +150,7 @@ const Wizard: NextPageWithLayout = () => {
     dbRegion,
     organization,
     highAvailability,
+    suspendAndWake,
   } = useWatch_Shadcn_({ control: form.control })
 
   // [Charis] Since the form is updated in a useEffect, there is an edge case
@@ -312,6 +314,7 @@ const Wizard: NextPageWithLayout = () => {
       enableRlsEventTrigger,
       postgresVersionSelection,
       useOrioleDb,
+      suspendAndWake,
     } = values
 
     if (useOrioleDb && !availableOrioleVersion) {
@@ -332,6 +335,7 @@ const Wizard: NextPageWithLayout = () => {
       organizationSlug: currentOrg.slug,
       name: projectName,
       highAvailability,
+      suspendAndWake,
       // gets ignored due to org billing subscription anyway
       dbPricingTierId: 'tier_free',
       // only set the compute size on pro+ plans. Free plans always use micro (nano in the future) size.
@@ -413,6 +417,12 @@ const Wizard: NextPageWithLayout = () => {
   }, [highAvailability, cloudProvider, form])
 
   useEffect(() => {
+    if (suspendAndWake && cloudProvider !== 'AWS') {
+      form.setValue('cloudProvider', 'AWS')
+    }
+  }, [suspendAndWake, cloudProvider, form])
+
+  useEffect(() => {
     if (watchedInstanceSize !== instanceSize) {
       form.setValue('instanceSize', instanceSize, {
         shouldDirty: false,
@@ -464,6 +474,7 @@ const Wizard: NextPageWithLayout = () => {
                     <>
                       <ProjectNameInput form={form} />
                       <HighAvailabilityInput form={form} />
+                      {showNonProdFields && <SuspendAndWakeEnabledInput form={form} />}
 
                       {cloudProviderEnabled && showNonProdFields && (
                         <CloudProviderSelector form={form} />

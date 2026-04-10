@@ -23,6 +23,7 @@ export const FormSchema = z
     cloudProvider: z.string({
       required_error: 'Please select a cloud provider.',
     }),
+    suspendAndWake: z.boolean().default(false),
 
     dbPass: z
       .string({ required_error: 'Please enter a database password.' })
@@ -39,7 +40,10 @@ export const FormSchema = z
     useOrioleDb: z.boolean(),
   })
   .superRefine(
-    ({ dbPassStrength, dbPassStrengthWarning, highAvailability, cloudProvider }, ctx) => {
+    (
+      { dbPassStrength, dbPassStrengthWarning, highAvailability, suspendAndWake, cloudProvider },
+      ctx
+    ) => {
       if (dbPassStrength < DEFAULT_MINIMUM_PASSWORD_STRENGTH) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -52,6 +56,13 @@ export const FormSchema = z
           code: z.ZodIssueCode.custom,
           path: ['cloudProvider'],
           message: 'High availability is only supported on AWS (Revamped)',
+        })
+      }
+      if (suspendAndWake && cloudProvider !== 'AWS') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cloudProvider'],
+          message: 'Suspend and wake is only supported on AWS',
         })
       }
     }

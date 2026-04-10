@@ -26,6 +26,7 @@ interface CloudProviderSelectorProps {
 export const CloudProviderSelector = ({ form }: CloudProviderSelectorProps) => {
   const { infraCloudProviders: validCloudProviders } = useCustomContent(['infra:cloud_providers'])
   const highAvailability = useWatch_Shadcn_({ control: form.control, name: 'highAvailability' })
+  const suspendAndWake = useWatch_Shadcn_({ control: form.control, name: 'suspendAndWake' })
 
   return (
     <Panel.Content>
@@ -61,7 +62,9 @@ export const CloudProviderSelector = ({ form }: CloudProviderSelectorProps) => {
                     .map((providerObj) => {
                       const label = providerObj['name']
                       const value = providerObj['id']
-                      const isDisabled = highAvailability && !HA_SUPPORTED_PROVIDERS.includes(value)
+                      const isDisabled =
+                        (highAvailability && !HA_SUPPORTED_PROVIDERS.includes(value)) ||
+                        (suspendAndWake && value !== 'AWS')
                       return (
                         <SelectItem_Shadcn_ key={value} value={value} disabled={isDisabled}>
                           {label}

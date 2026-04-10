@@ -86,7 +86,8 @@ export const UpcomingInvoice = ({ slug }: UpcomingInvoiceProps) => {
       )
       .sort((a, b) => b.amount_before_discount - a.amount_before_discount) || []
 
-  const hasTax = upcomingInvoice?.tax_status === 'calculated'
+  const hasTax =
+    upcomingInvoice?.tax_status === 'calculated' && (upcomingInvoice?.tax_amount ?? 0) > 0
   const taxFailed = upcomingInvoice?.tax_status === 'failed'
 
   return (
@@ -272,7 +273,7 @@ export const UpcomingInvoice = ({ slug }: UpcomingInvoiceProps) => {
                     </TableCell>
                   </TableRow>
                 ))}
-                {hasTax && upcomingInvoice?.tax_amount != null && (
+                {hasTax && (
                   <TableRow>
                     <TableCell className="py-2 px-0">
                       <div className="flex items-center gap-1">

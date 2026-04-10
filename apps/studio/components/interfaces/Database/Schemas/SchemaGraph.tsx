@@ -22,6 +22,7 @@ import '@xyflow/react/dist/style.css'
 import { LOCAL_STORAGE_KEYS, useParams } from 'common'
 import { toast } from 'sonner'
 import {
+  Badge,
   Button,
   copyToClipboard,
   DropdownMenu,
@@ -35,8 +36,13 @@ import { SidePanelEditor } from '../../TableGridEditor/SidePanelEditor/SidePanel
 import { DefaultEdge } from './DefaultEdge'
 import { SchemaGraphContextProvider, SchemaGraphContextType } from './SchemaGraphContext'
 import { SchemaGraphLegend } from './SchemaGraphLegend'
-import { EdgeData, TableNodeData } from './Schemas.constants'
-import { getGraphDataFromTables, getLayoutedElementsViaDagre } from './Schemas.utils'
+import { EdgeData, SchemaRelationSelection, TableNodeData } from './Schemas.constants'
+import {
+  createMockSchemaGraphData,
+  getGraphDataFromTables,
+  getLayoutedElementsViaDagre,
+  type SchemaGraphMockPreset,
+} from './Schemas.utils'
 import { TableNode } from './SchemaTableNode'
 import AlertError from '@/components/ui/AlertError'
 import { ButtonTooltip } from '@/components/ui/ButtonTooltip'
@@ -53,8 +59,10 @@ import { tablesToSQL } from '@/lib/helpers'
 import { useTableEditorStateSnapshot } from '@/state/table-editor'
 
 // [Joshen] Persisting logic: Only save positions to local storage WHEN a node is moved OR when explicitly clicked to reset layout
+const MIN_ZOOM = 0.2
+const MAX_ZOOM = 1.8
 
-export const SchemaGraph = () => {
+export const SchemaGraph = ({ mockPreset }: { mockPreset?: SchemaGraphMockPreset }) => {
   const { ref } = useParams()
   const { resolvedTheme } = useTheme()
   const { data: project } = useSelectedProjectQuery()
@@ -90,29 +98,56 @@ export const SchemaGraph = () => {
     []
   )
 
-  const {
-    data: schemas,
-    error: errorSchemas,
-    isSuccess: isSuccessSchemas,
-    isPending: isLoadingSchemas,
-    isError: isErrorSchemas,
-  } = useSchemasQuery({
-    projectRef: project?.ref,
-    connectionString: project?.connectionString,
-  })
+  const mockData = useMemo(
+    () =>
+      mockPreset
+        ? createMockSchemaGraphData({
+            schemaName: selectedSchema || 'public',
+          })
+        : undefined,
+    [mockPreset, selectedSchema]
+  )
 
   const {
-    data: tables = [],
-    error: errorTables,
-    isSuccess: isSuccessTables,
-    isPending: isLoadingTables,
-    isError: isErrorTables,
-  } = useTablesQuery({
-    projectRef: project?.ref,
-    connectionString: project?.connectionString,
-    schema: selectedSchema,
-    includeColumns: true,
-  })
+    data: fetchedSchemas,
+    error: fetchedSchemasError,
+    isSuccess: isFetchedSchemasSuccess,
+    isPending: isFetchedSchemasLoading,
+    isError: isFetchedSchemasError,
+  } = useSchemasQuery(
+    {
+      projectRef: project?.ref,
+      connectionString: project?.connectionString,
+    },
+    { enabled: mockData == null }
+  )
+
+  const {
+    data: fetchedTables = [],
+    error: fetchedTablesError,
+    isSuccess: isFetchedTablesSuccess,
+    isPending: isFetchedTablesLoading,
+    isError: isFetchedTablesError,
+  } = useTablesQuery(
+    {
+      projectRef: project?.ref,
+      connectionString: project?.connectionString,
+      schema: selectedSchema,
+      includeColumns: true,
+    },
+    { enabled: mockData == null }
+  )
+
+  const schemas = mockData?.schemas ?? fetchedSchemas
+  const tables = mockData?.tables ?? fetchedTables
+  const errorSchemas = mockData == null ? fetchedSchemasError : undefined
+  const errorTables = mockData == null ? fetchedTablesError : undefined
+  const isSuccessSchemas = mockData != null || isFetchedSchemasSuccess
+  const isSuccessTables = mockData != null || isFetchedTablesSuccess
+  const isLoadingSchemas = mockData == null && isFetchedSchemasLoading
+  const isLoadingTables = mockData == null && isFetchedTablesLoading
+  const isErrorSchemas = mockData == null && isFetchedSchemasError
+  const isErrorTables = mockData == null && isFetchedTablesError
   const hasNoTables = isSuccessSchemas && tables.length === 0
 
   const schema = (schemas ?? []).find((s) => s.name === selectedSchema)
@@ -156,11 +191,19 @@ export const SchemaGraph = () => {
     }
   })
 
-  const [selectedEdge, setSelectedEdge] = useState<Edge | undefined>(undefined)
+  const [selectedEdge, setSelectedEdge] = useState<SchemaRelationSelection | undefined>(undefined)
   const handleSelectionChange = useStaticEffectEvent(
     (params: OnSelectionChangeParams<Node<TableNodeData>, Edge<EdgeData>>) => {
       if (params.edges.length === 1) {
-        setSelectedEdge(params.edges[0])
+        const edge = params.edges[0]
+        setSelectedEdge({
+          id: edge.id,
+          source: edge.source,
+          target: edge.target,
+          sourceHandle: edge.sourceHandle,
+          targetHandle: edge.targetHandle,
+          data: edge.data,
+        })
         return
       }
       setSelectedEdge(undefined)
@@ -232,7 +275,7 @@ export const SchemaGraph = () => {
   const isFirstLoad = useRef(true)
   useEffect(() => {
     if (isSuccessTables && isSuccessSchemas && tables.length > 0) {
-      const schema = schemas.find((s) => s.name === selectedSchema) as PostgresSchema
+      const schema = (schemas ?? []).find((s) => s.name === selectedSchema) as PostgresSchema
       getGraphDataFromTables(ref as string, schema, tables).then(({ nodes, edges }) => {
         reactFlowInstance.setNodes(nodes)
         reactFlowInstance.setEdges(edges)
@@ -259,6 +302,11 @@ export const SchemaGraph = () => {
       selectedEdge,
       isDownloading,
       onEditColumn: (tableId, columnId) => {
+        if (mockData != null) {
+          toast.info('Stress test graph is read-only')
+          return
+        }
+
         const table = tables.find((table) => table.id === tableId)
         if (!table || table.columns == null) return
 
@@ -269,6 +317,11 @@ export const SchemaGraph = () => {
         snap.onEditColumn(column)
       },
       onEditTable: (tableId) => {
+        if (mockData != null) {
+          toast.info('Stress test graph is read-only')
+          return
+        }
+
         const table = tables.find((table) => table.id === tableId)
         if (!table || table.columns == null) return
 
@@ -276,7 +329,7 @@ export const SchemaGraph = () => {
         snap.onEditTable()
       },
     }),
-    [tables, snap, isDownloading, selectedEdge]
+    [tables, snap, isDownloading, mockData, selectedEdge]
   )
 
   return (
@@ -292,13 +345,22 @@ export const SchemaGraph = () => {
 
         {isSuccessSchemas && (
           <>
-            <SchemaSelector
-              className="w-[180px]"
-              size="tiny"
-              showError={false}
-              selectedSchemaName={selectedSchema}
-              onSelectSchema={setSelectedSchema}
-            />
+            <div className="flex items-center gap-x-2">
+              {mockData == null ? (
+                <SchemaSelector
+                  className="w-[180px]"
+                  size="tiny"
+                  showError={false}
+                  selectedSchemaName={selectedSchema}
+                  onSelectSchema={setSelectedSchema}
+                />
+              ) : (
+                <>
+                  <Badge>{selectedSchema}</Badge>
+                  <Badge>Mock 100 tables x 10 columns</Badge>
+                </>
+              )}
+            </div>
             {!hasNoTables && (
               <div className="flex items-center gap-x-2">
                 <ButtonTooltip
@@ -415,8 +477,8 @@ export const SchemaGraph = () => {
                   nodeTypes={nodeTypes}
                   edgeTypes={edgeTypes}
                   fitView
-                  minZoom={0.8}
-                  maxZoom={1.8}
+                  minZoom={MIN_ZOOM}
+                  maxZoom={MAX_ZOOM}
                   proOptions={{ hideAttribution: true }}
                   onNodeDragStop={saveNodePositions}
                   onSelectionChange={handleSelectionChange}

@@ -7,12 +7,121 @@ import '@xyflow/react/dist/style.css'
 
 import { LOCAL_STORAGE_KEYS } from 'common'
 
+import { TABLE_NODE_ROW_HEIGHT, TABLE_NODE_WIDTH } from './SchemaTable.constants'
 import { TableNodeData } from './Schemas.constants'
-import { TABLE_NODE_ROW_HEIGHT, TABLE_NODE_WIDTH } from './SchemaTableNode'
 import { tryParseJson } from '@/lib/helpers'
 
 const NODE_SEP = 25
 const RANK_SEP = 50
+const DEFAULT_STRESS_TABLE_COUNT = 100
+const DEFAULT_STRESS_COLUMN_COUNT = 10
+
+export const SCHEMA_GRAPH_MOCK_PRESETS = ['100x10'] as const
+
+export type SchemaGraphMockPreset = (typeof SCHEMA_GRAPH_MOCK_PRESETS)[number]
+
+export const isSchemaGraphMockPreset = (
+  value: string | string[] | undefined
+): value is SchemaGraphMockPreset => value === '100x10'
+
+export const createMockSchemaGraphData = ({
+  schemaName,
+  tableCount = DEFAULT_STRESS_TABLE_COUNT,
+  columnCount = DEFAULT_STRESS_COLUMN_COUNT,
+}: {
+  schemaName: string
+  tableCount?: number
+  columnCount?: number
+}) => {
+  const normalizedSchemaName = schemaName || 'public'
+
+  const tables = Array.from({ length: tableCount }, (_, tableIndex) => {
+    const id = tableIndex + 1
+    const tableName = `mock_table_${String(id).padStart(3, '0')}`
+    const columns = Array.from({ length: columnCount }, (_, columnIndex) => {
+      const ordinal = columnIndex + 1
+      const columnName = ordinal === 1 ? 'id' : `column_${String(ordinal).padStart(2, '0')}`
+      const isPrimary = ordinal === 1
+
+      return {
+        table_id: id,
+        schema: normalizedSchemaName,
+        table: tableName,
+        id: `${tableName}.${columnName}`,
+        ordinal_position: ordinal,
+        name: columnName,
+        default_value: isPrimary ? `generated:${tableName}` : null,
+        data_type: isPrimary ? 'int8' : 'text',
+        format: isPrimary ? 'int8' : 'text',
+        is_identity: isPrimary,
+        identity_generation: isPrimary ? ('BY DEFAULT' as const) : null,
+        is_generated: false,
+        is_nullable: !isPrimary,
+        is_updatable: true,
+        is_unique: isPrimary,
+        enums: [],
+        check: null,
+        comment: ordinal === 2 ? `Synthetic column ${ordinal} for ${tableName}` : null,
+      }
+    })
+
+    return {
+      id,
+      schema: normalizedSchemaName,
+      name: tableName,
+      rls_enabled: false,
+      rls_forced: false,
+      replica_identity: 'DEFAULT' as const,
+      bytes: 0,
+      size: '0 bytes',
+      live_rows_estimate: 0,
+      dead_rows_estimate: 0,
+      comment: `Synthetic stress table ${id}`,
+      columns,
+      primary_keys: [{ schema: normalizedSchemaName, table_name: tableName, name: 'id', table_id: id }],
+      relationships: [] as PostgresTable['relationships'],
+    } satisfies PostgresTable
+  })
+
+  let relationshipId = 1
+
+  for (let tableIndex = 1; tableIndex < tables.length; tableIndex += 1) {
+    const sourceTable = tables[tableIndex]
+    const previousTable = tables[tableIndex - 1]
+    const previousPreviousTable = tables[tableIndex - 2]
+
+    sourceTable.relationships.push({
+      id: relationshipId,
+      constraint_name: `${sourceTable.name}_parent_fkey`,
+      source_schema: normalizedSchemaName,
+      source_table_name: sourceTable.name,
+      source_column_name: 'column_02',
+      target_table_schema: normalizedSchemaName,
+      target_table_name: previousTable.name,
+      target_column_name: 'id',
+    })
+    relationshipId += 1
+
+    if (previousPreviousTable) {
+      sourceTable.relationships.push({
+        id: relationshipId,
+        constraint_name: `${sourceTable.name}_secondary_parent_fkey`,
+        source_schema: normalizedSchemaName,
+        source_table_name: sourceTable.name,
+        source_column_name: 'column_03',
+        target_table_schema: normalizedSchemaName,
+        target_table_name: previousPreviousTable.name,
+        target_column_name: 'id',
+      })
+      relationshipId += 1
+    }
+  }
+
+  return {
+    schemas: [{ id: -100, name: normalizedSchemaName, owner: 'postgres' } satisfies PostgresSchema],
+    tables,
+  }
+}
 
 export async function getGraphDataFromTables(
   ref?: string,

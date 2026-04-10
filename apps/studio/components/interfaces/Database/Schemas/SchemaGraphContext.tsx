@@ -1,9 +1,10 @@
-import { Edge } from '@xyflow/react'
 import { createContext, useContext, type ReactNode } from 'react'
+
+import type { SchemaRelationSelection } from './Schemas.constants'
 
 export type SchemaGraphContextType = {
   isDownloading: boolean
-  selectedEdge: Edge | undefined
+  selectedEdge: SchemaRelationSelection | undefined
   onEditColumn: (tableId: number, columnId: string) => void
   onEditTable: (tableId: number) => void
 }

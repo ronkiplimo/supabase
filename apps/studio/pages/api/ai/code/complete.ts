@@ -87,15 +87,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     type EntityDefinitionRow = { data: { definitions: Array<{ id: number; sql: string }> } }
 
-    // Fetch schema list first so we can determine which schemas to load DDL for
-    const { result: schemas } = await (includeSchema
-      ? executeSql<Schemas>(
+    // Fetch schema list first so we can determine which schemas to load DDL for.
+    // These are best-effort — if they fail, we proceed without DDL context.
+    const schemas: Schemas = includeSchema
+      ? await executeSql<Schemas>(
           { projectRef, connectionString, sql: pgMetaSchemasList.sql },
           undefined,
           headers,
           IS_PLATFORM ? undefined : executeQuery
         )
-      : Promise.resolve({ result: [] as Schemas }))
+          .then(({ result }) => result)
+          .catch(() => [] as Schemas)
+      : []
 
     // Always include public; also eagerly include any non-public schema whose name
     // appears as `name.` in the cursor context. Checking against the real schema list
@@ -106,13 +109,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const schemasToFetch = includeSchema
       ? [
           'public',
-          ...(schemas ?? [])
+          ...schemas
             .filter((s) => s.name !== 'public' && lowerContext.includes(s.name.toLowerCase() + '.'))
             .map((s) => s.name),
         ]
       : []
 
-    const { result: entityDefs } =
+    const entityDefs: EntityDefinitionRow[] =
       schemasToFetch.length > 0
         ? await executeSql<EntityDefinitionRow[]>(
             {
@@ -124,12 +127,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             headers,
             IS_PLATFORM ? undefined : executeQuery
           )
-        : { result: [] as EntityDefinitionRow[] }
+            .then(({ result }) => result)
+            .catch(() => [] as EntityDefinitionRow[])
+        : []
 
     const schemaDDL = entityDefs?.[0]?.data?.definitions?.map((d) => d.sql).join('\n\n')
 
     const fetchedSchemaSet = new Set(schemasToFetch)
-    const otherSchemaNames = (schemas ?? [])
+    const otherSchemaNames = schemas
       .filter((s) => !fetchedSchemaSet.has(s.name))
       .map((s) => s.name)
       .join(', ')

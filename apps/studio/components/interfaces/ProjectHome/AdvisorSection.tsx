@@ -36,7 +36,7 @@ export const AdvisorSection = ({ showEmptyState = false }: { showEmptyState?: bo
       enabled: !showEmptyState,
     }
   )
-  const { data: signalItems, isPending: isLoadingSignals } = useAdvisorSignals({
+  const { data: signalItems } = useAdvisorSignals({
     projectRef,
     enabled: !showEmptyState,
   })
@@ -85,26 +85,31 @@ export const AdvisorSection = ({ showEmptyState = false }: { showEmptyState?: bo
       setSelectedItem(item.id, item.source)
       openSidebar(SIDEBAR_KEYS.ADVISOR_PANEL)
 
-      if (item.source !== 'signal') {
-        const advisorCategory =
-          item.source === 'lint'
-            ? item.original.categories.includes('SECURITY')
-              ? 'SECURITY'
-              : item.original.categories.includes('PERFORMANCE')
-                ? 'PERFORMANCE'
-                : undefined
+      const advisorCategory =
+        item.source === 'lint'
+          ? item.original.categories.includes('SECURITY')
+            ? 'SECURITY'
+            : item.original.categories.includes('PERFORMANCE')
+              ? 'PERFORMANCE'
+              : undefined
+          : item.source === 'signal'
+            ? 'SECURITY'
             : undefined
-        const advisorType = item.source === 'lint' ? item.original.name : item.title
-        const advisorLevel = item.source === 'lint' ? item.original.level : undefined
+      const advisorType =
+        item.source === 'signal'
+          ? item.signalType
+          : item.source === 'lint'
+            ? item.original.name
+            : item.title
+      const advisorLevel = item.source === 'lint' ? item.original.level : undefined
 
-        track('advisor_detail_opened', {
-          origin: 'homepage',
-          advisorSource: item.source,
-          advisorCategory,
-          advisorType,
-          advisorLevel,
-        })
-      }
+      track('advisor_detail_opened', {
+        origin: 'homepage',
+        advisorSource: item.source,
+        advisorCategory,
+        advisorType,
+        advisorLevel,
+      })
     },
     [track, setSelectedItem, openSidebar]
   )
@@ -115,7 +120,7 @@ export const AdvisorSection = ({ showEmptyState = false }: { showEmptyState?: bo
 
   return (
     <div>
-      {isLoadingLints || isLoadingSignals ? (
+      {isLoadingLints ? (
         <ShimmeringLoader className="w-96 mb-6" />
       ) : (
         <div className="flex justify-between items-center mb-6">
@@ -125,7 +130,7 @@ export const AdvisorSection = ({ showEmptyState = false }: { showEmptyState?: bo
           </Button>
         </div>
       )}
-      {isLoadingLints || isLoadingSignals ? (
+      {isLoadingLints ? (
         <div className="flex flex-col p-4 gap-2">
           <ShimmeringLoader />
           <ShimmeringLoader className="w-3/4" />

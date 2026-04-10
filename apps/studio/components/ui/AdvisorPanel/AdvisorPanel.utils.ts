@@ -183,7 +183,7 @@ export const getAdvisorItemSecondaryText = (item: AdvisorItem): string | undefin
   }
 
   if (item.source === 'signal') {
-    return 'Database'
+    return `Database · ${item.sourceData.ip}`
   }
 
   return undefined

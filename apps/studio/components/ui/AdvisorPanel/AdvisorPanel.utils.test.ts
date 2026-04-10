@@ -72,7 +72,7 @@ describe('AdvisorPanel.utils', () => {
     ])
   })
 
-  it('uses database surface-area metadata for banned IP signals', () => {
+  it('uses database surface-area metadata and the IP address for banned IP signals', () => {
     const [bannedIpSignal] = createAdvisorSignalItems({
       projectRef: 'project-ref',
       bannedIPsData: {
@@ -80,7 +80,7 @@ describe('AdvisorPanel.utils', () => {
       } as IPData,
     })
 
-    expect(getAdvisorItemSecondaryText(bannedIpSignal)).toBe('Database')
+    expect(getAdvisorItemSecondaryText(bannedIpSignal)).toBe('Database · 203.0.113.10')
   })
 
   it('orders mixed lint, signal and notification items by severity and recency', () => {

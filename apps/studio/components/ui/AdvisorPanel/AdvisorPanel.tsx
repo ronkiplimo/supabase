@@ -51,12 +51,7 @@ export const AdvisorPanel = () => {
     isError: isLintsError,
   } = useProjectLintsQuery({ projectRef: project?.ref }, { enabled: shouldLoadProjectAdvisorData })
 
-  const {
-    data: signalItems,
-    isPending: isSignalsLoading,
-    isError: isSignalsError,
-    dismissSignal,
-  } = useAdvisorSignals({
+  const { data: signalItems, dismissSignal } = useAdvisorSignals({
     projectRef: project?.ref,
     enabled: shouldLoadProjectAdvisorData,
   })
@@ -161,11 +156,9 @@ export const AdvisorPanel = () => {
 
   // Only show loading state if the query is actually enabled
   const isLintsActuallyLoading = shouldLoadProjectAdvisorData && isLintsLoading
-  const isSignalsActuallyLoading = shouldLoadProjectAdvisorData && isSignalsLoading
   const isNotificationsActuallyLoading = shouldLoadNotifications && isNotificationsLoading
-  const isLoading =
-    isLintsActuallyLoading || isSignalsActuallyLoading || isNotificationsActuallyLoading
-  const isError = isLintsError || isSignalsError || isNotificationsError
+  const isLoading = isLintsActuallyLoading || isNotificationsActuallyLoading
+  const isError = isLintsError || isNotificationsError
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab as AdvisorTab)
@@ -192,26 +185,31 @@ export const AdvisorPanel = () => {
       }
     }
 
-    if (item.source !== 'signal') {
-      const advisorCategory =
-        item.source === 'lint'
-          ? item.original.categories.includes('SECURITY')
-            ? 'SECURITY'
-            : item.original.categories.includes('PERFORMANCE')
-              ? 'PERFORMANCE'
-              : undefined
+    const advisorCategory =
+      item.source === 'lint'
+        ? item.original.categories.includes('SECURITY')
+          ? 'SECURITY'
+          : item.original.categories.includes('PERFORMANCE')
+            ? 'PERFORMANCE'
+            : undefined
+        : item.source === 'signal'
+          ? 'SECURITY'
           : undefined
-      const advisorType = item.source === 'lint' ? item.original.name : item.title
-      const advisorLevel = item.source === 'lint' ? item.original.level : undefined
+    const advisorType =
+      item.source === 'signal'
+        ? item.signalType
+        : item.source === 'lint'
+          ? item.original.name
+          : item.title
+    const advisorLevel = item.source === 'lint' ? item.original.level : undefined
 
-      track('advisor_detail_opened', {
-        origin: 'advisor_panel',
-        advisorCategory,
-        advisorSource: item.source,
-        advisorType,
-        advisorLevel,
-      })
-    }
+    track('advisor_detail_opened', {
+      origin: 'advisor_panel',
+      advisorCategory,
+      advisorSource: item.source,
+      advisorType,
+      advisorLevel,
+    })
   }
 
   const handleUpdateNotificationStatus = (id: string, status: 'archived' | 'seen') => {

@@ -272,13 +272,13 @@ export const JitDbAccessConfiguration = () => {
   const projectReference = ref ? `This project (${ref})` : 'This project'
   const unavailableTitle =
     unavailableReason === 'postgres_upgrade_required'
-      ? 'Postgres upgrade required to use temporary access'
+      ? 'Postgres upgrade required'
       : unavailableReason === 'manual_migration_required'
-        ? 'Migration required to use temporary access'
-        : 'Temporary access is unavailable'
+        ? 'Migration required'
+        : 'Temporary access unavailable'
   const unavailableDescription =
     unavailableReason === 'postgres_upgrade_required'
-      ? `${projectReference} must be upgraded to Postgres 17 or later before temporary access can be enabled. Upgrade Postgres to enable this feature.`
+      ? `${projectReference} must be upgraded to Postgres 17 or later before temporary access can be enabled.`
       : unavailableReason === 'manual_migration_required'
         ? `${projectReference} must be migrated before temporary access can be enabled. Contact support to migrate this project.`
         : 'Temporary access is temporarily unavailable for this project. Contact support if you need help enabling this feature.'
@@ -347,8 +347,8 @@ export const JitDbAccessConfiguration = () => {
               <CardContent className="space-y-4">
                 <FormLayout
                   layout="flex-row-reverse"
-                  label="Enable temporary access"
-                  description="Allow project members to request temporary database access."
+                  label="Allow temporary access"
+                  description="Let project members request temporary database access."
                 >
                   <div className="flex w-fit flex-shrink-0 items-center justify-end gap-2">
                     {(isLoadingConfiguration || isUpdatingJitDbAccess) && (
@@ -445,11 +445,11 @@ export const JitDbAccessConfiguration = () => {
       <AlertDialog open={showEnableJitDialog} onOpenChange={setShowEnableJitDialog}>
         <AlertDialogContent size="small">
           <AlertDialogHeader>
-            <AlertDialogTitle>Enabling access will activate existing rules</AlertDialogTitle>
+            <AlertDialogTitle>This will activate existing rules</AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="text-sm">
                 <p>
-                  Enabling temporary access will allow {activeRuleCount} configured member
+                  Enabling temporary access will allow {activeRuleCount} pre-configured member
                   {activeRuleCount === 1 ? '' : 's'} to request temporary database access
                   immediately.
                 </p>

@@ -335,6 +335,7 @@ export function DevToolbar() {
         size="lg"
         className="flex flex-col p-0 gap-0 overflow-hidden"
         showClose={false}
+        hasOverlay={false}
         onOpenAutoFocus={(event) => event.preventDefault()}
       >
         <Tabs

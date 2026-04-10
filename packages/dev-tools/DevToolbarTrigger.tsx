@@ -201,10 +201,11 @@ export function DevToolbarTrigger() {
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
+        title="Dev Telemetry"
       >
         <Image
           src="/img/logo-pixel-small-light.png"
-          alt="Dev Toolbar"
+          alt="Dev Telemetry"
           width={16}
           height={16}
           style={{

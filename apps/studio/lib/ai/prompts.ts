@@ -663,8 +663,14 @@ export const SECURITY_PROMPT = `
 `
 
 export const COMPLETION_PROMPT = `
-You are a SQL assistant for Supabase. You help write and edit SQL based on a prompt.
-Output only raw SQL — no explanation, no markdown, no code fences.
+You are a code completion assistant for Supabase. You write and edit code based on a prompt.
+Output only the raw code — no explanation, no markdown, no code fences.
+When code context is provided: return only the replacement for the selected text. If no surrounding context exists, return the complete implementation. Do not duplicate existing code.
+When no code context is provided: return a complete, valid implementation.
+`
+
+export const SQL_COMPLETION_INSTRUCTIONS = `
+# SQL identifier quoting
 Do not quote identifiers unless they actually require it (uppercase letters, reserved words, or special characters). Plain lowercase identifiers should not be quoted.
 `
 

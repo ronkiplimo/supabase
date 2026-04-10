@@ -187,39 +187,40 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       ...modelParams,
       stopWhen: stepCountIs(5),
       messages: coreMessages,
-      tools: includeSchema
-        ? {
-            getSchemaDefinitions: tool({
-              description: 'Get table and column definitions for one or more schemas',
-              inputSchema: z.object({
-                schemas: z
-                  .array(z.string())
-                  .describe('The schema names to get the definitions for'),
-              }),
-              execute: async ({ schemas: schemaNames }) => {
-                const validSchemaNames = schemaNames.filter((name) =>
-                  schemas.some((s) => s.name === name)
-                )
-                if (validSchemaNames.length === 0) return ''
-                try {
-                  const { result } = await executeSql<EntityDefinitionRow[]>(
-                    {
-                      projectRef,
-                      connectionString,
-                      sql: getEntityDefinitionsSql({ schemas: validSchemaNames }),
-                    },
-                    undefined,
-                    headers,
-                    IS_PLATFORM ? undefined : executeQuery
+      tools:
+        includeSchema && !schemaListError
+          ? {
+              getSchemaDefinitions: tool({
+                description: 'Get table and column definitions for one or more schemas',
+                inputSchema: z.object({
+                  schemas: z
+                    .array(z.string())
+                    .describe('The schema names to get the definitions for'),
+                }),
+                execute: async ({ schemas: schemaNames }) => {
+                  const validSchemaNames = schemaNames.filter((name) =>
+                    schemas.some((s) => s.name === name)
                   )
-                  return result?.[0]?.data?.definitions?.map((d) => d.sql).join('\n\n') ?? ''
-                } catch {
-                  return 'Failed to fetch schema definitions due to a database error.'
-                }
-              },
-            }),
-          }
-        : undefined,
+                  if (validSchemaNames.length === 0) return ''
+                  try {
+                    const { result } = await executeSql<EntityDefinitionRow[]>(
+                      {
+                        projectRef,
+                        connectionString,
+                        sql: getEntityDefinitionsSql({ schemas: validSchemaNames }),
+                      },
+                      undefined,
+                      headers,
+                      IS_PLATFORM ? undefined : executeQuery
+                    )
+                    return result?.[0]?.data?.definitions?.map((d) => d.sql).join('\n\n') ?? ''
+                  } catch {
+                    return 'Failed to fetch schema definitions due to a database error.'
+                  }
+                },
+              }),
+            }
+          : undefined,
     })
 
     return res.status(200).json(text)

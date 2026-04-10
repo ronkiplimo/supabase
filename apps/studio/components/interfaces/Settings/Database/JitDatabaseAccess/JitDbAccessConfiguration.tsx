@@ -269,12 +269,19 @@ export const JitDbAccessConfiguration = () => {
     'appliedSuccessfully' in jitDbAccessConfiguration &&
     !jitDbAccessConfiguration.appliedSuccessfully
 
+  const projectReference = ref ? `This project (${ref})` : 'This project'
+  const unavailableTitle =
+    unavailableReason === 'postgres_upgrade_required'
+      ? 'Postgres upgrade required to use temporary access'
+      : unavailableReason === 'manual_migration_required'
+        ? 'Migration required to use temporary access'
+        : 'Temporary access is unavailable'
   const unavailableDescription =
     unavailableReason === 'postgres_upgrade_required'
-      ? 'Temporary access requires a newer Postgres version. Upgrade Postgres to enable this feature.'
+      ? `${projectReference} must be upgraded to Postgres 17 or later before temporary access can be enabled. Upgrade Postgres to enable this feature.`
       : unavailableReason === 'manual_migration_required'
-        ? 'This project can’t use temporary access yet because it needs a platform migration. Contact Supabase Support to migrate this project.'
-        : 'Temporary access is temporarily unavailable for this project. Contact Supabase Support if you need help enabling this feature.'
+        ? `${projectReference} must be migrated before temporary access can be enabled. Contact support to migrate this project.`
+        : 'Temporary access is temporarily unavailable for this project. Contact support if you need help enabling this feature.'
 
   useEffect(() => {
     if (!isLoadingConfiguration && jitDbAccessConfiguration) {
@@ -306,7 +313,7 @@ export const JitDbAccessConfiguration = () => {
             <Admonition
               type="note"
               layout="responsive"
-              title="Temporary access unavailable"
+              title={unavailableTitle}
               description={unavailableDescription}
               actions={
                 unavailableReason === 'postgres_upgrade_required' && ref ? (
@@ -319,7 +326,7 @@ export const JitDbAccessConfiguration = () => {
                       queryParams={{
                         category: SupportCategories.PROBLEM,
                         projectRef: ref,
-                        subject: 'Temporary access unavailable',
+                        subject: unavailableTitle,
                         error:
                           jitDbAccessConfiguration &&
                           'unavailableMessage' in jitDbAccessConfiguration

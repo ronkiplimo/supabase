@@ -7,22 +7,26 @@ import type { ResponseError, UseCustomQueryOptions } from '@/types'
 
 type JitDbAccessVariables = { projectRef?: string }
 
+const MANUAL_MIGRATION_ERROR_PATTERNS = [
+  'must be migrated',
+]
+
+const POSTGRES_UPGRADE_ERROR_PATTERNS = [
+  'must be upgraded to postgres 17',
+]
+
+function messageIncludesAny(message: string, patterns: string[]) {
+  return patterns.some((pattern) => message.includes(pattern))
+}
+
 function getUnavailableReason(message?: string): JitDbAccessUnavailableReason {
   const normalizedMessage = message?.toLowerCase() ?? ''
 
-  if (
-    normalizedMessage.includes('pooler version') ||
-    normalizedMessage.includes('contact supabase support') ||
-    normalizedMessage.includes('platform migration')
-  ) {
+  if (messageIncludesAny(normalizedMessage, MANUAL_MIGRATION_ERROR_PATTERNS)) {
     return 'manual_migration_required'
   }
 
-  if (
-    normalizedMessage.includes('upgrade to a newer version of postgres') ||
-    normalizedMessage.includes('older postgres version') ||
-    normalizedMessage.includes('postgres 17')
-  ) {
+  if (messageIncludesAny(normalizedMessage, POSTGRES_UPGRADE_ERROR_PATTERNS)) {
     return 'postgres_upgrade_required'
   }
 
@@ -57,7 +61,10 @@ async function getJitDbAccessConfiguration(
     const normalizedMessage = responseError.message?.toLowerCase() ?? ''
     const isNotAvailableError =
       responseError.code === 400 &&
-      (normalizedMessage.includes('not eligible for') || normalizedMessage.includes('unavailable'))
+      messageIncludesAny(normalizedMessage, [
+        ...MANUAL_MIGRATION_ERROR_PATTERNS,
+        ...POSTGRES_UPGRADE_ERROR_PATTERNS,
+      ])
 
     if (isNotAvailableError) {
       return createUnavailableState(responseError.message)

@@ -49,7 +49,7 @@ export function JitDbAccessRulesTable({
   const addRuleTooltip = !canUpdate
     ? 'Additional permissions required'
     : allProjectMembersHaveRules
-      ? 'All project members already have ephemeral access rules'
+      ? 'All project members already have temporary access rules'
       : undefined
 
   if (isLoading) {
@@ -74,7 +74,7 @@ export function JitDbAccessRulesTable({
       <CardContent className="space-y-4 p-0">
         <div className="flex items-center justify-between px-4 pb-2 pt-6">
           <div>
-            <h3 className="text-sm text-foreground">Ephemeral access rules</h3>
+            <h3 className="text-sm text-foreground">Temporary access rules</h3>
             <p className="text-sm text-foreground-light">
               Manage member access, allowed roles, and expiry settings.
             </p>
@@ -109,7 +109,7 @@ export function JitDbAccessRulesTable({
                 <TableCell colSpan={4}>
                   <p className="text-sm text-foreground">No rules yet</p>
                   <p className="text-sm text-foreground-lighter">
-                    Add your first ephemeral access rule above
+                    Add your first temporary access rule above
                   </p>
                 </TableCell>
               </TableRow>

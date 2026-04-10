@@ -161,8 +161,8 @@ const MonacoEditor = ({
               selection: allLines.join('\n'),
               beforeSelection: '',
               afterSelection: '',
-              startLineNumber: 1,
-              endLineNumber: allLines.length,
+              startLineNumber: selection.startLineNumber,
+              endLineNumber: selection.endLineNumber,
             })
             return
           }

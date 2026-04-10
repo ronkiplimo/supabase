@@ -1485,6 +1485,7 @@ matching_policies as (
             and p.cmd = 'SELECT'
     where
         p.qual ~* (E'bucket_id\\s*=\\s*' || b.quoted_bucket_pattern)
+        and p.qual !~* E'auth\\.'
 ),
 affected_buckets as (
     select

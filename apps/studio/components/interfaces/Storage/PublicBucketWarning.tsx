@@ -1,5 +1,6 @@
 import { ident } from '@supabase/pg-meta/src/pg-format'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { LOCAL_STORAGE_KEYS } from 'common'
 import { useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { Button } from 'ui'
@@ -12,6 +13,29 @@ import { executeSql } from '@/data/sql/execute-sql-query'
 import { storageKeys } from '@/data/storage/keys'
 import { usePublicBucketsWithSelectPoliciesQuery } from '@/data/storage/public-buckets-with-select-policies-query'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
+import { useTrack } from '@/lib/telemetry/track'
+
+const DISMISS_DURATION_MS = 14 * 24 * 60 * 60 * 1000 // 14 days
+
+function isDismissed(projectRef: string, bucketId: string): boolean {
+  try {
+    const raw = localStorage.getItem(
+      LOCAL_STORAGE_KEYS.STORAGE_PUBLIC_BUCKET_SELECT_POLICY_WARNING_DISMISSED(projectRef, bucketId)
+    )
+    if (!raw) return false
+    const { dismissedAt } = JSON.parse(raw) as { dismissedAt: string }
+    return Date.now() - new Date(dismissedAt).getTime() < DISMISS_DURATION_MS
+  } catch {
+    return false
+  }
+}
+
+function persistDismiss(projectRef: string, bucketId: string): void {
+  localStorage.setItem(
+    LOCAL_STORAGE_KEYS.STORAGE_PUBLIC_BUCKET_SELECT_POLICY_WARNING_DISMISSED(projectRef, bucketId),
+    JSON.stringify({ dismissedAt: new Date().toISOString() })
+  )
+}
 
 function generatePolicyRemovalSql(policyName: string) {
   return `DROP POLICY IF EXISTS ${ident(policyName)} ON storage.objects;`
@@ -33,6 +57,8 @@ export function PublicBucketWarning({ projectRef, bucketId }: PublicBucketWarnin
   })
   const policyToRemove = data?.[0]
 
+  const track = useTrack()
+
   const { mutate: removePolicy, isPending: isRemovingPolicy } = useMutation({
     mutationFn: async (policyName: string) => {
       await executeSql({
@@ -50,6 +76,7 @@ export function PublicBucketWarning({ projectRef, bucketId }: PublicBucketWarnin
           queryKey: databasePoliciesKeys.list(projectRef, 'storage'),
         }),
       ])
+      track('storage_public_bucket_select_policy_removed', { bucketId })
       setShowModal(false)
       toast.success('Policy removed successfully')
     },
@@ -60,7 +87,13 @@ export function PublicBucketWarning({ projectRef, bucketId }: PublicBucketWarnin
   })
 
   const [showModal, setShowModal] = useState(false)
-  const [dismissed, setDismissed] = useState(false)
+  const [dismissed, setDismissed] = useState(() => isDismissed(projectRef, bucketId))
+
+  function handleDismiss() {
+    persistDismiss(projectRef, bucketId)
+    track('storage_public_bucket_select_policy_warning_dismiss_button_clicked', { bucketId })
+    setDismissed(true)
+  }
 
   return policyToRemove && !dismissed ? (
     <PublicBucketWarningView
@@ -71,7 +104,7 @@ export function PublicBucketWarning({ projectRef, bucketId }: PublicBucketWarnin
       isModalVisible={showModal}
       onShowModal={() => setShowModal(true)}
       onHideModal={() => setShowModal(false)}
-      onDismiss={() => setDismissed(true)}
+      onDismiss={handleDismiss}
     />
   ) : (
     <PublicBucketWarningView _tag="no-policy-to-remove" />

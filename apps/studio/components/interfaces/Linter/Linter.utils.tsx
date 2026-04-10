@@ -323,9 +323,11 @@ export const lintInfoMap: LintInfo[] = [
   {
     name: 'public_bucket_allows_listing',
     title: 'Public Bucket Allows Listing',
-    icon: <Unlock className="text-foreground-muted" size={15} strokeWidth={1} />,
-    link: ({ projectRef, metadata }) =>
-      `/project/${projectRef}/storage/files/buckets/${metadata?.name}`,
+    icon: <Box className="text-foreground-muted" size={15} strokeWidth={1.5} />,
+    link: ({ projectRef, metadata }) => {
+      const bucketId = (metadata as Record<string, string | undefined> | undefined)?.bucket_id
+      return `/project/${projectRef}/storage/files/buckets/${encodeURIComponent(bucketId ?? metadata?.name ?? '')}`
+    },
     linkText: 'View bucket',
     docsLink: `${DOCS_URL}/guides/database/database-linter?lint=0025_public_bucket_allows_listing`,
     category: 'security',

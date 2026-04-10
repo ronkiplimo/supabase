@@ -176,10 +176,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           ${otherSchemaNames ? `Other available schemas (use getSchemaDefinitions to look them up): ${otherSchemaNames}` : ''}
 
           ${taskPrompt}
-
-          Output rules:
-          - Output only raw SQL — no explanation, no markdown, no code fences
-          - Do not quote identifiers unless they actually require it (uppercase letters, reserved words, or special characters). Plain lowercase identifiers should not be quoted.
         `,
       },
     ]

@@ -1,10 +1,9 @@
 'use client'
 
-import { EyeOff } from 'lucide-react'
 import Image from 'next/image'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { CSSProperties, MouseEvent, PointerEvent } from 'react'
-import { Button, cn, Popover_Shadcn_, PopoverContent_Shadcn_, PopoverTrigger_Shadcn_ } from 'ui'
+import type { CSSProperties, PointerEvent } from 'react'
+import { Button, cn } from 'ui'
 
 import { useDevToolbar } from './DevToolbarContext'
 
@@ -51,18 +50,6 @@ function getSnapCoords(
   return { top, left }
 }
 
-function getPopoverSide(position: SnapPosition): 'top' | 'bottom' | 'left' | 'right' {
-  const [row, col] = position.split('-')
-  if (row === 'middle') return col === 'right' ? 'left' : 'right'
-  return row === 'top' ? 'bottom' : 'top'
-}
-
-function getPopoverAlign(position: SnapPosition): 'start' | 'center' | 'end' {
-  const [row, col] = position.split('-')
-  if (row === 'middle') return 'center'
-  return col === 'left' ? 'start' : col === 'right' ? 'end' : 'center'
-}
-
 function getNearestSnapPosition(cx: number, cy: number): SnapPosition {
   const vw = window.innerWidth
   const vh = window.innerHeight
@@ -77,8 +64,7 @@ function readStoredPosition(): SnapPosition {
 }
 
 export function DevToolbarTrigger() {
-  const { isEnabled, isOpen, setIsOpen, events, dismissToolbar } = useDevToolbar()
-  const [popoverOpen, setPopoverOpen] = useState(false)
+  const { isEnabled, isOpen, setIsOpen, events } = useDevToolbar()
   const [snapPosition, setSnapPosition] = useState<SnapPosition>('bottom-right')
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null)
   // Holds the last drag pixel position for one RAF to prime the CSS transition
@@ -88,7 +74,6 @@ export function DevToolbarTrigger() {
     h: typeof window !== 'undefined' ? window.innerHeight : 1080,
   }))
 
-  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const dragRef = useRef<{
     startPointerX: number
     startPointerY: number
@@ -109,12 +94,6 @@ export function DevToolbarTrigger() {
     const onResize = () => setViewport({ w: window.innerWidth, h: window.innerHeight })
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
-  }, [])
-
-  useEffect(() => {
-    return () => {
-      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
-    }
   }, [])
 
   // Two-phase snap: hold last drag position for one frame (primes the transition),
@@ -200,103 +179,55 @@ export function DevToolbarTrigger() {
       wasDraggingRef.current = false
       return
     }
-    setPopoverOpen(false)
     setIsOpen(true)
-  }
-
-  const handleDismiss = () => {
-    setPopoverOpen(false)
-    dismissToolbar()
-  }
-
-  const handleMouseEnter = () => {
-    if (isDragging) return
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current)
-      closeTimeoutRef.current = null
-    }
-    setPopoverOpen(true)
-  }
-
-  const handleMouseLeave = () => {
-    closeTimeoutRef.current = setTimeout(() => setPopoverOpen(false), 100)
-  }
-
-  const handleTriggerMouseLeave = (event: MouseEvent<HTMLButtonElement>) => {
-    handleMouseLeave()
-    event.currentTarget.blur()
   }
 
   return (
     <div style={containerStyle}>
-      <Popover_Shadcn_ open={popoverOpen && !isDragging} onOpenChange={setPopoverOpen}>
-        <PopoverTrigger_Shadcn_ asChild>
-          <Button
-            type="text"
+      <Button
+        type="text"
+        className={cn(
+          'relative rounded-full h-10 w-10 p-0',
+          'bg-surface-100 border border-overlay shadow-md',
+          'text-foreground-light hover:text-foreground hover:bg-surface-200',
+          'focus-visible:outline-0 focus-visible:outline-transparent focus-visible:outline-offset-0',
+          'select-none touch-none',
+          isDragging ? 'cursor-grabbing' : 'cursor-pointer',
+          isOpen && !isDragging && 'text-foreground bg-surface-300'
+        )}
+        aria-label="Open dev toolbar"
+        onClick={handleClick}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+      >
+        <Image
+          src="/img/logo-pixel-small-light.png"
+          alt="Dev Toolbar"
+          width={16}
+          height={16}
+          style={{
+            filter:
+              'brightness(0) saturate(100%) invert(72%) sepia(57%) saturate(431%) hue-rotate(108deg) brightness(95%) contrast(91%)',
+          }}
+          aria-hidden="true"
+          className="pointer-events-none"
+        />
+        {eventCount > 0 && (
+          <span
             className={cn(
-              'relative rounded-full h-10 w-10 p-0',
-              'bg-surface-100 border border-overlay shadow-md',
-              'text-foreground-light hover:text-foreground hover:bg-surface-200',
-              'focus-visible:outline-0 focus-visible:outline-transparent focus-visible:outline-offset-0',
-              'select-none touch-none',
-              isDragging ? 'cursor-grabbing' : 'cursor-pointer',
-              isOpen && !isDragging && 'text-foreground bg-surface-300'
+              'absolute -top-1 -right-1',
+              'h-4 min-w-4 px-0.5',
+              'inline-flex items-center justify-center',
+              'rounded-full bg-destructive text-foreground',
+              'text-[10px] font-medium leading-none'
             )}
-            aria-label="Open dev toolbar"
-            onClick={handleClick}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerCancel}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleTriggerMouseLeave}
           >
-            <Image
-              src="/img/logo-pixel-small-light.png"
-              alt="Dev Toolbar"
-              width={16}
-              height={16}
-              style={{
-                filter:
-                  'brightness(0) saturate(100%) invert(72%) sepia(57%) saturate(431%) hue-rotate(108deg) brightness(95%) contrast(91%)',
-              }}
-              aria-hidden="true"
-              className="pointer-events-none"
-            />
-            {eventCount > 0 && (
-              <span
-                className={cn(
-                  'absolute -top-1 -right-1',
-                  'h-4 min-w-4 px-0.5',
-                  'inline-flex items-center justify-center',
-                  'rounded-full bg-destructive text-foreground',
-                  'text-[10px] font-medium leading-none'
-                )}
-              >
-                {eventCount > 99 ? '99+' : eventCount}
-              </span>
-            )}
-          </Button>
-        </PopoverTrigger_Shadcn_>
-        <PopoverContent_Shadcn_
-          side={getPopoverSide(snapPosition)}
-          align={getPopoverAlign(snapPosition)}
-          sideOffset={8}
-          className="w-auto p-1"
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          onOpenAutoFocus={(event) => event.preventDefault()}
-        >
-          <button
-            type="button"
-            className="flex items-center gap-2 px-2 py-1.5 text-sm rounded hover:bg-surface-200 text-foreground-light hover:text-foreground whitespace-nowrap"
-            onClick={handleDismiss}
-          >
-            <EyeOff className="w-4 h-4 shrink-0" />
-            <span>Hide</span>
-          </button>
-        </PopoverContent_Shadcn_>
-      </Popover_Shadcn_>
+            {eventCount > 99 ? '99+' : eventCount}
+          </span>
+        )}
+      </Button>
     </div>
   )
 }

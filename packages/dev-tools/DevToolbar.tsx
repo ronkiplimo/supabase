@@ -1,18 +1,19 @@
 'use client'
 
 import { useFeatureFlags } from 'common'
-import { Activity, ChevronDown, ChevronUp, Flag } from 'lucide-react'
+import { Activity, ChevronDown, ChevronUp, EyeOff, Flag } from 'lucide-react'
 import {
-  type ChangeEvent,
-  type Dispatch,
-  type SetStateAction,
   useCallback,
   useEffect,
   useState,
+  type ChangeEvent,
+  type Dispatch,
+  type SetStateAction,
 } from 'react'
 import {
   Badge,
   Button,
+  cn,
   Input_Shadcn_ as Input,
   Sheet,
   SheetContent,
@@ -24,17 +25,16 @@ import {
   TabsContent_Shadcn_ as TabsContent,
   TabsList_Shadcn_ as TabsList,
   TabsTrigger_Shadcn_ as TabsTrigger,
-  cn,
 } from 'ui'
 
 import { useDevToolbar } from './DevToolbarContext'
 import type { DevTelemetryEvent } from './types'
 import {
   CC_ORIGINALS_KEY,
-  PH_ORIGINALS_KEY,
   deleteCookie,
   getCookie,
   parseOverrideValue,
+  PH_ORIGINALS_KEY,
   readOriginals,
   safeJsonParse,
   setCookie,
@@ -157,7 +157,7 @@ function FlagCard({
 }
 
 export function DevToolbar() {
-  const { isEnabled, isOpen, setIsOpen, events, setEvents } = useDevToolbar()
+  const { isEnabled, isOpen, setIsOpen, events, setEvents, dismissToolbar } = useDevToolbar()
   const [activeTab, setActiveTab] = useState<string>('events')
   const [flagsSubTab, setFlagsSubTab] = useState<'posthog' | 'configcat'>('posthog')
   const [eventFilter, setEventFilter] = useState<string>('')
@@ -299,6 +299,14 @@ export function DevToolbar() {
             <Activity className="w-5 h-5 text-brand-500" />
             <SheetTitle className="text-lg font-semibold">Dev Telemetry</SheetTitle>
             <Badge variant="secondary">Local Only</Badge>
+            <Button
+              type="text"
+              icon={<EyeOff className="w-4 h-4" />}
+              onClick={dismissToolbar}
+              className="ml-auto text-foreground-light hover:text-foreground mr-5"
+            >
+              Hide
+            </Button>
           </div>
           <SheetDescription className="sr-only">
             View telemetry events and feature flags for local development

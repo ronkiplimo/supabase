@@ -19,5 +19,3 @@ export const createMarketplaceClient = () => {
     },
   })
 }
-
-export const marketplaceClient = createMarketplaceClient()

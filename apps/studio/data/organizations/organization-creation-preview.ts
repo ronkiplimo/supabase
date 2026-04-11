@@ -34,7 +34,7 @@ export async function previewOrganizationCreation({
 
   const { data, error } = await post(`/platform/organizations/preview-creation`, {
     body: {
-      tier: tier as any,
+      tier: tier as 'tier_pro' | 'tier_payg' | 'tier_team',
       ...(address && { address }),
       ...(taxId && { tax_id: taxId }),
     },
@@ -58,9 +58,9 @@ export const useOrganizationCreationPreview = <TData = OrganizationCreationPrevi
 ) =>
   useQuery<OrganizationCreationPreviewData, ResponseError, TData>({
     queryKey: organizationKeys.creationPreview(tier, {
-      ...address,
-      ...taxId,
-    } as Record<string, unknown> | undefined),
+      address: address as Record<string, unknown> | undefined,
+      taxId: taxId as Record<string, unknown> | undefined,
+    }),
     queryFn: () => previewOrganizationCreation({ tier, address, taxId }),
     enabled: enabled && typeof tier !== 'undefined',
     placeholderData: keepPreviousData,

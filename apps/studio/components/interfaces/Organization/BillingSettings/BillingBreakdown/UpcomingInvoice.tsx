@@ -327,24 +327,6 @@ export const UpcomingInvoice = ({ slug }: UpcomingInvoiceProps) => {
                         </TableCell>
                       </TableRow>
                     )}
-                    {taxFailed && (
-                      <TableRow>
-                        <TableCell className="py-2 px-0">
-                          <div className="flex items-center gap-1">
-                            <span>Projected Tax</span>
-                            <InfoTooltip>
-                              We were unable to estimate tax for your organization. Please verify
-                              your billing address in your organization settings.
-                            </InfoTooltip>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right py-2 px-0">
-                          <div className="flex items-center justify-end gap-1">
-                            <span className="text-warning">Could not be estimated</span>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
                     {hasTax && (
                       <TableRow>
                         <TableCell className="font-medium py-2 px-0 flex items-center">
@@ -355,13 +337,29 @@ export const UpcomingInvoice = ({ slug }: UpcomingInvoiceProps) => {
                           </InfoTooltip>
                         </TableCell>
                         <TableCell className="text-right font-medium py-2 px-0" translate="no">
-                          {hasTax
-                            ? formatCurrency(upcomingInvoice.tax!.total_amount_including_tax)
-                            : '-'}
+                          {formatCurrency(upcomingInvoice.tax!.total_amount_including_tax)}
                         </TableCell>
                       </TableRow>
                     )}
                   </>
+                )}
+                {taxFailed && (
+                  <TableRow>
+                    <TableCell className="py-2 px-0">
+                      <div className="flex items-center gap-1">
+                        <span>Projected Tax</span>
+                        <InfoTooltip>
+                          We were unable to estimate tax for your organization. Please verify your
+                          billing address in your organization settings.
+                        </InfoTooltip>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right py-2 px-0">
+                      <div className="flex items-center justify-end gap-1">
+                        <span className="text-warning">Could not be estimated</span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
                 )}
               </TableFooter>
             </Table>

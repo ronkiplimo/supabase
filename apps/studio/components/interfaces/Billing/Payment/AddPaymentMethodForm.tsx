@@ -40,7 +40,9 @@ const AddPaymentMethodForm = ({ onCancel, onConfirm }: AddPaymentMethodFormProps
 
   const queryClient = useQueryClient()
   const { mutateAsync: markAsDefault } = useOrganizationPaymentMethodMarkAsDefaultMutation()
-  const { mutateAsync: updateCustomerProfile } = useOrganizationCustomerProfileUpdateMutation()
+  const { mutateAsync: updateCustomerProfile } = useOrganizationCustomerProfileUpdateMutation({
+    onError: () => {},
+  })
   const { data: taxId, isPending: isCustomerTaxIdLoading } = useOrganizationTaxIdQuery({
     slug: selectedOrganization?.slug,
   })
@@ -87,7 +89,8 @@ const AddPaymentMethodForm = ({ onCancel, onConfirm }: AddPaymentMethodFormProps
           ...(taxIdChanged ? { tax_id: formValues.taxId } : {}),
           dry_run: true,
         })
-      } catch {
+      } catch (error: any) {
+        toast.error(error.message ?? 'Failed to validate billing profile')
         setIsSaving(false)
         if (document !== undefined) {
           document.body.classList.remove('!pointer-events-auto')

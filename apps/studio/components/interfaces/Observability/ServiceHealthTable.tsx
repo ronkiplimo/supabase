@@ -1,5 +1,6 @@
 import { ChevronRight, HelpCircle } from 'lucide-react'
 import Link from 'next/link'
+import { useMemo } from 'react'
 import type { ChartConfig } from 'ui'
 import { Card, CardContent, Loading, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
 import { ChartLine } from 'ui-patterns/Chart'
@@ -57,10 +58,22 @@ const ServiceRow = ({ service, data, onBarClick, datetimeFormat }: ServiceRowPro
 
   const reportUrl = service.reportUrl || service.logsUrl
 
+  const rateData = useMemo(
+    () =>
+      data.eventChartData.map((d) => {
+        const total = d.error_count + d.ok_count + d.warning_count
+        return {
+          timestamp: d.timestamp,
+          error_rate: total > 0 ? (d.error_count / total) * 100 : 0,
+          warning_rate: total > 0 ? (d.warning_count / total) * 100 : 0,
+        }
+      }),
+    [data.eventChartData]
+  )
+
   const chartConfig: ChartConfig = {
-    error_count: { label: 'Errors', color: 'hsl(var(--destructive-default))' },
-    warning_count: { label: 'Warnings', color: 'hsl(var(--warning-default))' },
-    ok_count: { label: 'Ok', color: 'hsl(var(--brand-default))' },
+    error_rate: { label: 'Error rate', color: 'hsl(var(--destructive-default))' },
+    warning_rate: { label: 'Warning rate', color: 'hsl(var(--warning-default))' },
   }
 
   return (
@@ -104,18 +117,19 @@ const ServiceRow = ({ service, data, onBarClick, datetimeFormat }: ServiceRowPro
         <Loading active={data.isLoading}>
           {data.isLoading ? (
             <div />
-          ) : data.eventChartData.length === 0 ? (
+          ) : rateData.length === 0 ? (
             <div className="flex items-center justify-center h-full text-xs text-foreground-lighter">
               No data
             </div>
           ) : (
             <ChartLine
-              data={data.eventChartData}
-              dataKey="ok_count"
-              dataKeys={['error_count', 'warning_count', 'ok_count']}
+              data={rateData}
+              dataKey="error_rate"
+              dataKeys={['error_rate', 'warning_rate']}
               config={chartConfig}
               DateTimeFormat={datetimeFormat}
               onLineClick={onBarClick}
+              YAxisProps={{ tickFormatter: (v: number) => `${v.toFixed(1)}%` }}
             />
           )}
         </Loading>

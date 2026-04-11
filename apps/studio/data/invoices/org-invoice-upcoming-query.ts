@@ -10,7 +10,7 @@ export type UpcomingInvoiceVariables = {
 }
 
 export type UpcomingInvoiceResponse = {
-  amount_projected: number
+  amount_projected: number | null
   amount_total: number
   currency: string
   customer_balance: number

@@ -147,7 +147,7 @@ async function generateMainLlmsTxt() {
     PRODUCT_OVERVIEW_LINKS,
   ].join('\n')
 
-  fs.writeFile('public/llms.txt', fullText)
+  await fs.writeFile('public/llms.txt', fullText)
 }
 
 async function generateSourceLlmsTxt(sourceDefn: Source) {
@@ -160,7 +160,7 @@ async function generateSourceLlmsTxt(sourceDefn: Source) {
     .join('\n\n')
   const fullText = sourceDefn.title + '\n\n' + sourceText
 
-  fs.writeFile(`public/${sourceDefn.relPath}`, fullText)
+  await fs.writeFile(`public/${sourceDefn.relPath}`, fullText)
 }
 
 // Product overview .txt files in apps/www/public/llms/, read at build time.

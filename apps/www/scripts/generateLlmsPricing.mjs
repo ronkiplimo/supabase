@@ -95,7 +95,8 @@ const formatPlanValue = (val) => {
 
 const getVal = (row, key) => {
   const col = row.columns.find((c) => c.key === key)
-  return col ? col.value : ''
+  if (!col) throw new Error(`Missing column "${key}" in compute add-on row "${row.title || 'unknown'}"`)
+  return col.value
 }
 
 const pad = (str, len) => String(str).padEnd(len)
@@ -214,23 +215,21 @@ const buildDiskSection = () => {
 // Add-Ons section (from pricing.ts feature values)
 // ---------------------------------------------------------------------------
 
-const buildAddOnsSection = () => {
-  const pitr = pricing.database.features.find((f) => f.key === 'database.pitr')
-  const customDomain = pricing.security.features.find((f) => f.key === 'security.customDomains')
-  const branching = pricing.database.features.find((f) => f.key === 'database.branching')
-  const mfaPhone = pricing.auth.features.find((f) => f.key === 'auth.advancedMFAPhone')
-  const saml = pricing.auth.features.find((f) => f.key === 'auth.saml')
-  const logDrain = pricing.security.features.find((f) => f.key === 'security.logDrain')
-  const imageTransform = pricing.storage.features.find((f) => f.key === 'storage.transformations')
+const findFeature = (category, key) => {
+  const feature = pricing[category].features.find((f) => f.key === key)
+  if (!feature) throw new Error(`Missing pricing feature "${key}" in category "${category}"`)
+  return feature
+}
 
+const buildAddOnsSection = () => {
   const addOns = [
-    ['Point-in-Time Recovery (PITR)', pitr ? formatPlanValue(pitr.plans.pro) : 'N/A'],
-    ['Custom Domain', customDomain ? formatPlanValue(customDomain.plans.pro) : 'N/A'],
-    ['Database Branching', branching ? formatPlanValue(branching.plans.pro) : 'N/A'],
-    ['Advanced MFA (Phone)', mfaPhone ? formatPlanValue(mfaPhone.plans.pro) : 'N/A'],
-    ['SAML/SSO Auth', saml ? formatPlanValue(saml.plans.pro) : 'N/A'],
-    ['Log Drains', logDrain ? formatPlanValue(logDrain.plans.pro) : 'N/A'],
-    ['Image Transformations', imageTransform ? formatPlanValue(imageTransform.plans.pro) : 'N/A'],
+    ['Point-in-Time Recovery (PITR)', formatPlanValue(findFeature('database', 'database.pitr').plans.pro)],
+    ['Custom Domain', formatPlanValue(findFeature('security', 'security.customDomains').plans.pro)],
+    ['Database Branching', formatPlanValue(findFeature('database', 'database.branching').plans.pro)],
+    ['Advanced MFA (Phone)', formatPlanValue(findFeature('auth', 'auth.advancedMFAPhone').plans.pro)],
+    ['SAML/SSO Auth', formatPlanValue(findFeature('auth', 'auth.saml').plans.pro)],
+    ['Log Drains', formatPlanValue(findFeature('security', 'security.logDrain').plans.pro)],
+    ['Image Transformations', formatPlanValue(findFeature('storage', 'storage.transformations').plans.pro)],
   ]
 
   const nameWidth = Math.max('Add-on'.length, ...addOns.map(([n]) => n.length))

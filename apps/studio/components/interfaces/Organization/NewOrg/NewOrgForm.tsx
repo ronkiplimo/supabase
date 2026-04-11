@@ -201,6 +201,10 @@ export const NewOrgForm = ({
     })
   }, [])
 
+  const handleAddressIncomplete = useCallback(() => {
+    setLatestAddress(undefined)
+  }, [])
+
   const handleTaxIdChange = useCallback((taxId: CustomerTaxId | null) => {
     setLatestTaxId(taxId)
   }, [])
@@ -599,6 +603,7 @@ export const NewOrgForm = ({
                     email={user.profile?.primary_email}
                     readOnly={newOrgLoading || paymentConfirmationLoading}
                     onAddressChange={handleAddressChange}
+                    onAddressIncomplete={handleAddressIncomplete}
                     onTaxIdChange={handleTaxIdChange}
                   />
                 </Elements>

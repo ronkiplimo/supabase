@@ -1,9 +1,9 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { handleError, post } from 'data/fetchers'
-import type { ResponseError, UseCustomQueryOptions } from 'types'
 
 import { organizationKeys } from './keys'
 import type { CustomerAddress, CustomerTaxId } from './types'
+import { handleError, post } from '@/data/fetchers'
+import type { ResponseError, UseCustomQueryOptions } from '@/types'
 
 export type OrganizationCreationPreviewVariables = {
   tier?: string

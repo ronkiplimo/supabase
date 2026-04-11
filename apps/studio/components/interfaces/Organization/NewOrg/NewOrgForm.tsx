@@ -207,6 +207,14 @@ export const NewOrgForm = ({
 
   const selectedPlan = form.watch('plan')
   const selectedSpendCap = form.watch('spend_cap')
+
+  useEffect(() => {
+    if (selectedPlan === 'FREE' || !setupIntent) {
+      setLatestAddress(undefined)
+      setLatestTaxId(null)
+    }
+  }, [selectedPlan, setupIntent])
+
   const previewTier = useMemo(() => {
     if (selectedPlan === 'FREE') return undefined
     const dbTier = selectedPlan === 'PRO' && !selectedSpendCap ? 'PAYG' : selectedPlan
@@ -594,52 +602,52 @@ export const NewOrgForm = ({
                     onTaxIdChange={handleTaxIdChange}
                   />
                 </Elements>
-              </Panel.Content>
-            )}
 
-            {creationPreviewInitialized && selectedPlan !== 'FREE' && (
-              <Panel.Content>
-                <div
-                  className={cn(
-                    'text-foreground-light text-sm transition-opacity',
-                    creationPreviewIsFetching && 'opacity-50'
-                  )}
-                >
-                  {creationPreview.total !== creationPreview.plan_price && (
-                    <div className="flex items-center justify-between gap-2 border-b border-muted text-sm">
-                      <div className="py-2">Plan price</div>
-                      <div className="py-2 text-right tabular-nums" translate="no">
-                        {formatCurrency(creationPreview.plan_price)}
-                      </div>
-                    </div>
-                  )}
-
-                  {creationPreview.tax_status === 'calculated' &&
-                    creationPreview.tax &&
-                    creationPreview.tax.tax_amount > 0 && (
+                {creationPreviewInitialized && !!billingAddress && (
+                  <div
+                    className={cn(
+                      'text-foreground-light text-sm transition-opacity mt-4',
+                      creationPreviewIsFetching && 'opacity-50'
+                    )}
+                  >
+                    {creationPreview.total !== creationPreview.plan_price && (
                       <div className="flex items-center justify-between gap-2 border-b border-muted text-sm">
-                        <div className="py-2">Tax ({creationPreview.tax.tax_rate_percentage}%)</div>
+                        <div className="py-2">Plan price</div>
                         <div className="py-2 text-right tabular-nums" translate="no">
-                          {formatCurrency(creationPreview.tax.tax_amount)}
+                          {formatCurrency(creationPreview.plan_price)}
                         </div>
                       </div>
                     )}
 
-                  {creationPreview.tax_status === 'failed' && (
-                    <div className="flex items-center justify-between gap-2 border-b border-muted text-sm">
-                      <div className="py-2 text-foreground-lighter">
-                        Tax could not be estimated and may be applied separately
+                    {creationPreview.tax_status === 'calculated' &&
+                      creationPreview.tax &&
+                      creationPreview.tax.tax_amount > 0 && (
+                        <div className="flex items-center justify-between gap-2 border-b border-muted text-sm">
+                          <div className="py-2">
+                            Tax ({creationPreview.tax.tax_rate_percentage}%)
+                          </div>
+                          <div className="py-2 text-right tabular-nums" translate="no">
+                            {formatCurrency(creationPreview.tax.tax_amount)}
+                          </div>
+                        </div>
+                      )}
+
+                    {creationPreview.tax_status === 'failed' && (
+                      <div className="flex items-center justify-between gap-2 border-b border-muted text-sm">
+                        <div className="py-2 text-foreground-lighter">
+                          Tax could not be estimated and may be applied separately
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between gap-2 text-foreground text-base">
+                      <div className="py-2">Total due today</div>
+                      <div className="py-2 text-right tabular-nums" translate="no">
+                        {formatCurrency(creationPreview.total)}
                       </div>
                     </div>
-                  )}
-
-                  <div className="flex items-center justify-between gap-2 text-foreground text-base">
-                    <div className="py-2">Total due today</div>
-                    <div className="py-2 text-right tabular-nums" translate="no">
-                      {formatCurrency(creationPreview.total)}
-                    </div>
                   </div>
-                </div>
+                )}
               </Panel.Content>
             )}
 

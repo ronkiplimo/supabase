@@ -240,9 +240,13 @@ export const NewPaymentMethodElement = forwardRef(
           mode: 'google_maps_api',
         },
         display: { name: purchasingAsBusiness ? 'organization' : 'full' },
+        // Use live form state (stripeAddress) so the address survives remounts triggered
+        // by the purchasingAsBusiness toggle (which changes the key prop). Without this,
+        // the element resets to the original currentAddress prop, causing the country to
+        // revert and the tax ID selector to fall out of sync.
         defaultValues: {
-          address: currentAddress ?? undefined,
-          name: customerName,
+          address: stripeAddress?.address ?? currentAddress ?? undefined,
+          name: stripeAddress?.name ?? customerName,
         },
       }),
       [purchasingAsBusiness]

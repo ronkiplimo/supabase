@@ -13,7 +13,7 @@ import {
 } from '@stripe/stripe-js'
 import { Form } from '@ui/components/shadcn/ui/form'
 import { Check, ChevronsUpDown } from 'lucide-react'
-import { forwardRef, useEffect, useId, useImperativeHandle, useMemo, useState } from 'react'
+import { forwardRef, useEffect, useId, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import {
@@ -147,13 +147,14 @@ export const NewPaymentMethodElement = forwardRef(
       }
     }, [purchasingAsBusiness, selectedTaxId, tax_id_value, onTaxIdChange])
 
+    const addressCountry = stripeAddress?.address.country
     const availableTaxIds = useMemo(() => {
-      const country = stripeAddress?.address.country || null
+      const country = addressCountry || null
 
       return TAX_IDS.filter((taxId) => country == null || taxId.countryIso2 === country).sort(
         (a, b) => a.country.localeCompare(b.country)
       )
-    }, [stripeAddress])
+    }, [addressCountry])
 
     const createPaymentMethod = async (): ReturnType<
       PaymentMethodElementRef['createPaymentMethod']
@@ -247,15 +248,24 @@ export const NewPaymentMethodElement = forwardRef(
       [purchasingAsBusiness]
     )
 
-    // Preselect tax id if there is no more than 2 available tax ids (even if there are two options, first one in the list is likely to be it)
+    // Preselect tax id when the country changes (if there are available tax ids for that country)
+    const prevCountryRef = useRef(addressCountry)
     useEffect(() => {
-      if (availableTaxIds.length && stripeAddress?.address.country && !currentTaxId) {
+      if (!availableTaxIds.length || !addressCountry) return
+
+      const isCountryChange =
+        prevCountryRef.current !== undefined && prevCountryRef.current !== addressCountry
+      prevCountryRef.current = addressCountry
+
+      // On country change: always reset to the new country's default
+      // On initial load: only preselect if there's no existing tax id
+      if (isCountryChange || !currentTaxId) {
         const taxIdOption = availableTaxIds[0]
         form.setValue('tax_id_type', taxIdOption.type)
         form.setValue('tax_id_value', '')
         form.setValue('tax_id_name', taxIdOption.name)
       }
-    }, [availableTaxIds, stripeAddress])
+    }, [availableTaxIds, addressCountry])
 
     return (
       <div className="space-y-2">

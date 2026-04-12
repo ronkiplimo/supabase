@@ -269,7 +269,7 @@ export const NewPaymentMethodElement = forwardRef(
         form.setValue('tax_id_value', '')
         form.setValue('tax_id_name', taxIdOption.name)
       }
-    }, [availableTaxIds, addressCountry])
+    }, [availableTaxIds, addressCountry, currentTaxId])
 
     return (
       <div className="space-y-2">

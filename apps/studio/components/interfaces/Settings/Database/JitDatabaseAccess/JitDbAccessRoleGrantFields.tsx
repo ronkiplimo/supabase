@@ -103,6 +103,7 @@ export function JitDbAccessRoleGrantFields({
                 type="warning"
                 showIcon={false}
                 layout="vertical"
+                className="rounded-md mb-2"
                 title="Grants full database control"
                 description={
                   <>

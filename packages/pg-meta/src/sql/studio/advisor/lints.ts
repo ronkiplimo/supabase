@@ -1484,7 +1484,11 @@ matching_policies as (
             and p.tablename = 'objects'
             and p.cmd = 'SELECT'
     where
-        p.qual ~* (E'bucket_id\\s*=\\s*' || b.quoted_bucket_pattern)
+        p.qual ~* (
+            E'^\\s*\\(*\\s*bucket_id\\s*=\\s*'
+            || b.quoted_bucket_pattern
+            || E'(\\s*::\\s*[[:alnum:]_\\.]+)?\\s*\\)*\\s*$'
+        )
 ),
 affected_buckets as (
     select
@@ -1504,9 +1508,9 @@ select
     'WARN' as level,
     'EXTERNAL' as facing,
     array['SECURITY'] as categories,
-    'Detects public storage buckets that also have bucket-specific SELECT policies on storage.objects. Public buckets do not require SELECT policies for object URL access, and adding them can unintentionally make bucket contents listable.' as description,
+    'Detects public storage buckets with a bucket-only SELECT policy on storage.objects, which allows clients to list all files in the bucket.' as description,
     format(
-        'Public storage bucket \`%s\` (\`%s\`) has %s matching SELECT %s on \`storage.objects\`: %s. This allows clients to list the bucket contents. Public buckets do not require SELECT policies for object URL access, and this is often unintentional.',
+        'Public storage bucket \`%s\` (\`%s\`) has %s bucket-only SELECT %s on \`storage.objects\`: %s. This allows clients to list the bucket contents. Public buckets do not require SELECT policies for object URL access, and this is often unintentional.',
         bucket_name,
         bucket_id,
         policy_count,

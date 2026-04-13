@@ -1426,32 +1426,7 @@ with storage_bucket_table as (
 public_buckets as (
     select
         bucket_id,
-        bucket_name,
-        replace(
-            replace(
-                replace(
-                    replace(
-                        replace(
-                            replace(
-                                replace(pg_catalog.quote_literal(bucket_id), '.', E'\\.'),
-                                '*',
-                                E'\\*'
-                            ),
-                            '(',
-                            E'\\('
-                        ),
-                        ')',
-                        E'\\)'
-                    ),
-                    '$',
-                    E'\\$'
-                ),
-                '+',
-                E'\\+'
-            ),
-            '?',
-            E'\\?'
-        ) as quoted_bucket_pattern
+        bucket_name
     from
         (
             select
@@ -1490,10 +1465,17 @@ matching_policies as (
             p.qual is null
             or replace(replace(replace(lower(p.qual), ' ', ''), E'\n', ''), E'\t', '')
                 in ('true', '(true)', '1=1', '(1=1)')
-            or p.qual ~* (
-                E'^\\s*\\(*\\s*bucket_id\\s*=\\s*'
-                || b.quoted_bucket_pattern
-                || E'(\\s*::\\s*[[:alnum:]_\\.]+)?\\s*\\)*\\s*$'
+            or exists (
+                select
+                    1
+                from
+                    pg_catalog.regexp_match(
+                        p.qual,
+                        $re$\\A\\s*\\(*\\s*bucket_id\\s*=\\s*('(?:[^']|'')*')(\\s*::\\s*[[:alnum:]_\\.]+)?\\s*\\)*\\s*\\Z$re$,
+                        'i'
+                    ) as bucket_match(matches)
+                where
+                    bucket_match.matches[1] = '''' || replace(b.bucket_id, '''', '''''') || ''''
             )
         )
 ),

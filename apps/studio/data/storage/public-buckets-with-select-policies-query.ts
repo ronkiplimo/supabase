@@ -51,18 +51,14 @@ async function getPublicBucketsWithSelectPolicies({
           p.qual IS NULL
           OR replace(replace(replace(lower(p.qual), ' ', ''), E'\\n', ''), E'\\t', '')
             IN ('true', '(true)', '1=1', '(1=1)')
-          OR p.qual ~* (
-            '^\\s*\\(*\\s*bucket_id\\s*=\\s*' ||
-            replace(replace(replace(replace(replace(replace(replace(
-              quote_literal(b.id),
-              '.', '\\.'),
-              '*', '\\*'),
-              '(', '\\('),
-              ')', '\\)'),
-              '$', '\\$'),
-              '+', '\\+'),
-              '?', '\\?') ||
-            '(\\s*::\\s*[[:alnum:]_\\.]+)?\\s*\\)*\\s*$'
+          OR EXISTS (
+            SELECT 1
+            FROM regexp_match(
+              p.qual,
+              $re$\\A\\s*\\(*\\s*bucket_id\\s*=\\s*('(?:[^']|'')*')(\\s*::\\s*[[:alnum:]_\\.]+)?\\s*\\)*\\s*\\Z$re$,
+              'i'
+            ) AS bucket_match(matches)
+            WHERE bucket_match.matches[1] = '''' || replace(b.id, '''', '''''') || ''''
           )
         )
       ORDER BY p.policyname

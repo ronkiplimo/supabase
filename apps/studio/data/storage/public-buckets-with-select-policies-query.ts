@@ -21,9 +21,10 @@ export type PublicBucketSelectPolicy = {
 
 /**
  * For the given public bucket, checks whether any SELECT policy on storage.objects
- * is scoped only to this bucket ID. This combination means anyone who can use the
- * policy can enumerate all objects in the bucket, which is usually unintentional —
- * public buckets don't require SELECT policies for object access by URL. Policies
+ * broadly allows listing, either through an always-true expression or a policy
+ * scoped only to this bucket ID. This combination means anyone who can use the
+ * policy can enumerate all objects in the bucket, which is usually unintentional.
+ * Public buckets don't require SELECT policies for object access by URL. Policies
  * with additional object, path, or user constraints are excluded from this warning.
  *
  * Scoped to a single bucket so the query is a point-lookup rather than a full scan.
@@ -45,18 +46,23 @@ async function getPublicBucketsWithSelectPolicies({
         AND p.cmd = 'SELECT'
       WHERE b.public = true
         AND b.id = ${literal(bucketId)}
-        AND p.qual ~* (
-          '^\\s*\\(*\\s*bucket_id\\s*=\\s*' ||
-          replace(replace(replace(replace(replace(replace(replace(
-            quote_literal(b.id),
-            '.', '\\.'),
-            '*', '\\*'),
-            '(', '\\('),
-            ')', '\\)'),
-            '$', '\\$'),
-            '+', '\\+'),
-            '?', '\\?') ||
-          '(\\s*::\\s*[[:alnum:]_\\.]+)?\\s*\\)*\\s*$'
+        AND (
+          p.qual IS NULL
+          OR replace(replace(replace(lower(p.qual), ' ', ''), E'\\n', ''), E'\\t', '')
+            IN ('true', '(true)', '1=1', '(1=1)')
+          OR p.qual ~* (
+            '^\\s*\\(*\\s*bucket_id\\s*=\\s*' ||
+            replace(replace(replace(replace(replace(replace(replace(
+              quote_literal(b.id),
+              '.', '\\.'),
+              '*', '\\*'),
+              '(', '\\('),
+              ')', '\\)'),
+              '$', '\\$'),
+              '+', '\\+'),
+              '?', '\\?') ||
+            '(\\s*::\\s*[[:alnum:]_\\.]+)?\\s*\\)*\\s*$'
+          )
         )
     `,
   })

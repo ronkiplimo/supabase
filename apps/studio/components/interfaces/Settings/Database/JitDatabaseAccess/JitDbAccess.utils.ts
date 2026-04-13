@@ -164,13 +164,6 @@ function toUnixSeconds(datetimeIso: string) {
   return value.unix()
 }
 
-export function parseCommaSeparatedCidrs(value: string) {
-  return value
-    .split(',')
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0)
-}
-
 function isValidCidr(value: string) {
   try {
     if (value.includes(':')) {
@@ -316,8 +309,6 @@ export function serializeDraftRolesForGrantMutation(draft: JitUserRuleDraft) {
 
     const allowed_cidrs = cidrs.filter((cidr) => !cidr.includes(':')).map((cidr) => ({ cidr }))
     const allowed_cidrs_v6 = cidrs.filter((cidr) => cidr.includes(':')).map((cidr) => ({ cidr }))
-
-    if (allowed_cidrs.length === 0 && allowed_cidrs_v6.length === 0) return undefined
 
     return {
       ...(allowed_cidrs.length > 0 ? { allowed_cidrs } : {}),

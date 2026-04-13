@@ -8,7 +8,6 @@ import {
   getInvalidIpRangeRows,
   getJitMemberOptions,
   getRelativeDatetimeByMode,
-  parseCommaSeparatedCidrs,
   serializeDraftRolesForGrantMutation,
 } from './JitDbAccess.utils'
 import type { OrganizationMembersData } from '@/data/organizations/organization-members-query'
@@ -56,14 +55,6 @@ describe('jitDbAccess.utils', () => {
       activeIp: 1,
       expiredIp: 1,
     })
-  })
-
-  it('parses comma-separated CIDR lists and trims whitespace', () => {
-    expect(parseCommaSeparatedCidrs('192.0.2.0/24, 2001:db8::/64 , ,203.0.113.4/32')).toEqual([
-      '192.0.2.0/24',
-      '2001:db8::/64',
-      '203.0.113.4/32',
-    ])
   })
 
   it('returns invalid CIDRs from repeated input rows', () => {

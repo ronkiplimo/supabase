@@ -186,7 +186,11 @@ function PublicBucketWarningView(props: PublicBucketWarningViewProps): ReactNode
       <ConfirmationModal
         visible={isModalVisible}
         variant="destructive"
-        title={hasMultiplePolicies ? `Remove SELECT policy (1 of ${policyCount})` : 'Remove SELECT policy'}
+        title={
+          hasMultiplePolicies
+            ? `Remove SELECT policy (1 of ${policyCount})`
+            : 'Remove SELECT policy'
+        }
         confirmLabel="Remove policy"
         loading={isRemovingPolicy}
         onCancel={onHideModal}

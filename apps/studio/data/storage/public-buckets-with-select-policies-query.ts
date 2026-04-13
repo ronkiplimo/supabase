@@ -21,11 +21,10 @@ export type PublicBucketSelectPolicy = {
 
 /**
  * For the given public bucket, checks whether any SELECT policy on storage.objects
- * references this bucket's ID in its qual expression without any auth-based restrictions
- * (i.e. no reference to auth.*). This combination means anyone can enumerate all objects
- * in the bucket, which is usually unintentional — public buckets don't require SELECT
- * policies for object access by URL. Policies that gate on auth.uid(), auth.role(), etc.
- * are intentional access control and are excluded from this warning.
+ * is scoped only to this bucket ID. This combination means anyone who can use the
+ * policy can enumerate all objects in the bucket, which is usually unintentional —
+ * public buckets don't require SELECT policies for object access by URL. Policies
+ * with additional object, path, or user constraints are excluded from this warning.
  *
  * Scoped to a single bucket so the query is a point-lookup rather than a full scan.
  */
@@ -47,7 +46,7 @@ async function getPublicBucketsWithSelectPolicies({
       WHERE b.public = true
         AND b.id = ${literal(bucketId)}
         AND p.qual ~* (
-          'bucket_id\\s*=\\s*' ||
+          '^\\s*\\(*\\s*bucket_id\\s*=\\s*' ||
           replace(replace(replace(replace(replace(replace(replace(
             quote_literal(b.id),
             '.', '\\.'),
@@ -56,9 +55,9 @@ async function getPublicBucketsWithSelectPolicies({
             ')', '\\)'),
             '$', '\\$'),
             '+', '\\+'),
-            '?', '\\?')
+            '?', '\\?') ||
+          '(\\s*::\\s*[[:alnum:]_\\.]+)?\\s*\\)*\\s*$'
         )
-        AND p.qual !~* 'auth\\.'
     `,
   })
 

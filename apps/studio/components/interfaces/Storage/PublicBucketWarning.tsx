@@ -1,7 +1,7 @@
 import { ident } from '@supabase/pg-meta/src/pg-format'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { LOCAL_STORAGE_KEYS } from 'common'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { Button } from 'ui'
 import { Admonition } from 'ui-patterns/admonition'
@@ -56,6 +56,7 @@ export function PublicBucketWarning({ projectRef, bucketId }: PublicBucketWarnin
     bucketId,
   })
   const policyToRemove = data?.[0]
+  const matchingPolicyCount = data?.length ?? 0
 
   const track = useTrack()
 
@@ -78,7 +79,13 @@ export function PublicBucketWarning({ projectRef, bucketId }: PublicBucketWarnin
       ])
       track('storage_public_bucket_select_policy_removed', { bucketId })
       setShowModal(false)
-      toast.success('Policy removed successfully')
+      toast.success(
+        matchingPolicyCount > 1
+          ? `Policy removed successfully. ${matchingPolicyCount - 1} matching ${
+              matchingPolicyCount - 1 === 1 ? 'policy' : 'policies'
+            } remaining.`
+          : 'Policy removed successfully'
+      )
     },
     onError: (error) => {
       console.error('Failed to remove policy', error)
@@ -88,6 +95,11 @@ export function PublicBucketWarning({ projectRef, bucketId }: PublicBucketWarnin
 
   const [showModal, setShowModal] = useState(false)
   const [dismissed, setDismissed] = useState(() => isDismissed(projectRef, bucketId))
+
+  useEffect(() => {
+    setDismissed(isDismissed(projectRef, bucketId))
+    setShowModal(false)
+  }, [bucketId, projectRef])
 
   function handleDismiss() {
     persistDismiss(projectRef, bucketId)
@@ -99,6 +111,7 @@ export function PublicBucketWarning({ projectRef, bucketId }: PublicBucketWarnin
     <PublicBucketWarningView
       _tag="policy-to-remove"
       policyName={policyToRemove.policyname}
+      policyCount={matchingPolicyCount}
       isRemovingPolicy={isRemovingPolicy}
       onRemovePolicy={() => removePolicy(policyToRemove.policyname)}
       isModalVisible={showModal}
@@ -118,6 +131,7 @@ type PublicBucketWarningViewProps_NoPolicyToRemove = {
 type PublicBucketWarningViewProps_PolicyToRemove = {
   _tag: 'policy-to-remove'
   policyName: string
+  policyCount: number
   isRemovingPolicy: boolean
   onRemovePolicy: () => void
   isModalVisible: boolean
@@ -137,6 +151,7 @@ function PublicBucketWarningView(props: PublicBucketWarningViewProps): ReactNode
 
   const {
     policyName,
+    policyCount,
     isRemovingPolicy,
     onRemovePolicy,
     isModalVisible,
@@ -144,14 +159,19 @@ function PublicBucketWarningView(props: PublicBucketWarningViewProps): ReactNode
     onHideModal,
     onDismiss,
   } = props
+  const hasMultiplePolicies = policyCount > 1
 
   return (
     <>
       <Admonition
         type="warning"
         layout="horizontal"
-        title="Anyone can list all files in this bucket"
-        description="A SELECT policy on storage.objects allows clients to retrieve a full list of files. Public buckets don’t need this and it may expose more data than intended."
+        title="Clients can list all files in this bucket"
+        description={
+          hasMultiplePolicies
+            ? `${policyCount} broad SELECT policies on storage.objects allow clients to retrieve a full list of files. Public buckets don’t need these policies and they may expose more data than intended.`
+            : 'A broad SELECT policy on storage.objects allows clients to retrieve a full list of files. Public buckets don’t need this and it may expose more data than intended.'
+        }
         actions={
           <div className="flex gap-2">
             <Button type="default" size="tiny" onClick={onDismiss}>
@@ -166,7 +186,7 @@ function PublicBucketWarningView(props: PublicBucketWarningViewProps): ReactNode
       <ConfirmationModal
         visible={isModalVisible}
         variant="destructive"
-        title="Remove SELECT policy"
+        title={hasMultiplePolicies ? `Remove SELECT policy (1 of ${policyCount})` : 'Remove SELECT policy'}
         confirmLabel="Remove policy"
         loading={isRemovingPolicy}
         onCancel={onHideModal}
@@ -174,8 +194,13 @@ function PublicBucketWarningView(props: PublicBucketWarningViewProps): ReactNode
       >
         <div className="flex flex-col gap-3">
           <p className="text-sm text-foreground-light">
-            This will drop the <code>SELECT</code> policy that makes the bucket&apos;s contents
-            listable. Object URLs will continue to work.
+            This will drop {hasMultiplePolicies ? 'one' : 'the'} <code>SELECT</code> policy that
+            makes the bucket&apos;s contents listable. Object URLs will continue to work.
+            {hasMultiplePolicies
+              ? ` ${policyCount - 1} matching ${
+                  policyCount - 1 === 1 ? 'policy' : 'policies'
+                } will remain after this.`
+              : null}
           </p>
           <div className="-mx-4 md:-mx-5 -mb-4 border-t">
             <CodeBlock

@@ -1,4 +1,5 @@
-
+-- Enable trigram extension for GIN indexes (required for idx_products_reg_no)
+CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 
 
 SET statement_timeout = 0;
